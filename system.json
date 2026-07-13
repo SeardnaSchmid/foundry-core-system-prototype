@@ -19,13 +19,17 @@
       "thumbnail": "systems/joster/assets/anvil-impact.png"
     }
   ],
-  "version": "0.2.1",
+  "version": "0.2.2",
   "compatibility": {
     "minimum": 12,
     "verified": 14
   },
-  "esmodules": ["module/joster.mjs"],
-  "styles": ["css/joster.css"],
+  "esmodules": [
+    "module/joster.mjs"
+  ],
+  "styles": [
+    "css/joster.css"
+  ],
   "languages": [
     {
       "lang": "de",
