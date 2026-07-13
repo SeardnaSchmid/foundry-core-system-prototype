@@ -1,1 +1,1 @@
-Rules: Read files first. Write complete solution. Test once. No over-engineering.
+@AGENTS.md
