@@ -107,13 +107,16 @@ export class JosterRollDialog extends FormApplication {
     });
 
     html.on('click', '.joster-bonus-stepper', (ev) => {
-      const input = html.find('input[name="bonus"]')[0];
+      ev.preventDefault();
+      const form = $(ev.currentTarget).closest('form')[0];
+      const input = form.querySelector('input[name="bonus"]');
       const delta = ev.currentTarget.dataset.action === 'increment' ? BONUS_STEP : -BONUS_STEP;
       const next = Math.clamp(Number(input.value) + delta, BONUS_MIN, BONUS_MAX);
       input.value = next;
-      html.find('.joster-bonus-value').text(next);
-      const data = new FormDataExtended(ev.currentTarget.form).object;
-      html.find('.joster-threshold-value').text(this._computeThreshold(data));
+      form.querySelector('.joster-bonus-value').textContent = next;
+      const data = new FormDataExtended(form).object;
+      data.bonus = next;
+      form.querySelector('.joster-threshold-value').textContent = this._computeThreshold(data);
     });
 
     html.on('click', '.joster-advantage-option', (ev) => {
