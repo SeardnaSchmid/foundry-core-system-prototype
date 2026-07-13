@@ -37,6 +37,34 @@
     "AttributeDecrease": "Wert verringern",
     "ResetTemp": "Auf Basiswert zurücksetzen",
     "DerivedAttributesTitle": "Abgeleitete Attribute",
+    "SkillsTitle": "Fertigkeiten",
+    "SkillIncrease": "Wert erhöhen",
+    "SkillDecrease": "Wert verringern",
+    "SkillCategoryEmptyHint": "Noch keine Fertigkeiten definiert.",
+    "SkillCategory": {
+      "Combat": "Kampf",
+      "General": "Allgemein",
+      "Milieus": "Milieus",
+      "Biomes": "Biome",
+      "Technology": "Technologie",
+      "Knowledge": "Wissen"
+    },
+    "Skill": {
+      "Brawling": "Raufen",
+      "Swords": "Schwerter",
+      "HeavyMelee": "Schwere Nahkampfwaffen",
+      "FlexibleWeapons": "Flexible Waffen",
+      "Shooting": "Schießen",
+      "Sniper": "Scharfschütze",
+      "HeavyRanged": "Schwere Fernkampfwaffen",
+      "ElectronicWeapons": "Elektronische Waffen",
+      "ThrowingWeapons": "Wurfwaffen",
+      "Exotic": "Exotische",
+      "Athletics": "Athletik",
+      "Acrobatics": "Akrobatik",
+      "Stealth": "Heimlichkeit",
+      "SelfControl": "Selbstbeherrschung"
+    },
     "Derived": {
       "Initiative": "Initiativegrundwert",
       "MovementWalk": "Bewegungsreichweite (Gehen)",
@@ -75,9 +103,10 @@
       "DialogTitle": "Wurf",
       "AttributeA": "Attribut/Fähigkeit 1",
       "AttributeB": "Attribut/Fähigkeit 2",
-      "Bonus": "Schwierigkeit (+/-3)",
+      "Bonus": "Modifikation",
       "Advantage": "Vor-/Nachteil",
       "Threshold": "Schwelle",
+      "RollingAgainst": "Wurf gegen",
       "Submit": "Würfeln"
     },
     "Advantage": {

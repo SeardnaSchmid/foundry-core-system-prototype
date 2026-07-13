@@ -12,6 +12,8 @@ const BASE_MIN = 1;
 const BASE_MAX = 10;
 const TEMP_MIN = 0;
 const TEMP_MAX = 20;
+const SKILL_MIN = 0;
+const SKILL_MAX = 10;
 
 /**
  * Extend the basic ActorSheet with some very simple modifications
@@ -35,7 +37,7 @@ export class JosterActorSheet extends ActorSheet {
         {
           navSelector: '.sheet-tabs',
           contentSelector: '.sheet-body',
-          initial: 'attributes',
+          initial: 'basics',
         },
       ],
     });
@@ -187,6 +189,23 @@ export class JosterActorSheet extends ActorSheet {
       label: game.i18n.localize(`JOSTER.Derived.${i18n}`),
       hint: game.i18n.localize(`JOSTER.DerivedHint.${i18n}`),
     }));
+
+    // Build the skill list, grouped by category, in JOSTER.skillCategories order.
+    // Categories without any skills yet (WIP groups) still render, empty.
+    const skills = context.system.skills ?? {};
+    context.skillGroups = Object.entries(CONFIG.JOSTER.skillCategories).map(([catKey, catLabelKey]) => ({
+      key: catKey,
+      label: game.i18n.localize(catLabelKey),
+      skills: Object.entries(CONFIG.JOSTER.skills)
+        .filter(([, skill]) => skill.category === catKey)
+        .map(([key, skill]) => ({
+          key,
+          label: game.i18n.localize(skill.label),
+          attribute: skill.attribute,
+          attributeLabel: game.i18n.localize(CONFIG.JOSTER.abilities[skill.attribute]),
+          rank: skills[key]?.value ?? 0,
+        })),
+    }));
   }
 
   /**
@@ -269,6 +288,12 @@ export class JosterActorSheet extends ActorSheet {
     // Reset an attribute's temp value back to its base value.
     html.on('click', '.heatmap-delta', (ev) => {
       this._resetTemp(ev.currentTarget.dataset.key);
+    });
+
+    // Skill rank +/- steppers.
+    html.on('click', '.skill-stepper', (ev) => {
+      const { key, action } = ev.currentTarget.dataset;
+      this._stepSkill(key, action === 'increment' ? 1 : -1);
     });
 
     // Add Inventory Item
@@ -371,6 +396,19 @@ export class JosterActorSheet extends ActorSheet {
   }
 
   /**
+   * Handle a skill rank +/- stepper click.
+   * @param {string} key    Skill key, e.g. "brawling"
+   * @param {number} delta  +1 or -1
+   * @private
+   */
+  async _stepSkill(key, delta) {
+    const skill = this.actor.system.skills?.[key];
+    if (!skill) return;
+    const next = Math.clamp(skill.value + delta, SKILL_MIN, SKILL_MAX);
+    await this.actor.update({ [`system.skills.${key}.value`]: next });
+  }
+
+  /**
    * Handle clickable rolls.
    * @param {Event} event   The originating click event
    * @private
@@ -392,6 +430,18 @@ export class JosterActorSheet extends ActorSheet {
       if (dataset.rollType == 'ability') {
         return new JosterRollDialog(this.actor, {
           attributeA: dataset.ability,
+          flavor: dataset.label,
+        }).render(true);
+      }
+
+      // Open the roll dialog for a skill. The linked attribute and skill
+      // rank are fixed threshold components; the dialog's bonus field is
+      // left at 0 for the player to dial in a situational modifier.
+      if (dataset.rollType == 'skill') {
+        const rank = this.actor.system.skills?.[dataset.skill]?.value ?? 0;
+        return new JosterRollDialog(this.actor, {
+          attributeA: dataset.ability,
+          skill: { key: dataset.skill, label: dataset.label, value: rank },
           flavor: dataset.label,
         }).render(true);
       }

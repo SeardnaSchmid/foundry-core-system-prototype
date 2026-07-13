@@ -364,7 +364,6 @@
   font-weight: bold;
   font-size: var(--font-size-12, 12px);
   opacity: 0.9;
-  cursor: pointer;
 }
 .joster .attribute-table.heatmap .heatmap-cell .heatmap-delta {
   position: absolute;
@@ -443,6 +442,61 @@
   text-align: center;
   text-transform: uppercase;
   color: #444;
+}
+.joster .skills-title {
+  margin: 0 0 4px;
+  font-size: var(--font-size-12, 12px);
+  text-transform: uppercase;
+}
+.joster .skill-groups {
+  margin: 0 0 10px;
+  align-items: start;
+}
+.joster .skill-group {
+  border: 1px solid #b5b3a4;
+  border-radius: 3px;
+  padding: 4px 6px;
+  margin-bottom: 8px;
+}
+.joster .skill-group-title {
+  margin: 0 0 4px;
+  font-size: var(--font-size-11, 11px);
+  text-transform: uppercase;
+  color: #444;
+}
+.joster .skill-group-empty {
+  margin: 0;
+  font-size: var(--font-size-11, 11px);
+  font-style: italic;
+  color: #444;
+}
+.joster .skill-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.joster .skill-row {
+  padding: 2px 0;
+  gap: 6px;
+}
+.joster .skill-row + .joster .skill-row {
+  border-top: 1px solid rgba(181, 179, 164, 0.4);
+}
+.joster .skill-name {
+  cursor: pointer;
+  font-size: var(--font-size-12, 12px);
+}
+.joster .skill-rank {
+  gap: 4px;
+}
+.joster .skill-stepper {
+  cursor: pointer;
+  font-weight: bold;
+}
+.joster .skill-rank-value {
+  min-width: 12px;
+  text-align: center;
+  font-weight: bold;
 }
 .joster .items-header {
   height: 28px;
@@ -560,7 +614,53 @@
   padding: 10px;
 }
 .joster .joster-roll-dialog .form-group {
+  margin-bottom: 10px;
+}
+.joster .joster-roll-dialog .form-group > label {
+  display: block;
   margin-bottom: 5px;
+  font-weight: bold;
+}
+.joster .joster-roll-dialog .joster-roll-breakdown {
+  margin-bottom: 10px;
+  text-align: left;
+}
+.joster .joster-roll-dialog .joster-bonus-stepper-group {
+  gap: 10px;
+  justify-content: center;
+}
+.joster .joster-roll-dialog .joster-bonus-stepper-group .joster-bonus-stepper {
+  cursor: pointer;
+  font-weight: bold;
+  width: 28px;
+  line-height: 22px;
+  text-align: center;
+  border: 1px solid #b5b3a4;
+  border-radius: 3px;
+}
+.joster .joster-roll-dialog .joster-bonus-stepper-group .joster-bonus-value {
+  min-width: 32px;
+  text-align: center;
+  font-weight: bold;
+}
+.joster .joster-roll-dialog .joster-advantage-group {
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+.joster .joster-roll-dialog .joster-advantage-group .joster-advantage-option {
+  flex: 1;
+  cursor: pointer;
+  padding: 4px 0;
+  border: 1px solid #b5b3a4;
+  border-radius: 3px;
+  font-size: var(--font-size-11, 11px);
+  font-weight: bold;
+  text-align: center;
+}
+.joster .joster-roll-dialog .joster-advantage-group .joster-advantage-option.active {
+  background: #444;
+  color: #fff;
+  border-color: #444;
 }
 .joster .joster-roll-dialog .joster-roll-threshold-preview {
   margin: 5px 0;

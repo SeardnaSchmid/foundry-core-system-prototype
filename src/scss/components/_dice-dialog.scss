@@ -2,7 +2,61 @@
   padding: $padding-md;
 
   .form-group {
-    margin-bottom: $padding-sm;
+    margin-bottom: $padding-md;
+
+    > label {
+      display: block;
+      margin-bottom: $padding-sm;
+      font-weight: bold;
+    }
+  }
+
+  .joster-roll-breakdown {
+    margin-bottom: $padding-md;
+    text-align: left;
+  }
+
+  .joster-bonus-stepper-group {
+    gap: $padding-md;
+    justify-content: center;
+
+    .joster-bonus-stepper {
+      cursor: pointer;
+      font-weight: bold;
+      width: 28px;
+      line-height: 22px;
+      text-align: center;
+      border: 1px solid $c-beige;
+      border-radius: 3px;
+    }
+
+    .joster-bonus-value {
+      min-width: 32px;
+      text-align: center;
+      font-weight: bold;
+    }
+  }
+
+  .joster-advantage-group {
+    flex-wrap: nowrap;
+    gap: 4px;
+
+    .joster-advantage-option {
+      flex: 1;
+      cursor: pointer;
+      padding: 4px 0;
+      border: 1px solid $c-beige;
+      border-radius: 3px;
+      font-size: var(--font-size-11, 11px);
+      font-weight: bold;
+      text-align: center;
+
+      &.active {
+        background: $c-tan;
+        color: #fff;
+        border-color: $c-tan;
+      }
+    }
   }
 
   .joster-roll-threshold-preview {

@@ -29,7 +29,7 @@
   {{!-- Sheet Tab Navigation --}}
   <nav class="sheet-tabs tabs" data-group="primary">
     {{!-- Default tab is specified in actor-sheet.mjs --}}
-    <a class="item" data-tab="attributes">Attributes</a>
+    <a class="item" data-tab="basics">Basics</a>
     <a class="item" data-tab="description">Description</a>
     <a class="item" data-tab="items">Items</a>
   </nav>
@@ -37,8 +37,8 @@
   {{!-- Sheet Body --}}
   <section class="sheet-body">
 
-    {{!-- Attributes Tab --}}
-    <div class="tab attributes" data-group="primary" data-tab="attributes">
+    {{!-- Basics Tab --}}
+    <div class="tab basics" data-group="primary" data-tab="basics">
       <section class="flexcol">
 
         {{!-- Primary attributes, laid out as a heatmap: one column per category
@@ -75,7 +75,7 @@
                   {{#if cell.isCritical}}
                   <span class="heatmap-warn" title="{{localize 'JOSTER.AttributeCritical'}}">⚠</span>
                   {{/if}}
-                  <span class="heatmap-cell-name rollable" data-roll-type="ability" data-ability="{{cell.key}}" data-label="{{cell.label}}">{{cell.label}}</span>
+                  <span class="heatmap-cell-name" data-key="{{cell.key}}">{{cell.label}}</span>
                   {{#if cell.hasDelta}}
                   <a class="heatmap-delta" data-key="{{cell.key}}" title="{{localize 'JOSTER.ResetTemp'}}" style="background:{{cell.deltaBg}}; color:{{cell.deltaText}};">{{cell.deltaLabel}}</a>
                   {{/if}}
@@ -102,6 +102,33 @@
           <div class="derived-attribute flex-group-center" title="{{attr.hint}}">
             <span class="derived-value">{{attr.value}}</span>
             <label class="derived-label">{{attr.label}}</label>
+          </div>
+          {{/each}}
+        </div>
+
+        {{!-- Skills, grouped by category. Each skill rolls with its linked
+        attribute; the rank is added as the roll dialog's starting bonus. --}}
+        <h3 class="skills-title">{{localize "JOSTER.SkillsTitle"}}</h3>
+        <div class="skill-groups grid grid-2col">
+          {{#each skillGroups as |group|}}
+          <div class="skill-group">
+            <h4 class="skill-group-title">{{group.label}}</h4>
+            {{#if group.skills.length}}
+            <ul class="skill-list">
+              {{#each group.skills as |skill|}}
+              <li class="skill-row flexrow flex-between">
+                <span class="skill-name rollable" data-roll-type="skill" data-skill="{{skill.key}}" data-ability="{{skill.attribute}}" data-label="{{skill.label}}" title="{{skill.attributeLabel}}">{{skill.label}}</span>
+                <span class="skill-rank flexrow flex-center">
+                  <a class="skill-stepper" data-key="{{skill.key}}" data-action="decrement" title="{{localize 'JOSTER.SkillDecrease'}}">−</a>
+                  <span class="skill-rank-value">{{skill.rank}}</span>
+                  <a class="skill-stepper" data-key="{{skill.key}}" data-action="increment" title="{{localize 'JOSTER.SkillIncrease'}}">+</a>
+                </span>
+              </li>
+              {{/each}}
+            </ul>
+            {{else}}
+            <p class="skill-group-empty">{{localize "JOSTER.SkillCategoryEmptyHint"}}</p>
+            {{/if}}
           </div>
           {{/each}}
         </div>

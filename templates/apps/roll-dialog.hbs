@@ -1,4 +1,11 @@
 <form class="joster-roll-dialog flexcol">
+  {{#if isSkillMode}}
+  <div class="joster-roll-breakdown">
+    {{localize "JOSTER.Roll.RollingAgainst"}}
+    {{attributeLabel}}({{attributeValue}}) + {{skillLabel}}({{skillValue}})
+  </div>
+  <input type="hidden" name="attributeA" value="{{attributeA}}"/>
+  {{else}}
   <div class="form-group">
     <label>{{localize "JOSTER.Roll.AttributeA"}}</label>
     <select name="attributeA">
@@ -18,23 +25,30 @@
       {{/each}}
     </select>
   </div>
+  {{/if}}
 
   <div class="form-group">
     <label>{{localize "JOSTER.Roll.Bonus"}}</label>
-    <input type="number" name="bonus" value="{{bonus}}" step="3"/>
+    <div class="joster-bonus-stepper-group flexrow flex-center">
+      <a class="joster-bonus-stepper" data-action="decrement">−</a>
+      <span class="joster-bonus-value">{{bonus}}</span>
+      <a class="joster-bonus-stepper" data-action="increment">+</a>
+    </div>
+    <input type="hidden" name="bonus" value="{{bonus}}"/>
   </div>
 
   <div class="form-group">
     <label>{{localize "JOSTER.Roll.Advantage"}}</label>
-    <select name="advantage">
+    <div class="joster-advantage-group flexrow flex-center">
       {{#each advantageOptions as |option|}}
-      <option value="{{option.value}}" {{#ifEquals option.value ../advantage}}selected{{/ifEquals}}>{{option.label}}</option>
+      <a class="joster-advantage-option {{#ifEquals option.value ../advantage}}active{{/ifEquals}}" data-value="{{option.value}}" title="{{option.label}}">{{option.abbr}}</a>
       {{/each}}
-    </select>
+    </div>
+    <input type="hidden" name="advantage" value="{{advantage}}"/>
   </div>
 
   <div class="joster-roll-threshold-preview">
-    {{localize "JOSTER.Roll.Threshold"}}: <span class="joster-threshold-value">{{threshold}}</span>
+    {{localize "JOSTER.Roll.Threshold"}}: &lt;= <span class="joster-threshold-value">{{threshold}}</span>
   </div>
 
   <footer class="sheet-footer flexrow">

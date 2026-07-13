@@ -57,6 +57,22 @@
           "base": 4,
           "value": 4
         }
+      },
+      "skills": {
+        "brawling": { "value": 0 },
+        "swords": { "value": 0 },
+        "heavyMelee": { "value": 0 },
+        "flexibleWeapons": { "value": 0 },
+        "shooting": { "value": 0 },
+        "sniper": { "value": 0 },
+        "heavyRanged": { "value": 0 },
+        "electronicWeapons": { "value": 0 },
+        "throwingWeapons": { "value": 0 },
+        "exotic": { "value": 0 },
+        "athletics": { "value": 0 },
+        "acrobatics": { "value": 0 },
+        "stealth": { "value": 0 },
+        "selfControl": { "value": 0 }
       }
     },
     "npc": {

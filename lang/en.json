@@ -37,6 +37,34 @@
     "AttributeDecrease": "Decrease value",
     "ResetTemp": "Reset to base value",
     "DerivedAttributesTitle": "Derived Attributes",
+    "SkillsTitle": "Skills",
+    "SkillIncrease": "Increase value",
+    "SkillDecrease": "Decrease value",
+    "SkillCategoryEmptyHint": "No skills defined yet.",
+    "SkillCategory": {
+      "Combat": "Combat",
+      "General": "General",
+      "Milieus": "Milieus",
+      "Biomes": "Biomes",
+      "Technology": "Technology",
+      "Knowledge": "Knowledge"
+    },
+    "Skill": {
+      "Brawling": "Brawling",
+      "Swords": "Swords",
+      "HeavyMelee": "Heavy Melee Weapons",
+      "FlexibleWeapons": "Flexible Weapons",
+      "Shooting": "Shooting",
+      "Sniper": "Sniper",
+      "HeavyRanged": "Heavy Ranged Weapons",
+      "ElectronicWeapons": "Electronic Weapons",
+      "ThrowingWeapons": "Throwing Weapons",
+      "Exotic": "Exotic",
+      "Athletics": "Athletics",
+      "Acrobatics": "Acrobatics",
+      "Stealth": "Stealth",
+      "SelfControl": "Self-Control"
+    },
     "Derived": {
       "Initiative": "Initiative",
       "MovementWalk": "Movement (Walk)",
@@ -75,9 +103,10 @@
       "DialogTitle": "Roll",
       "AttributeA": "Attribute/Skill 1",
       "AttributeB": "Attribute/Skill 2",
-      "Bonus": "Difficulty (+/-3)",
+      "Bonus": "Modification",
       "Advantage": "Advantage/Disadvantage",
       "Threshold": "Threshold",
+      "RollingAgainst": "Rolling against",
       "Submit": "Roll"
     },
     "Advantage": {

@@ -92,3 +92,40 @@ JOSTER.derivedAttributes = [
   { key: 'solveReserve', i18n: 'SolveReserve' },
   { key: 'solveAnalyzeFlaw', i18n: 'SolveAnalyzeFlaw' },
 ];
+
+/**
+ * Skill categories, in display order. "milieus", "biomes", "technology" and
+ * "knowledge" are placeholders from the WIP skill list with no skills
+ * assigned yet; they render as empty groups until filled in.
+ * @type {Object}
+ */
+JOSTER.skillCategories = {
+  combat: 'JOSTER.SkillCategory.Combat',
+  general: 'JOSTER.SkillCategory.General',
+  milieus: 'JOSTER.SkillCategory.Milieus',
+  biomes: 'JOSTER.SkillCategory.Biomes',
+  technology: 'JOSTER.SkillCategory.Technology',
+  knowledge: 'JOSTER.SkillCategory.Knowledge',
+};
+
+/**
+ * The set of Skills used within the system. Each skill is linked to the
+ * Attribute it's rolled with; `category` groups it under JOSTER.skillCategories.
+ * @type {Object}
+ */
+JOSTER.skills = {
+  brawling: { label: 'JOSTER.Skill.Brawling', category: 'combat', attribute: 'str' },
+  swords: { label: 'JOSTER.Skill.Swords', category: 'combat', attribute: 'fin' },
+  heavyMelee: { label: 'JOSTER.Skill.HeavyMelee', category: 'combat', attribute: 'str' },
+  flexibleWeapons: { label: 'JOSTER.Skill.FlexibleWeapons', category: 'combat', attribute: 'fin' },
+  shooting: { label: 'JOSTER.Skill.Shooting', category: 'combat', attribute: 'per' },
+  sniper: { label: 'JOSTER.Skill.Sniper', category: 'combat', attribute: 'per' },
+  heavyRanged: { label: 'JOSTER.Skill.HeavyRanged', category: 'combat', attribute: 'str' },
+  electronicWeapons: { label: 'JOSTER.Skill.ElectronicWeapons', category: 'combat', attribute: 'fin' },
+  throwingWeapons: { label: 'JOSTER.Skill.ThrowingWeapons', category: 'combat', attribute: 'fin' },
+  exotic: { label: 'JOSTER.Skill.Exotic', category: 'combat', attribute: 'fin' },
+  athletics: { label: 'JOSTER.Skill.Athletics', category: 'general', attribute: 'dex' },
+  acrobatics: { label: 'JOSTER.Skill.Acrobatics', category: 'general', attribute: 'dex' },
+  stealth: { label: 'JOSTER.Skill.Stealth', category: 'general', attribute: 'dex' },
+  selfControl: { label: 'JOSTER.Skill.SelfControl', category: 'general', attribute: 'wil' },
+};
