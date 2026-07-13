@@ -5,7 +5,10 @@
   "scripts": {
     "build": "sass src/scss/joster.scss css/joster.css --style=expanded --no-source-map",
     "watch": "sass src/scss/joster.scss css/joster.css --style=expanded --source-map --watch",
-    "release": "release-it"
+    "release": "release-it",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage"
   },
   "browserslist": [
     "last 3 versions"
@@ -16,7 +19,9 @@
   "devDependencies": {
     "@release-it/bumper": "^7.0.6",
     "@release-it/conventional-changelog": "^11.0.1",
+    "@vitest/ui": "^4.1.10",
     "release-it": "^20.2.1",
-    "sass": "^1.53.0"
+    "sass": "^1.53.0",
+    "vitest": "^4.1.10"
   }
 }

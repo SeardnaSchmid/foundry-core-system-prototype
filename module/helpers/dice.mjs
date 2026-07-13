@@ -58,8 +58,8 @@ function pickCountingDie(values, advantage) {
  * Determine whether the roll is a critical success/failure, independent of
  * the threshold. See the "Kritische Erfolge und Misserfolge" rules:
  * - none: 2+ of 3 dice show 1 -> critical success; 2+ show 20 -> critical failure.
- * - simple advantage: 1+ die shows 1 -> critical success; both dice show 20 -> critical failure.
- * - simple disadvantage: 1+ die shows 20 -> critical failure; both dice show 1 -> critical success.
+ * - simple advantage: 1+ die shows 1 -> critical success; 2 dice show 20 -> critical failure.
+ * - simple disadvantage: 1+ die shows 20 -> critical failure; 2 dice show 1 -> critical success.
  * - strong advantage: 1+ die shows 1 -> critical success; all 3 dice show 20 -> critical failure.
  * - strong disadvantage: 1+ die shows 20 -> critical failure; all 3 dice show 1 -> critical success.
  *
@@ -74,19 +74,19 @@ function criticalResultFor(values, advantage) {
   switch (advantage) {
     case JOSTER_ADVANTAGE.advantage:
       if (ones >= 1) return 'criticalSuccess';
-      if (twenties === values.length) return 'criticalFailure';
+      if (twenties >= 2) return 'criticalFailure';
       return null;
     case JOSTER_ADVANTAGE.disadvantage:
       if (twenties >= 1) return 'criticalFailure';
-      if (ones === values.length) return 'criticalSuccess';
+      if (ones >= 2) return 'criticalSuccess';
       return null;
     case JOSTER_ADVANTAGE.strongAdvantage:
       if (ones >= 1) return 'criticalSuccess';
-      if (twenties === values.length) return 'criticalFailure';
+      if (twenties === 3) return 'criticalFailure';
       return null;
     case JOSTER_ADVANTAGE.strongDisadvantage:
       if (twenties >= 1) return 'criticalFailure';
-      if (ones === values.length) return 'criticalSuccess';
+      if (ones === 3) return 'criticalSuccess';
       return null;
     case JOSTER_ADVANTAGE.none:
     default:
