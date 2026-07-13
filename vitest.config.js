@@ -6,12 +6,14 @@ export default defineConfig({
     environment: 'node',
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'html'],
+      reporter: ['text', 'html', 'json-summary'],
+      include: ['module/**/*.mjs'],
       exclude: [
         'node_modules/',
         'scripts/',
         'packs/',
         '**/*.config.js',
+        'tests/',
       ],
     },
   },

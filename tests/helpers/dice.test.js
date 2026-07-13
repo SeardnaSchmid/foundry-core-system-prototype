@@ -1,65 +1,10 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-
-const JOSTER_ADVANTAGE = {
-  strongDisadvantage: -2,
-  disadvantage: -1,
-  none: 0,
-  advantage: 1,
-  strongAdvantage: 2,
-};
-
-function dieCountFor(advantage) {
-  return Math.abs(advantage) === 1 ? 2 : 3;
-}
-
-function pickCountingDie(values, advantage) {
-  const order = values
-    .map((value, index) => ({ value, index }))
-    .sort((a, b) => a.value - b.value);
-
-  switch (advantage) {
-    case JOSTER_ADVANTAGE.strongDisadvantage:
-      return order[order.length - 1];
-    case JOSTER_ADVANTAGE.disadvantage:
-      return order[order.length - 1];
-    case JOSTER_ADVANTAGE.advantage:
-      return order[0];
-    case JOSTER_ADVANTAGE.strongAdvantage:
-      return order[0];
-    case JOSTER_ADVANTAGE.none:
-    default:
-      return order[Math.floor(order.length / 2)];
-  }
-}
-
-function criticalResultFor(values, advantage) {
-  const ones = values.filter((v) => v === 1).length;
-  const twenties = values.filter((v) => v === 20).length;
-
-  switch (advantage) {
-    case JOSTER_ADVANTAGE.advantage:
-      if (ones >= 1) return 'criticalSuccess';
-      if (twenties >= 2) return 'criticalFailure';
-      return null;
-    case JOSTER_ADVANTAGE.disadvantage:
-      if (twenties >= 1) return 'criticalFailure';
-      if (ones >= 2) return 'criticalSuccess';
-      return null;
-    case JOSTER_ADVANTAGE.strongAdvantage:
-      if (ones >= 1) return 'criticalSuccess';
-      if (twenties === 3) return 'criticalFailure';
-      return null;
-    case JOSTER_ADVANTAGE.strongDisadvantage:
-      if (twenties >= 1) return 'criticalFailure';
-      if (ones === 3) return 'criticalSuccess';
-      return null;
-    case JOSTER_ADVANTAGE.none:
-    default:
-      if (ones >= 2) return 'criticalSuccess';
-      if (twenties >= 2) return 'criticalFailure';
-      return null;
-  }
-}
+import { describe, it, expect } from 'vitest';
+import {
+  JOSTER_ADVANTAGE,
+  dieCountFor,
+  pickCountingDie,
+  criticalResultFor,
+} from '../../module/helpers/dice.mjs';
 
 function determineSuccess(countingDie, threshold, critical) {
   if (critical === 'criticalSuccess') return true;

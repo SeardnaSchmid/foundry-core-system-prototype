@@ -16,7 +16,7 @@ export const JOSTER_ADVANTAGE = {
  * @param {number} advantage  One of the JOSTER_ADVANTAGE values.
  * @returns {number}
  */
-function dieCountFor(advantage) {
+export function dieCountFor(advantage) {
   return Math.abs(advantage) === 1 ? 2 : 3;
 }
 
@@ -34,7 +34,7 @@ function dieCountFor(advantage) {
  * @returns {{value: number, index: number}}  The counting die's value and
  *   its index into `values`.
  */
-function pickCountingDie(values, advantage) {
+export function pickCountingDie(values, advantage) {
   const order = values
     .map((value, index) => ({ value, index }))
     .sort((a, b) => a.value - b.value);
@@ -67,7 +67,7 @@ function pickCountingDie(values, advantage) {
  * @param {number} advantage   One of the JOSTER_ADVANTAGE values.
  * @returns {'criticalSuccess'|'criticalFailure'|null}
  */
-function criticalResultFor(values, advantage) {
+export function criticalResultFor(values, advantage) {
   const ones = values.filter((v) => v === 1).length;
   const twenties = values.filter((v) => v === 20).length;
 
