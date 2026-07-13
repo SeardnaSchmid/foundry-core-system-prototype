@@ -1,0 +1,18 @@
+{
+  "name": "joster",
+  "version": "0.1.0",
+  "description": "SCSS compiler for the Joster Foundry VTT system",
+  "scripts": {
+    "build": "sass src/scss/joster.scss css/joster.css --style=expanded --no-source-map",
+    "watch": "sass src/scss/joster.scss css/joster.css --style=expanded --source-map --watch"
+  },
+  "browserslist": [
+    "last 3 versions"
+  ],
+  "author": "ZR",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "sass": "^1.53.0"
+  }
+}

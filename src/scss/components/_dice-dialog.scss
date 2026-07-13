@@ -1,0 +1,17 @@
+.joster-roll-dialog {
+  padding: $padding-md;
+
+  .form-group {
+    margin-bottom: $padding-sm;
+  }
+
+  .joster-roll-threshold-preview {
+    margin: $padding-sm 0;
+    font-weight: bold;
+    text-align: center;
+
+    .joster-threshold-value {
+      font-size: var(--font-size-16, 16px);
+    }
+  }
+}

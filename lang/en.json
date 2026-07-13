@@ -1,0 +1,116 @@
+{
+  "JOSTER": {
+    "AttributeCategory": {
+      "Physical": "Physical",
+      "Social": "Social",
+      "Mental": "Mental"
+    },
+    "AttributeRow": {
+      "Assert": "Assert",
+      "Adapt": "Adapt",
+      "Influence": "Influence",
+      "Perceive": "Perceive"
+    },
+    "Ability": {
+      "Str": { "long": "Strength", "abbr": "str", "hint": "Move things, or stay put yourself." },
+      "Dex": { "long": "Agility", "abbr": "dex", "hint": "Move yourself, fast, nimble or with stamina." },
+      "Fin": { "long": "Dexterity", "abbr": "fin", "hint": "Hand-eye coordination and manual dexterity." },
+      "Per": { "long": "Perception", "abbr": "per", "hint": "Perceive things with your senses." },
+      "Aut": { "long": "Authority", "abbr": "aut", "hint": "Intimidate and lead, earn respect." },
+      "Cha": { "long": "Charisma", "abbr": "cha", "hint": "Kindness and understanding, earn affection." },
+      "Man": { "long": "Manipulation", "abbr": "man", "hint": "Lying and deception, distorting perception." },
+      "Emp": { "long": "Empathy", "abbr": "emp", "hint": "Understand people, their motives and communication." },
+      "Wil": { "long": "Willpower", "abbr": "wil", "hint": "Determination and conviction." },
+      "Int": { "long": "Intelligence", "abbr": "int", "hint": "Understanding and reasoning." },
+      "Wis": { "long": "Knowledge", "abbr": "wis", "hint": "General education and the ability to expand it." },
+      "Inv": { "long": "Investigation", "abbr": "inv", "hint": "Notice things everyone sees, but not everyone perceives." }
+    },
+    "AttributeCurrent": "Current value (reduced by damage)",
+    "AttributeBase": "Base value (increased by character development)",
+    "AttributeModeHint": "Controls which value is shown large and which one +/- change.",
+    "AttributeMode": {
+      "Temp": "Temp",
+      "Base": "Base"
+    },
+    "AttributeCritical": "Critical: current value is 0.",
+    "AttributeIncrease": "Increase value",
+    "AttributeDecrease": "Decrease value",
+    "ResetTemp": "Reset to base value",
+    "DerivedAttributesTitle": "Derived Attributes",
+    "Derived": {
+      "Initiative": "Initiative",
+      "MovementWalk": "Movement (Walk)",
+      "MovementSprint": "Movement (Sprint)",
+      "MovementCrawl": "Movement (Crawl)",
+      "CarrySlots": "Carry Slots",
+      "SixthSense": "Sixth Sense",
+      "SolveIdea": "Problem Solving: Get an Idea",
+      "SolveFindFlaw": "Problem Solving: Find a Flaw",
+      "SolveReserve": "Problem Solving: Reserve",
+      "SolveAnalyzeFlaw": "Problem Solving: Analyze a Flaw"
+    },
+    "DerivedHint": {
+      "Initiative": "(2×Agility+Perception)/3 (rounded up)",
+      "MovementWalk": "Agility",
+      "MovementSprint": "3×Agility",
+      "MovementCrawl": "1",
+      "CarrySlots": "2×Strength+Agility",
+      "SixthSense": "(Perception+Empathy+Investigation)/3",
+      "SolveIdea": "(Intelligence+Knowledge)/2 (rounded up)",
+      "SolveFindFlaw": "(Intelligence+Willpower)/2 (rounded up)",
+      "SolveReserve": "(Willpower+Knowledge)/2 (rounded up)",
+      "SolveAnalyzeFlaw": "2×Investigation"
+    },
+    "SheetLabels": {
+      "Actor": "Joster Actor Sheet",
+      "Item": "Joster Item Sheet"
+    },
+    "Item": {
+      "Spell": {
+        "SpellLVL": "Level {level} Spells",
+        "AddLVL": "Add LVL {level}"
+      }
+    },
+    "Roll": {
+      "DialogTitle": "Roll",
+      "AttributeA": "Attribute/Skill 1",
+      "AttributeB": "Attribute/Skill 2",
+      "Bonus": "Difficulty (+/-3)",
+      "Advantage": "Advantage/Disadvantage",
+      "Threshold": "Threshold",
+      "Submit": "Roll"
+    },
+    "Advantage": {
+      "StrongDisadvantage": "Strong Disadvantage",
+      "Disadvantage": "Disadvantage",
+      "None": "None",
+      "Advantage": "Advantage",
+      "StrongAdvantage": "Strong Advantage"
+    },
+    "RollOutcome": {
+      "Success": "Success",
+      "Failure": "Failure",
+      "CriticalSuccess": "Critical Success",
+      "CriticalFailure": "Critical Failure"
+    },
+    "Effect": {
+      "Source": "Source",
+      "Toggle": "Toggle Effect",
+      "Temporary": "Temporary Effects",
+      "Passive": "Passive Effects",
+      "Inactive": "Inactive Effects"
+    }
+  },
+
+  "TYPES": {
+    "Actor": {
+      "character": "Character",
+      "npc": "NPC"
+    },
+    "Item": {
+      "item": "Item",
+      "feature": "Feature",
+      "spell": "Spell"
+    }
+  }
+}

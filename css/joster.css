@@ -1,0 +1,626 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap");
+/* Global styles */
+.window-app {
+  font-family: "Roboto", sans-serif;
+}
+
+.rollable:hover, .rollable:focus {
+  color: #000;
+  text-shadow: 0 0 10px red;
+  cursor: pointer;
+}
+
+.grid,
+.grid-2col {
+  display: grid;
+  grid-column: span 2/span 2;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 10px 0;
+  padding: 0;
+}
+
+.grid-3col {
+  grid-column: span 3/span 3;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.grid-4col {
+  grid-column: span 4/span 4;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.grid-5col {
+  grid-column: span 5/span 5;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.grid-6col {
+  grid-column: span 6/span 6;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.grid-7col {
+  grid-column: span 7/span 7;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.grid-8col {
+  grid-column: span 8/span 8;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+}
+
+.grid-9col {
+  grid-column: span 9/span 9;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+}
+
+.grid-10col {
+  grid-column: span 10/span 10;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+}
+
+.grid-11col {
+  grid-column: span 11/span 11;
+  grid-template-columns: repeat(11, minmax(0, 1fr));
+}
+
+.grid-12col {
+  grid-column: span 12/span 12;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.grid-start-2 {
+  grid-column-start: 2;
+}
+
+.grid-start-3 {
+  grid-column-start: 3;
+}
+
+.grid-start-4 {
+  grid-column-start: 4;
+}
+
+.grid-start-5 {
+  grid-column-start: 5;
+}
+
+.grid-start-6 {
+  grid-column-start: 6;
+}
+
+.grid-start-7 {
+  grid-column-start: 7;
+}
+
+.grid-start-8 {
+  grid-column-start: 8;
+}
+
+.grid-start-9 {
+  grid-column-start: 9;
+}
+
+.grid-start-10 {
+  grid-column-start: 10;
+}
+
+.grid-start-11 {
+  grid-column-start: 11;
+}
+
+.grid-start-12 {
+  grid-column-start: 12;
+}
+
+.grid-span-2 {
+  grid-column-end: span 2;
+}
+
+.grid-span-3 {
+  grid-column-end: span 3;
+}
+
+.grid-span-4 {
+  grid-column-end: span 4;
+}
+
+.grid-span-5 {
+  grid-column-end: span 5;
+}
+
+.grid-span-6 {
+  grid-column-end: span 6;
+}
+
+.grid-span-7 {
+  grid-column-end: span 7;
+}
+
+.grid-span-8 {
+  grid-column-end: span 8;
+}
+
+.grid-span-9 {
+  grid-column-end: span 9;
+}
+
+.grid-span-10 {
+  grid-column-end: span 10;
+}
+
+.grid-span-11 {
+  grid-column-end: span 11;
+}
+
+.grid-span-12 {
+  grid-column-end: span 12;
+}
+
+.flex-group-center,
+.flex-group-left,
+.flex-group-right {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.flex-group-left {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.flex-group-right {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.flexshrink {
+  flex: 0;
+}
+
+.flex-between {
+  justify-content: space-between;
+}
+
+.flexlarge {
+  flex: 2;
+}
+
+.align-left {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.align-right {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.align-center {
+  justify-content: center;
+  text-align: center;
+}
+
+/* Styles limited to joster sheets */
+.joster .item-form {
+  font-family: "Roboto", sans-serif;
+}
+.joster .sheet-header {
+  flex: 0 auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  margin-bottom: 10px;
+}
+.joster .sheet-header .profile-img {
+  flex: 0 0 100px;
+  height: 100px;
+  margin-right: 10px;
+}
+.joster .sheet-header .header-fields {
+  flex: 1;
+}
+.joster .sheet-header h1.charname {
+  height: 50px;
+  padding: 0px;
+  margin: 5px 0;
+  border-bottom: 0;
+}
+.joster .sheet-header h1.charname input {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+.joster .sheet-tabs {
+  flex: 0;
+}
+.joster .sheet-body,
+.joster .sheet-body .tab,
+.joster .sheet-body .tab .editor {
+  height: 100%;
+}
+.joster .tox .tox-editor-container {
+  background: #fff;
+}
+.joster .tox .tox-edit-area {
+  padding: 0 8px;
+}
+.joster .resource-label {
+  font-weight: bold;
+}
+@keyframes heatmap-peak-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(241, 244, 247, 0.9), 0 0 8px 1px rgba(241, 244, 247, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 2px rgba(241, 244, 247, 0.6), 0 0 4px 1px rgba(241, 244, 247, 0.2);
+  }
+}
+@keyframes heatmap-critical-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(255, 90, 100, 0.85), 0 0 8px 1px rgba(255, 90, 100, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 2px rgba(255, 90, 100, 0.5), 0 0 4px 1px rgba(255, 90, 100, 0.2);
+  }
+}
+.joster .heatmap-toolbar {
+  align-items: center;
+  margin-bottom: 4px;
+}
+.joster .heatmap-toolbar .heatmap-toolbar-hint {
+  font-size: var(--font-size-11, 11px);
+  color: #444;
+}
+.joster .heatmap-toolbar .heatmap-mode-toggle {
+  flex: none;
+  width: auto;
+  min-width: 0;
+  height: 22px;
+  line-height: 1;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: var(--font-size-10, 10px);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+.joster .attribute-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+}
+.joster .attribute-table th,
+.joster .attribute-table td {
+  border: 1px solid #b5b3a4;
+  padding: 5px;
+  vertical-align: top;
+  text-align: left;
+}
+.joster .attribute-table th {
+  background: #c9c7b8;
+  text-transform: uppercase;
+  font-size: var(--font-size-12, 12px);
+}
+.joster .attribute-table.heatmap thead th,
+.joster .attribute-table.heatmap .heatmap-row-header,
+.joster .attribute-table.heatmap .attribute-corner {
+  vertical-align: middle;
+}
+.joster .attribute-table.heatmap .attribute-corner {
+  text-align: center;
+  font-size: var(--font-size-16, 16px);
+}
+.joster .attribute-table.heatmap .heatmap-col-label,
+.joster .attribute-table.heatmap .heatmap-row-label {
+  display: block;
+  margin-bottom: 3px;
+}
+.joster .attribute-table.heatmap .heatmap-row-header {
+  white-space: nowrap;
+}
+.joster .attribute-table.heatmap .heatmap-badge {
+  display: inline-block;
+  min-width: 20px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-weight: bold;
+  text-align: center;
+}
+.joster .attribute-table.heatmap .heatmap-peak {
+  animation: heatmap-peak-pulse 2.2s ease-in-out infinite;
+}
+.joster .attribute-table.heatmap .heatmap-cell {
+  position: relative;
+  text-align: center;
+  border-width: 1.5px;
+  border-style: solid;
+}
+.joster .attribute-table.heatmap .heatmap-cell.heatmap-critical {
+  animation: heatmap-critical-pulse 1.4s ease-in-out infinite;
+}
+.joster .attribute-table.heatmap .heatmap-cell.heatmap-peak:not(.heatmap-critical) {
+  animation: heatmap-peak-pulse 2.2s ease-in-out infinite;
+}
+.joster .attribute-table.heatmap .heatmap-cell .heatmap-cell-top {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+  min-height: 16px;
+}
+.joster .attribute-table.heatmap .heatmap-cell .heatmap-warn {
+  position: absolute;
+  left: 0;
+  font-size: var(--font-size-12, 12px);
+}
+.joster .attribute-table.heatmap .heatmap-cell .heatmap-cell-name {
+  font-weight: bold;
+  font-size: var(--font-size-12, 12px);
+  opacity: 0.9;
+  cursor: pointer;
+}
+.joster .attribute-table.heatmap .heatmap-cell .heatmap-delta {
+  position: absolute;
+  right: 0;
+  border-radius: 999px;
+  padding: 1px 6px;
+  font-weight: bold;
+  font-size: var(--font-size-10, 10px);
+  cursor: pointer;
+}
+.joster .attribute-table.heatmap .heatmap-cell .heatmap-cell-values {
+  gap: 6px;
+}
+.joster .attribute-table.heatmap .heatmap-cell .heatmap-stepper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border-radius: 50%;
+  border: 1.5px solid;
+  font-weight: bold;
+  cursor: pointer;
+}
+.joster .attribute-table.heatmap .heatmap-cell .heatmap-stepper:hover {
+  filter: brightness(0.95);
+}
+.joster .attribute-table.heatmap .heatmap-cell .heatmap-value-pair {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 1px;
+  min-width: 40px;
+  justify-content: center;
+}
+.joster .attribute-table.heatmap .heatmap-cell .heatmap-temp,
+.joster .attribute-table.heatmap .heatmap-cell .heatmap-base {
+  font-weight: 800;
+  transition: font-size 0.15s ease, opacity 0.15s ease;
+}
+.joster .attribute-table.heatmap .heatmap-cell .heatmap-temp.active,
+.joster .attribute-table.heatmap .heatmap-cell .heatmap-base.active {
+  font-size: var(--font-size-20, 20px);
+  opacity: 1;
+}
+.joster .attribute-table.heatmap .heatmap-cell .heatmap-temp.inactive,
+.joster .attribute-table.heatmap .heatmap-cell .heatmap-base.inactive {
+  font-size: var(--font-size-11, 11px);
+  opacity: 0.55;
+}
+.joster .attribute-table.heatmap .heatmap-cell .heatmap-slash {
+  font-weight: 800;
+  opacity: 0.5;
+}
+.joster .derived-attributes-title {
+  margin: 0 0 4px;
+  font-size: var(--font-size-12, 12px);
+  text-transform: uppercase;
+}
+.joster .derived-attributes {
+  margin: 0 0 10px;
+}
+.joster .derived-attributes .derived-attribute {
+  flex-direction: column;
+  border: 1px solid #b5b3a4;
+  border-radius: 3px;
+  padding: 4px 2px;
+  cursor: help;
+}
+.joster .derived-attributes .derived-value {
+  font-weight: bold;
+  font-size: var(--font-size-14, 14px);
+}
+.joster .derived-attributes .derived-label {
+  font-size: var(--font-size-10, 10px);
+  text-align: center;
+  text-transform: uppercase;
+  color: #444;
+}
+.joster .items-header {
+  height: 28px;
+  margin: 2px 0;
+  padding: 0;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.05);
+  border: 2px groove #eeede0;
+  font-weight: bold;
+}
+.joster .items-header > * {
+  font-size: 14px;
+  text-align: center;
+}
+.joster .items-header .item-name {
+  font-weight: bold;
+  padding-left: 5px;
+  text-align: left;
+  display: flex;
+}
+.joster .items-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  color: #444;
+}
+.joster .items-list .item-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.joster .items-list .item-name {
+  flex: 2;
+  margin: 0;
+  overflow: hidden;
+  font-size: 13px;
+  text-align: left;
+  align-items: center;
+  display: flex;
+}
+.joster .items-list .item-name h3, .joster .items-list .item-name h4 {
+  margin: 0;
+  white-space: nowrap;
+  overflow-x: hidden;
+}
+.joster .items-list .item-controls {
+  display: flex;
+  flex: 0 0 100px;
+  justify-content: flex-end;
+}
+.joster .items-list .item-controls a {
+  font-size: 12px;
+  text-align: center;
+  margin: 0 6px;
+}
+.joster .items-list .item {
+  align-items: center;
+  padding: 0 2px;
+  border-bottom: 1px solid #c9c7b8;
+}
+.joster .items-list .item:last-child {
+  border-bottom: none;
+}
+.joster .items-list .item .item-name {
+  color: #191813;
+}
+.joster .items-list .item .item-name .item-image {
+  flex: 0 0 30px;
+  height: 30px;
+  background-size: 30px;
+  border: none;
+  margin-right: 5px;
+}
+.joster .items-list .item-prop {
+  text-align: center;
+  border-left: 1px solid #c9c7b8;
+  border-right: 1px solid #c9c7b8;
+  font-size: 12px;
+}
+.joster .items-list .items-header {
+  height: 28px;
+  margin: 2px 0;
+  padding: 0;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.05);
+  border: 2px groove #eeede0;
+  font-weight: bold;
+}
+.joster .items-list .items-header > * {
+  font-size: 12px;
+  text-align: center;
+}
+.joster .items-list .items-header .item-name {
+  padding-left: 5px;
+  text-align: left;
+}
+.joster .item-formula {
+  flex: 0 0 200px;
+  padding: 0 8px;
+}
+.joster .effects .item .effect-source,
+.joster .effects .item .effect-duration,
+.joster .effects .item .effect-controls {
+  text-align: center;
+  border-left: 1px solid #c9c7b8;
+  border-right: 1px solid #c9c7b8;
+  font-size: 12px;
+}
+.joster .effects .item .effect-controls {
+  border: none;
+}
+.joster .joster-roll-dialog {
+  padding: 10px;
+}
+.joster .joster-roll-dialog .form-group {
+  margin-bottom: 5px;
+}
+.joster .joster-roll-dialog .joster-roll-threshold-preview {
+  margin: 5px 0;
+  font-weight: bold;
+  text-align: center;
+}
+.joster .joster-roll-dialog .joster-roll-threshold-preview .joster-threshold-value {
+  font-size: var(--font-size-16, 16px);
+}
+
+/* Chat message styles, rendered outside of any joster-classed sheet */
+.joster-roll-card {
+  text-align: center;
+}
+.joster-roll-card .joster-roll-flavor {
+  margin: 0 0 4px;
+  border-bottom: none;
+}
+.joster-roll-card .joster-roll-dice {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.joster-roll-card .joster-die {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #b5b3a4;
+  border-radius: 4px;
+  font-weight: bold;
+  opacity: 0.5;
+}
+.joster-roll-card .joster-die.counted {
+  opacity: 1;
+  border-width: 2px;
+  border-color: #191813;
+}
+.joster-roll-card .joster-roll-meta {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  font-size: var(--font-size-11, 11px);
+  color: #444;
+  margin-bottom: 4px;
+}
+.joster-roll-card .joster-roll-outcome {
+  font-weight: bold;
+  text-transform: uppercase;
+  border-radius: 3px;
+  padding: 2px 0;
+}
+.joster-roll-card .joster-roll-outcome.success, .joster-roll-card .joster-roll-outcome.criticalSuccess {
+  color: #2e7d32;
+}
+.joster-roll-card .joster-roll-outcome.failure, .joster-roll-card .joster-roll-outcome.criticalFailure {
+  color: #c62828;
+}
+.joster-roll-card .joster-roll-outcome.criticalSuccess, .joster-roll-card .joster-roll-outcome.criticalFailure {
+  font-size: var(--font-size-14, 14px);
+}

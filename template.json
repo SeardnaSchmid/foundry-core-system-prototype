@@ -1,0 +1,88 @@
+{
+  "Actor": {
+    "types": ["character", "npc"],
+    "templates": {
+      "base": {
+        "biography": ""
+      }
+    },
+    "character": {
+      "templates": ["base"],
+      "abilities": {
+        "str": {
+          "base": 4,
+          "value": 4
+        },
+        "dex": {
+          "base": 4,
+          "value": 4
+        },
+        "fin": {
+          "base": 4,
+          "value": 4
+        },
+        "per": {
+          "base": 4,
+          "value": 4
+        },
+        "aut": {
+          "base": 4,
+          "value": 4
+        },
+        "cha": {
+          "base": 4,
+          "value": 4
+        },
+        "man": {
+          "base": 4,
+          "value": 4
+        },
+        "emp": {
+          "base": 4,
+          "value": 4
+        },
+        "wil": {
+          "base": 4,
+          "value": 4
+        },
+        "int": {
+          "base": 4,
+          "value": 4
+        },
+        "wis": {
+          "base": 4,
+          "value": 4
+        },
+        "inv": {
+          "base": 4,
+          "value": 4
+        }
+      }
+    },
+    "npc": {
+      "templates": ["base"],
+      "cr": 0
+    }
+  },
+  "Item": {
+    "types": ["item", "feature", "spell"],
+    "templates": {
+      "base": {
+        "description": ""
+      }
+    },
+    "item": {
+      "templates": ["base"],
+      "quantity": 1,
+      "weight": 0,
+      "formula": "d20 + @str.value"
+    },
+    "feature": {
+      "templates": ["base"]
+    },
+    "spell": {
+      "templates": ["base"],
+      "spellLevel": 1
+    }
+  }
+}

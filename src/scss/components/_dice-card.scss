@@ -1,0 +1,64 @@
+.joster-roll-card {
+  text-align: center;
+
+  .joster-roll-flavor {
+    margin: 0 0 4px;
+    border-bottom: none;
+  }
+
+  .joster-roll-dice {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+
+  .joster-die {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid $c-beige;
+    border-radius: 4px;
+    font-weight: bold;
+    opacity: 0.5;
+
+    &.counted {
+      opacity: 1;
+      border-width: 2px;
+      border-color: $c-dark;
+    }
+  }
+
+  .joster-roll-meta {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    font-size: var(--font-size-11, 11px);
+    color: $c-tan;
+    margin-bottom: 4px;
+  }
+
+  .joster-roll-outcome {
+    font-weight: bold;
+    text-transform: uppercase;
+    border-radius: 3px;
+    padding: 2px 0;
+
+    &.success,
+    &.criticalSuccess {
+      color: #2e7d32;
+    }
+
+    &.failure,
+    &.criticalFailure {
+      color: #c62828;
+    }
+
+    &.criticalSuccess,
+    &.criticalFailure {
+      font-size: var(--font-size-14, 14px);
+    }
+  }
+}

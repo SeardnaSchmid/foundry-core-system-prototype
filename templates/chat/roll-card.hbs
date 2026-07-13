@@ -1,0 +1,20 @@
+<div class="joster-roll-card">
+  {{#if flavor}}
+  <h3 class="joster-roll-flavor">{{flavor}}</h3>
+  {{/if}}
+
+  <div class="joster-roll-dice">
+    {{#each dice as |die|}}
+    <span class="joster-die{{#if die.isCounted}} counted{{/if}}">{{die.value}}</span>
+    {{/each}}
+  </div>
+
+  <div class="joster-roll-meta">
+    <span class="joster-roll-threshold">{{localize "JOSTER.Roll.Threshold"}}: {{threshold}}</span>
+    {{#if showAdvantage}}
+    <span class="joster-roll-advantage">{{advantageLabel}}</span>
+    {{/if}}
+  </div>
+
+  <div class="joster-roll-outcome {{outcome}}">{{outcomeLabel}}</div>
+</div>

@@ -1,0 +1,116 @@
+{
+  "JOSTER": {
+    "AttributeCategory": {
+      "Physical": "Körperlich",
+      "Social": "Sozial",
+      "Mental": "Geistig"
+    },
+    "AttributeRow": {
+      "Assert": "Durchsetzen",
+      "Adapt": "Anpassen",
+      "Influence": "Beeinflussen",
+      "Perceive": "Erfassen"
+    },
+    "Ability": {
+      "Str": { "long": "Stärke", "abbr": "str", "hint": "Bewege Dinge oder bleibe selbst unbewegt." },
+      "Dex": { "long": "Beweglichkeit", "abbr": "bew", "hint": "Bewege dich selbst, schnell, geschickt oder ausdauernd." },
+      "Fin": { "long": "Fingerfertigkeit", "abbr": "fin", "hint": "Hand-Augen-Koordination und manuelle Geschicklichkeit." },
+      "Per": { "long": "Sinnesschärfe", "abbr": "sin", "hint": "Nimm Dinge mit deinen Sinnen war." },
+      "Aut": { "long": "Autorität", "abbr": "aut", "hint": "Einschüchtern und Führungsstärke, erhalte Respekt." },
+      "Cha": { "long": "Charisma", "abbr": "cha", "hint": "Freundlichkeit und Verständnis, erhalte Zuneigung." },
+      "Man": { "long": "Manipulation", "abbr": "man", "hint": "Lügen und Täuschen, Verfälschen der Wahrnehmung." },
+      "Emp": { "long": "Menschenkenntnis", "abbr": "men", "hint": "Verstehe Menschen, ihre Motive und Kommunikation." },
+      "Wil": { "long": "Willenskraft", "abbr": "wil", "hint": "Entschlossenheit und Überzeugung." },
+      "Int": { "long": "Intelligenz", "abbr": "int", "hint": "Verstehen und Schlussfolgern." },
+      "Wis": { "long": "Wissen", "abbr": "wis", "hint": "Allgemeinbildung und die Fähigkeit sie zu erweitern." },
+      "Inv": { "long": "Untersuchen", "abbr": "unt", "hint": "Erkenne Dinge, die jeder sieht, aber nicht jeder wahrnimmt." }
+    },
+    "AttributeCurrent": "Aktueller Wert (durch Schaden reduziert)",
+    "AttributeBase": "Basiswert (durch Charakterentwicklung erhöht)",
+    "AttributeModeHint": "Steuert, welcher Wert groß angezeigt wird und welchen Wert +/- verändern.",
+    "AttributeMode": {
+      "Temp": "Temp",
+      "Base": "Base"
+    },
+    "AttributeCritical": "Kritisch: Aktueller Wert ist 0.",
+    "AttributeIncrease": "Wert erhöhen",
+    "AttributeDecrease": "Wert verringern",
+    "ResetTemp": "Auf Basiswert zurücksetzen",
+    "DerivedAttributesTitle": "Abgeleitete Attribute",
+    "Derived": {
+      "Initiative": "Initiativegrundwert",
+      "MovementWalk": "Bewegungsreichweite (Gehen)",
+      "MovementSprint": "Bewegungsreichweite (Sprinten)",
+      "MovementCrawl": "Bewegungsreichweite (Kriechen)",
+      "CarrySlots": "Trageslots",
+      "SixthSense": "Sechster Sinn",
+      "SolveIdea": "Problem lösen: Idee haben",
+      "SolveFindFlaw": "Problem lösen: Fehler finden",
+      "SolveReserve": "Problem lösen: Vorrat",
+      "SolveAnalyzeFlaw": "Problem lösen: Fehler Analysieren"
+    },
+    "DerivedHint": {
+      "Initiative": "(2×Beweglichkeit+Sinnesschärfe)/3 (aufgerundet)",
+      "MovementWalk": "Beweglichkeit",
+      "MovementSprint": "3×Beweglichkeit",
+      "MovementCrawl": "1",
+      "CarrySlots": "2×Stärke+Beweglichkeit",
+      "SixthSense": "(Sinnesschärfe+Menschenkenntnis+Untersuchen)/3",
+      "SolveIdea": "(Intelligenz+Wissen)/2 (aufgerundet)",
+      "SolveFindFlaw": "(Intelligenz+Willenskraft)/2 (aufgerundet)",
+      "SolveReserve": "(Willenskraft+Wissen)/2 (aufgerundet)",
+      "SolveAnalyzeFlaw": "2×Untersuchen"
+    },
+    "SheetLabels": {
+      "Actor": "Joster Charakterbogen",
+      "Item": "Joster Gegenstandsbogen"
+    },
+    "Item": {
+      "Spell": {
+        "SpellLVL": "Zauber Stufe {level}",
+        "AddLVL": "Stufe {level} hinzufügen"
+      }
+    },
+    "Roll": {
+      "DialogTitle": "Wurf",
+      "AttributeA": "Attribut/Fähigkeit 1",
+      "AttributeB": "Attribut/Fähigkeit 2",
+      "Bonus": "Schwierigkeit (+/-3)",
+      "Advantage": "Vor-/Nachteil",
+      "Threshold": "Schwelle",
+      "Submit": "Würfeln"
+    },
+    "Advantage": {
+      "StrongDisadvantage": "Starker Nachteil",
+      "Disadvantage": "Nachteil",
+      "None": "Keiner",
+      "Advantage": "Vorteil",
+      "StrongAdvantage": "Starker Vorteil"
+    },
+    "RollOutcome": {
+      "Success": "Erfolg",
+      "Failure": "Misserfolg",
+      "CriticalSuccess": "Kritischer Erfolg",
+      "CriticalFailure": "Kritischer Misserfolg"
+    },
+    "Effect": {
+      "Source": "Quelle",
+      "Toggle": "Effekt umschalten",
+      "Temporary": "Temporäre Effekte",
+      "Passive": "Passive Effekte",
+      "Inactive": "Inaktive Effekte"
+    }
+  },
+
+  "TYPES": {
+    "Actor": {
+      "character": "Charakter",
+      "npc": "NSC"
+    },
+    "Item": {
+      "item": "Gegenstand",
+      "feature": "Merkmal",
+      "spell": "Zauber"
+    }
+  }
+}
