@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.5.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.3.0...v0.5.0) (2026-07-13)
+
+
+### Features
+
+* add vitest testing framework with comprehensive dice system tests ([2e34f38](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/2e34f38eb31eac2ae2b206f333c9f4db85be7302))
+
 # [0.4.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.3.0...v0.4.0) (2026-07-13)
 
 
