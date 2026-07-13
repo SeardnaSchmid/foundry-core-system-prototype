@@ -1,6 +1,6 @@
 {
   "name": "joster",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "SCSS compiler for the Joster Foundry VTT system",
   "scripts": {
     "build": "sass src/scss/joster.scss css/joster.css --style=expanded --no-source-map",
