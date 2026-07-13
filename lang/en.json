@@ -40,6 +40,7 @@
     "SkillsTitle": "Skills",
     "SkillIncrease": "Increase value",
     "SkillDecrease": "Decrease value",
+    "SkillScrollHint": "Scroll to change rank",
     "SkillCategoryEmptyHint": "No skills defined yet.",
     "SkillCategory": {
       "Combat": "Combat",
@@ -76,6 +77,18 @@
       "SolveFindFlaw": "Problem Solving: Find a Flaw",
       "SolveReserve": "Problem Solving: Reserve",
       "SolveAnalyzeFlaw": "Problem Solving: Analyze a Flaw"
+    },
+    "DerivedShort": {
+      "Initiative": "Init",
+      "MovementWalk": "Walk",
+      "MovementSprint": "Sprint",
+      "MovementCrawl": "Crawl",
+      "CarrySlots": "Carry",
+      "SixthSense": "6th Sense",
+      "SolveIdea": "Idea",
+      "SolveFindFlaw": "Find Flaw",
+      "SolveReserve": "Reserve",
+      "SolveAnalyzeFlaw": "Analyze Flaw"
     },
     "DerivedHint": {
       "Initiative": "(2×Agility+Perception)/3 (rounded up)",

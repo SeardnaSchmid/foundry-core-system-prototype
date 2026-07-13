@@ -40,6 +40,7 @@
     "SkillsTitle": "Fertigkeiten",
     "SkillIncrease": "Wert erhöhen",
     "SkillDecrease": "Wert verringern",
+    "SkillScrollHint": "Scrollen, um den Rang zu ändern",
     "SkillCategoryEmptyHint": "Noch keine Fertigkeiten definiert.",
     "SkillCategory": {
       "Combat": "Kampf",
@@ -76,6 +77,18 @@
       "SolveFindFlaw": "Problem lösen: Fehler finden",
       "SolveReserve": "Problem lösen: Vorrat",
       "SolveAnalyzeFlaw": "Problem lösen: Fehler Analysieren"
+    },
+    "DerivedShort": {
+      "Initiative": "Init",
+      "MovementWalk": "Gehen",
+      "MovementSprint": "Sprint",
+      "MovementCrawl": "Kriechen",
+      "CarrySlots": "Slots",
+      "SixthSense": "6. Sinn",
+      "SolveIdea": "Idee",
+      "SolveFindFlaw": "Fehler",
+      "SolveReserve": "Vorrat",
+      "SolveAnalyzeFlaw": "Analyse"
     },
     "DerivedHint": {
       "Initiative": "(2×Beweglichkeit+Sinnesschärfe)/3 (aufgerundet)",

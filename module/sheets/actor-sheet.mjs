@@ -186,8 +186,8 @@ export class JosterActorSheet extends ActorSheet {
     context.derivedAttributes = CONFIG.JOSTER.derivedAttributes.map(({ key, i18n }) => ({
       key,
       value: context.system.derived?.[key],
-      label: game.i18n.localize(`JOSTER.Derived.${i18n}`),
-      hint: game.i18n.localize(`JOSTER.DerivedHint.${i18n}`),
+      label: game.i18n.localize(`JOSTER.DerivedShort.${i18n}`),
+      hint: `${game.i18n.localize(`JOSTER.Derived.${i18n}`)}: ${game.i18n.localize(`JOSTER.DerivedHint.${i18n}`)}`,
     }));
 
     // Build the skill list, grouped by category, in JOSTER.skillCategories order.
@@ -203,6 +203,13 @@ export class JosterActorSheet extends ActorSheet {
           label: game.i18n.localize(skill.label),
           attribute: skill.attribute,
           attributeLabel: game.i18n.localize(CONFIG.JOSTER.abilities[skill.attribute]),
+          // Always the first 3 letters of the attribute's long name, e.g.
+          // "Dexterity" -> "Dex", so it stays correct across localizations
+          // without needing a separate translated abbreviation.
+          attributeAbbr: game.i18n
+            .localize(CONFIG.JOSTER.abilities[skill.attribute])
+            .slice(0, 3)
+            .replace(/^./, (c) => c.toUpperCase()),
           rank: skills[key]?.value ?? 0,
         })),
     }));
@@ -290,10 +297,12 @@ export class JosterActorSheet extends ActorSheet {
       this._resetTemp(ev.currentTarget.dataset.key);
     });
 
-    // Skill rank +/- steppers.
-    html.on('click', '.skill-stepper', (ev) => {
-      const { key, action } = ev.currentTarget.dataset;
-      this._stepSkill(key, action === 'increment' ? 1 : -1);
+    // Skill rank: scroll up/down over the value to adjust it, keeping the
+    // 3-column skill layout compact (no separate +/- buttons).
+    html.on('wheel', '.skill-rank-value', (ev) => {
+      ev.preventDefault();
+      const { key } = ev.currentTarget.dataset;
+      this._stepSkill(key, ev.originalEvent.deltaY < 0 ? 1 : -1);
     });
 
     // Add Inventory Item
