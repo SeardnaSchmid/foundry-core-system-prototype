@@ -12,11 +12,17 @@
   },
   "plugins": {
     "@release-it/bumper": {
-      "out": ["system.json"]
+      "out": {
+        "file": "system.json",
+        "path": "version"
+      }
     },
     "@release-it/conventional-changelog": {
       "preset": "angular",
       "infile": "CHANGELOG.md"
     }
+  },
+  "hooks": {
+    "after:bump": "sed -i 's|\"download\": \"https://github.com/SeardnaSchmid/foundry-core-system-prototype/releases/download/v[0-9.]*/system.zip\"|\"download\": \"https://github.com/SeardnaSchmid/foundry-core-system-prototype/releases/download/v${version}/system.zip\"|' system.json"
   }
 }
