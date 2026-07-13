@@ -297,12 +297,13 @@ export class JosterActorSheet extends ActorSheet {
       this._resetTemp(ev.currentTarget.dataset.key);
     });
 
-    // Skill rank: scroll up/down over the value to adjust it, keeping the
-    // 3-column skill layout compact (no separate +/- buttons).
-    html.on('wheel', '.skill-rank-value', (ev) => {
-      ev.preventDefault();
-      const { key } = ev.currentTarget.dataset;
-      this._stepSkill(key, ev.originalEvent.deltaY < 0 ? 1 : -1);
+    // Skill rank input: validate on change and input
+    html.on('change input', '.skill-rank-input', (ev) => {
+      const input = ev.currentTarget;
+      const value = Math.clamp(Number(input.value) || 0, SKILL_MIN, SKILL_MAX);
+      if (value !== Number(input.value)) {
+        input.value = value;
+      }
     });
 
     // Add Inventory Item

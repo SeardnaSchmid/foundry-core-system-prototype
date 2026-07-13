@@ -281,6 +281,7 @@
   cursor: pointer;
   font-size: var(--font-size-11, 11px);
   line-height: 1.3;
+  flex: 1;
 
   .skill-attr {
     font-size: var(--font-size-10, 10px);
@@ -300,4 +301,29 @@
   &:hover {
     background: rgba($c-beige, 0.3);
   }
+}
+
+.skill-rank-input {
+  width: 2ch;
+  height: 18px;
+  text-align: center;
+  font-weight: bold;
+  font-size: var(--font-size-11, 11px);
+  border: none;
+  background: transparent;
+  color: $c-black;
+  padding: 0;
+  flex: none;
+
+  &:focus {
+    outline: none;
+  }
+
+  // Remove spinner arrows
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  -moz-appearance: textfield;
 }
