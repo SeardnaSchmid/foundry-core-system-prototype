@@ -11,9 +11,39 @@
     }
   }
 
-  .joster-roll-breakdown {
-    margin-bottom: $padding-md;
-    text-align: left;
+  .joster-roll-subject {
+    text-align: center;
+    margin-bottom: $padding-sm;
+  }
+
+  .joster-roll-subject-name {
+    margin: 0;
+    border-bottom: none;
+  }
+
+  .joster-roll-stats {
+    margin-bottom: $padding-sm;
+
+    .form-group {
+      margin-bottom: $padding-sm;
+    }
+  }
+
+  .joster-roll-detail {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 2px 0;
+
+    .joster-roll-detail-value {
+      font-weight: bold;
+    }
+  }
+
+  .joster-roll-divider {
+    border: none;
+    border-top: 1px solid $c-beige;
+    margin: $padding-md 0;
   }
 
   .joster-bonus-stepper-group {
@@ -37,6 +67,20 @@
     }
   }
 
+  // Core's .form-group lays label/content out as a flex row (label flex: 2,
+  // content flex: 3); that squeezes the 5-button advantage picker against a
+  // long label. Stack this one field instead so the label sits on its own
+  // line above the full-width button row.
+  .joster-advantage-field {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+
+    > label {
+      flex: none;
+    }
+  }
+
   .joster-advantage-group {
     flex-wrap: nowrap;
     gap: 4px;
@@ -47,9 +91,10 @@
       padding: 4px 0;
       border: 1px solid $c-beige;
       border-radius: 3px;
-      font-size: var(--font-size-11, 11px);
+      font-size: var(--font-size-10, 10px);
       font-weight: bold;
       text-align: center;
+      white-space: nowrap;
 
       &.active {
         background: $c-tan;

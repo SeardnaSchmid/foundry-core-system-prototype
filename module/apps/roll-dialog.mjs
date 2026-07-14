@@ -1,4 +1,4 @@
-import { JOSTER_ADVANTAGE, rollJoster } from '../helpers/dice.mjs';
+import { JOSTER_ADVANTAGE, JOSTER_ADVANTAGE_ABBR, rollJoster } from '../helpers/dice.mjs';
 
 /** Bounds and step for the situational modification value. */
 const BONUS_MIN = -30;
@@ -22,7 +22,7 @@ export class JosterRollDialog extends FormApplication {
    *   When set, the dialog switches to "skill" mode: attributeA is fixed
    *   (not user-selectable) and its value plus the skill's value form the
    *   threshold base, with the bonus field layered on top as a modifier.
-   * @param {string} [options.flavor]      Label shown as the dialog title and chat flavor.
+   * @param {string} [options.flavor]      Label shown as the roll's subject heading and chat flavor.
    */
   constructor(actor, { attributeA = '', skill = null, flavor = '' } = {}) {
     super({ attributeA, attributeB: '', bonus: 0, advantage: JOSTER_ADVANTAGE.none });
@@ -44,7 +44,7 @@ export class JosterRollDialog extends FormApplication {
 
   /** @override */
   get title() {
-    return this.flavor;
+    return game.i18n.localize('JOSTER.Roll.DialogTitle');
   }
 
   /** @override */
@@ -57,12 +57,7 @@ export class JosterRollDialog extends FormApplication {
     const advantageOptions = Object.entries(JOSTER_ADVANTAGE).map(([key, value]) => ({
       value,
       label: game.i18n.localize(`JOSTER.Advantage.${key.charAt(0).toUpperCase()}${key.slice(1)}`),
-      abbr: key
-        .replace(/([A-Z])/g, ' $1')
-        .trim()
-        .split(' ')
-        .map((word) => word[0].toUpperCase())
-        .join(''),
+      abbr: JOSTER_ADVANTAGE_ABBR[value],
     }));
 
     const data = {
@@ -71,6 +66,7 @@ export class JosterRollDialog extends FormApplication {
       advantageOptions,
       isSkillMode: !!this.skill,
       threshold: this._computeThreshold(this.object),
+      subject: game.i18n.format('JOSTER.Roll.Subject', { name: this.flavor }),
     };
 
     if (this.skill) {
@@ -130,11 +126,26 @@ export class JosterRollDialog extends FormApplication {
   /** @override */
   async _updateObject(event, formData) {
     const threshold = this._computeThreshold(formData);
+    const abilities = this.actor.system.abilities ?? {};
+    const abilityLabel = (key) => (key && CONFIG.JOSTER.abilities[key] ? game.i18n.localize(CONFIG.JOSTER.abilities[key]) : '');
+
+    const components = [];
+    if (formData.attributeA) {
+      components.push({ label: abilityLabel(formData.attributeA), value: abilities[formData.attributeA]?.value ?? 0 });
+    }
+    if (this.skill) {
+      components.push({ label: this.skill.label, value: this.skill.value });
+    } else if (formData.attributeB) {
+      components.push({ label: abilityLabel(formData.attributeB), value: abilities[formData.attributeB]?.value ?? 0 });
+    }
+
     await rollJoster({
       threshold,
       advantage: Number(formData.advantage),
       flavor: this.flavor,
       actor: this.actor,
+      components,
+      bonus: Number(formData.bonus) || 0,
     });
   }
 }

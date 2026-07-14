@@ -1,9 +1,33 @@
 .joster-roll-card {
   text-align: center;
+  cursor: pointer;
+
+  .joster-roll-summary {
+    order: 0;
+    flex: 0 0 100%;
+  }
+
+  .joster-roll-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
 
   .joster-roll-flavor {
-    margin: 0 0 4px;
+    margin: 0;
     border-bottom: none;
+  }
+
+  .joster-roll-advantage-badge {
+    font-size: var(--font-size-10, 10px);
+    font-weight: bold;
+    letter-spacing: 0.02em;
+    padding: 1px 4px;
+    border: 1px solid $c-tan;
+    border-radius: 3px;
+    color: $c-tan;
   }
 
   .joster-roll-dice {
@@ -31,15 +55,6 @@
     }
   }
 
-  .joster-roll-meta {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    font-size: var(--font-size-11, 11px);
-    color: $c-tan;
-    margin-bottom: 4px;
-  }
-
   .joster-roll-outcome {
     font-weight: bold;
     text-transform: uppercase;
@@ -59,6 +74,32 @@
     &.criticalSuccess,
     &.criticalFailure {
       font-size: var(--font-size-14, 14px);
+    }
+  }
+
+  // Reuses core's .dice-roll/.dice-tooltip expand mechanism (grid-template-rows
+  // transition driven by the `expanded` class core's ChatLog toggles on click).
+  .joster-roll-tooltip {
+    order: 1;
+    text-align: left;
+
+    .wrapper {
+      padding-top: 4px;
+      border-top: 1px solid $c-beige;
+      margin-top: 4px;
+    }
+  }
+
+  .joster-roll-detail {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: var(--font-size-11, 11px);
+    color: $c-tan;
+    padding: 1px 0;
+
+    .joster-roll-detail-value {
+      font-weight: bold;
     }
   }
 }

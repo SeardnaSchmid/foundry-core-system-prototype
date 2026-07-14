@@ -1,20 +1,43 @@
-<div class="joster-roll-card">
-  {{#if flavor}}
-  <h3 class="joster-roll-flavor">{{flavor}}</h3>
-  {{/if}}
+<div class="joster-roll-card dice-roll" data-action="expandRoll">
+  <div class="joster-roll-summary">
+    <div class="joster-roll-title">
+      {{#if flavor}}
+      <h3 class="joster-roll-flavor">{{flavor}}</h3>
+      {{/if}}
+      <span class="joster-roll-advantage-badge" title="{{advantageLabel}}">{{advantageAbbr}}</span>
+    </div>
 
-  <div class="joster-roll-dice">
-    {{#each dice as |die|}}
-    <span class="joster-die{{#if die.isCounted}} counted{{/if}}">{{die.value}}</span>
-    {{/each}}
+    <div class="joster-roll-dice">
+      {{#each dice as |die|}}
+      <span class="joster-die{{#if die.isCounted}} counted{{/if}}">{{die.value}}</span>
+      {{/each}}
+    </div>
+
+    <div class="joster-roll-outcome {{outcome}}">{{outcomeLabel}}</div>
   </div>
 
-  <div class="joster-roll-meta">
-    <span class="joster-roll-threshold">{{localize "JOSTER.Roll.Threshold"}}: {{threshold}}</span>
-    {{#if showAdvantage}}
-    <span class="joster-roll-advantage">{{advantageLabel}}</span>
-    {{/if}}
+  <div class="dice-tooltip joster-roll-tooltip">
+    <div class="wrapper">
+      {{#each components as |component|}}
+      <div class="joster-roll-detail">
+        <span class="joster-roll-detail-label">{{component.label}}</span>
+        <span class="joster-roll-detail-value">{{component.value}}</span>
+      </div>
+      {{/each}}
+      {{#if showBonus}}
+      <div class="joster-roll-detail">
+        <span class="joster-roll-detail-label">{{localize "JOSTER.Roll.Bonus"}}</span>
+        <span class="joster-roll-detail-value">{{bonusDisplay}}</span>
+      </div>
+      {{/if}}
+      <div class="joster-roll-detail">
+        <span class="joster-roll-detail-label">{{localize "JOSTER.Roll.Threshold"}}</span>
+        <span class="joster-roll-detail-value">{{threshold}}</span>
+      </div>
+      <div class="joster-roll-detail">
+        <span class="joster-roll-detail-label">{{localize "JOSTER.Roll.Advantage"}}</span>
+        <span class="joster-roll-detail-value">{{advantageLabel}}</span>
+      </div>
+    </div>
   </div>
-
-  <div class="joster-roll-outcome {{outcome}}">{{outcomeLabel}}</div>
 </div>

@@ -11,6 +11,19 @@ export const JOSTER_ADVANTAGE = {
 };
 
 /**
+ * Short badge labels for each advantage level, used anywhere the roll type
+ * needs to be shown at a glance (chat card badge, roll dialog picker).
+ * @type {Object<number, string>}
+ */
+export const JOSTER_ADVANTAGE_ABBR = {
+  [JOSTER_ADVANTAGE.strongDisadvantage]: 'DIS+',
+  [JOSTER_ADVANTAGE.disadvantage]: 'DIS',
+  [JOSTER_ADVANTAGE.none]: 'STD',
+  [JOSTER_ADVANTAGE.advantage]: 'ADV',
+  [JOSTER_ADVANTAGE.strongAdvantage]: 'ADV+',
+};
+
+/**
  * How many d20 are rolled for a given advantage level. Simple advantage/
  * disadvantage only ever look at 2 dice; everything else rolls the full 3d20.
  * @param {number} advantage  One of the JOSTER_ADVANTAGE values.
@@ -106,6 +119,9 @@ export function criticalResultFor(values, advantage) {
  * @param {string} [options.flavor]            Label shown above the roll (e.g. the ability name).
  * @param {Actor} [options.actor]              The rolling actor, used for the chat speaker.
  * @param {string} [options.rollMode]          Chat roll mode; defaults to the current core setting.
+ * @param {{label: string, value: number}[]} [options.components]  Threshold components
+ *   (e.g. attribute and skill) shown in the expanded roll breakdown.
+ * @param {number} [options.bonus]             Situational modifier shown in the breakdown.
  * @returns {Promise<Roll>}
  */
 export async function rollJoster({
@@ -114,6 +130,8 @@ export async function rollJoster({
   flavor = '',
   actor = null,
   rollMode = null,
+  components = [],
+  bonus = 0,
 } = {}) {
   const dieCount = dieCountFor(advantage);
   const roll = new Roll(`${dieCount}d20`);
@@ -126,10 +144,12 @@ export async function rollJoster({
   const success = critical ? critical === 'criticalSuccess' : counting.value <= threshold;
   const outcome = critical ?? (success ? 'success' : 'failure');
 
-  const dice = values.map((value, index) => ({
-    value,
-    isCounted: index === counting.index,
-  }));
+  const dice = values
+    .map((value, index) => ({
+      value,
+      isCounted: index === counting.index,
+    }))
+    .sort((a, b) => a.value - b.value);
 
   const advantageKey = Object.keys(JOSTER_ADVANTAGE).find((key) => JOSTER_ADVANTAGE[key] === advantage);
 
@@ -142,7 +162,10 @@ export async function rollJoster({
     outcome,
     outcomeLabel: game.i18n.localize(`JOSTER.RollOutcome.${outcome.charAt(0).toUpperCase()}${outcome.slice(1)}`),
     advantageLabel: game.i18n.localize(`JOSTER.Advantage.${advantageKey.charAt(0).toUpperCase()}${advantageKey.slice(1)}`),
-    showAdvantage: advantage !== JOSTER_ADVANTAGE.none,
+    advantageAbbr: JOSTER_ADVANTAGE_ABBR[advantage],
+    components,
+    showBonus: bonus !== 0,
+    bonusDisplay: bonus > 0 ? `+${bonus}` : `${bonus}`,
   });
 
   await ChatMessage.create({

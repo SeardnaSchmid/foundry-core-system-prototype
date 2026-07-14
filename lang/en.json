@@ -128,19 +128,19 @@
       }
     },
     "Roll": {
-      "DialogTitle": "Roll",
+      "DialogTitle": "Dice Roll",
+      "Subject": "Rolling {name}",
       "AttributeA": "Attribute/Skill 1",
       "AttributeB": "Attribute/Skill 2",
       "Bonus": "Modification",
-      "Advantage": "Advantage/Disadvantage",
+      "Advantage": "Roll Type",
       "Threshold": "Threshold",
-      "RollingAgainst": "Rolling against",
       "Submit": "Roll"
     },
     "Advantage": {
       "StrongDisadvantage": "Strong Disadvantage",
       "Disadvantage": "Disadvantage",
-      "None": "None",
+      "None": "Normal",
       "Advantage": "Advantage",
       "StrongAdvantage": "Strong Advantage"
     },

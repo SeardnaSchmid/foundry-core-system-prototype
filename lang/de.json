@@ -128,19 +128,19 @@
       }
     },
     "Roll": {
-      "DialogTitle": "Wurf",
+      "DialogTitle": "Würfelwurf",
+      "Subject": "Wirft {name}",
       "AttributeA": "Attribut/Fähigkeit 1",
       "AttributeB": "Attribut/Fähigkeit 2",
       "Bonus": "Modifikation",
-      "Advantage": "Vor-/Nachteil",
+      "Advantage": "Wurftyp",
       "Threshold": "Schwelle",
-      "RollingAgainst": "Wurf gegen",
       "Submit": "Würfeln"
     },
     "Advantage": {
       "StrongDisadvantage": "Starker Nachteil",
       "Disadvantage": "Nachteil",
-      "None": "Keiner",
+      "None": "Normal",
       "Advantage": "Vorteil",
       "StrongAdvantage": "Starker Vorteil"
     },

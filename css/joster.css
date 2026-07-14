@@ -676,9 +676,33 @@
   margin-bottom: 5px;
   font-weight: bold;
 }
-.joster .joster-roll-dialog .joster-roll-breakdown {
-  margin-bottom: 10px;
-  text-align: left;
+.joster .joster-roll-dialog .joster-roll-subject {
+  text-align: center;
+  margin-bottom: 5px;
+}
+.joster .joster-roll-dialog .joster-roll-subject-name {
+  margin: 0;
+  border-bottom: none;
+}
+.joster .joster-roll-dialog .joster-roll-stats {
+  margin-bottom: 5px;
+}
+.joster .joster-roll-dialog .joster-roll-stats .form-group {
+  margin-bottom: 5px;
+}
+.joster .joster-roll-dialog .joster-roll-detail {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 2px 0;
+}
+.joster .joster-roll-dialog .joster-roll-detail .joster-roll-detail-value {
+  font-weight: bold;
+}
+.joster .joster-roll-dialog .joster-roll-divider {
+  border: none;
+  border-top: 1px solid #b5b3a4;
+  margin: 10px 0;
 }
 .joster .joster-roll-dialog .joster-bonus-stepper-group {
   gap: 10px;
@@ -698,6 +722,14 @@
   text-align: center;
   font-weight: bold;
 }
+.joster .joster-roll-dialog .joster-advantage-field {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+.joster .joster-roll-dialog .joster-advantage-field > label {
+  flex: none;
+}
 .joster .joster-roll-dialog .joster-advantage-group {
   flex-wrap: nowrap;
   gap: 4px;
@@ -708,9 +740,10 @@
   padding: 4px 0;
   border: 1px solid #b5b3a4;
   border-radius: 3px;
-  font-size: var(--font-size-11, 11px);
+  font-size: var(--font-size-10, 10px);
   font-weight: bold;
   text-align: center;
+  white-space: nowrap;
 }
 .joster .joster-roll-dialog .joster-advantage-group .joster-advantage-option.active {
   background: #444;
@@ -729,10 +762,31 @@
 /* Chat message styles, rendered outside of any joster-classed sheet */
 .joster-roll-card {
   text-align: center;
+  cursor: pointer;
+}
+.joster-roll-card .joster-roll-summary {
+  order: 0;
+  flex: 0 0 100%;
+}
+.joster-roll-card .joster-roll-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 4px;
 }
 .joster-roll-card .joster-roll-flavor {
-  margin: 0 0 4px;
+  margin: 0;
   border-bottom: none;
+}
+.joster-roll-card .joster-roll-advantage-badge {
+  font-size: var(--font-size-10, 10px);
+  font-weight: bold;
+  letter-spacing: 0.02em;
+  padding: 1px 4px;
+  border: 1px solid #444;
+  border-radius: 3px;
+  color: #444;
 }
 .joster-roll-card .joster-roll-dice {
   display: flex;
@@ -756,14 +810,6 @@
   border-width: 2px;
   border-color: #191813;
 }
-.joster-roll-card .joster-roll-meta {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  font-size: var(--font-size-11, 11px);
-  color: #444;
-  margin-bottom: 4px;
-}
 .joster-roll-card .joster-roll-outcome {
   font-weight: bold;
   text-transform: uppercase;
@@ -778,4 +824,24 @@
 }
 .joster-roll-card .joster-roll-outcome.criticalSuccess, .joster-roll-card .joster-roll-outcome.criticalFailure {
   font-size: var(--font-size-14, 14px);
+}
+.joster-roll-card .joster-roll-tooltip {
+  order: 1;
+  text-align: left;
+}
+.joster-roll-card .joster-roll-tooltip .wrapper {
+  padding-top: 4px;
+  border-top: 1px solid #b5b3a4;
+  margin-top: 4px;
+}
+.joster-roll-card .joster-roll-detail {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: var(--font-size-11, 11px);
+  color: #444;
+  padding: 1px 0;
+}
+.joster-roll-card .joster-roll-detail .joster-roll-detail-value {
+  font-weight: bold;
 }

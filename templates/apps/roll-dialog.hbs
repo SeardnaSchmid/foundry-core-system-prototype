@@ -1,31 +1,43 @@
 <form class="joster-roll-dialog flexcol">
-  {{#if isSkillMode}}
-  <div class="joster-roll-breakdown">
-    {{localize "JOSTER.Roll.RollingAgainst"}}
-    {{attributeLabel}}({{attributeValue}}) + {{skillLabel}}({{skillValue}})
-  </div>
-  <input type="hidden" name="attributeA" value="{{attributeA}}"/>
-  {{else}}
-  <div class="form-group">
-    <label>{{localize "JOSTER.Roll.AttributeA"}}</label>
-    <select name="attributeA">
-      <option value="">-</option>
-      {{#each abilities as |label key|}}
-      <option value="{{key}}" {{#ifEquals key ../attributeA}}selected{{/ifEquals}}>{{label}}</option>
-      {{/each}}
-    </select>
+  <div class="joster-roll-subject">
+    <h2 class="joster-roll-subject-name">{{subject}}</h2>
   </div>
 
-  <div class="form-group">
-    <label>{{localize "JOSTER.Roll.AttributeB"}}</label>
-    <select name="attributeB">
-      <option value="">-</option>
-      {{#each abilities as |label key|}}
-      <option value="{{key}}" {{#ifEquals key ../attributeB}}selected{{/ifEquals}}>{{label}}</option>
-      {{/each}}
-    </select>
+  <div class="joster-roll-stats">
+    {{#if isSkillMode}}
+    <div class="joster-roll-detail">
+      <span class="joster-roll-detail-label">{{attributeLabel}}</span>
+      <span class="joster-roll-detail-value">{{attributeValue}}</span>
+    </div>
+    <div class="joster-roll-detail">
+      <span class="joster-roll-detail-label">{{skillLabel}}</span>
+      <span class="joster-roll-detail-value">{{skillValue}}</span>
+    </div>
+    <input type="hidden" name="attributeA" value="{{attributeA}}"/>
+    {{else}}
+    <div class="form-group">
+      <label>{{localize "JOSTER.Roll.AttributeA"}}</label>
+      <select name="attributeA">
+        <option value="">-</option>
+        {{#each abilities as |label key|}}
+        <option value="{{key}}" {{#ifEquals key ../attributeA}}selected{{/ifEquals}}>{{label}}</option>
+        {{/each}}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>{{localize "JOSTER.Roll.AttributeB"}}</label>
+      <select name="attributeB">
+        <option value="">-</option>
+        {{#each abilities as |label key|}}
+        <option value="{{key}}" {{#ifEquals key ../attributeB}}selected{{/ifEquals}}>{{label}}</option>
+        {{/each}}
+      </select>
+    </div>
+    {{/if}}
   </div>
-  {{/if}}
+
+  <hr class="joster-roll-divider"/>
 
   <div class="form-group">
     <label>{{localize "JOSTER.Roll.Bonus"}}</label>
@@ -37,7 +49,7 @@
     <input type="hidden" name="bonus" value="{{bonus}}"/>
   </div>
 
-  <div class="form-group">
+  <div class="form-group joster-advantage-field">
     <label>{{localize "JOSTER.Roll.Advantage"}}</label>
     <div class="joster-advantage-group flexrow flex-center">
       {{#each advantageOptions as |option|}}
@@ -46,6 +58,8 @@
     </div>
     <input type="hidden" name="advantage" value="{{advantage}}"/>
   </div>
+
+  <hr class="joster-roll-divider"/>
 
   <div class="joster-roll-threshold-preview">
     {{localize "JOSTER.Roll.Threshold"}}: &lt;= <span class="joster-threshold-value">{{threshold}}</span>
