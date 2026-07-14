@@ -17,8 +17,10 @@
   margin-bottom: 4px;
 
   .heatmap-toolbar-hint {
-    font-size: var(--font-size-11, 11px);
+    margin-left: auto;
+    font-size: var(--font-size-14, 14px);
     color: $c-tan;
+    cursor: help;
   }
 }
 

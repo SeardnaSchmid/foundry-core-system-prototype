@@ -273,8 +273,10 @@
   margin-bottom: 4px;
 }
 .joster .heatmap-toolbar .heatmap-toolbar-hint {
-  font-size: var(--font-size-11, 11px);
+  margin-left: auto;
+  font-size: var(--font-size-14, 14px);
   color: #444;
+  cursor: help;
 }
 .joster .attribute-table {
   width: 100%;
