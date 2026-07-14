@@ -48,7 +48,7 @@
         ported from the "Attribut-Heatmap" prototype. --}}
         <div class="heatmap-toolbar flexrow flex-between">
           <span class="heatmap-toolbar-hint">{{localize "JOSTER.AttributeModeHint"}}</span>
-          <button type="button" class="heatmap-mode-toggle" style="color:{{attributeModeColor}};">{{attributeModeLabel}}</button>
+          <button type="button" class="heatmap-mode-toggle" title="{{attributeModeTooltip}}" style="color:{{attributeModeColor}};">🔧</button>
         </div>
         <table class="attribute-table heatmap">
           <thead>
@@ -110,7 +110,7 @@
         {{!-- Derived attributes, calculated from the primary attributes above.
         Compact tiles; hover a tile to see its formula from the rulebook. --}}
         <h3 class="derived-attributes-title">{{localize "JOSTER.DerivedAttributesTitle"}}</h3>
-        <div class="derived-attributes flexrow">
+        <div class="derived-attributes">
           {{#each derivedAttributes as |attr|}}
           <div class="derived-attribute" title="{{attr.hint}}">
             <span class="derived-value">{{attr.value}}</span>

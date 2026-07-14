@@ -134,7 +134,8 @@ export class JosterActorSheet extends ActorSheet {
     const rowMax = Math.max(...rowSums);
     const colMax = Math.max(...colSums);
 
-    context.attributeModeLabel = game.i18n.localize(`JOSTER.AttributeMode.${mode === 'temp' ? 'Temp' : 'Base'}`);
+    const attributeModeLabel = game.i18n.localize(`JOSTER.AttributeMode.${mode === 'temp' ? 'Temp' : 'Base'}`);
+    context.attributeModeTooltip = game.i18n.format('JOSTER.AttributeModeTooltip', { mode: attributeModeLabel });
     context.attributeModeColor = mode === 'temp' ? '#332D22' : '#8A7F65';
 
     context.attributeGrid = {

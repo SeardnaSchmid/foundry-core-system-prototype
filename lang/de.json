@@ -29,6 +29,7 @@
     "AttributeCurrent": "Aktueller Wert (durch Schaden reduziert)",
     "AttributeBase": "Basiswert (durch Charakterentwicklung erhöht)",
     "AttributeModeHint": "Steuert, welcher Wert groß angezeigt wird und welchen Wert +/- verändern.",
+    "AttributeModeTooltip": "Bearbeitungsmodus: {mode} (Klicken zum Wechseln)",
     "AttributeMode": {
       "Temp": "Temp",
       "Base": "Base"

@@ -278,16 +278,13 @@
 }
 .joster .heatmap-toolbar .heatmap-mode-toggle {
   flex: none;
-  width: auto;
+  width: 22px;
   min-width: 0;
   height: 22px;
   line-height: 1;
-  padding: 0 12px;
+  padding: 0;
   border-radius: 999px;
-  font-weight: bold;
-  text-transform: uppercase;
-  font-size: var(--font-size-10, 10px);
-  letter-spacing: 0.04em;
+  font-size: var(--font-size-12, 12px);
   cursor: pointer;
 }
 .joster .attribute-table {
@@ -443,6 +440,7 @@
   text-transform: uppercase;
 }
 .joster .derived-attributes {
+  display: flex;
   flex-wrap: wrap;
   gap: 4px;
   margin: 0 0 10px;
@@ -451,20 +449,33 @@
   display: inline-flex;
   align-items: baseline;
   gap: 4px;
+  flex: 1 1 auto;
+  max-width: 140px;
+  min-width: 0;
   border: 1px solid #b5b3a4;
   border-radius: 999px;
   padding: 1px 8px;
   cursor: help;
 }
 .joster .derived-attributes .derived-value {
+  flex: 0 1 auto;
+  max-width: 60px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-weight: bold;
   font-size: var(--font-size-12, 12px);
 }
 .joster .derived-attributes .derived-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: var(--font-size-10, 10px);
   text-transform: uppercase;
   color: #444;
-  white-space: nowrap;
 }
 .joster .skills-title {
   margin: 0 0 4px;
