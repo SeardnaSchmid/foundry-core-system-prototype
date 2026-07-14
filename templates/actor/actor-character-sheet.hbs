@@ -53,13 +53,13 @@
         <table class="attribute-table heatmap">
           <thead>
             <tr>
-              <th class="attribute-corner">{{attributeGrid.total}}</th>
+              <th class="attribute-corner"></th>
               {{#each attributeGrid.colHeaders as |col|}}
               <th>
                 <span class="heatmap-col-label">{{col.label}}</span>
-                <span class="heatmap-badge{{#if col.isPeak}} heatmap-peak{{/if}}" style="background:{{col.bg}}; color:{{col.textColor}};">{{col.value}}</span>
               </th>
               {{/each}}
+              <th class="heatmap-sum-header">{{localize "JOSTER.AttributeSum"}}</th>
             </tr>
           </thead>
           <tbody>
@@ -67,7 +67,6 @@
             <tr>
               <th class="heatmap-row-header">
                 <span class="heatmap-row-label">{{row.label}}</span>
-                <span class="heatmap-badge{{#if row.isPeak}} heatmap-peak{{/if}}" style="background:{{row.bg}}; color:{{row.textColor}};">{{row.sum}}</span>
               </th>
               {{#each row.cells as |cell|}}
               <td class="heatmap-cell{{#if cell.isPeak}} heatmap-peak{{/if}}{{#if cell.isCritical}} heatmap-critical{{/if}}" style="background:{{cell.cellBg}}; color:{{cell.textColor}}; border-color:{{cell.critBorder}};" title="{{cell.hint}}">
@@ -89,9 +88,23 @@
                 </div>
               </td>
               {{/each}}
+              <td class="heatmap-sum-cell">
+                <span class="heatmap-badge{{#if row.sum.isPeak}} heatmap-peak{{/if}}" style="background:{{row.sum.bg}}; color:{{row.sum.textColor}};">{{row.sum.value}}</span>
+              </td>
             </tr>
             {{/each}}
           </tbody>
+          <tfoot>
+            <tr>
+              <th class="heatmap-row-header heatmap-sum-header">Σ</th>
+              {{#each attributeGrid.footer.cols as |col|}}
+              <td class="heatmap-sum-cell">
+                <span class="heatmap-badge{{#if col.isPeak}} heatmap-peak{{/if}}" style="background:{{col.bg}}; color:{{col.textColor}};">{{col.value}}</span>
+              </td>
+              {{/each}}
+              <td class="heatmap-sum-cell heatmap-grand-total">{{attributeGrid.footer.total}}</td>
+            </tr>
+          </tfoot>
         </table>
 
         {{!-- Derived attributes, calculated from the primary attributes above.

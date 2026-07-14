@@ -126,8 +126,9 @@ export class JosterActorSheet extends ActorSheet {
     const baseValues = rows.flat().map((key) => abilities[key]?.base ?? 0);
     const localMin = Math.min(...baseValues);
     const localMax = Math.max(...baseValues);
-    const total = baseValues.reduce((a, b) => a + b, 0);
+    const totalBase = baseValues.reduce((a, b) => a + b, 0);
 
+    // Sums are graded/ranked by base (trained) value only.
     const rowSums = rows.map((row) => row.reduce((sum, key) => sum + (abilities[key]?.base ?? 0), 0));
     const colSums = categoryKeys.map((_, ci) => rows.reduce((sum, row) => sum + (abilities[row[ci]]?.base ?? 0), 0));
     const rowMax = Math.max(...rowSums);
@@ -137,16 +138,27 @@ export class JosterActorSheet extends ActorSheet {
     context.attributeModeColor = mode === 'temp' ? '#332D22' : '#8A7F65';
 
     context.attributeGrid = {
-      total,
-      colHeaders: categoryKeys.map((catKey, ci) => ({
+      // Footer row: one column-sum badge per attribute category, plus the
+      // grand total in the bottom-right corner (Σ ∩ Σ), mirroring the
+      // rulebook table's layout with a "Σ" row underneath the grid.
+      footer: {
+        cols: categoryKeys.map((catKey, ci) => ({
+          value: colSums[ci],
+          ...colorForRelativeToMax(colSums[ci], colMax),
+        })),
+        total: totalBase,
+      },
+      colHeaders: categoryKeys.map((catKey) => ({
         label: game.i18n.localize(CONFIG.JOSTER.attributeCategories[catKey]),
-        value: colSums[ci],
-        ...colorForRelativeToMax(colSums[ci], colMax),
       })),
       rows: rows.map((row, ri) => ({
         label: game.i18n.localize(CONFIG.JOSTER.attributeRowLabels[ri]),
-        sum: rowSums[ri],
-        ...colorForRelativeToMax(rowSums[ri], rowMax),
+        // Row-sum badge, rendered in a trailing "Σ" column instead of next
+        // to the row label.
+        sum: {
+          value: rowSums[ri],
+          ...colorForRelativeToMax(rowSums[ri], rowMax),
+        },
         cells: row.map((key) => {
           const labelKey = CONFIG.JOSTER.abilities[key];
           const ability = abilities[key];
@@ -156,10 +168,18 @@ export class JosterActorSheet extends ActorSheet {
           const isCritical = tempValue === 0;
           const dc = colorForValue(baseValue, localMin, localMax);
 
+          // Zero cells swap their tooltip for the attribute's specific
+          // in-fiction consequence (e.g. "FIN 0: keine Handaktionen")
+          // instead of the generic ability description.
+          const abilitySuffix = labelKey.split('.')[2];
+          const abbr = game.i18n.localize(labelKey.replace('.long', '.abbr')).toUpperCase();
+          const zeroConsequence = game.i18n.localize(`JOSTER.AttributeZero.${abilitySuffix}`);
+          const zeroHint = `${abbr} 0: ${zeroConsequence}`;
+
           return {
             key,
             label: game.i18n.localize(labelKey),
-            hint: game.i18n.localize(labelKey.replace('.long', '.hint')),
+            hint: isCritical ? zeroHint : game.i18n.localize(labelKey.replace('.long', '.hint')),
             tempValue,
             baseValue,
             tempActive: mode === 'temp',
@@ -169,6 +189,7 @@ export class JosterActorSheet extends ActorSheet {
             critBorder: isCritical ? 'rgba(255,90,100,0.7)' : 'transparent',
             isPeak: dc.isPeak && !isCritical,
             isCritical,
+            isZero: isCritical,
             hasDelta: delta !== 0,
             deltaLabel: (delta > 0 ? '+' : '') + delta,
             deltaBg: delta > 0 ? 'rgba(140,233,138,0.18)' : 'rgba(255,120,130,0.2)',

@@ -68,6 +68,28 @@
       font-size: var(--font-size-16, 16px);
     }
 
+    .heatmap-sum-header {
+      text-align: center;
+      font-size: var(--font-size-16, 16px);
+    }
+
+    .heatmap-sum-cell {
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .heatmap-grand-total {
+      text-align: center;
+      vertical-align: middle;
+      font-weight: bold;
+      font-size: var(--font-size-16, 16px);
+    }
+
+    tfoot th,
+    tfoot td {
+      border-top-width: 2px;
+    }
+
     .heatmap-col-label,
     .heatmap-row-label {
       display: block;

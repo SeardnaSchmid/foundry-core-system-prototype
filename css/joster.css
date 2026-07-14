@@ -316,6 +316,24 @@
   text-align: center;
   font-size: var(--font-size-16, 16px);
 }
+.joster .attribute-table.heatmap .heatmap-sum-header {
+  text-align: center;
+  font-size: var(--font-size-16, 16px);
+}
+.joster .attribute-table.heatmap .heatmap-sum-cell {
+  text-align: center;
+  vertical-align: middle;
+}
+.joster .attribute-table.heatmap .heatmap-grand-total {
+  text-align: center;
+  vertical-align: middle;
+  font-weight: bold;
+  font-size: var(--font-size-16, 16px);
+}
+.joster .attribute-table.heatmap tfoot th,
+.joster .attribute-table.heatmap tfoot td {
+  border-top-width: 2px;
+}
 .joster .attribute-table.heatmap .heatmap-col-label,
 .joster .attribute-table.heatmap .heatmap-row-label {
   display: block;

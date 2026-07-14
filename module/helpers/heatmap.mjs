@@ -6,14 +6,17 @@
 
 const CURVE_EXPONENT = 2.3;
 
-// Restraint-first palette: weak values recede into the parchment page (near-
-// background tone), a modest single highlight marks mid-range, and a more
-// dominant highlight is reserved for the true high end. Two accents total,
-// not a full rainbow sweep.
+// Single-hue, saturation/lightness-driven palette (amber/sienna family, matching
+// the parchment page) instead of a multi-hue sweep. Hue gradients read as
+// discrete color categories with a muddy seam in between — brightness and
+// saturation carry a continuous "how strong is this" signal far more clearly.
+// Weak values fade to a near-desaturated parchment tone; strong values deepen
+// into a fully saturated burnt sienna. Hue only drifts slightly (~12deg)
+// across the ramp, well short of the point where it reads as a hue change.
 const HEAT_STOPS = [
-  { hue: 42, sat: 18, light: 68 }, // weak — reads as the parchment page itself
-  { hue: 174, sat: 30, light: 40 }, // mid — modest teal accent
-  { hue: 28, sat: 62, light: 50 }, // high — dominant amber/sienna accent
+  { hue: 40, sat: 20, light: 70 }, // weak — reads as the parchment page itself
+  { hue: 34, sat: 48, light: 55 }, // mid — warming gold
+  { hue: 28, sat: 70, light: 34 }, // high — deep, saturated burnt sienna
 ];
 
 function interpolateStops(stops, t) {

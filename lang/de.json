@@ -25,6 +25,7 @@
       "Wis": { "long": "Wissen", "abbr": "wis", "hint": "Allgemeinbildung und die Fähigkeit sie zu erweitern." },
       "Inv": { "long": "Untersuchen", "abbr": "unt", "hint": "Erkenne Dinge, die jeder sieht, aber nicht jeder wahrnimmt." }
     },
+    "AttributeSum": "Σ",
     "AttributeCurrent": "Aktueller Wert (durch Schaden reduziert)",
     "AttributeBase": "Basiswert (durch Charakterentwicklung erhöht)",
     "AttributeModeHint": "Steuert, welcher Wert groß angezeigt wird und welchen Wert +/- verändern.",
@@ -33,6 +34,20 @@
       "Base": "Base"
     },
     "AttributeCritical": "Kritisch: Aktueller Wert ist 0.",
+    "AttributeZero": {
+      "Str": "tot.",
+      "Dex": "nur noch kriechen (Sprint gesperrt).",
+      "Fin": "keine Handaktionen möglich.",
+      "Per": "blind und taub. (Platzhalter, noch offen)",
+      "Aut": "wird von niemandem mehr beachtet, keine Autorität. (Platzhalter, noch offen)",
+      "Cha": "abstoßend, gewinnt keine Sympathie mehr. (Platzhalter, noch offen)",
+      "Man": "durchschaubar, kann nicht mehr lügen oder täuschen. (Platzhalter, noch offen)",
+      "Emp": "kann niemanden mehr einschätzen. (Platzhalter, noch offen)",
+      "Wil": "kein Widerstand mehr, gibt immer nach. (Platzhalter, noch offen)",
+      "Int": "kann es nicht mehr durchdenken. (Platzhalter, noch offen)",
+      "Wis": "kein Wissen mehr, auf das zurückgegriffen werden kann. (Platzhalter, noch offen)",
+      "Inv": "übersieht alles, bemerkt nichts mehr. (Platzhalter, noch offen)"
+    },
     "AttributeIncrease": "Wert erhöhen",
     "AttributeDecrease": "Wert verringern",
     "ResetTemp": "Auf Basiswert zurücksetzen",

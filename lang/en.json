@@ -25,6 +25,7 @@
       "Wis": { "long": "Knowledge", "abbr": "wis", "hint": "General education and the ability to expand it." },
       "Inv": { "long": "Investigation", "abbr": "inv", "hint": "Notice things everyone sees, but not everyone perceives." }
     },
+    "AttributeSum": "Σ",
     "AttributeCurrent": "Current value (reduced by damage)",
     "AttributeBase": "Base value (increased by character development)",
     "AttributeModeHint": "Controls which value is shown large and which one +/- change.",
@@ -33,6 +34,20 @@
       "Base": "Base"
     },
     "AttributeCritical": "Critical: current value is 0.",
+    "AttributeZero": {
+      "Str": "dead.",
+      "Dex": "can only crawl (sprint locked).",
+      "Fin": "no hand actions possible.",
+      "Per": "blind and deaf. (placeholder, TBD)",
+      "Aut": "ignored by everyone, no authority. (placeholder, TBD)",
+      "Cha": "repellent, earns no goodwill. (placeholder, TBD)",
+      "Man": "transparent, can't lie or deceive. (placeholder, TBD)",
+      "Emp": "can't read anyone's intent. (placeholder, TBD)",
+      "Wil": "no resistance, always yields. (placeholder, TBD)",
+      "Int": "can't reason it out. (placeholder, TBD)",
+      "Wis": "no knowledge to draw on. (placeholder, TBD)",
+      "Inv": "misses everything, notices nothing. (placeholder, TBD)"
+    },
     "AttributeIncrease": "Increase value",
     "AttributeDecrease": "Decrease value",
     "ResetTemp": "Reset to base value",
