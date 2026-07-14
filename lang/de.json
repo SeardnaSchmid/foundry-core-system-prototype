@@ -28,9 +28,7 @@
     "AttributeSum": "Σ",
     "AttributeCurrent": "Aktueller Wert (durch Schaden reduziert)",
     "AttributeBase": "Basiswert (durch Charakterentwicklung erhöht)",
-    "AttributeModeHint": "Klicken oder Scrollen bearbeitet den Wert. Umschalt gedrückt halten bearbeitet stattdessen den Basiswert.",
-    "AttributeTempEditHint": "Klicken für einen genauen Wert, Scrollen ändert um 1.",
-    "AttributeBaseEditHint": "Umschalt+Klicken für einen genauen Wert, Umschalt+Scrollen ändert um 1.",
+    "AttributeModeHint": "+/- ändert den aktuellen Wert. Umschalt gedrückt halten ändert stattdessen den Basiswert.",
     "AttributeCritical": "Kritisch: Aktueller Wert ist 0.",
     "AttributeZero": {
       "Str": "tot.",

@@ -171,8 +171,8 @@ export class JosterActorSheet extends ActorSheet {
             hint: isCritical ? zeroHint : game.i18n.localize(labelKey.replace('.long', '.hint')),
             tempValue,
             baseValue,
-            tempHint: game.i18n.localize('JOSTER.AttributeTempEditHint'),
-            baseHint: game.i18n.localize('JOSTER.AttributeBaseEditHint'),
+            tempHint: game.i18n.localize('JOSTER.AttributeCurrent'),
+            baseHint: game.i18n.localize('JOSTER.AttributeBase'),
             cellBg: isCritical ? '#3D1418' : dc.bg,
             textColor: isCritical ? '#FFD9DC' : dc.textColor,
             critBorder: isCritical ? 'rgba(255,90,100,0.7)' : 'transparent',
@@ -299,7 +299,7 @@ export class JosterActorSheet extends ActorSheet {
     if (!this.isEditable) return;
 
     // Heatmap +/- steppers: adjust temp (value) by default, or base while
-    // holding Shift. Mirrors the scroll and click-to-edit modifier below.
+    // holding Shift, since base is the rarer, more deliberate change.
     html.on('click', '.heatmap-stepper', (ev) => {
       const { key, action } = ev.currentTarget.dataset;
       const field = ev.shiftKey ? 'base' : 'value';
@@ -309,28 +309,6 @@ export class JosterActorSheet extends ActorSheet {
     // Reset an attribute's temp value back to its base value.
     html.on('click', '.heatmap-delta', (ev) => {
       this._resetTemp(ev.currentTarget.dataset.key);
-    });
-
-    // Scroll to nudge an attribute's temp value by +/-1. Editing the base
-    // value this way requires holding Shift, since it's the rarer,
-    // more deliberate action (changing the trained rating, not the
-    // current play value).
-    html.on('wheel', '.heatmap-editable', (ev) => {
-      const { key, field } = ev.currentTarget.dataset;
-      if (field === 'base' && !ev.shiftKey) return;
-      ev.preventDefault();
-      const delta = ev.originalEvent.deltaY < 0 ? 1 : -1;
-      this._stepAttribute(key, delta, field);
-    });
-
-    // Click to edit an attribute's value directly as a number. Editing
-    // base requires Shift+click for the same reason as the scroll above.
-    html.on('click', '.heatmap-editable', (ev) => {
-      const el = ev.currentTarget;
-      const { key, field } = el.dataset;
-      if (field === 'base' && !ev.shiftKey) return;
-      if (el.querySelector('input')) return;
-      this._beginInlineAttributeEdit(el, key, field);
     });
 
     // Skill rank input: validate on change and input
@@ -439,75 +417,6 @@ export class JosterActorSheet extends ActorSheet {
     const ability = this.actor.system.abilities[key];
     if (!ability) return;
     await this.actor.update({ [`system.abilities.${key}.value`]: ability.base });
-  }
-
-  /**
-   * Swap a heatmap value span for an inline number input so the player can
-   * type an exact value instead of nudging it one step at a time. Commits
-   * on Enter/blur, discards on Escape.
-   *
-   * @param {HTMLElement} el      The .heatmap-editable span that was clicked
-   * @param {string} key          Ability key, e.g. "str"
-   * @param {"value"|"base"} field  Which number to edit
-   * @private
-   */
-  _beginInlineAttributeEdit(el, key, field) {
-    const ability = this.actor.system.abilities[key];
-    if (!ability) return;
-
-    const current = field === 'base' ? ability.base : ability.value;
-    const min = field === 'base' ? BASE_MIN : TEMP_MIN;
-    const max = field === 'base' ? BASE_MAX : TEMP_MAX;
-
-    const input = document.createElement('input');
-    input.type = 'number';
-    input.className = 'heatmap-inline-input';
-    input.value = current;
-    input.min = min;
-    input.max = max;
-
-    el.textContent = '';
-    el.appendChild(input);
-    input.focus();
-    input.select();
-
-    let settled = false;
-    const commit = async () => {
-      if (settled) return;
-      settled = true;
-      const next = Math.clamp(Number(input.value) || 0, min, max);
-      if (next === current) {
-        this.render(false);
-        return;
-      }
-      if (field === 'base') {
-        await this.actor.update({
-          [`system.abilities.${key}.base`]: next,
-          [`system.abilities.${key}.value`]: next,
-        });
-      } else {
-        await this.actor.update({ [`system.abilities.${key}.value`]: next });
-      }
-    };
-    const cancel = () => {
-      if (settled) return;
-      settled = true;
-      this.render(false);
-    };
-
-    input.addEventListener('keydown', (kev) => {
-      if (kev.key === 'Enter') {
-        kev.preventDefault();
-        commit();
-      } else if (kev.key === 'Escape') {
-        kev.preventDefault();
-        cancel();
-      }
-    });
-    input.addEventListener('blur', commit);
-    // Some browsers natively step a focused number input on wheel; stop it
-    // from also bubbling into the delegated .heatmap-editable wheel handler.
-    input.addEventListener('wheel', (wev) => wev.stopPropagation());
   }
 
   /**

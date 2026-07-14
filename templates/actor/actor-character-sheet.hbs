@@ -81,7 +81,7 @@
                 <div class="heatmap-cell-values flexrow flex-center">
                   <a class="heatmap-stepper" data-key="{{cell.key}}" data-action="decrement" title="{{localize 'JOSTER.AttributeDecrease'}}" style="background:{{cell.stepperBg}}; border-color:{{cell.stepperBorder}}; color:{{cell.stepperColor}};">−</a>
                   <span class="heatmap-value-pair">
-                    <span class="heatmap-temp heatmap-editable active" data-key="{{cell.key}}" data-field="value" title="{{cell.tempHint}}">{{cell.tempValue}}</span><span class="heatmap-slash">/</span><span class="heatmap-base heatmap-editable inactive" data-key="{{cell.key}}" data-field="base" title="{{cell.baseHint}}">{{cell.baseValue}}</span>
+                    <span class="heatmap-temp active" title="{{cell.tempHint}}">{{cell.tempValue}}</span><span class="heatmap-slash">/</span><span class="heatmap-base inactive" title="{{cell.baseHint}}">{{cell.baseValue}}</span>
                   </span>
                   <a class="heatmap-stepper" data-key="{{cell.key}}" data-action="increment" title="{{localize 'JOSTER.AttributeIncrease'}}" style="background:{{cell.stepperBg}}; border-color:{{cell.stepperBorder}}; color:{{cell.stepperColor}};">+</a>
                 </div>

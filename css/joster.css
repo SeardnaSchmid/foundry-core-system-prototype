@@ -419,24 +419,6 @@
   font-size: var(--font-size-11, 11px);
   opacity: 0.55;
 }
-.joster .attribute-table.heatmap .heatmap-cell .heatmap-editable {
-  cursor: ns-resize;
-  border-radius: 4px;
-}
-.joster .attribute-table.heatmap .heatmap-cell .heatmap-editable:hover {
-  box-shadow: 0 0 0 1px currentColor;
-}
-.joster .attribute-table.heatmap .heatmap-cell .heatmap-inline-input {
-  width: 2.4em;
-  height: auto;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  font-weight: inherit;
-  text-align: center;
-}
 .joster .attribute-table.heatmap .heatmap-cell .heatmap-slash {
   font-weight: 800;
   opacity: 0.5;

@@ -28,9 +28,7 @@
     "AttributeSum": "Σ",
     "AttributeCurrent": "Current value (reduced by damage)",
     "AttributeBase": "Base value (increased by character development)",
-    "AttributeModeHint": "Click or scroll a value to edit it. Hold Shift to edit the base value instead.",
-    "AttributeTempEditHint": "Click to type an exact value, or scroll to adjust by 1.",
-    "AttributeBaseEditHint": "Hold Shift and click to type an exact value, or Shift+scroll to adjust by 1.",
+    "AttributeModeHint": "+/- changes the current value. Hold Shift to change the base value instead.",
     "AttributeCritical": "Critical: current value is 0.",
     "AttributeZero": {
       "Str": "dead.",
