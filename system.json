@@ -19,7 +19,7 @@
       "thumbnail": "systems/joster/assets/anvil-impact.png"
     }
   ],
-  "version": "0.6.1",
+  "version": "0.6.2",
   "compatibility": {
     "minimum": 12,
     "verified": 14
@@ -46,7 +46,7 @@
   "packFolders": [],
   "socket": false,
   "manifest": "https://github.com/SeardnaSchmid/foundry-core-system-prototype/releases/latest/download/system.json",
-  "download": "https://github.com/SeardnaSchmid/foundry-core-system-prototype/releases/download/v0.6.1/system.zip",
+  "download": "https://github.com/SeardnaSchmid/foundry-core-system-prototype/releases/download/v0.6.2/system.zip",
   "background": "systems/joster/assets/anvil-impact.png",
   "gridDistance": 5,
   "gridUnits": "ft"

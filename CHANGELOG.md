@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.2](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.6.1...v0.6.2) (2026-07-14)
+
+
+### Bug Fixes
+
+* derived attributes wrapping and icon-based attribute mode toggle ([e254bcf](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/e254bcf04a67d3f65e8f345227b9d84e1e10673b))
+
 ## [0.6.1](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.6.0...v0.6.1) (2026-07-14)
 
 
