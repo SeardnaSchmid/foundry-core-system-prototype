@@ -46,13 +46,12 @@
         mirroring the "Attribute" table in the rulebook. Cell and sum-badge
         backgrounds are color-graded relative to the character's own values,
         ported from the "Attribut-Heatmap" prototype. --}}
-        <div class="heatmap-toolbar flexrow flex-between">
-          <span class="heatmap-toolbar-hint" title="{{localize 'JOSTER.AttributeModeHint'}}">ⓘ</span>
-        </div>
         <table class="attribute-table heatmap">
           <thead>
             <tr>
-              <th class="attribute-corner"></th>
+              <th class="attribute-corner">
+                <span class="heatmap-info-badge" title="{{localize 'JOSTER.AttributeModeHint'}}">i</span>
+              </th>
               {{#each attributeGrid.colHeaders as |col|}}
               <th>
                 <span class="heatmap-col-label">{{col.label}}</span>
