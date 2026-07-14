@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.6.0...v0.6.1) (2026-07-14)
+
+
+### Bug Fixes
+
+* improve attribute delta badge contrast and skill group layout ([b1123c6](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/b1123c6771b81241a9e946837e9c9eb1aa6d51e3))
+
 # [0.6.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.5.1...v0.6.0) (2026-07-14)
 
 
