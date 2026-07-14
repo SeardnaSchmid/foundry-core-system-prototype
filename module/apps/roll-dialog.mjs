@@ -29,6 +29,11 @@ export class JosterRollDialog extends FormApplication {
     this.actor = actor;
     this.skill = skill;
     this.flavor = flavor || game.i18n.localize('JOSTER.Roll.DialogTitle');
+    // The skill's linked attribute, as passed in by the sheet. In skill mode
+    // the player can override attributeA to roll against a different
+    // attribute; comparing against this original value is how the roll gets
+    // flagged as non-standard.
+    this.defaultAttributeA = attributeA;
   }
 
   /** @override */
@@ -75,6 +80,7 @@ export class JosterRollDialog extends FormApplication {
       data.attributeValue = actorAbilities[this.object.attributeA]?.value ?? 0;
       data.skillLabel = this.skill.label;
       data.skillValue = this.skill.value;
+      data.isOverridden = this.object.attributeA !== this.defaultAttributeA;
     }
 
     return data;
@@ -97,9 +103,31 @@ export class JosterRollDialog extends FormApplication {
   /** @override */
   activateListeners(html) {
     super.activateListeners(html);
+
+    // In skill mode, the linked attribute is shown as plain text; clicking
+    // it reveals a select so the player can roll against a different
+    // attribute instead.
+    html.on('click', '.joster-attribute-toggle', (ev) => {
+      const row = $(ev.currentTarget).closest('.joster-roll-attribute-row');
+      row.find('.joster-attribute-toggle').addClass('joster-hidden');
+      row.find('select[name="attributeA"]').removeClass('joster-hidden').trigger('focus');
+    });
+
     html.on('change', 'select[name="attributeA"], select[name="attributeB"]', (ev) => {
       const data = new FormDataExtended(ev.currentTarget.form).object;
       html.find('.joster-threshold-value').text(this._computeThreshold(data));
+
+      if (this.skill && ev.currentTarget.name === 'attributeA') {
+        const select = ev.currentTarget;
+        const key = select.value;
+        const label = select.selectedOptions[0]?.text ?? key;
+        const value = this.actor.system.abilities?.[key]?.value ?? 0;
+        const row = $(select).closest('.joster-roll-attribute-row');
+        row.find('.joster-attribute-toggle').text(label).removeClass('joster-hidden');
+        row.find('.joster-roll-detail-value').text(value);
+        $(select).addClass('joster-hidden');
+        html.find('.joster-roll-nonstandard-badge').toggleClass('joster-hidden', key === this.defaultAttributeA);
+      }
     });
 
     html.on('click', '.joster-bonus-stepper', (ev) => {
@@ -146,6 +174,7 @@ export class JosterRollDialog extends FormApplication {
       actor: this.actor,
       components,
       bonus: Number(formData.bonus) || 0,
+      nonStandard: !!this.skill && formData.attributeA !== this.defaultAttributeA,
     });
   }
 }

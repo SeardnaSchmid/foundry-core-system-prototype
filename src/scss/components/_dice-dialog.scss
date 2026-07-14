@@ -40,6 +40,27 @@
     }
   }
 
+  .joster-hidden {
+    display: none !important;
+  }
+
+  .joster-attribute-toggle {
+    cursor: pointer;
+    border-bottom: 1px dashed $c-tan;
+  }
+
+  .joster-attribute-select {
+    flex: 1;
+  }
+
+  .joster-roll-nonstandard-badge {
+    margin: -2px 0 4px;
+    font-size: var(--font-size-10, 10px);
+    font-weight: bold;
+    text-align: center;
+    color: #c62828;
+  }
+
   .joster-roll-divider {
     border: none;
     border-top: 1px solid $c-beige;

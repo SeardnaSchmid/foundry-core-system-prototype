@@ -122,6 +122,8 @@ export function criticalResultFor(values, advantage) {
  * @param {{label: string, value: number}[]} [options.components]  Threshold components
  *   (e.g. attribute and skill) shown in the expanded roll breakdown.
  * @param {number} [options.bonus]             Situational modifier shown in the breakdown.
+ * @param {boolean} [options.nonStandard]      Whether the roll used an attribute other than
+ *   the skill's normally linked one, flagged in the chat card.
  * @returns {Promise<Roll>}
  */
 export async function rollJoster({
@@ -132,6 +134,7 @@ export async function rollJoster({
   rollMode = null,
   components = [],
   bonus = 0,
+  nonStandard = false,
 } = {}) {
   const dieCount = dieCountFor(advantage);
   const roll = new Roll(`${dieCount}d20`);
@@ -166,6 +169,9 @@ export async function rollJoster({
     components,
     showBonus: bonus !== 0,
     bonusDisplay: bonus > 0 ? `+${bonus}` : `${bonus}`,
+    nonStandard,
+    nonStandardAbbr: game.i18n.localize('JOSTER.Roll.NonStandardAbbr'),
+    nonStandardLabel: game.i18n.localize('JOSTER.Roll.NonStandard'),
   });
 
   await ChatMessage.create({

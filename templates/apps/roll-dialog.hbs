@@ -5,15 +5,20 @@
 
   <div class="joster-roll-stats">
     {{#if isSkillMode}}
-    <div class="joster-roll-detail">
-      <span class="joster-roll-detail-label">{{attributeLabel}}</span>
+    <div class="joster-roll-detail joster-roll-attribute-row">
+      <span class="joster-roll-detail-label joster-attribute-toggle" title="{{localize 'JOSTER.Roll.OverrideAttribute'}}">{{attributeLabel}}</span>
+      <select name="attributeA" class="joster-attribute-select joster-hidden">
+        {{#each abilities as |label key|}}
+        <option value="{{key}}" {{#ifEquals key ../attributeA}}selected{{/ifEquals}}>{{label}}</option>
+        {{/each}}
+      </select>
       <span class="joster-roll-detail-value">{{attributeValue}}</span>
     </div>
+    <div class="joster-roll-nonstandard-badge {{#unless isOverridden}}joster-hidden{{/unless}}">{{localize "JOSTER.Roll.NonStandard"}}</div>
     <div class="joster-roll-detail">
       <span class="joster-roll-detail-label">{{skillLabel}}</span>
       <span class="joster-roll-detail-value">{{skillValue}}</span>
     </div>
-    <input type="hidden" name="attributeA" value="{{attributeA}}"/>
     {{else}}
     <div class="form-group">
       <label>{{localize "JOSTER.Roll.AttributeA"}}</label>

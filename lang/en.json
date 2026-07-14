@@ -135,7 +135,10 @@
       "Bonus": "Modification",
       "Advantage": "Roll Type",
       "Threshold": "Threshold",
-      "Submit": "Roll"
+      "Submit": "Roll",
+      "OverrideAttribute": "Click to roll against a different attribute",
+      "NonStandard": "Non-standard roll (linked attribute overridden)",
+      "NonStandardAbbr": "NSTD"
     },
     "Advantage": {
       "StrongDisadvantage": "Strong Disadvantage",

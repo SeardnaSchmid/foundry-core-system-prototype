@@ -130,7 +130,7 @@
             <ul class="skill-list">
               {{#each group.skills as |skill|}}
               <li class="skill-row flexrow flex-between">
-                <span class="skill-name rollable" data-roll-type="skill" data-skill="{{skill.key}}" data-ability="{{skill.attribute}}" data-label="{{skill.label}}" title="{{skill.attributeLabel}}">{{skill.label}} <span class="skill-attr">({{skill.attributeAbbr}})</span></span>
+                <span class="skill-name rollable" data-roll-type="skill" data-skill="{{skill.key}}" data-ability="{{skill.attribute}}" data-label="{{skill.label}}" title="{{skill.attributeLabel}}">{{skill.label}} <span class="skill-attr">({{skill.attributeAbbr}} {{skill.attributeValue}})</span> <span class="skill-threshold">[{{skill.rank}}] &rarr; {{skill.defaultThreshold}}</span></span>
                 <input type="number" class="skill-rank-input" name="system.skills.{{skill.key}}.value" value="{{skill.rank}}" min="0" max="10"/>
               </li>
               {{/each}}

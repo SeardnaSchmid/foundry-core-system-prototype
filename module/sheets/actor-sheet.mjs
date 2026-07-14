@@ -219,20 +219,29 @@ export class JosterActorSheet extends ActorSheet {
       label: game.i18n.localize(catLabelKey),
       skills: Object.entries(CONFIG.JOSTER.skills)
         .filter(([, skill]) => skill.category === catKey)
-        .map(([key, skill]) => ({
-          key,
-          label: game.i18n.localize(skill.label),
-          attribute: skill.attribute,
-          attributeLabel: game.i18n.localize(CONFIG.JOSTER.abilities[skill.attribute]),
-          // Always the first 3 letters of the attribute's long name, e.g.
-          // "Dexterity" -> "Dex", so it stays correct across localizations
-          // without needing a separate translated abbreviation.
-          attributeAbbr: game.i18n
-            .localize(CONFIG.JOSTER.abilities[skill.attribute])
-            .slice(0, 3)
-            .replace(/^./, (c) => c.toUpperCase()),
-          rank: skills[key]?.value ?? 0,
-        })),
+        .map(([key, skill]) => {
+          const attributeValue = abilities[skill.attribute]?.value ?? 0;
+          const rank = skills[key]?.value ?? 0;
+          return {
+            key,
+            label: game.i18n.localize(skill.label),
+            attribute: skill.attribute,
+            attributeLabel: game.i18n.localize(CONFIG.JOSTER.abilities[skill.attribute]),
+            // Always the first 3 letters of the attribute's long name, e.g.
+            // "Dexterity" -> "Dex", so it stays correct across localizations
+            // without needing a separate translated abbreviation.
+            attributeAbbr: game.i18n
+              .localize(CONFIG.JOSTER.abilities[skill.attribute])
+              .slice(0, 3)
+              .replace(/^./, (c) => c.toUpperCase()),
+            attributeValue,
+            rank,
+            // The roll threshold this skill would use by default: attribute
+            // value + skill rank, mirroring RollDialog#_computeThreshold
+            // without any bonus/malus applied.
+            defaultThreshold: attributeValue + rank,
+          };
+        }),
     }));
   }
 

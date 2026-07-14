@@ -135,7 +135,10 @@
       "Bonus": "Modifikation",
       "Advantage": "Wurftyp",
       "Threshold": "Schwelle",
-      "Submit": "Würfeln"
+      "Submit": "Würfeln",
+      "OverrideAttribute": "Klicken, um gegen ein anderes Attribut zu würfeln",
+      "NonStandard": "Nicht-Standard-Wurf (verknüpftes Attribut abweichend)",
+      "NonStandardAbbr": "ABW"
     },
     "Advantage": {
       "StrongDisadvantage": "Starker Nachteil",
