@@ -1,5 +1,19 @@
 # Changelog
 
+# [0.7.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.6.2...v0.7.0) (2026-07-14)
+
+
+### Bug Fixes
+
+* drop scroll and click-to-type attribute editing, keep shift-click ([b726be4](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/b726be427fa29e62bfb71ab7d73e8d11b3b8aabc))
+* move attribute hint into the table's corner cell as a badge ([49782f8](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/49782f8966bcac71b505ac2cf0be89c9ce4cc6f8))
+* move heatmap hint text behind an (i) hover icon ([18e915d](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/18e915d0277fcb6654f21e19e697bbd61e79af7d))
+
+
+### Features
+
+* edit attribute values directly via scroll and inline input ([19f0685](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/19f0685f283223ddbdfd93a429bf3033d814457b))
+
 ## [0.6.2](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.6.1...v0.6.2) (2026-07-14)
 
 
