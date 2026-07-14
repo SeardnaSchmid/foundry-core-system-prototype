@@ -20,13 +20,6 @@ const SKILL_MAX = 10;
  * @extends {ActorSheet}
  */
 export class JosterActorSheet extends ActorSheet {
-  /**
-   * Which of an ability's two numbers ("temp" = value, "base" = base) is
-   * shown large and driven by the +/- steppers. Sheet-instance UI state,
-   * not persisted to the actor.
-   */
-  _attributeMode = 'temp';
-
   /** @override */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
@@ -121,7 +114,6 @@ export class JosterActorSheet extends ActorSheet {
     const abilities = context.system.abilities;
     const rows = CONFIG.JOSTER.attributeRows;
     const categoryKeys = Object.keys(CONFIG.JOSTER.attributeCategories);
-    const mode = this._attributeMode;
 
     const baseValues = rows.flat().map((key) => abilities[key]?.base ?? 0);
     const localMin = Math.min(...baseValues);
@@ -133,10 +125,6 @@ export class JosterActorSheet extends ActorSheet {
     const colSums = categoryKeys.map((_, ci) => rows.reduce((sum, row) => sum + (abilities[row[ci]]?.base ?? 0), 0));
     const rowMax = Math.max(...rowSums);
     const colMax = Math.max(...colSums);
-
-    const attributeModeLabel = game.i18n.localize(`JOSTER.AttributeMode.${mode === 'temp' ? 'Temp' : 'Base'}`);
-    context.attributeModeTooltip = game.i18n.format('JOSTER.AttributeModeTooltip', { mode: attributeModeLabel });
-    context.attributeModeColor = mode === 'temp' ? '#332D22' : '#8A7F65';
 
     context.attributeGrid = {
       // Footer row: one column-sum badge per attribute category, plus the
@@ -183,8 +171,8 @@ export class JosterActorSheet extends ActorSheet {
             hint: isCritical ? zeroHint : game.i18n.localize(labelKey.replace('.long', '.hint')),
             tempValue,
             baseValue,
-            tempActive: mode === 'temp',
-            baseActive: mode === 'base',
+            tempHint: game.i18n.localize('JOSTER.AttributeTempEditHint'),
+            baseHint: game.i18n.localize('JOSTER.AttributeBaseEditHint'),
             cellBg: isCritical ? '#3D1418' : dc.bg,
             textColor: isCritical ? '#FFD9DC' : dc.textColor,
             critBorder: isCritical ? 'rgba(255,90,100,0.7)' : 'transparent',
@@ -306,26 +294,43 @@ export class JosterActorSheet extends ActorSheet {
       item.sheet.render(true);
     });
 
-    // Toggle which attribute value (temp/base) the heatmap displays large
-    // and the steppers drive. Pure display state, so it works read-only too.
-    html.on('click', '.heatmap-mode-toggle', () => {
-      this._attributeMode = this._attributeMode === 'temp' ? 'base' : 'temp';
-      this.render(false);
-    });
-
     // -------------------------------------------------------------
     // Everything below here is only needed if the sheet is editable
     if (!this.isEditable) return;
 
-    // Heatmap +/- steppers: adjust temp (value) or base depending on mode.
+    // Heatmap +/- steppers: adjust temp (value) by default, or base while
+    // holding Shift. Mirrors the scroll and click-to-edit modifier below.
     html.on('click', '.heatmap-stepper', (ev) => {
       const { key, action } = ev.currentTarget.dataset;
-      this._stepAttribute(key, action === 'increment' ? 1 : -1);
+      const field = ev.shiftKey ? 'base' : 'value';
+      this._stepAttribute(key, action === 'increment' ? 1 : -1, field);
     });
 
     // Reset an attribute's temp value back to its base value.
     html.on('click', '.heatmap-delta', (ev) => {
       this._resetTemp(ev.currentTarget.dataset.key);
+    });
+
+    // Scroll to nudge an attribute's temp value by +/-1. Editing the base
+    // value this way requires holding Shift, since it's the rarer,
+    // more deliberate action (changing the trained rating, not the
+    // current play value).
+    html.on('wheel', '.heatmap-editable', (ev) => {
+      const { key, field } = ev.currentTarget.dataset;
+      if (field === 'base' && !ev.shiftKey) return;
+      ev.preventDefault();
+      const delta = ev.originalEvent.deltaY < 0 ? 1 : -1;
+      this._stepAttribute(key, delta, field);
+    });
+
+    // Click to edit an attribute's value directly as a number. Editing
+    // base requires Shift+click for the same reason as the scroll above.
+    html.on('click', '.heatmap-editable', (ev) => {
+      const el = ev.currentTarget;
+      const { key, field } = el.dataset;
+      if (field === 'base' && !ev.shiftKey) return;
+      if (el.querySelector('input')) return;
+      this._beginInlineAttributeEdit(el, key, field);
     });
 
     // Skill rank input: validate on change and input
@@ -400,20 +405,20 @@ export class JosterActorSheet extends ActorSheet {
   }
 
   /**
-   * Handle a heatmap +/- stepper click. In "temp" mode this adjusts the
-   * ability's current value (0-20) only. In "base" mode it adjusts the
-   * trained base rating (1-10) and syncs the temp value to match, per the
+   * Adjust an ability's temp value or base rating by +/-1. Adjusting the
+   * base (field "base") syncs the temp value to match, per the
    * "Attribut-Heatmap" spec: changing the base clears any temp deviation.
    *
    * @param {string} key    Ability key, e.g. "str"
    * @param {number} delta  +1 or -1
+   * @param {"value"|"base"} field  Which number to adjust
    * @private
    */
-  async _stepAttribute(key, delta) {
+  async _stepAttribute(key, delta, field = 'value') {
     const ability = this.actor.system.abilities[key];
     if (!ability) return;
 
-    if (this._attributeMode === 'temp') {
+    if (field === 'value') {
       const next = Math.clamp(ability.value + delta, TEMP_MIN, TEMP_MAX);
       await this.actor.update({ [`system.abilities.${key}.value`]: next });
     } else {
@@ -434,6 +439,75 @@ export class JosterActorSheet extends ActorSheet {
     const ability = this.actor.system.abilities[key];
     if (!ability) return;
     await this.actor.update({ [`system.abilities.${key}.value`]: ability.base });
+  }
+
+  /**
+   * Swap a heatmap value span for an inline number input so the player can
+   * type an exact value instead of nudging it one step at a time. Commits
+   * on Enter/blur, discards on Escape.
+   *
+   * @param {HTMLElement} el      The .heatmap-editable span that was clicked
+   * @param {string} key          Ability key, e.g. "str"
+   * @param {"value"|"base"} field  Which number to edit
+   * @private
+   */
+  _beginInlineAttributeEdit(el, key, field) {
+    const ability = this.actor.system.abilities[key];
+    if (!ability) return;
+
+    const current = field === 'base' ? ability.base : ability.value;
+    const min = field === 'base' ? BASE_MIN : TEMP_MIN;
+    const max = field === 'base' ? BASE_MAX : TEMP_MAX;
+
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.className = 'heatmap-inline-input';
+    input.value = current;
+    input.min = min;
+    input.max = max;
+
+    el.textContent = '';
+    el.appendChild(input);
+    input.focus();
+    input.select();
+
+    let settled = false;
+    const commit = async () => {
+      if (settled) return;
+      settled = true;
+      const next = Math.clamp(Number(input.value) || 0, min, max);
+      if (next === current) {
+        this.render(false);
+        return;
+      }
+      if (field === 'base') {
+        await this.actor.update({
+          [`system.abilities.${key}.base`]: next,
+          [`system.abilities.${key}.value`]: next,
+        });
+      } else {
+        await this.actor.update({ [`system.abilities.${key}.value`]: next });
+      }
+    };
+    const cancel = () => {
+      if (settled) return;
+      settled = true;
+      this.render(false);
+    };
+
+    input.addEventListener('keydown', (kev) => {
+      if (kev.key === 'Enter') {
+        kev.preventDefault();
+        commit();
+      } else if (kev.key === 'Escape') {
+        kev.preventDefault();
+        cancel();
+      }
+    });
+    input.addEventListener('blur', commit);
+    // Some browsers natively step a focused number input on wheel; stop it
+    // from also bubbling into the delegated .heatmap-editable wheel handler.
+    input.addEventListener('wheel', (wev) => wev.stopPropagation());
   }
 
   /**

@@ -20,18 +20,6 @@
     font-size: var(--font-size-11, 11px);
     color: $c-tan;
   }
-
-  .heatmap-mode-toggle {
-    flex: none;
-    width: 22px;
-    min-width: 0;
-    height: 22px;
-    line-height: 1;
-    padding: 0;
-    border-radius: 999px;
-    font-size: var(--font-size-12, 12px);
-    cursor: pointer;
-  }
 }
 
 .attribute-table {
@@ -201,6 +189,27 @@
           font-size: var(--font-size-11, 11px);
           opacity: 0.55;
         }
+      }
+
+      .heatmap-editable {
+        cursor: ns-resize;
+        border-radius: 4px;
+
+        &:hover {
+          box-shadow: 0 0 0 1px currentColor;
+        }
+      }
+
+      .heatmap-inline-input {
+        width: 2.4em;
+        height: auto;
+        padding: 0;
+        border: none;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        font-weight: inherit;
+        text-align: center;
       }
 
       .heatmap-slash {
