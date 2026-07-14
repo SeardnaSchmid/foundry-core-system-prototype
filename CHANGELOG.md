@@ -1,5 +1,15 @@
 # Changelog
 
+# [0.6.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.5.1...v0.6.0) (2026-07-14)
+
+
+### Features
+
+* allow overriding a skill roll's linked attribute ([b839d4e](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/b839d4e9e52e667394a68f08f39bc31c317e7f42))
+* attribute matrix zero-consequence hints and single-hue heatmap gradient ([f7cfcc7](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/f7cfcc71c15a4fb915538597e7833beb79c54728))
+* expandable roll chat card with threshold breakdown and roll subject ([e5429a5](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/e5429a53ec86366112576282c2fbd3aa1fc8d986))
+* show roll threshold in collapsed chat dice card ([24f2ca4](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/24f2ca4d1f10b18417340d6bf4387599b1d83aa5))
+
 ## [0.5.1](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.5.0...v0.5.1) (2026-07-13)
 
 # [0.5.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.3.0...v0.5.0) (2026-07-13)
