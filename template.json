@@ -8,6 +8,9 @@
     },
     "character": {
       "templates": ["base"],
+      "problemSolving": {
+        "spent": 0
+      },
       "abilities": {
         "str": {
           "base": 4,

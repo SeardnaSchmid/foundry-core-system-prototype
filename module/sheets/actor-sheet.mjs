@@ -2,7 +2,7 @@ import {
   onManageActiveEffect,
   prepareActiveEffectCategories,
 } from '../helpers/effects.mjs';
-import { colorForValue, colorForRelativeToMax } from '../helpers/heatmap.mjs';
+import { colorForValue, colorForSum } from '../helpers/heatmap.mjs';
 import { JosterRollDialog } from '../apps/roll-dialog.mjs';
 
 // Value ranges from the "Attribut-Heatmap" spec: Basiswert (base) is the
@@ -106,25 +106,20 @@ export class JosterActorSheet extends ActorSheet {
   _prepareCharacterData(context) {
     // Build the primary attribute grid (one row per CONFIG.JOSTER.attributeRows
     // entry, one column per physical/social/mental category), mirroring the
-    // layout of the "Attribute" table in the rulebook. Cells are color-graded
-    // using the "Attribut-Heatmap" prototype's logic: each cell is normalized
-    // against the character's own min/max base value, while the row/column
-    // sum badges are graded relative to the group's max so close sums render
-    // as close colors instead of being stretched across the whole scale.
+    // layout of the "Attribute" table in the rulebook. Cells and row/column
+    // sum badges are all color-graded using the "Attribut-Heatmap" prototype's
+    // logic: each is graded against its own fixed absolute 1-10-per-attribute
+    // scale, independently of every other cell/badge on the sheet.
     const abilities = context.system.abilities;
     const rows = CONFIG.JOSTER.attributeRows;
     const categoryKeys = Object.keys(CONFIG.JOSTER.attributeCategories);
 
     const baseValues = rows.flat().map((key) => abilities[key]?.base ?? 0);
-    const localMin = Math.min(...baseValues);
-    const localMax = Math.max(...baseValues);
     const totalBase = baseValues.reduce((a, b) => a + b, 0);
 
     // Sums are graded/ranked by base (trained) value only.
     const rowSums = rows.map((row) => row.reduce((sum, key) => sum + (abilities[key]?.base ?? 0), 0));
     const colSums = categoryKeys.map((_, ci) => rows.reduce((sum, row) => sum + (abilities[row[ci]]?.base ?? 0), 0));
-    const rowMax = Math.max(...rowSums);
-    const colMax = Math.max(...colSums);
 
     context.attributeGrid = {
       // Footer row: one column-sum badge per attribute category, plus the
@@ -133,7 +128,7 @@ export class JosterActorSheet extends ActorSheet {
       footer: {
         cols: categoryKeys.map((catKey, ci) => ({
           value: colSums[ci],
-          ...colorForRelativeToMax(colSums[ci], colMax),
+          ...colorForSum(colSums[ci], rows.length),
         })),
         total: totalBase,
       },
@@ -146,7 +141,7 @@ export class JosterActorSheet extends ActorSheet {
         // to the row label.
         sum: {
           value: rowSums[ri],
-          ...colorForRelativeToMax(rowSums[ri], rowMax),
+          ...colorForSum(rowSums[ri], categoryKeys.length),
         },
         cells: row.map((key) => {
           const labelKey = CONFIG.JOSTER.abilities[key];
@@ -155,7 +150,7 @@ export class JosterActorSheet extends ActorSheet {
           const tempValue = ability?.value ?? 0;
           const delta = tempValue - baseValue;
           const isCritical = tempValue === 0;
-          const dc = colorForValue(baseValue, localMin, localMax);
+          const dc = colorForValue(baseValue);
 
           // Zero cells swap their tooltip for the attribute's specific
           // in-fiction consequence (e.g. "FIN 0: keine Handaktionen")
@@ -190,15 +185,6 @@ export class JosterActorSheet extends ActorSheet {
         }),
       })),
     };
-
-    // Build the "Abgeleitete Attribute" table from the values computed in
-    // JosterActor#_prepareCharacterData (system.derived.*).
-    context.derivedAttributes = CONFIG.JOSTER.derivedAttributes.map(({ key, i18n }) => ({
-      key,
-      value: context.system.derived?.[key],
-      label: game.i18n.localize(`JOSTER.DerivedShort.${i18n}`),
-      hint: `${game.i18n.localize(`JOSTER.Derived.${i18n}`)}: ${game.i18n.localize(`JOSTER.DerivedHint.${i18n}`)}`,
-    }));
 
     // Build the skill list, grouped by category, in JOSTER.skillCategories order.
     // Categories without any skills yet (WIP groups) still render, empty.
@@ -344,6 +330,11 @@ export class JosterActorSheet extends ActorSheet {
     // Rollable abilities.
     html.on('click', '.rollable', this._onRoll.bind(this));
 
+    // Problem-solving actions (Idee haben / Fehler finden / Fehler
+    // Analysieren): each click consumes one point from the reserve pool.
+    // "Fehler Analysieren" additionally rolls, via its data-roll attribute.
+    html.on('click', '.ps-spend', this._onSpendReserve.bind(this));
+
     // Drag events for macros.
     if (this.actor.isOwner) {
       let handler = (ev) => this._onDragStart(ev);
@@ -430,6 +421,38 @@ export class JosterActorSheet extends ActorSheet {
     if (!skill) return;
     const next = Math.clamp(skill.value + delta, SKILL_MIN, SKILL_MAX);
     await this.actor.update({ [`system.skills.${key}.value`]: next });
+  }
+
+  /**
+   * Handle a problem-solving action (idea / find flaw / analyze flaw).
+   * Consumes one point from the reserve pool; refuses if the pool is empty.
+   * "Analyze flaw" additionally carries a data-roll formula, which is rolled
+   * once the point has been spent.
+   * @param {Event} event   The originating click event
+   * @private
+   */
+  async _onSpendReserve(event) {
+    event.preventDefault();
+    const element = event.currentTarget;
+
+    const current = this.actor.system.derived?.solveReserve ?? 0;
+    if (current <= 0) {
+      ui.notifications?.warn(game.i18n.localize('JOSTER.Notify.NoReserve'));
+      return;
+    }
+
+    const spent = (this.actor.system.problemSolving?.spent ?? 0) + 1;
+    await this.actor.update({ 'system.problemSolving.spent': spent });
+
+    if (element.dataset.roll) {
+      const label = element.dataset.label ? `[ability] ${element.dataset.label}` : '';
+      const roll = new Roll(element.dataset.roll, this.actor.getRollData());
+      roll.toMessage({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        flavor: label,
+        rollMode: game.settings.get('core', 'rollMode'),
+      });
+    }
   }
 
   /**

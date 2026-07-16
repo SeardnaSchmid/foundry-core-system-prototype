@@ -47,7 +47,6 @@
     "AttributeIncrease": "Wert erhöhen",
     "AttributeDecrease": "Wert verringern",
     "ResetTemp": "Auf Basiswert zurücksetzen",
-    "DerivedAttributesTitle": "Abgeleitete Attribute",
     "SkillsTitle": "Fertigkeiten",
     "RollSkill": "Würfeln",
     "SkillIncrease": "Wert erhöhen",
@@ -113,6 +112,9 @@
       "SolveFindFlaw": "(Intelligenz+Willenskraft)/2 (aufgerundet)",
       "SolveReserve": "(Willenskraft+Wissen)/2 (aufgerundet)",
       "SolveAnalyzeFlaw": "2×Untersuchen"
+    },
+    "Notify": {
+      "NoReserve": "Kein Problemlösen-Vorrat mehr übrig."
     },
     "SheetLabels": {
       "Actor": "Joster Charakterbogen",

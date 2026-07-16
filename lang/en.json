@@ -47,7 +47,6 @@
     "AttributeIncrease": "Increase value",
     "AttributeDecrease": "Decrease value",
     "ResetTemp": "Reset to base value",
-    "DerivedAttributesTitle": "Derived Attributes",
     "SkillsTitle": "Skills",
     "RollSkill": "Roll",
     "SkillIncrease": "Increase value",
@@ -113,6 +112,9 @@
       "SolveFindFlaw": "(Intelligence+Willpower)/2 (rounded up)",
       "SolveReserve": "(Willpower+Knowledge)/2 (rounded up)",
       "SolveAnalyzeFlaw": "2×Investigation"
+    },
+    "Notify": {
+      "NoReserve": "No problem-solving reserve points left."
     },
     "SheetLabels": {
       "Actor": "Joster Actor Sheet",

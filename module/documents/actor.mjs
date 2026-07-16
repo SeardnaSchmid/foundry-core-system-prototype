@@ -56,6 +56,18 @@ export class JosterActor extends Actor {
     // Derived attributes, per the "Attribute" rules. Movement ranges use the
     // undamaged base Beweglichkeit ("Bewegungsreichweiten ändern sich nie");
     // any Beweglichkeit damage instead blocks sprinting entirely.
+    // The reserve pool refills to its max (Willenskraft+Wissen)/2 whenever
+    // derived data is recomputed; `problemSolving.spent` tracks how many of
+    // those points have been used since the last refill/reset.
+    const solveReserveMax = Math.ceil((value('wil') + value('wis')) / 2);
+    const solveReserveSpent = Math.min(systemData.problemSolving?.spent ?? 0, solveReserveMax);
+
+    // Carried slots used so far: each carried item (type "item") occupies
+    // its `weight` field times how many are carried.
+    const carrySlotsUsed = actorData.items
+      .filter((item) => item.type === 'item')
+      .reduce((sum, item) => sum + (item.system.weight ?? 0) * (item.system.quantity ?? 1), 0);
+
     systemData.derived = {
       initiative: Math.ceil((2 * value('dex') + value('per')) / 3),
       movementWalk: base('dex'),
@@ -63,10 +75,12 @@ export class JosterActor extends Actor {
       movementCrawl: 1,
       canSprint: value('dex') >= base('dex'),
       carrySlots: 2 * value('str') + value('dex'),
-      sixthSense: (value('per') + value('emp') + value('inv')) / 3,
+      carrySlotsUsed,
+      sixthSense: Math.round((value('per') + value('emp') + value('inv')) / 3),
       solveIdea: Math.ceil((value('int') + value('wis')) / 2),
       solveFindFlaw: Math.ceil((value('int') + value('wil')) / 2),
-      solveReserve: Math.ceil((value('wil') + value('wis')) / 2),
+      solveReserveMax: solveReserveMax,
+      solveReserve: Math.max(0, solveReserveMax - solveReserveSpent),
       solveAnalyzeFlaw: 2 * value('inv'),
     };
   }

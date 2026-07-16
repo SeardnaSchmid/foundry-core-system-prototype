@@ -74,26 +74,6 @@ JOSTER.attributeRowLabels = [
 ];
 
 /**
- * Row order for the "Abgeleitete Attribute" table. Each entry's `key` is
- * where the computed value lives on `system.derived`, and `i18n` is the
- * shared suffix used for both the JOSTER.Derived (label) and
- * JOSTER.DerivedHint (calculation) localization keys.
- * @type {Array<{key: string, i18n: string}>}
- */
-JOSTER.derivedAttributes = [
-  { key: 'initiative', i18n: 'Initiative' },
-  { key: 'movementWalk', i18n: 'MovementWalk' },
-  { key: 'movementSprint', i18n: 'MovementSprint' },
-  { key: 'movementCrawl', i18n: 'MovementCrawl' },
-  { key: 'carrySlots', i18n: 'CarrySlots' },
-  { key: 'sixthSense', i18n: 'SixthSense' },
-  { key: 'solveIdea', i18n: 'SolveIdea' },
-  { key: 'solveFindFlaw', i18n: 'SolveFindFlaw' },
-  { key: 'solveReserve', i18n: 'SolveReserve' },
-  { key: 'solveAnalyzeFlaw', i18n: 'SolveAnalyzeFlaw' },
-];
-
-/**
  * Skill categories, in display order. "milieus", "biomes", "technology" and
  * "knowledge" are placeholders from the WIP skill list with no skills
  * assigned yet; they render as empty groups until filled in.
