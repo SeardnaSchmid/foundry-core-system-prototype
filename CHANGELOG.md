@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.8.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.7.0...v0.8.0) (2026-07-16)
+
+
+### Features
+
+* grade attribute heatmap independently on rulebook's 1-10 scale ([88570e6](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/88570e6c2e549f876d2e680d08d2a0d0d918f4ce))
+
 # [0.7.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.6.2...v0.7.0) (2026-07-14)
 
 
