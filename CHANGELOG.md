@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.1](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.9.0...v0.9.1) (2026-07-16)
+
+
+### Bug Fixes
+
+* base derived attributes on undamaged base ratings ([370a624](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/370a6241e3f17f3914493f1a0428a5cd086a3f07))
+
 # [0.9.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.8.0...v0.9.0) (2026-07-16)
 
 
