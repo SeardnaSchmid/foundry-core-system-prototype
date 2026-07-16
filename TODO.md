@@ -10,7 +10,8 @@
 
 - [ ] Skill-Group XP-Summe
   - [ ] In den Skill groups möchte ich die ausgegebenen lvls und ausgegeben XP sehen
-- [x] Edge-Mechanik fixen
-  - [x] Fehler analysieren/Problemlösen: Idee haben zählt Wert oben auf die Schwelle des letzten Wurfs, Fehler finden würfelt bis zu Wert-mal neu, Neuer Versuch würfelt einmal neu – als Chat-Karten-Aktionen, je 1 Vorrat-Punkt. Fehler Analysieren regeneriert stattdessen einen Punkt (XP-Kosten ignoriert)
+- [ ] Edge-Mechanik (Problemlösen-Vorrat) neu denken
+  - [ ] Erste Umsetzung als Chat-Karten-Aktionen (Idee haben/Fehler finden/Neuer Versuch) wieder entfernt (Revert von 793413e) – hat sich im Spiel nicht richtig angefühlt/funktioniert
+  - [ ] Mechanik von Grund auf neu konzipieren, bevor wieder implementiert wird
 - [ ] Abgeleitete Werte bleiben gleich, auch mit temporären Attributen
 - [x] 6. Sinn im Header würfeln: regulärer 3d20-Wurf, threshold <= 6. Sinn-Wert, keine Mods, kein Advantage/Disadvantage

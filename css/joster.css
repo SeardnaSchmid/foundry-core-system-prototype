@@ -359,12 +359,10 @@
   background: #fff;
   text-decoration: none;
   color: inherit;
-}
-.joster .sheet-header .problem-solving-group .ps-analyze-flaw {
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
-.joster .sheet-header .problem-solving-group .ps-analyze-flaw:hover {
+.joster .sheet-header .problem-solving-group .ps-action:hover {
   background: #444;
   border-color: #444;
 }
@@ -994,40 +992,6 @@
 }
 .joster-roll-card .joster-roll-outcome.criticalSuccess, .joster-roll-card .joster-roll-outcome.criticalFailure {
   font-size: var(--font-size-14, 14px);
-}
-.joster-roll-card .joster-roll-solve-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 4px;
-  margin-top: 4px;
-}
-.joster-roll-card .joster-solve-action {
-  padding: 2px 6px;
-  border: 1px solid #444;
-  border-radius: 3px;
-  font-size: var(--font-size-10, 10px);
-  color: #444;
-  text-decoration: none;
-  cursor: pointer;
-}
-.joster-roll-card .joster-solve-action:hover:not(.disabled) {
-  background: #444;
-  color: #191813;
-}
-.joster-roll-card .joster-solve-action.disabled, .joster-roll-card .joster-solve-action.used {
-  opacity: 0.4;
-  cursor: default;
-  pointer-events: none;
-}
-.joster-roll-card .joster-roll-solve-log {
-  margin-top: 4px;
-  text-align: left;
-}
-.joster-roll-card .joster-roll-solve-log-entry {
-  font-size: var(--font-size-10, 10px);
-  color: #444;
-  font-style: italic;
 }
 .joster-roll-card .joster-roll-tooltip {
   order: 1;
