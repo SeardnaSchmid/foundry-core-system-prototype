@@ -115,6 +115,9 @@
     "Notify": {
       "NoReserve": "Kein Problemlösen-Vorrat mehr übrig."
     },
+    "Chat": {
+      "SolveAnalyzeFlawSuccess": "{name} gewinnt durch Fehler Analysieren einen Punkt Problemlösen-Vorrat zurück ({current}/{max})."
+    },
     "SheetLabels": {
       "Actor": "Joster Charakterbogen",
       "Item": "Joster Gegenstandsbogen"

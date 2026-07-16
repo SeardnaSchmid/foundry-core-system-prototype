@@ -472,6 +472,12 @@ export class JosterActorSheet extends ActorSheet {
           const spent = this.actor.system.problemSolving?.spent ?? 0;
           if (spent > 0) {
             await this.actor.update({ 'system.problemSolving.spent': spent - 1 });
+            const max = this.actor.system.derived?.solveReserveMax ?? 0;
+            const current = this.actor.system.derived?.solveReserve ?? 0;
+            ChatMessage.create({
+              speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+              content: game.i18n.format('JOSTER.Chat.SolveAnalyzeFlawSuccess', { name: this.actor.name, current, max }),
+            });
           }
         }
         return;

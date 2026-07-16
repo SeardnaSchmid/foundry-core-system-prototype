@@ -115,6 +115,9 @@
     "Notify": {
       "NoReserve": "No problem-solving reserve points left."
     },
+    "Chat": {
+      "SolveAnalyzeFlawSuccess": "{name} regains one problem-solving reserve point by analyzing the flaw ({current}/{max})."
+    },
     "SheetLabels": {
       "Actor": "Joster Actor Sheet",
       "Item": "Joster Item Sheet"
