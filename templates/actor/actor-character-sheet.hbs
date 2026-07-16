@@ -41,26 +41,28 @@
 
         {{!-- Problemlösen: Vorrat zeigt den aktuell verbleibenden Punktestand
         an (Maximalwert minus Verbrauch). "Idee haben" und "Fehler finden"
-        werfen selbst keine Würfel, sie geben nur Bonus/Wiederholversuche
-        auf einen anderen Wurf; ein Klick verbraucht dennoch einen
-        Vorrat-Punkt. "Fehler Analysieren" ist laut Regeln zusätzlich ein
-        eigener Wurf. Jede Anwendung kostet einen Vorrat-Punkt. --}}
+        sind noch reine Anzeigewerte, ihre Mechanik wird gerade neu
+        konzipiert. "Fehler Analysieren" ist bereits umgesetzt: ein
+        regulärer 3d20-Wurf gegen den Wert; bei Erfolg wird ein
+        Vorrat-Punkt zurückgewonnen (kein Punktverbrauch fürs Würfeln
+        selbst). --}}
         <div class="resource-group problem-solving-group">
           <div class="reserve-pool" title="{{localize 'JOSTER.Derived.SolveReserve'}}: {{localize 'JOSTER.DerivedHint.SolveReserve'}}">
             <span class="reserve-value">{{system.derived.solveReserve}}/{{system.derived.solveReserveMax}}</span>
             <label class="reserve-label">{{localize "JOSTER.DerivedShort.SolveReserve"}}</label>
           </div>
           <div class="problem-solving-actions">
-            <a class="ps-action ps-spend" data-spend="idea" title="{{localize 'JOSTER.Derived.SolveIdea'}}: {{localize 'JOSTER.DerivedHint.SolveIdea'}}">
+            <div class="ps-action" title="{{localize 'JOSTER.Derived.SolveIdea'}}: {{localize 'JOSTER.DerivedHint.SolveIdea'}}">
               <span class="ps-action-label">{{localize "JOSTER.DerivedShort.SolveIdea"}}</span>
               <span class="ps-action-value">{{system.derived.solveIdea}}</span>
-            </a>
-            <a class="ps-action ps-spend" data-spend="findFlaw" title="{{localize 'JOSTER.Derived.SolveFindFlaw'}}: {{localize 'JOSTER.DerivedHint.SolveFindFlaw'}}">
+            </div>
+            <div class="ps-action" title="{{localize 'JOSTER.Derived.SolveFindFlaw'}}: {{localize 'JOSTER.DerivedHint.SolveFindFlaw'}}">
               <span class="ps-action-label">{{localize "JOSTER.DerivedShort.SolveFindFlaw"}}</span>
               <span class="ps-action-value">{{system.derived.solveFindFlaw}}</span>
-            </a>
-            <a class="ps-action ps-spend" data-spend="analyzeFlaw" data-roll="1d10 + @derived.solveAnalyzeFlaw" data-label="{{localize 'JOSTER.Derived.SolveAnalyzeFlaw'}}" title="{{localize 'JOSTER.Derived.SolveAnalyzeFlaw'}}: {{localize 'JOSTER.DerivedHint.SolveAnalyzeFlaw'}}">
+            </div>
+            <a class="ps-action ps-analyze-flaw rollable" data-roll-type="analyzeFlaw" data-label="{{localize 'JOSTER.Derived.SolveAnalyzeFlaw'}}" title="{{localize 'JOSTER.Derived.SolveAnalyzeFlaw'}}: {{localize 'JOSTER.DerivedHint.SolveAnalyzeFlaw'}}">
               <span class="ps-action-label">{{localize "JOSTER.DerivedShort.SolveAnalyzeFlaw"}}</span>
+              <span class="ps-action-value">{{system.derived.solveAnalyzeFlaw}}</span>
             </a>
           </div>
         </div>

@@ -124,7 +124,7 @@ export function criticalResultFor(values, advantage) {
  * @param {number} [options.bonus]             Situational modifier shown in the breakdown.
  * @param {boolean} [options.nonStandard]      Whether the roll used an attribute other than
  *   the skill's normally linked one, flagged in the chat card.
- * @returns {Promise<Roll>}
+ * @returns {Promise<{roll: Roll, success: boolean}>}
  */
 export async function rollJoster({
   threshold,
@@ -183,5 +183,5 @@ export async function rollJoster({
     rollMode: rollMode ?? game.settings.get('core', 'rollMode'),
   });
 
-  return roll;
+  return { roll, success };
 }

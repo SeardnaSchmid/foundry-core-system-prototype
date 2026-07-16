@@ -305,13 +305,10 @@ export class JosterActorSheet extends ActorSheet {
       onManageActiveEffect(ev, document);
     });
 
-    // Rollable abilities.
+    // Rollable abilities. "Fehler Analysieren" (Idee haben/Fehler finden
+    // are still just informational until their mechanics are redesigned)
+    // goes through the same handler via its data-roll-type.
     html.on('click', '.rollable', this._onRoll.bind(this));
-
-    // Problem-solving actions (Idee haben / Fehler finden / Fehler
-    // Analysieren): each click consumes one point from the reserve pool.
-    // "Fehler Analysieren" additionally rolls, via its data-roll attribute.
-    html.on('click', '.ps-spend', this._onSpendReserve.bind(this));
 
     // Drag events for macros.
     if (this.actor.isOwner) {
@@ -402,43 +399,11 @@ export class JosterActorSheet extends ActorSheet {
   }
 
   /**
-   * Handle a problem-solving action (idea / find flaw / analyze flaw).
-   * Consumes one point from the reserve pool; refuses if the pool is empty.
-   * "Analyze flaw" additionally carries a data-roll formula, which is rolled
-   * once the point has been spent.
-   * @param {Event} event   The originating click event
-   * @private
-   */
-  async _onSpendReserve(event) {
-    event.preventDefault();
-    const element = event.currentTarget;
-
-    const current = this.actor.system.derived?.solveReserve ?? 0;
-    if (current <= 0) {
-      ui.notifications?.warn(game.i18n.localize('JOSTER.Notify.NoReserve'));
-      return;
-    }
-
-    const spent = (this.actor.system.problemSolving?.spent ?? 0) + 1;
-    await this.actor.update({ 'system.problemSolving.spent': spent });
-
-    if (element.dataset.roll) {
-      const label = element.dataset.label ? `[ability] ${element.dataset.label}` : '';
-      const roll = new Roll(element.dataset.roll, this.actor.getRollData());
-      roll.toMessage({
-        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-        flavor: label,
-        rollMode: game.settings.get('core', 'rollMode'),
-      });
-    }
-  }
-
-  /**
    * Handle clickable rolls.
    * @param {Event} event   The originating click event
    * @private
    */
-  _onRoll(event) {
+  async _onRoll(event) {
     event.preventDefault();
     const element = event.currentTarget;
     const dataset = element.dataset;
@@ -489,6 +454,27 @@ export class JosterActorSheet extends ActorSheet {
           flavor: dataset.label,
           actor: this.actor,
         });
+      }
+
+      // Fehler Analysieren: a standard 3d20 roll against the derived value,
+      // same as any other check. On success, regains one reserve point (up
+      // to the pool's max) — the only "Problem lösen" action implemented so
+      // far; Idee haben/Fehler finden are still just informational pending
+      // a mechanic redesign.
+      if (dataset.rollType == 'analyzeFlaw') {
+        const { success } = await rollJoster({
+          threshold: this.actor.system.derived?.solveAnalyzeFlaw ?? 0,
+          advantage: JOSTER_ADVANTAGE.none,
+          flavor: dataset.label,
+          actor: this.actor,
+        });
+        if (success) {
+          const spent = this.actor.system.problemSolving?.spent ?? 0;
+          if (spent > 0) {
+            await this.actor.update({ 'system.problemSolving.spent': spent - 1 });
+          }
+        }
+        return;
       }
     }
 
