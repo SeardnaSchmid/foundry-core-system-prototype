@@ -86,7 +86,8 @@
       "SolveIdea": "Problem lösen: Idee haben",
       "SolveFindFlaw": "Problem lösen: Fehler finden",
       "SolveReserve": "Problem lösen: Vorrat",
-      "SolveAnalyzeFlaw": "Problem lösen: Fehler Analysieren"
+      "SolveAnalyzeFlaw": "Problem lösen: Fehler Analysieren",
+      "SolveNewAttempt": "Problem lösen: Neuer Versuch"
     },
     "DerivedShort": {
       "Initiative": "Init",
@@ -98,7 +99,8 @@
       "SolveIdea": "Idee",
       "SolveFindFlaw": "Fehler",
       "SolveReserve": "Vorrat",
-      "SolveAnalyzeFlaw": "Analyse"
+      "SolveAnalyzeFlaw": "Analyse",
+      "SolveNewAttempt": "Neuer Versuch"
     },
     "DerivedHint": {
       "Initiative": "(2×Beweglichkeit+Sinnesschärfe)/3 (aufgerundet)",
@@ -110,13 +112,29 @@
       "SolveIdea": "(Intelligenz+Wissen)/2 (aufgerundet)",
       "SolveFindFlaw": "(Intelligenz+Willenskraft)/2 (aufgerundet)",
       "SolveReserve": "(Willenskraft+Wissen)/2 (aufgerundet)",
-      "SolveAnalyzeFlaw": "2×Untersuchen"
+      "SolveAnalyzeFlaw": "2×Untersuchen",
+      "SolveNewAttempt": "1 Punkt + Verzicht auf den XP, zweiter Versuch zählt"
     },
     "Notify": {
       "NoReserve": "Kein Problemlösen-Vorrat mehr übrig."
     },
+    "Dialog": {
+      "SolveIdeaTitle": "Problem lösen - Idee haben",
+      "SolveIdeaContent": "<p>Das Problem ist groß und die Peilung ist klein? Da hilft es dir, eine gute Idee zu haben. Gib einen Punkt aus und addiere deinen 'Idee haben'-Wert (+{value}) obendrauf auf den ursprünglichen Wurf.</p>",
+      "SolveFindFlawTitle": "Problem lösen - Fehler finden",
+      "SolveFindFlawContent": "<p>Gib einen Punkt aus, um den misslungenen Wurf bis zu {value}-mal zu wiederholen, bis er gelingt.</p>",
+      "SolveAnalyzeFlawTitle": "Problem lösen - Fehler Analysieren",
+      "SolveAnalyzeFlawContent": "<p>Du versuchst, aus deinem letzten Fehlschlag zu lernen. Gelingt der Wurf, füllt sich dein Problemlösen-Vorrat um einen Punkt auf — dafür verzichtest du auf den Erfahrungspunkt, den du für den fehlgeschlagenen Wurf bekommen hättest.</p><p>Kläre vorher mit deinem Spielleiter ab, ob das hier passt: Die Mechanik ist nur gedacht für Fehlschläge mit einer echten, spürbaren Konsequenz — nicht für jeden verpatzten Wurf.</p>",
+      "SolveNewAttemptTitle": "Problem lösen - Neuer Versuch",
+      "SolveNewAttemptContent": "<p>Dein Wurf ist misslungen, aber du hättest wirklich gern ein anderes Ergebnis? Gib einen Punkt aus deinem Problemlösen-Vorrat aus und würfle die Probe noch einmal — nur das zweite Ergebnis zählt, egal ob besser oder schlechter.</p><p>Dafür verzichtest du auf den Erfahrungspunkt, den du für den ursprünglichen Wurf bekommen hättest.</p>"
+    },
     "Chat": {
-      "SolveAnalyzeFlawSuccess": "{name} gewinnt durch Fehler Analysieren einen Punkt Problemlösen-Vorrat zurück ({current}/{max})."
+      "SolveAnalyzeFlawAttempt": "{name} versucht, einen Fehler zu analysieren, um den Problemlösen-Vorrat wieder aufzufüllen.",
+      "SolveAnalyzeFlawSuccess": "{name} gewinnt durch Fehler Analysieren einen Punkt Problemlösen-Vorrat zurück ({current}/{max}).",
+      "SolveIdeaSuccess": "{name} hat eine Idee und addiert +{value} obendrauf auf den ursprünglichen Wurf.",
+      "SolveFindFlawSuccess": "{name} gibt einen Punkt Problem lösen aus und darf den Wurf bis zu {value}-mal wiederholen, bis er gelingt.",
+      "SolveNewAttemptSuccess": "{name} gibt einen Punkt Problem lösen aus, verzichtet auf den Erfahrungspunkt und würfelt die Probe noch einmal — der zweite Versuch zählt.",
+      "SolveReserveSpent": "{name} gibt {count} Punkt(e) Problem lösen aus ({current}/{max})."
     },
     "SheetLabels": {
       "Actor": "Joster Charakterbogen",

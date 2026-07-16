@@ -86,7 +86,8 @@
       "SolveIdea": "Problem Solving: Get an Idea",
       "SolveFindFlaw": "Problem Solving: Find a Flaw",
       "SolveReserve": "Problem Solving: Reserve",
-      "SolveAnalyzeFlaw": "Problem Solving: Analyze a Flaw"
+      "SolveAnalyzeFlaw": "Problem Solving: Analyze a Flaw",
+      "SolveNewAttempt": "Problem Solving: New Attempt"
     },
     "DerivedShort": {
       "Initiative": "Init",
@@ -98,7 +99,8 @@
       "SolveIdea": "Idea",
       "SolveFindFlaw": "Find Flaw",
       "SolveReserve": "Reserve",
-      "SolveAnalyzeFlaw": "Analyze Flaw"
+      "SolveAnalyzeFlaw": "Analyze Flaw",
+      "SolveNewAttempt": "New Attempt"
     },
     "DerivedHint": {
       "Initiative": "(2×Agility+Perception)/3 (rounded up)",
@@ -110,13 +112,29 @@
       "SolveIdea": "(Intelligence+Knowledge)/2 (rounded up)",
       "SolveFindFlaw": "(Intelligence+Willpower)/2 (rounded up)",
       "SolveReserve": "(Willpower+Knowledge)/2 (rounded up)",
-      "SolveAnalyzeFlaw": "2×Investigation"
+      "SolveAnalyzeFlaw": "2×Investigation",
+      "SolveNewAttempt": "1 point + forfeit the XP, second attempt counts"
     },
     "Notify": {
       "NoReserve": "No problem-solving reserve points left."
     },
+    "Dialog": {
+      "SolveIdeaTitle": "Problem Solving - Get an Idea",
+      "SolveIdeaContent": "<p>The problem is big and you're at a loss? Having a good idea helps. Spend a point and add your 'Get an Idea' value (+{value}) on top of the original roll.</p>",
+      "SolveFindFlawTitle": "Problem Solving - Find a Flaw",
+      "SolveFindFlawContent": "<p>Spend a point to reroll the failed check up to {value} times, stopping at the first success.</p>",
+      "SolveAnalyzeFlawTitle": "Problem Solving - Analyze a Flaw",
+      "SolveAnalyzeFlawContent": "<p>You try to learn from your last failure. If the check succeeds, your problem-solving reserve refills by one point — but you give up the experience point you would have earned for the failed check.</p><p>Check with your GM first that this fits: the mechanic is meant for failures with a real, noticeable consequence, not every botched roll.</p>",
+      "SolveNewAttemptTitle": "Problem Solving - New Attempt",
+      "SolveNewAttemptContent": "<p>Your check failed, but you'd really rather have a different result? Spend a point from your problem-solving reserve and roll the check again — only the second result counts, better or worse.</p><p>In exchange, you give up the experience point you would have earned for the original check.</p>"
+    },
     "Chat": {
-      "SolveAnalyzeFlawSuccess": "{name} regains one problem-solving reserve point by analyzing the flaw ({current}/{max})."
+      "SolveAnalyzeFlawAttempt": "{name} attempts to analyze a flaw, trying to refill their problem-solving reserve.",
+      "SolveAnalyzeFlawSuccess": "{name} regains one problem-solving reserve point by analyzing the flaw ({current}/{max}).",
+      "SolveIdeaSuccess": "{name} has an idea and adds +{value} on top of the original roll.",
+      "SolveFindFlawSuccess": "{name} spends a problem-solving point and may reroll the check up to {value} times, stopping at the first success.",
+      "SolveNewAttemptSuccess": "{name} spends a problem-solving point, forfeits the experience point, and rolls the check again — the second attempt counts.",
+      "SolveReserveSpent": "{name} spends {count} problem-solving point(s) ({current}/{max})."
     },
     "SheetLabels": {
       "Actor": "Joster Actor Sheet",

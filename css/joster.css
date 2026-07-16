@@ -338,6 +338,20 @@
   font-size: var(--font-size-14, 14px);
   line-height: 1;
 }
+.joster .sheet-header .problem-solving-group .reserve-value-input {
+  width: 22px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-align: right;
+  font-weight: bold;
+  font-size: var(--font-size-14, 14px);
+  line-height: 1;
+  color: inherit;
+}
+.joster .sheet-header .problem-solving-group .reserve-value-input::-webkit-inner-spin-button, .joster .sheet-header .problem-solving-group .reserve-value-input::-webkit-outer-spin-button {
+  margin: 0;
+}
 .joster .sheet-header .problem-solving-group .reserve-label {
   font-size: var(--font-size-10, 10px);
   text-transform: uppercase;
@@ -360,11 +374,17 @@
   text-decoration: none;
   color: inherit;
 }
-.joster .sheet-header .problem-solving-group .ps-analyze-flaw {
+.joster .sheet-header .problem-solving-group .ps-analyze-flaw,
+.joster .sheet-header .problem-solving-group .ps-solve-idea,
+.joster .sheet-header .problem-solving-group .ps-solve-find-flaw,
+.joster .sheet-header .problem-solving-group .ps-new-attempt {
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
-.joster .sheet-header .problem-solving-group .ps-analyze-flaw:hover {
+.joster .sheet-header .problem-solving-group .ps-analyze-flaw:hover,
+.joster .sheet-header .problem-solving-group .ps-solve-idea:hover,
+.joster .sheet-header .problem-solving-group .ps-solve-find-flaw:hover,
+.joster .sheet-header .problem-solving-group .ps-new-attempt:hover {
   background: #444;
   border-color: #444;
 }
