@@ -53,13 +53,16 @@ export class JosterActor extends Actor {
     const value = (key) => systemData.abilities[key]?.value ?? 0;
     const base = (key) => systemData.abilities[key]?.base ?? 0;
 
-    // Derived attributes, per the "Attribute" rules. Movement ranges use the
-    // undamaged base Beweglichkeit ("Bewegungsreichweiten ändern sich nie");
-    // any Beweglichkeit damage instead blocks sprinting entirely.
+    // Derived attributes, per the "Attribute" rules, are all computed from
+    // the undamaged base rating so they stay stable regardless of temporary
+    // attribute changes (damage, buffs, etc.) — "Abgeleitete Werte bleiben
+    // gleich, auch mit temporären Attributen". `canSprint` is the one
+    // deliberate exception: it compares value against base to detect
+    // Beweglichkeit damage and block sprinting entirely.
     // The reserve pool refills to its max (Willenskraft+Wissen)/2 whenever
     // derived data is recomputed; `problemSolving.spent` tracks how many of
     // those points have been used since the last refill/reset.
-    const solveReserveMax = Math.ceil((value('wil') + value('wis')) / 2);
+    const solveReserveMax = Math.ceil((base('wil') + base('wis')) / 2);
     const solveReserveSpent = Math.min(systemData.problemSolving?.spent ?? 0, solveReserveMax);
 
     // Carried slots used so far: each carried item (type "item") occupies
@@ -69,19 +72,19 @@ export class JosterActor extends Actor {
       .reduce((sum, item) => sum + (item.system.weight ?? 0) * (item.system.quantity ?? 1), 0);
 
     systemData.derived = {
-      initiative: Math.ceil((2 * value('dex') + value('per')) / 3),
+      initiative: Math.ceil((2 * base('dex') + base('per')) / 3),
       movementWalk: base('dex'),
       movementSprint: 3 * base('dex'),
       movementCrawl: 1,
       canSprint: value('dex') >= base('dex'),
-      carrySlots: 2 * value('str') + value('dex'),
+      carrySlots: 2 * base('str') + base('dex'),
       carrySlotsUsed,
-      sixthSense: Math.round((value('per') + value('emp') + value('inv')) / 3),
-      solveIdea: Math.ceil((value('int') + value('wis')) / 2),
-      solveFindFlaw: Math.ceil((value('int') + value('wil')) / 2),
+      sixthSense: Math.round((base('per') + base('emp') + base('inv')) / 3),
+      solveIdea: Math.ceil((base('int') + base('wis')) / 2),
+      solveFindFlaw: Math.ceil((base('int') + base('wil')) / 2),
       solveReserveMax: solveReserveMax,
       solveReserve: Math.max(0, solveReserveMax - solveReserveSpent),
-      solveAnalyzeFlaw: 2 * value('inv'),
+      solveAnalyzeFlaw: 2 * base('inv'),
     };
   }
 
