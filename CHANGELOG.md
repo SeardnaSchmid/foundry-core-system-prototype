@@ -1,5 +1,22 @@
 # Changelog
 
+# [0.9.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.8.0...v0.9.0) (2026-07-16)
+
+
+### Features
+
+* add free rolls, linearize heatmap colors, drop attribute sum badges ([59ab244](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/59ab244c29a599e333e1970b5df85de2cf8adbcb))
+* add Problem-lösen chat card actions (Idee haben, Fehler finden, Neuer Versuch) ([793413e](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/793413e4cd6414c8b0a0170f6eed45f87d7b2652))
+* implement Fehler Analysieren as a standard 3d20 check ([c77612c](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/c77612cf61d3e55bf2fc5254eab561959f9f2fa7))
+* implement remaining Problem-lösen actions with confirm dialogs ([ad10d2f](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/ad10d2f3af072f0b19af2bf0c04a6c1391b85233))
+* post a chat message when Fehler Analysieren regains a reserve point ([ec50cf3](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/ec50cf3d5ada8e95f445ed26fd946f8b8dea4b04))
+* roll 6th sense as a standard 3d20 check from the header ([412b11c](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/412b11c93c37b99b1d09168641bad559f0754d78))
+
+
+### Reverts
+
+* remove Problem-lösen chat card actions (Idee haben, Fehler finden, Neuer Versuch) ([7d7b9aa](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/7d7b9aafb907822e508f27ee3193492142dc7914))
+
 # [0.8.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.7.0...v0.8.0) (2026-07-16)
 
 
