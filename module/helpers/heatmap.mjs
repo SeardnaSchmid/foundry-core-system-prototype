@@ -4,7 +4,11 @@
  * relatively strongest instead of just listing raw numbers.
  */
 
-const CURVE_EXPONENT = 2.3;
+// Linear (was 2.3, then 1.3): any curve here compresses one end of the
+// range into near-identical colors so it can spread out the other end.
+// A 1:1 mapping gives every integer step an equal, undiminished share of
+// the palette's contrast.
+const CURVE_EXPONENT = 1;
 
 // Attribute values have a fixed, rulebook-defined meaning independent of any
 // one character's spread (1 = "you can park anywhere", 4 = average, 10 =
@@ -20,10 +24,17 @@ const ABSOLUTE_MAX = 10;
 // fade to a near-desaturated parchment tone; strong values deepen into a
 // fully saturated forest green. Hue only drifts slightly across the ramp,
 // well short of the point where it reads as a hue change.
+//
+// Five stops with an aggressive lightness/saturation spread — near white at
+// the bottom, near-black-green at the top — so each step along the 1-10
+// range lands on a visibly distinct color at a glance, not just on close
+// inspection.
 const HEAT_STOPS = [
-  { hue: 90, sat: 20, light: 70 }, // weak — reads as the parchment page itself
-  { hue: 120, sat: 40, light: 50 }, // mid — muted green
-  { hue: 140, sat: 55, light: 28 }, // high — deep, saturated forest green
+  { hue: 80, sat: 8, light: 92 }, // weak — almost white
+  { hue: 92, sat: 30, light: 74 }, // below average
+  { hue: 108, sat: 50, light: 54 }, // average
+  { hue: 130, sat: 70, light: 34 }, // above average
+  { hue: 150, sat: 85, light: 14 }, // high — near-black forest green
 ];
 
 function interpolateStops(stops, t) {
@@ -59,31 +70,6 @@ export function colorForValue(value, min = ABSOLUTE_MIN, max = ABSOLUTE_MAX, exp
   const textColor = light > 46 ? '#2A2419' : '#F3EFE4';
   return {
     bg: `hsl(${hue.toFixed(0)}deg ${sat.toFixed(0)}% ${light.toFixed(0)}%)`,
-    textColor,
-    isPeak: value === max,
-  };
-}
-
-/**
- * Grade a row/column/total sum badge against its own fixed absolute range
- * (count attributes, each 1-10), independent of any other row/column's
- * sum — the same "reads the same color regardless of context" rule as
- * colorForValue, just scaled up by how many attributes feed the sum.
- *
- * @param {number} value
- * @param {number} count Number of attributes contributing to this sum.
- * @param {number} exponent
- * @returns {{bg: string, textColor: string, isPeak: boolean}}
- */
-export function colorForSum(value, count, exponent = CURVE_EXPONENT) {
-  const min = count * ABSOLUTE_MIN;
-  const max = count * ABSOLUTE_MAX;
-  const t = max === min ? 1 : Math.max(0, Math.min(1, (value - min) / (max - min)));
-  const tp = Math.pow(t, exponent);
-  const { hue, sat, light } = interpolateStops(HEAT_STOPS, tp);
-  const textColor = light + 4 > 46 ? '#2A2419' : '#F3EFE4';
-  return {
-    bg: `hsl(${hue.toFixed(0)}deg ${sat.toFixed(0)}% ${(light + 4).toFixed(0)}%)`,
     textColor,
     isPeak: value === max,
   };

@@ -2,7 +2,7 @@ import {
   onManageActiveEffect,
   prepareActiveEffectCategories,
 } from '../helpers/effects.mjs';
-import { colorForValue, colorForSum } from '../helpers/heatmap.mjs';
+import { colorForValue } from '../helpers/heatmap.mjs';
 import { JosterRollDialog } from '../apps/roll-dialog.mjs';
 import { JOSTER_ADVANTAGE, rollJoster } from '../helpers/dice.mjs';
 
@@ -115,35 +115,12 @@ export class JosterActorSheet extends ActorSheet {
     const rows = CONFIG.JOSTER.attributeRows;
     const categoryKeys = Object.keys(CONFIG.JOSTER.attributeCategories);
 
-    const baseValues = rows.flat().map((key) => abilities[key]?.base ?? 0);
-    const totalBase = baseValues.reduce((a, b) => a + b, 0);
-
-    // Sums are graded/ranked by base (trained) value only.
-    const rowSums = rows.map((row) => row.reduce((sum, key) => sum + (abilities[key]?.base ?? 0), 0));
-    const colSums = categoryKeys.map((_, ci) => rows.reduce((sum, row) => sum + (abilities[row[ci]]?.base ?? 0), 0));
-
     context.attributeGrid = {
-      // Footer row: one column-sum badge per attribute category, plus the
-      // grand total in the bottom-right corner (Σ ∩ Σ), mirroring the
-      // rulebook table's layout with a "Σ" row underneath the grid.
-      footer: {
-        cols: categoryKeys.map((catKey, ci) => ({
-          value: colSums[ci],
-          ...colorForSum(colSums[ci], rows.length),
-        })),
-        total: totalBase,
-      },
       colHeaders: categoryKeys.map((catKey) => ({
         label: game.i18n.localize(CONFIG.JOSTER.attributeCategories[catKey]),
       })),
       rows: rows.map((row, ri) => ({
         label: game.i18n.localize(CONFIG.JOSTER.attributeRowLabels[ri]),
-        // Row-sum badge, rendered in a trailing "Σ" column instead of next
-        // to the row label.
-        sum: {
-          value: rowSums[ri],
-          ...colorForSum(rowSums[ri], categoryKeys.length),
-        },
         cells: row.map((key) => {
           const labelKey = CONFIG.JOSTER.abilities[key];
           const ability = abilities[key];
@@ -479,6 +456,15 @@ export class JosterActorSheet extends ActorSheet {
         return new JosterRollDialog(this.actor, {
           attributeA: dataset.ability,
           flavor: dataset.label,
+        }).render(true);
+      }
+
+      // Open the roll dialog in free mode: the player picks any attribute
+      // and types in a free skill value not tied to a defined skill.
+      if (dataset.rollType == 'free') {
+        return new JosterRollDialog(this.actor, {
+          freeSkill: true,
+          flavor: game.i18n.localize('JOSTER.Roll.FreeTitle'),
         }).render(true);
       }
 

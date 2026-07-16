@@ -5,12 +5,18 @@ const BONUS_MIN = -30;
 const BONUS_MAX = 30;
 const BONUS_STEP = 3;
 
+/** Bounds for the free skill value, matching regular skill ranks. */
+const FREE_SKILL_MIN = 0;
+const FREE_SKILL_MAX = 10;
+
 /**
  * A small dialog for building a Joster roll. In "skill" mode the attribute
  * and skill rank are fixed threshold components (set by whatever opened the
  * dialog) and the player only dials in a situational modifier; in "ability"
- * mode the player picks one or two attributes themselves. Either way, the
- * player also picks an advantage/disadvantage level, then rolls.
+ * mode the player picks one or two attributes themselves; in "free" mode
+ * the player picks one attribute and types in an arbitrary skill value not
+ * tied to any defined skill. Either way, the player also picks an
+ * advantage/disadvantage level, then rolls.
  * @extends {FormApplication}
  */
 export class JosterRollDialog extends FormApplication {
@@ -22,12 +28,16 @@ export class JosterRollDialog extends FormApplication {
    *   When set, the dialog switches to "skill" mode: attributeA is fixed
    *   (not user-selectable) and its value plus the skill's value form the
    *   threshold base, with the bonus field layered on top as a modifier.
+   * @param {boolean} [options.freeSkill]  When true, the dialog switches to
+   *   "free" mode: the player picks an attribute and enters a free skill
+   *   value which together form the threshold base.
    * @param {string} [options.flavor]      Label shown as the roll's subject heading and chat flavor.
    */
-  constructor(actor, { attributeA = '', skill = null, flavor = '' } = {}) {
-    super({ attributeA, attributeB: '', bonus: 0, advantage: JOSTER_ADVANTAGE.none });
+  constructor(actor, { attributeA = '', skill = null, freeSkill = false, flavor = '' } = {}) {
+    super({ attributeA, attributeB: '', skillValue: 0, bonus: 0, advantage: JOSTER_ADVANTAGE.none });
     this.actor = actor;
     this.skill = skill;
+    this.freeSkill = freeSkill;
     this.flavor = flavor || game.i18n.localize('JOSTER.Roll.DialogTitle');
     // The skill's linked attribute, as passed in by the sheet. In skill mode
     // the player can override attributeA to roll against a different
@@ -70,6 +80,7 @@ export class JosterRollDialog extends FormApplication {
       abilities,
       advantageOptions,
       isSkillMode: !!this.skill,
+      isFreeMode: this.freeSkill,
       threshold: this._computeThreshold(this.object),
       subject: game.i18n.format('JOSTER.Roll.Subject', { name: this.flavor }),
     };
@@ -87,16 +98,32 @@ export class JosterRollDialog extends FormApplication {
   }
 
   /**
-   * Sum the fixed base (attribute, plus skill rank in skill mode, or a
-   * second attribute in ability mode) with the bonus/malus.
-   * @param {object} data  Form data with attributeA/attributeB/bonus.
+   * Clamp the free-mode skill value from form data to valid skill ranks.
+   * @param {object} data  Form data with skillValue.
+   * @returns {number}
+   */
+  _freeSkillValue(data) {
+    return Math.clamp(Number(data.skillValue) || 0, FREE_SKILL_MIN, FREE_SKILL_MAX);
+  }
+
+  /**
+   * Sum the fixed base (attribute, plus skill rank in skill mode, a free
+   * skill value in free mode, or a second attribute in ability mode) with
+   * the bonus/malus.
+   * @param {object} data  Form data with attributeA/attributeB/skillValue/bonus.
    * @returns {number}
    */
   _computeThreshold(data) {
     const abilities = this.actor.system.abilities ?? {};
     const valueOf = (key) => abilities[key]?.value ?? 0;
     const a = data.attributeA ? valueOf(data.attributeA) : 0;
-    const b = this.skill ? this.skill.value : data.attributeB ? valueOf(data.attributeB) : 0;
+    const b = this.skill
+      ? this.skill.value
+      : this.freeSkill
+        ? this._freeSkillValue(data)
+        : data.attributeB
+          ? valueOf(data.attributeB)
+          : 0;
     return a + b + (Number(data.bonus) || 0);
   }
 
@@ -128,6 +155,12 @@ export class JosterRollDialog extends FormApplication {
         $(select).addClass('joster-hidden');
         html.find('.joster-roll-nonstandard-badge').toggleClass('joster-hidden', key === this.defaultAttributeA);
       }
+    });
+
+    // Free mode: recompute the threshold as the skill value is typed.
+    html.on('change input', 'input[name="skillValue"]', (ev) => {
+      const data = new FormDataExtended(ev.currentTarget.form).object;
+      html.find('.joster-threshold-value').text(this._computeThreshold(data));
     });
 
     html.on('click', '.joster-bonus-stepper', (ev) => {
@@ -163,6 +196,8 @@ export class JosterRollDialog extends FormApplication {
     }
     if (this.skill) {
       components.push({ label: this.skill.label, value: this.skill.value });
+    } else if (this.freeSkill) {
+      components.push({ label: game.i18n.localize('JOSTER.Roll.FreeSkillValue'), value: this._freeSkillValue(formData) });
     } else if (formData.attributeB) {
       components.push({ label: abilityLabel(formData.attributeB), value: abilities[formData.attributeB]?.value ?? 0 });
     }

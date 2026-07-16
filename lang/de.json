@@ -25,7 +25,6 @@
       "Wis": { "long": "Wissen", "abbr": "wis", "hint": "Allgemeinbildung und die Fähigkeit sie zu erweitern." },
       "Inv": { "long": "Untersuchen", "abbr": "unt", "hint": "Erkenne Dinge, die jeder sieht, aber nicht jeder wahrnimmt." }
     },
-    "AttributeSum": "Σ",
     "AttributeCurrent": "Aktueller Wert (durch Schaden reduziert)",
     "AttributeBase": "Basiswert (durch Charakterentwicklung erhöht)",
     "AttributeModeHint": "+/- ändert den aktuellen Wert. Umschalt gedrückt halten ändert stattdessen den Basiswert.",
@@ -136,6 +135,9 @@
       "Threshold": "Schwelle",
       "Submit": "Würfeln",
       "OverrideAttribute": "Klicken, um gegen ein anderes Attribut zu würfeln",
+      "FreeTitle": "Freier Wurf",
+      "FreeHint": "Ein wählbares Attribut plus einen freien Fähigkeitswert würfeln",
+      "FreeSkillValue": "Fähigkeitswert",
       "NonStandard": "Nicht-Standard-Wurf (verknüpftes Attribut abweichend)",
       "NonStandardAbbr": "ABW"
     },

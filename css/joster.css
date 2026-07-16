@@ -459,24 +459,6 @@
   color: #191813;
   border-color: #191813;
 }
-.joster .attribute-table.heatmap .heatmap-sum-header {
-  text-align: center;
-  font-size: var(--font-size-16, 16px);
-}
-.joster .attribute-table.heatmap .heatmap-sum-cell {
-  text-align: center;
-  vertical-align: middle;
-}
-.joster .attribute-table.heatmap .heatmap-grand-total {
-  text-align: center;
-  vertical-align: middle;
-  font-weight: bold;
-  font-size: var(--font-size-16, 16px);
-}
-.joster .attribute-table.heatmap tfoot th,
-.joster .attribute-table.heatmap tfoot td {
-  border-top-width: 2px;
-}
 .joster .attribute-table.heatmap .heatmap-col-label,
 .joster .attribute-table.heatmap .heatmap-row-label {
   display: block;
@@ -484,14 +466,6 @@
 }
 .joster .attribute-table.heatmap .heatmap-row-header {
   white-space: nowrap;
-}
-.joster .attribute-table.heatmap .heatmap-badge {
-  display: inline-block;
-  min-width: 20px;
-  padding: 1px 7px;
-  border-radius: 999px;
-  font-weight: bold;
-  text-align: center;
 }
 .joster .attribute-table.heatmap .heatmap-peak {
   animation: heatmap-peak-pulse 2.2s ease-in-out infinite;
@@ -580,10 +554,26 @@
   font-weight: 800;
   opacity: 0.5;
 }
+.joster .skills-header {
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 4px;
+}
 .joster .skills-title {
+  flex: 1;
   margin: 0 0 4px;
   font-size: var(--font-size-12, 12px);
   text-transform: uppercase;
+}
+.joster .free-roll-button {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border: 1px solid #b5b3a4;
+  border-radius: 3px;
+  font-size: var(--font-size-11, 11px);
+  font-weight: bold;
+  white-space: nowrap;
+  cursor: pointer;
 }
 .joster .skill-groups {
   display: flex;

@@ -25,7 +25,6 @@
       "Wis": { "long": "Knowledge", "abbr": "wis", "hint": "General education and the ability to expand it." },
       "Inv": { "long": "Investigation", "abbr": "inv", "hint": "Notice things everyone sees, but not everyone perceives." }
     },
-    "AttributeSum": "Σ",
     "AttributeCurrent": "Current value (reduced by damage)",
     "AttributeBase": "Base value (increased by character development)",
     "AttributeModeHint": "+/- changes the current value. Hold Shift to change the base value instead.",
@@ -136,6 +135,9 @@
       "Threshold": "Threshold",
       "Submit": "Roll",
       "OverrideAttribute": "Click to roll against a different attribute",
+      "FreeTitle": "Free Roll",
+      "FreeHint": "Roll a selectable attribute plus a free skill value",
+      "FreeSkillValue": "Skill Value",
       "NonStandard": "Non-standard roll (linked attribute overridden)",
       "NonStandardAbbr": "NSTD"
     },

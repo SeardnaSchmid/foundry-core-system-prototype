@@ -30,6 +30,12 @@
       </select>
     </div>
 
+    {{#if isFreeMode}}
+    <div class="form-group">
+      <label>{{localize "JOSTER.Roll.FreeSkillValue"}}</label>
+      <input type="number" name="skillValue" value="{{skillValue}}" min="0" max="10" step="1"/>
+    </div>
+    {{else}}
     <div class="form-group">
       <label>{{localize "JOSTER.Roll.AttributeB"}}</label>
       <select name="attributeB">
@@ -39,6 +45,7 @@
         {{/each}}
       </select>
     </div>
+    {{/if}}
     {{/if}}
   </div>
 

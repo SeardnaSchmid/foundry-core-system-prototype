@@ -100,7 +100,6 @@
                 <span class="heatmap-col-label">{{col.label}}</span>
               </th>
               {{/each}}
-              <th class="heatmap-sum-header">{{localize "JOSTER.AttributeSum"}}</th>
             </tr>
           </thead>
           <tbody>
@@ -129,28 +128,19 @@
                 </div>
               </td>
               {{/each}}
-              <td class="heatmap-sum-cell">
-                <span class="heatmap-badge{{#if row.sum.isPeak}} heatmap-peak{{/if}}" style="background:{{row.sum.bg}}; color:{{row.sum.textColor}};">{{row.sum.value}}</span>
-              </td>
             </tr>
             {{/each}}
           </tbody>
-          <tfoot>
-            <tr>
-              <th class="heatmap-row-header heatmap-sum-header">Σ</th>
-              {{#each attributeGrid.footer.cols as |col|}}
-              <td class="heatmap-sum-cell">
-                <span class="heatmap-badge{{#if col.isPeak}} heatmap-peak{{/if}}" style="background:{{col.bg}}; color:{{col.textColor}};">{{col.value}}</span>
-              </td>
-              {{/each}}
-              <td class="heatmap-sum-cell heatmap-grand-total">{{attributeGrid.footer.total}}</td>
-            </tr>
-          </tfoot>
         </table>
 
         {{!-- Skills, grouped by category. Each skill rolls with its linked
         attribute; the rank is added as the roll dialog's starting bonus. --}}
-        <h3 class="skills-title">{{localize "JOSTER.SkillsTitle"}}</h3>
+        <div class="skills-header flexrow">
+          <h3 class="skills-title">{{localize "JOSTER.SkillsTitle"}}</h3>
+          <a class="free-roll-button rollable" data-roll-type="free" title="{{localize 'JOSTER.Roll.FreeHint'}}">
+            <i class="fas fa-dice-d20"></i> {{localize "JOSTER.Roll.FreeTitle"}}
+          </a>
+        </div>
         <div class="skill-groups">
           {{#each skillGroups as |group|}}
           <div class="skill-group">
