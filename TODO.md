@@ -2,11 +2,15 @@
 
 - [ ] Freie Fertigkeiten + value character description
 - [ ] Freies Würfeln
+  - [ ] Der würfeldialog muss im core system als macro verfügbar sein, oder es muss in den dice rolls verfügbar sein.
+  - [ ] Freiese würfeln muss einfach den Dialog öffnen und nur den role-type wählbar lassen
+  - [ ] Würfeln muss über verschiedene macros in kurzform verfügbar sein (e.g. /roll 1std, 1adv, 1sadv, 1dis, 1sdis)
 - [ ] Attributsbindung von Skills lösen
-- [ ] Edge-Mechanik fixen
-- [ ] Scharpfis-Server für Foundry v14
-- [ ] Komplett freies Würfeln ohne Threshold
+  - [ ] Skills sind nicht an Attribute gekoppelt. Bei jedem wurf muss quasi das Attribute gewählt werden.
+
 - [ ] Skill-Group XP-Summe
-- [ ] Fehler analysieren: Threshold-Berechnung – immer 3d20 neuer Versuch, Edge ausgeben und Reroll bekommen. Idee: Wert oben drauf auf den nächsten Wurf, Fehler finden, wie oft man etwas neu probieren darf
+  - [ ] In den Skill groups möchte ich die ausgegebenen lvls und ausgegeben XP sehen
+- [x] Edge-Mechanik fixen
+  - [x] Fehler analysieren/Problemlösen: Idee haben zählt Wert oben auf die Schwelle des letzten Wurfs, Fehler finden würfelt bis zu Wert-mal neu, Neuer Versuch würfelt einmal neu – als Chat-Karten-Aktionen, je 1 Vorrat-Punkt. Fehler Analysieren regeneriert stattdessen einen Punkt (XP-Kosten ignoriert)
 - [ ] Abgeleitete Werte bleiben gleich, auch mit temporären Attributen
 - [x] 6. Sinn im Header würfeln: regulärer 3d20-Wurf, threshold <= 6. Sinn-Wert, keine Mods, kein Advantage/Disadvantage

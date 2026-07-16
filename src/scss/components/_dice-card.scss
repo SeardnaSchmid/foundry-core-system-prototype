@@ -94,6 +94,47 @@
     }
   }
 
+  .joster-roll-solve-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+    margin-top: 4px;
+  }
+
+  .joster-solve-action {
+    padding: 2px 6px;
+    border: 1px solid $c-tan;
+    border-radius: 3px;
+    font-size: var(--font-size-10, 10px);
+    color: $c-tan;
+    text-decoration: none;
+    cursor: pointer;
+
+    &:hover:not(.disabled) {
+      background: $c-tan;
+      color: $c-dark;
+    }
+
+    &.disabled,
+    &.used {
+      opacity: 0.4;
+      cursor: default;
+      pointer-events: none;
+    }
+  }
+
+  .joster-roll-solve-log {
+    margin-top: 4px;
+    text-align: left;
+  }
+
+  .joster-roll-solve-log-entry {
+    font-size: var(--font-size-10, 10px);
+    color: $c-tan;
+    font-style: italic;
+  }
+
   // Reuses core's .dice-roll/.dice-tooltip expand mechanism (grid-template-rows
   // transition driven by the `expanded` class core's ChatLog toggles on click).
   .joster-roll-tooltip {

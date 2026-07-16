@@ -18,6 +18,22 @@
     </div>
 
     <div class="joster-roll-outcome {{outcome}}">{{outcomeLabel}}</div>
+
+    {{#if solveActions}}
+    <div class="joster-roll-solve-actions">
+      <a class="joster-solve-action{{#if solveActions.idea.disabled}} disabled{{/if}}{{#if solveActions.idea.used}} used{{/if}}" data-solve-action="idea" title="{{localize "JOSTER.Roll.SolveIdeaHint"}}">{{solveActions.idea.label}}</a>
+      <a class="joster-solve-action{{#if solveActions.findFlaw.disabled}} disabled{{/if}}{{#if solveActions.findFlaw.used}} used{{/if}}" data-solve-action="findFlaw" title="{{localize "JOSTER.Roll.SolveFindFlawHint"}}">{{solveActions.findFlaw.label}}</a>
+      <a class="joster-solve-action{{#if solveActions.newAttempt.disabled}} disabled{{/if}}{{#if solveActions.newAttempt.used}} used{{/if}}" data-solve-action="newAttempt" title="{{localize "JOSTER.Roll.SolveNewAttemptHint"}}">{{solveActions.newAttempt.label}}</a>
+    </div>
+    {{/if}}
+
+    {{#if solve.log.length}}
+    <div class="joster-roll-solve-log">
+      {{#each solve.log as |entry|}}
+      <div class="joster-roll-solve-log-entry">{{entry}}</div>
+      {{/each}}
+    </div>
+    {{/if}}
   </div>
 
   <div class="dice-tooltip joster-roll-tooltip">

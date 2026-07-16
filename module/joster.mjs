@@ -8,6 +8,7 @@ import { JosterItemSheet } from './sheets/item-sheet.mjs';
 import { preloadHandlebarsTemplates } from './helpers/templates.mjs';
 import { JOSTER } from './helpers/config.mjs';
 import { rollJoster } from './helpers/dice.mjs';
+import { registerSolveActionListeners } from './helpers/solve-actions.mjs';
 import { JosterRollDialog } from './apps/roll-dialog.mjs';
 
 /* -------------------------------------------- */
@@ -57,6 +58,10 @@ Hooks.once('init', function () {
     makeDefault: true,
     label: 'JOSTER.SheetLabels.Item',
   });
+
+  // Register the Problem-lösen chat card actions (Idee haben, Fehler
+  // finden, Neuer Versuch).
+  registerSolveActionListeners();
 
   // Preload Handlebars templates.
   return preloadHandlebarsTemplates();

@@ -110,8 +110,113 @@ export function criticalResultFor(values, advantage) {
 }
 
 /**
+ * Resolve the outcome of a set of rolled dice against a threshold: which die
+ * counts, whether it's a critical result, and whether the roll succeeds.
+ *
+ * @param {number[]} values    Raw die results, in roll order.
+ * @param {number} advantage   One of the JOSTER_ADVANTAGE values.
+ * @param {number} threshold   The threshold to roll against.
+ * @returns {{counting: {value: number, index: number}, critical: ('criticalSuccess'|'criticalFailure'|null), success: boolean, outcome: string}}
+ */
+export function resolveOutcome(values, advantage, threshold) {
+  const counting = pickCountingDie(values, advantage);
+  const critical = criticalResultFor(values, advantage);
+  const success = critical ? critical === 'criticalSuccess' : counting.value <= threshold;
+  const outcome = critical ?? (success ? 'success' : 'failure');
+  return { counting, critical, success, outcome };
+}
+
+/**
+ * Build the template context for the roll card from a resolved roll's raw
+ * state. Shared between the initial roll and any later "Problem lösen"
+ * updates so both render identically.
+ *
+ * @param {object} state
+ * @param {string} state.flavor
+ * @param {number[]} state.values        Raw die results, in roll order.
+ * @param {number} state.advantage       One of the JOSTER_ADVANTAGE values.
+ * @param {number} state.threshold       The (possibly Idee-haben-adjusted) threshold.
+ * @param {{label: string, value: number}[]} state.components
+ * @param {number} state.bonus
+ * @param {boolean} state.nonStandard
+ * @param {object} [state.solve]         "Problem lösen" state: { ideaBonus, usedIdea,
+ *   usedFindFlaw, usedNewAttempt, log }.
+ * @param {Actor} [state.actor]          The rolling actor. When given, the card gets a
+ *   "Problem lösen" action row (Idee haben/Fehler finden/Neuer Versuch).
+ * @returns {object}  Context ready for `renderTemplate`.
+ */
+export function buildRollCardContext({ flavor, values, advantage, threshold, components, bonus, nonStandard, solve, actor }) {
+  const { counting, outcome } = resolveOutcome(values, advantage, threshold);
+
+  const dice = values
+    .map((value, index) => ({
+      value,
+      isCounted: index === counting.index,
+    }))
+    .sort((a, b) => a.value - b.value);
+
+  const advantageKey = Object.keys(JOSTER_ADVANTAGE).find((key) => JOSTER_ADVANTAGE[key] === advantage);
+
+  return {
+    flavor,
+    threshold,
+    dice,
+    countingValue: counting.value,
+    outcome,
+    outcomeLabel: game.i18n.localize(`JOSTER.RollOutcome.${outcome.charAt(0).toUpperCase()}${outcome.slice(1)}`),
+    advantageLabel: game.i18n.localize(`JOSTER.Advantage.${advantageKey.charAt(0).toUpperCase()}${advantageKey.slice(1)}`),
+    advantageAbbr: JOSTER_ADVANTAGE_ABBR[advantage],
+    solve,
+    solveActions: actor ? buildSolveActionsContext(actor, solve) : null,
+    components,
+    showBonus: bonus !== 0,
+    bonusDisplay: bonus > 0 ? `+${bonus}` : `${bonus}`,
+    nonStandard,
+    nonStandardAbbr: game.i18n.localize('JOSTER.Roll.NonStandardAbbr'),
+    nonStandardLabel: game.i18n.localize('JOSTER.Roll.NonStandard'),
+  };
+}
+
+/**
+ * Build the "Problem lösen" action-row context for the roll card: whether
+ * each of the three actions is available (unused, and the actor still has
+ * reserve points) and the label to show on its button.
+ *
+ * @param {Actor} actor
+ * @param {object} solve  See `buildRollCardContext`'s `solve` param.
+ * @returns {{reserve: number, idea: object, findFlaw: object, newAttempt: object}}
+ */
+function buildSolveActionsContext(actor, solve) {
+  const derived = actor.system.derived ?? {};
+  const reserve = derived.solveReserve ?? 0;
+  const canSpend = reserve > 0;
+
+  return {
+    reserve,
+    idea: {
+      disabled: solve.usedIdea || !canSpend,
+      used: solve.usedIdea,
+      label: game.i18n.format('JOSTER.Roll.SolveIdeaButton', { value: derived.solveIdea ?? 0 }),
+    },
+    findFlaw: {
+      disabled: solve.usedFindFlaw || !canSpend,
+      used: solve.usedFindFlaw,
+      label: game.i18n.format('JOSTER.Roll.SolveFindFlawButton', { value: derived.solveFindFlaw ?? 0 }),
+    },
+    newAttempt: {
+      disabled: solve.usedNewAttempt || !canSpend,
+      used: solve.usedNewAttempt,
+      label: game.i18n.localize('JOSTER.Roll.SolveNewAttemptButton'),
+    },
+  };
+}
+
+/**
  * Roll the Joster dice mechanic against a threshold and post the result to
- * chat.
+ * chat. The message carries a `flags.joster` payload recording the raw roll
+ * state, which lets the "Problem lösen" chat card actions (Idee haben,
+ * Fehler finden, Neuer Versuch — see helpers/solve-actions.mjs) later revise
+ * the same card in place.
  *
  * @param {object} options
  * @param {number} options.threshold          The threshold to roll against.
@@ -141,38 +246,19 @@ export async function rollJoster({
   await roll.evaluate();
 
   const values = roll.terms[0].results.map((r) => r.result);
-  const counting = pickCountingDie(values, advantage);
-  const critical = criticalResultFor(values, advantage);
 
-  const success = critical ? critical === 'criticalSuccess' : counting.value <= threshold;
-  const outcome = critical ?? (success ? 'success' : 'failure');
+  const solve = {
+    ideaBonus: 0,
+    usedIdea: false,
+    usedFindFlaw: false,
+    usedNewAttempt: false,
+    log: [],
+  };
 
-  const dice = values
-    .map((value, index) => ({
-      value,
-      isCounted: index === counting.index,
-    }))
-    .sort((a, b) => a.value - b.value);
-
-  const advantageKey = Object.keys(JOSTER_ADVANTAGE).find((key) => JOSTER_ADVANTAGE[key] === advantage);
-
-  const content = await renderTemplate('systems/joster/templates/chat/roll-card.hbs', {
-    flavor,
-    threshold,
-    dice,
-    countingValue: counting.value,
-    success,
-    outcome,
-    outcomeLabel: game.i18n.localize(`JOSTER.RollOutcome.${outcome.charAt(0).toUpperCase()}${outcome.slice(1)}`),
-    advantageLabel: game.i18n.localize(`JOSTER.Advantage.${advantageKey.charAt(0).toUpperCase()}${advantageKey.slice(1)}`),
-    advantageAbbr: JOSTER_ADVANTAGE_ABBR[advantage],
-    components,
-    showBonus: bonus !== 0,
-    bonusDisplay: bonus > 0 ? `+${bonus}` : `${bonus}`,
-    nonStandard,
-    nonStandardAbbr: game.i18n.localize('JOSTER.Roll.NonStandardAbbr'),
-    nonStandardLabel: game.i18n.localize('JOSTER.Roll.NonStandard'),
-  });
+  const content = await renderTemplate(
+    'systems/joster/templates/chat/roll-card.hbs',
+    buildRollCardContext({ flavor, values, advantage, threshold, components, bonus, nonStandard, solve, actor })
+  );
 
   await ChatMessage.create({
     speaker: actor ? ChatMessage.getSpeaker({ actor }) : ChatMessage.getSpeaker(),
@@ -181,6 +267,19 @@ export async function rollJoster({
     rolls: [roll],
     sound: CONFIG.sounds.dice,
     rollMode: rollMode ?? game.settings.get('core', 'rollMode'),
+    flags: {
+      joster: {
+        actorUuid: actor?.uuid ?? null,
+        threshold,
+        advantage,
+        values,
+        components,
+        bonus,
+        nonStandard,
+        flavor,
+        solve,
+      },
+    },
   });
 
   return roll;
