@@ -9,3 +9,4 @@
 - [ ] Skill-Group XP-Summe
 - [ ] Fehler analysieren: Threshold-Berechnung – immer 3d20 neuer Versuch, Edge ausgeben und Reroll bekommen. Idee: Wert oben drauf auf den nächsten Wurf, Fehler finden, wie oft man etwas neu probieren darf
 - [ ] Abgeleitete Werte bleiben gleich, auch mit temporären Attributen
+- [x] 6. Sinn im Header würfeln: regulärer 3d20-Wurf, threshold <= 6. Sinn-Wert, keine Mods, kein Advantage/Disadvantage

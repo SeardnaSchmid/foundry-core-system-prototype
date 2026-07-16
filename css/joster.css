@@ -283,6 +283,13 @@
   justify-content: center;
   align-items: center;
   min-width: 44px;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.15s ease;
+}
+.joster .sheet-header .sixth-sense-group:hover {
+  background: #444;
 }
 .joster .sheet-header .sixth-sense-group .sixth-sense-value {
   font-size: var(--font-size-14, 14px);

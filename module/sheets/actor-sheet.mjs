@@ -4,6 +4,7 @@ import {
 } from '../helpers/effects.mjs';
 import { colorForValue, colorForSum } from '../helpers/heatmap.mjs';
 import { JosterRollDialog } from '../apps/roll-dialog.mjs';
+import { JOSTER_ADVANTAGE, rollJoster } from '../helpers/dice.mjs';
 
 // Value ranges from the "Attribut-Heatmap" spec: Basiswert (base) is the
 // trained/leveled rating, Temp-Wert (value) is the current, independently
@@ -491,6 +492,17 @@ export class JosterActorSheet extends ActorSheet {
           skill: { key: dataset.skill, label: dataset.label, value: rank },
           flavor: dataset.label,
         }).render(true);
+      }
+
+      // Sixth Sense: a standard 3d20 roll against the derived value itself,
+      // with no bonus/malus and no advantage/disadvantage.
+      if (dataset.rollType == 'sixthSense') {
+        return rollJoster({
+          threshold: this.actor.system.derived?.sixthSense ?? 0,
+          advantage: JOSTER_ADVANTAGE.none,
+          flavor: dataset.label,
+          actor: this.actor,
+        });
       }
     }
 

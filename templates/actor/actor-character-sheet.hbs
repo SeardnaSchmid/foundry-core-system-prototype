@@ -13,11 +13,11 @@
           <span class="initiative-label">{{localize "JOSTER.DerivedShort.Initiative"}}</span>
         </a>
 
-        {{!-- Sechster Sinn ist ein reiner Anzeigewert, kein Wurf. --}}
-        <div class="resource-group sixth-sense-group" title="{{localize 'JOSTER.Derived.SixthSense'}}: {{localize 'JOSTER.DerivedHint.SixthSense'}}">
+        {{!-- Sechster Sinn wird mit dem regulären 3d20-Wurf gegen den Wert selbst gewürfelt, ohne Mods/Advantage. --}}
+        <a class="resource-group sixth-sense-group rollable" data-roll-type="sixthSense" data-label="{{localize 'JOSTER.Derived.SixthSense'}}" title="{{localize 'JOSTER.Derived.SixthSense'}}: {{localize 'JOSTER.DerivedHint.SixthSense'}}">
           <span class="sixth-sense-value">{{system.derived.sixthSense}}</span>
           <label class="sixth-sense-label">{{localize "JOSTER.DerivedShort.SixthSense"}}</label>
-        </div>
+        </a>
 
         {{!-- Bewegungsreichweiten sind reine Anzeigewerte, kein Wurf. --}}
         <div class="resource-group movement-group">
