@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.12.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.11.0...v0.12.0) (2026-07-17)
+
+
+### Features
+
+* add skill advancement dialog with XP tracking, rework roll dialog attribute picker ([3e9f5ae](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/3e9f5ae8576d4ce73f995b5288ebdb3fbfdb92ff))
+
 # [0.11.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.10.0...v0.11.0) (2026-07-17)
 
 
