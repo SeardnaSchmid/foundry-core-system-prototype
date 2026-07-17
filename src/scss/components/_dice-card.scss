@@ -130,10 +130,14 @@
     cursor: default;
   }
 
-  .joster-edge-action {
-    display: inline-flex;
+  // Inline "Problem lösen" picker: a single toggle row that expands, in
+  // place on the card, into the two post-edge options — no modal. See
+  // renderSolvePanel in chat.mjs.
+  .joster-solve-toggle {
+    display: flex;
     align-items: center;
-    gap: 4px;
+    justify-content: center;
+    gap: 6px;
     border: 1px solid $c-beige;
     border-radius: 6px;
     padding: 3px 10px;
@@ -147,6 +151,120 @@
     &:hover {
       background: $c-tan;
       border-color: $c-tan;
+    }
+  }
+
+  .joster-solve-chevron {
+    font-size: var(--font-size-10, 10px);
+    transition: transform 0.15s ease;
+  }
+
+  .joster-edge-actions.expanded .joster-solve-chevron {
+    transform: rotate(180deg);
+  }
+
+  // Grid-rows expand trick (0fr -> 1fr), same mechanism as the roll card's
+  // own tooltip — see the .joster-roll-tooltip comment above.
+  .joster-solve-panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.2s ease;
+  }
+
+  .joster-edge-actions.expanded .joster-solve-panel {
+    grid-template-rows: 1fr;
+  }
+
+  .joster-solve-panel-inner {
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .joster-solve-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid $c-beige;
+    border-radius: 6px;
+    padding: 4px 8px;
+    margin-top: 4px;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+
+    &:hover {
+      background: $c-tan;
+      border-color: $c-tan;
+    }
+  }
+
+  .joster-solve-option-icon {
+    font-size: var(--font-size-12, 12px);
+    width: 14px;
+    text-align: center;
+  }
+
+  .joster-solve-option-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .joster-solve-option-title {
+    font-size: var(--font-size-11, 11px);
+    font-weight: bold;
+  }
+
+  .joster-solve-option-hint {
+    font-size: var(--font-size-10, 10px);
+    color: $c-tan;
+  }
+
+  .joster-solve-option-run {
+    font-size: var(--font-size-10, 10px);
+    color: $c-tan;
+  }
+
+  // "Neuer Versuch" visually replaces its original: the failed roll gets
+  // dimmed and stamped (injected client-side, see chat.mjs), the reroll
+  // gets a banner declaring it the result that counts. Both are clickable,
+  // jumping between the two messages.
+  &.joster-replaced {
+    opacity: 0.55;
+  }
+
+  .joster-new-attempt-banner {
+    order: -1;
+    width: 100%;
+    text-align: center;
+    font-size: var(--font-size-11, 11px);
+    font-weight: bold;
+    text-transform: uppercase;
+    color: $c-tan;
+    padding-bottom: 4px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid $c-beige;
+    cursor: pointer;
+
+    &:hover {
+      color: $c-dark;
+    }
+  }
+
+  .joster-new-attempt-stamp {
+    text-align: center;
+    font-size: var(--font-size-11, 11px);
+    font-weight: bold;
+    color: $c-tan;
+
+    &.joster-clickable {
+      cursor: pointer;
+      text-decoration: underline;
+
+      &:hover {
+        color: $c-dark;
+      }
     }
   }
 

@@ -112,25 +112,28 @@
       "SolveIdea": "(Intelligenz+Wissen)/2 (aufgerundet)",
       "SolveFindFlaw": "(Intelligenz+Willenskraft)/2 (aufgerundet)",
       "SolveReserve": "(Willenskraft+Wissen)/2 (aufgerundet)",
+      "SolveReserveUsage": "Wird für die Problemlösen-Edges ausgegeben: Idee haben, Fehler finden, Neuer Versuch.",
       "SolveAnalyzeFlaw": "2×Untersuchen",
       "SolveNewAttempt": "1 Punkt + Verzicht auf den XP, zweiter Versuch zählt"
     },
     "Notify": {
-      "NoReserve": "Kein Problemlösen-Vorrat mehr übrig."
+      "NoReserve": "Kein Problemlösen-Vorrat mehr übrig.",
+      "ProblemSolvingGate": "Nur einsetzbar, wenn gerade kein Zeitdruck herrscht — das entscheidet dein Spielleiter."
     },
     "Dialog": {
-      "SolveFindFlawTitle": "Problem lösen - Fehler finden",
-      "SolveFindFlawContent": "<p>Gib einen Punkt aus, um den misslungenen Wurf bis zu {value}-mal zu wiederholen, bis er gelingt.</p>",
+      "SolveTrigger": "Problem lösen ({value})",
+      "SolveOptionFindFlaw": "Fehler finden",
+      "SolveOptionNewAttempt": "Neuer Versuch",
+      "SolveFindFlawHint": "Bis zu {value}× wiederholen — nur ohne Zeitdruck",
+      "SolveNewAttemptHint": "Ergebnis zählt sofort — kostet den XP",
       "SolveAnalyzeFlawTitle": "Problem lösen - Fehler Analysieren",
-      "SolveAnalyzeFlawContent": "<p>Du versuchst, aus deinem letzten Fehlschlag zu lernen. Gelingt der Wurf, füllt sich dein Problemlösen-Vorrat um einen Punkt auf — dafür verzichtest du auf den Erfahrungspunkt, den du für den fehlgeschlagenen Wurf bekommen hättest.</p><p>Kläre vorher mit deinem Spielleiter ab, ob das hier passt: Die Mechanik ist nur gedacht für Fehlschläge mit einer echten, spürbaren Konsequenz — nicht für jeden verpatzten Wurf.</p>",
-      "SolveNewAttemptTitle": "Problem lösen - Neuer Versuch",
-      "SolveNewAttemptContent": "<p>Dein Wurf ist misslungen, aber du hättest wirklich gern ein anderes Ergebnis? Gib einen Punkt aus deinem Problemlösen-Vorrat aus und würfle die Probe noch einmal — nur das zweite Ergebnis zählt, egal ob besser oder schlechter.</p><p>Dafür verzichtest du auf den Erfahrungspunkt, den du für den ursprünglichen Wurf bekommen hättest.</p>"
+      "SolveAnalyzeFlawContent": "<p>Du versuchst, aus deinem letzten Fehlschlag zu lernen. Gelingt der Wurf, füllt sich dein Problemlösen-Vorrat um einen Punkt auf — dafür verzichtest du auf den Erfahrungspunkt, den du für den fehlgeschlagenen Wurf bekommen hättest.</p><p>Kläre vorher mit deinem Spielleiter ab, ob das hier passt: Die Mechanik ist nur gedacht für Fehlschläge mit einer echten, spürbaren Konsequenz und setzt zudem voraus, dass gerade kein Zeitdruck herrscht — nicht für jeden verpatzten Wurf mitten im Getümmel.</p>"
     },
     "Chat": {
       "SolveAnalyzeFlawAttempt": "{name} versucht, einen Fehler zu analysieren, um den Problemlösen-Vorrat wieder aufzufüllen.",
       "SolveAnalyzeFlawSuccess": "{name} gewinnt durch Fehler Analysieren einen Punkt Problemlösen-Vorrat zurück ({current}/{max}).",
-      "SolveFindFlawSuccess": "{name} gibt einen Punkt Problem lösen aus und darf den Wurf bis zu {value}-mal wiederholen, bis er gelingt.",
-      "SolveNewAttemptSuccess": "{name} gibt einen Punkt Problem lösen aus, verzichtet auf den Erfahrungspunkt und würfelt die Probe noch einmal — der zweite Versuch zählt.",
+      "SolveFindFlawSuccess": "{name} gibt einen Punkt Problem lösen aus und darf den Wurf bis zu {value}-mal wiederholen, bis er gelingt ({current}/{max}).",
+      "SolveNewAttemptSuccess": "{name} gibt einen Punkt Problem lösen aus, verzichtet auf den Erfahrungspunkt und würfelt die Probe noch einmal — der zweite Versuch zählt ({current}/{max}).",
       "SolveReserveSpent": "{name} gibt {count} Punkt(e) Problem lösen aus ({current}/{max})."
     },
     "SheetLabels": {
@@ -162,7 +165,9 @@
       "IdeaComponent": "Idee haben",
       "FindFlawReroll": "Nochmal würfeln ({remaining} übrig)",
       "FindFlawSucceeded": "Fehler gefunden!",
-      "FindFlawExhausted": "Kein Fehler gefunden"
+      "FindFlawExhausted": "Kein Fehler gefunden",
+      "NewAttemptCounts": "Neuer Versuch — dieses Ergebnis zählt",
+      "NewAttemptReplaced": "Ersetzt durch Neuen Versuch (XP verwirkt)"
     },
     "Advantage": {
       "StrongDisadvantage": "Starker Nachteil",

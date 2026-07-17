@@ -83,7 +83,7 @@
 
   {{#if hasIdeaOption}}
   <div class="form-group joster-idea-field">
-    <label class="joster-idea-label {{#if ideaDisabled}}joster-idea-disabled{{/if}}" title="{{#if ideaDisabled}}{{localize 'JOSTER.Notify.NoReserve'}}{{else}}{{localize 'JOSTER.DerivedHint.SolveIdea'}}{{/if}}">
+    <label class="joster-idea-label {{#if ideaDisabled}}joster-idea-disabled{{/if}}" title="{{#if ideaDisabled}}{{localize 'JOSTER.Notify.NoReserve'}}{{else}}{{localize 'JOSTER.DerivedHint.SolveIdea'}} — {{localize 'JOSTER.Notify.ProblemSolvingGate'}}{{/if}}">
       <input type="checkbox" name="useIdea" {{#if useIdea}}checked{{/if}} {{#if ideaDisabled}}disabled{{/if}}/>
       {{localize "JOSTER.Roll.IdeaToggle"}} (+{{solveIdeaValue}})
     </label>

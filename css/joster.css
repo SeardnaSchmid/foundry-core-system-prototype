@@ -375,13 +375,11 @@
   text-decoration: none;
   color: inherit;
 }
-.joster .sheet-header .problem-solving-group .ps-analyze-flaw,
-.joster .sheet-header .problem-solving-group .ps-new-attempt {
+.joster .sheet-header .problem-solving-group .ps-analyze-flaw {
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
-.joster .sheet-header .problem-solving-group .ps-analyze-flaw:hover,
-.joster .sheet-header .problem-solving-group .ps-new-attempt:hover {
+.joster .sheet-header .problem-solving-group .ps-analyze-flaw:hover {
   background: #444;
   border-color: #444;
 }
@@ -1054,10 +1052,11 @@
   margin-top: 4px;
   cursor: default;
 }
-.joster-roll-card .joster-edge-action {
-  display: inline-flex;
+.joster-roll-card .joster-solve-toggle {
+  display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 6px;
   border: 1px solid #b5b3a4;
   border-radius: 6px;
   padding: 3px 10px;
@@ -1068,9 +1067,99 @@
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
-.joster-roll-card .joster-edge-action:hover {
+.joster-roll-card .joster-solve-toggle:hover {
   background: #444;
   border-color: #444;
+}
+.joster-roll-card .joster-solve-chevron {
+  font-size: var(--font-size-10, 10px);
+  transition: transform 0.15s ease;
+}
+.joster-roll-card .joster-edge-actions.expanded .joster-solve-chevron {
+  transform: rotate(180deg);
+}
+.joster-roll-card .joster-solve-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.2s ease;
+}
+.joster-roll-card .joster-edge-actions.expanded .joster-solve-panel {
+  grid-template-rows: 1fr;
+}
+.joster-roll-card .joster-solve-panel-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+.joster-roll-card .joster-solve-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #b5b3a4;
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin-top: 4px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.joster-roll-card .joster-solve-option:hover {
+  background: #444;
+  border-color: #444;
+}
+.joster-roll-card .joster-solve-option-icon {
+  font-size: var(--font-size-12, 12px);
+  width: 14px;
+  text-align: center;
+}
+.joster-roll-card .joster-solve-option-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.joster-roll-card .joster-solve-option-title {
+  font-size: var(--font-size-11, 11px);
+  font-weight: bold;
+}
+.joster-roll-card .joster-solve-option-hint {
+  font-size: var(--font-size-10, 10px);
+  color: #444;
+}
+.joster-roll-card .joster-solve-option-run {
+  font-size: var(--font-size-10, 10px);
+  color: #444;
+}
+.joster-roll-card.joster-replaced {
+  opacity: 0.55;
+}
+.joster-roll-card .joster-new-attempt-banner {
+  order: -1;
+  width: 100%;
+  text-align: center;
+  font-size: var(--font-size-11, 11px);
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #444;
+  padding-bottom: 4px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #b5b3a4;
+  cursor: pointer;
+}
+.joster-roll-card .joster-new-attempt-banner:hover {
+  color: #191813;
+}
+.joster-roll-card .joster-new-attempt-stamp {
+  text-align: center;
+  font-size: var(--font-size-11, 11px);
+  font-weight: bold;
+  color: #444;
+}
+.joster-roll-card .joster-new-attempt-stamp.joster-clickable {
+  cursor: pointer;
+  text-decoration: underline;
+}
+.joster-roll-card .joster-new-attempt-stamp.joster-clickable:hover {
+  color: #191813;
 }
 .joster-roll-card .joster-find-flaw-tracker {
   border: 1px solid #b5b3a4;

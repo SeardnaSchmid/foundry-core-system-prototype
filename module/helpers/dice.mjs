@@ -124,6 +124,8 @@ export function criticalResultFor(values, advantage) {
  * @param {number} [options.bonus]             Situational modifier shown in the breakdown.
  * @param {boolean} [options.nonStandard]      Whether the roll used an attribute other than
  *   the skill's normally linked one, flagged in the chat card.
+ * @param {object} [options.extraFlags]        Extra properties merged into the message's
+ *   `flags.joster`, e.g. `{ replaces: <messageId> }` for a "Neuer Versuch" reroll.
  * @returns {Promise<{roll: Roll, success: boolean, message: ChatMessage}>}
  */
 export async function rollJoster({
@@ -135,6 +137,7 @@ export async function rollJoster({
   components = [],
   bonus = 0,
   nonStandard = false,
+  extraFlags = {},
 } = {}) {
   const dieCount = dieCountFor(advantage);
   const roll = new Roll(`${dieCount}d20`);
@@ -174,10 +177,12 @@ export async function rollJoster({
     nonStandardLabel: game.i18n.localize('JOSTER.Roll.NonStandard'),
   });
 
-  // Failed rolls carry enough context in flags.joster for the "Fehler
-  // finden" reroll tracker (see chat.mjs) to be offered and, once
-  // activated, to reroll under identical parameters without the original
-  // card content ever being touched.
+  // Failed rolls carry enough context in flags.joster for the post-edge
+  // actions (see chat.mjs) to be offered and, once activated, to replay
+  // this roll's parameters exactly: "Fehler finden" rerolls in place on
+  // this same message, "Neuer Versuch" spins up a brand-new message via
+  // this same rollJoster() call, fed straight from these flags. The
+  // original card content is never touched by either.
   const message = await ChatMessage.create({
     speaker: actor ? ChatMessage.getSpeaker({ actor }) : ChatMessage.getSpeaker(),
     flavor,
@@ -190,8 +195,13 @@ export async function rollJoster({
         actorId: actor?.id ?? null,
         threshold,
         advantage,
+        flavor,
+        components,
+        bonus,
+        nonStandard,
         outcome,
-        edge: { consumed: null, findFlaw: null },
+        edge: { consumed: null, findFlaw: null, newAttempt: null },
+        ...extraFlags,
       },
     },
   });
@@ -219,9 +229,12 @@ export async function startFindFlaw(message, actor) {
     'flags.joster.edge.findFlaw': { max: value, used: 0, active: value > 0, attempts: [] },
   });
 
+  const reserveMax = actor.system.derived?.solveReserveMax ?? 0;
+  const reserve = actor.system.derived?.solveReserve ?? 0;
+
   ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),
-    content: game.i18n.format('JOSTER.Chat.SolveFindFlawSuccess', { name: actor.name, value }),
+    content: game.i18n.format('JOSTER.Chat.SolveFindFlawSuccess', { name: actor.name, value, current: reserve, max: reserveMax }),
   });
 }
 
@@ -271,4 +284,52 @@ export async function rerollFindFlaw(message) {
       { dice: values, countingIndex: counting.index, success, outcome },
     ],
   });
+}
+
+/**
+ * Trigger "Neuer Versuch" on a failed roll's chat message: spends one
+ * reserve point, forfeits the XP the original check would have earned, and
+ * has the system reroll the check itself, once, under identical
+ * parameters. Unlike "Fehler finden" there's no player choice left once
+ * triggered — the second result replaces the first outright — so the
+ * reroll isn't handed to the player as a number to act on; it's carried out
+ * here as a brand-new chat message, and the original is stamped (via
+ * `flags.joster.edge.newAttempt`) as replaced, linking forward to it.
+ *
+ * @param {ChatMessage} message  The failed roll's chat message.
+ * @param {Actor} actor          The rolling actor, spending the reserve point.
+ * @returns {Promise<void>}
+ */
+export async function startNewAttempt(message, actor) {
+  const data = message.flags?.joster;
+  if (!data) return;
+
+  const spent = actor.system.problemSolving?.spent ?? 0;
+  await actor.update({ 'system.problemSolving.spent': spent + 1 });
+
+  await message.update({
+    'flags.joster.edge.consumed': 'newAttempt',
+    'flags.joster.edge.newAttempt': { replacedBy: null },
+  });
+
+  const reserveMax = actor.system.derived?.solveReserveMax ?? 0;
+  const reserve = actor.system.derived?.solveReserve ?? 0;
+
+  ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor }),
+    content: game.i18n.format('JOSTER.Chat.SolveNewAttemptSuccess', { name: actor.name, current: reserve, max: reserveMax }),
+  });
+
+  const { message: rerollMessage } = await rollJoster({
+    threshold: data.threshold,
+    advantage: data.advantage,
+    flavor: data.flavor,
+    actor,
+    components: data.components ?? [],
+    bonus: data.bonus ?? 0,
+    nonStandard: data.nonStandard ?? false,
+    extraFlags: { replaces: message.id },
+  });
+
+  await message.update({ 'flags.joster.edge.newAttempt.replacedBy': rerollMessage.id });
 }

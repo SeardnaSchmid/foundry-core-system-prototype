@@ -331,12 +331,12 @@ export class JosterActorSheet extends ActorSheet {
       onManageActiveEffect(ev, document);
     });
 
-    // Rollable abilities. "Fehler Analysieren" and "Neuer Versuch" go
-    // through the same handler via their data-roll-type. "Idee haben" is
-    // not among them — it's a pre-edge, offered as a toggle inside the roll
-    // dialog itself (see JosterRollDialog). "Fehler finden" isn't either —
-    // it's a post-edge, triggered from the reroll tracker on a failed
-    // roll's chat card (see chat.mjs), not from the sheet.
+    // Rollable abilities. "Fehler Analysieren" goes through this handler
+    // via its data-roll-type. The other three problem-solving actions
+    // don't: "Idee haben" is a pre-edge, offered as a toggle inside the
+    // roll dialog itself (see JosterRollDialog); "Fehler finden" and
+    // "Neuer Versuch" are post-edges, triggered from a failed roll's own
+    // chat card (see chat.mjs), not from the sheet.
     html.on('click', '.rollable', this._onRoll.bind(this));
 
     // Drag events for macros.
@@ -482,33 +482,6 @@ export class JosterActorSheet extends ActorSheet {
           fixedValue: { label: dataset.label, value: this.actor.system.derived?.sixthSense ?? 0 },
           flavor: dataset.label,
         }).render(true);
-      }
-
-      // Neuer Versuch: spends one reserve point (after confirmation) to
-      // reroll the botched check exactly once, forfeiting the XP that
-      // check would have earned; the second result replaces the first
-      // outright. Announced in chat for the player to carry out by
-      // hand — no dice roll here, unlike Fehler Analysieren.
-      if (dataset.rollType == 'solveNewAttempt') {
-        const reserve = this.actor.system.derived?.solveReserve ?? 0;
-        if (reserve <= 0) {
-          ui.notifications.warn(game.i18n.localize('JOSTER.Notify.NoReserve'));
-          return;
-        }
-
-        const confirmed = await foundry.applications.api.DialogV2.confirm({
-          window: { title: game.i18n.localize('JOSTER.Dialog.SolveNewAttemptTitle') },
-          content: game.i18n.localize('JOSTER.Dialog.SolveNewAttemptContent'),
-        });
-        if (!confirmed) return;
-
-        const spentAttempt = this.actor.system.problemSolving?.spent ?? 0;
-        await this.actor.update({ 'system.problemSolving.spent': spentAttempt + 1 });
-        ChatMessage.create({
-          speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-          content: game.i18n.format('JOSTER.Chat.SolveNewAttemptSuccess', { name: this.actor.name }),
-        });
-        return;
       }
 
       // Fehler Analysieren: a standard 3d20 roll against the derived value,
