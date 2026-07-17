@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.13.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.12.0...v0.13.0) (2026-07-17)
+
+
+### Features
+
+* add base dice roll accessible outside the character sheet ([403710d](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/403710d3be8dd68ff0ac75955f6255545dda2895))
+
 # [0.12.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.11.0...v0.12.0) (2026-07-17)
 
 
