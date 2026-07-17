@@ -194,17 +194,6 @@
   text-transform: uppercase;
 }
 
-.free-roll-button {
-  flex: 0 0 auto;
-  padding: 2px 8px;
-  border: 1px solid $c-beige;
-  border-radius: 3px;
-  font-size: var(--font-size-11, 11px);
-  font-weight: bold;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
 .skill-groups {
   display: flex;
   flex-wrap: wrap;

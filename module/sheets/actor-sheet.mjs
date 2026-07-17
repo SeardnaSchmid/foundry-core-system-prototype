@@ -177,11 +177,20 @@ export class JosterActorSheet extends ActorSheet {
           // Kept only to preselect the roll dialog's attribute; the system
           // doesn't bind a skill to one fixed attribute, so it's no longer
           // shown in the row itself (see JosterRollDialog's attribute chips).
-          attribute: skill.attribute,
+          // Prefers whatever attribute this actor last rolled this skill
+          // against, falling back to the skill's configured default until
+          // it's ever been rolled.
+          attribute: skills[key]?.lastAttribute || skill.attribute,
           rank: skills[key]?.value ?? 0,
           xp: skills[key]?.xp ?? 0,
         })),
     }));
+
+    // "Fehler Analysieren" only makes sense to attempt while the reserve
+    // has room to regain a point; a full pool has nothing to refill.
+    const reserve = context.system.derived?.solveReserve ?? 0;
+    const reserveMax = context.system.derived?.solveReserveMax ?? 0;
+    context.analyzeFlawDisabled = reserve >= reserveMax;
   }
 
   /**
@@ -467,6 +476,13 @@ export class JosterActorSheet extends ActorSheet {
       // chat message announcing the attempt. On success, regains one
       // reserve point (up to the pool's max).
       if (dataset.rollType == 'analyzeFlaw') {
+        const reserve = this.actor.system.derived?.solveReserve ?? 0;
+        const reserveMax = this.actor.system.derived?.solveReserveMax ?? 0;
+        if (reserve >= reserveMax) {
+          ui.notifications.warn(game.i18n.localize('JOSTER.Notify.ReserveFull'));
+          return;
+        }
+
         const confirmedAnalyze = await foundry.applications.api.DialogV2.confirm({
           window: { title: game.i18n.localize('JOSTER.Dialog.SolveAnalyzeFlawTitle') },
           content: game.i18n.localize('JOSTER.Dialog.SolveAnalyzeFlawContent'),
@@ -483,6 +499,10 @@ export class JosterActorSheet extends ActorSheet {
           advantage: JOSTER_ADVANTAGE.none,
           flavor: dataset.label,
           actor: this.actor,
+          // A failed "Fehler Analysieren" roll must not itself be offered the
+          // "Problem lösen" edge panel: spending reserve to reroll the very
+          // roll that refills that reserve would be circular.
+          extraFlags: { edgeExempt: true },
         });
         if (success) {
           const spent = this.actor.system.problemSolving?.spent ?? 0;

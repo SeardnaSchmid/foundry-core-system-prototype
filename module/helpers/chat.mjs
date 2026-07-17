@@ -99,6 +99,11 @@ async function renderEdgeSection(message, html) {
   // Problem-lösen panel/tracker/stamp.
   if (data.replaces) return;
 
+  // Some rolls (e.g. "Fehler Analysieren") are exempt from the Problem-lösen
+  // edge panel entirely: spending reserve to reroll the very roll that
+  // refills that reserve would be circular.
+  if (data.edgeExempt) return;
+
   const actor = data.actorId ? game.actors.get(data.actorId) : null;
   const isOwner = actor?.isOwner ?? false;
   const isFailure = data.outcome === 'failure' || data.outcome === 'criticalFailure';

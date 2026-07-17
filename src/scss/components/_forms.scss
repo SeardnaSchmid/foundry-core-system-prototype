@@ -177,46 +177,50 @@
       color: $c-tan;
     }
 
-    .problem-solving-actions {
+    .solve-tile {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .ps-action {
-      display: inline-flex;
-      align-items: baseline;
-      gap: 4px;
-      border: 1px solid $c-beige;
-      border-radius: 6px;
-      padding: 3px 10px;
-      background: $c-white;
+      justify-content: center;
+      min-width: 44px;
+      padding: 3px 6px;
+      border-radius: 4px;
       text-decoration: none;
       color: inherit;
     }
 
-    .ps-analyze-flaw {
-      cursor: pointer;
-      transition: background 0.15s ease, border-color 0.15s ease;
-
-      &:hover {
-        background: $c-tan;
-        border-color: $c-tan;
-      }
+    .solve-tile-value {
+      font-weight: bold;
+      font-size: var(--font-size-14, 14px);
+      line-height: 1;
     }
 
-    .ps-action-label {
+    .solve-tile-label {
       font-size: var(--font-size-10, 10px);
       text-transform: uppercase;
-      letter-spacing: 0.03em;
       color: $c-tan;
     }
 
-    .ps-action-value {
-      font-size: var(--font-size-14, 14px);
-      font-weight: bold;
-      line-height: 1;
+    .solve-analyze-flaw {
+      cursor: pointer;
+      transition: background 0.15s ease;
+
+      &:hover {
+        background: $c-tan;
+
+        // The label's rest color is the same $c-tan as this hover
+        // background, so without an override it visually vanishes into
+        // the fill instead of reading as part of the highlighted tile.
+        .solve-tile-value,
+        .solve-tile-label {
+          color: $c-white;
+        }
+      }
+    }
+
+    .solve-tile-disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
     }
   }
 }

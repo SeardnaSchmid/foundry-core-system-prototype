@@ -41,16 +41,18 @@
 
         {{!-- Problemlösen: Vorrat zeigt den aktuell verbleibenden Punktestand
         an (Maximalwert minus Verbrauch) und ist direkt editierbar, geclampt
-        auf 0..Maximalwert. "Fehler Analysieren" ist bereits umgesetzt: ein
+        auf 0..Maximalwert. Die Tiles daneben sind reine Anzeigewerte im
+        selben Stil wie die Bewegungsreichweiten (movement-tile), bis auf
+        "Analyse": "Fehler Analysieren" ist als Wurf umgesetzt (ein
         regulärer 3d20-Wurf gegen den Wert; bei Erfolg wird ein Vorrat-Punkt
-        zurückgewonnen (kein Punktverbrauch fürs Würfeln selbst). Die
-        anderen drei Aktionen leben nicht hier: "Idee haben" ist ein
-        Pre-Edge und lebt als Toggle im Würfel-Dialog selbst
-        (JosterRollDialog). "Fehler finden" und "Neuer Versuch" sind
-        Post-Edges und leben auf der Wurf-Karte einer fehlgeschlagenen
-        Probe im Chat (siehe chat.mjs) — beide sind an den konkreten
-        Fehlschlag gebunden statt an einen Sheet-Klick ohne Bezug zu einem
-        bestimmten Wurf. --}}
+        zurückgewonnen) und steht direkt neben dem Vorrat, als einziges
+        klickbares Tile hier. "Idee haben" ist ein Pre-Edge und lebt als
+        Toggle im Würfel-Dialog selbst (JosterRollDialog); "Fehler finden"
+        ist ein Post-Edge und lebt auf der Wurf-Karte einer fehlgeschlagenen
+        Probe im Chat (siehe chat.mjs) — beide nur zur Übersicht hier
+        gezeigt, ohne eigenen Klick-Effekt. "Neuer Versuch" wird hier
+        bewusst nicht gezeigt: ohne attributabhängigen Schwellenwert (fixer
+        Punktkosten-Edge) bringt ein Anzeigewert dafür nichts. --}}
         <div class="resource-group problem-solving-group">
           <div class="reserve-pool" title="{{localize 'JOSTER.Derived.SolveReserve'}}: {{localize 'JOSTER.DerivedHint.SolveReserve'}} — {{localize 'JOSTER.DerivedHint.SolveReserveUsage'}}">
             <span class="reserve-value">
@@ -58,11 +60,17 @@
             </span>
             <label class="reserve-label">{{localize "JOSTER.DerivedShort.SolveReserve"}}</label>
           </div>
-          <div class="problem-solving-actions">
-            <a class="ps-action ps-analyze-flaw rollable" data-roll-type="analyzeFlaw" data-label="{{localize 'JOSTER.Derived.SolveAnalyzeFlaw'}}" title="{{localize 'JOSTER.Derived.SolveAnalyzeFlaw'}}: {{localize 'JOSTER.DerivedHint.SolveAnalyzeFlaw'}}">
-              <span class="ps-action-label">{{localize "JOSTER.DerivedShort.SolveAnalyzeFlaw"}}</span>
-              <span class="ps-action-value">{{system.derived.solveAnalyzeFlaw}}</span>
-            </a>
+          <a class="solve-tile solve-analyze-flaw rollable {{#if analyzeFlawDisabled}}solve-tile-disabled{{/if}}" data-roll-type="analyzeFlaw" data-label="{{localize 'JOSTER.Derived.SolveAnalyzeFlaw'}}" title="{{#if analyzeFlawDisabled}}{{localize 'JOSTER.Notify.ReserveFull'}}{{else}}{{localize 'JOSTER.Derived.SolveAnalyzeFlaw'}}: {{localize 'JOSTER.DerivedHint.SolveAnalyzeFlaw'}}{{/if}}">
+            <span class="solve-tile-value">{{system.derived.solveAnalyzeFlaw}}</span>
+            <label class="solve-tile-label">{{localize "JOSTER.DerivedShort.SolveAnalyzeFlaw"}}</label>
+          </a>
+          <div class="solve-tile" title="{{localize 'JOSTER.Derived.SolveIdea'}}: {{localize 'JOSTER.DerivedHint.SolveIdea'}}">
+            <span class="solve-tile-value">{{system.derived.solveIdea}}</span>
+            <label class="solve-tile-label">{{localize "JOSTER.DerivedShort.SolveIdea"}}</label>
+          </div>
+          <div class="solve-tile" title="{{localize 'JOSTER.Derived.SolveFindFlaw'}}: {{localize 'JOSTER.DerivedHint.SolveFindFlaw'}}">
+            <span class="solve-tile-value">{{system.derived.solveFindFlaw}}</span>
+            <label class="solve-tile-label">{{localize "JOSTER.DerivedShort.SolveFindFlaw"}}</label>
           </div>
         </div>
 
@@ -138,9 +146,6 @@
         attribute; the rank is added as the roll dialog's starting bonus. --}}
         <div class="skills-header flexrow">
           <h3 class="skills-title">{{localize "JOSTER.SkillsTitle"}}</h3>
-          <a class="free-roll-button rollable" data-roll-type="free" title="{{localize 'JOSTER.Roll.FreeHint'}}">
-            <i class="fas fa-dice-d20"></i> {{localize "JOSTER.Roll.FreeTitle"}}
-          </a>
         </div>
         <div class="skill-groups">
           {{#each skillGroups as |group|}}

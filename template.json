@@ -62,20 +62,20 @@
         }
       },
       "skills": {
-        "brawling": { "value": 0, "xp": 0 },
-        "swords": { "value": 0, "xp": 0 },
-        "heavyMelee": { "value": 0, "xp": 0 },
-        "flexibleWeapons": { "value": 0, "xp": 0 },
-        "shooting": { "value": 0, "xp": 0 },
-        "sniper": { "value": 0, "xp": 0 },
-        "heavyRanged": { "value": 0, "xp": 0 },
-        "electronicWeapons": { "value": 0, "xp": 0 },
-        "throwingWeapons": { "value": 0, "xp": 0 },
-        "exotic": { "value": 0, "xp": 0 },
-        "athletics": { "value": 0, "xp": 0 },
-        "acrobatics": { "value": 0, "xp": 0 },
-        "stealth": { "value": 0, "xp": 0 },
-        "selfControl": { "value": 0, "xp": 0 }
+        "brawling": { "value": 0, "xp": 0, "lastAttribute": "" },
+        "swords": { "value": 0, "xp": 0, "lastAttribute": "" },
+        "heavyMelee": { "value": 0, "xp": 0, "lastAttribute": "" },
+        "flexibleWeapons": { "value": 0, "xp": 0, "lastAttribute": "" },
+        "shooting": { "value": 0, "xp": 0, "lastAttribute": "" },
+        "sniper": { "value": 0, "xp": 0, "lastAttribute": "" },
+        "heavyRanged": { "value": 0, "xp": 0, "lastAttribute": "" },
+        "electronicWeapons": { "value": 0, "xp": 0, "lastAttribute": "" },
+        "throwingWeapons": { "value": 0, "xp": 0, "lastAttribute": "" },
+        "exotic": { "value": 0, "xp": 0, "lastAttribute": "" },
+        "athletics": { "value": 0, "xp": 0, "lastAttribute": "" },
+        "acrobatics": { "value": 0, "xp": 0, "lastAttribute": "" },
+        "stealth": { "value": 0, "xp": 0, "lastAttribute": "" },
+        "selfControl": { "value": 0, "xp": 0, "lastAttribute": "" }
       }
     },
     "npc": {

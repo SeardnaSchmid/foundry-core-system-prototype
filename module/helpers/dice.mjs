@@ -114,7 +114,9 @@ export function criticalResultFor(values, advantage) {
  * chat.
  *
  * @param {object} options
- * @param {number} options.threshold          The threshold to roll against.
+ * @param {number} [options.threshold]         The threshold to roll against. Omit for a "base"
+ *   roll with no success/failure evaluation (just the dice and, if it lands, a critical) —
+ *   see rollJosterBase.
  * @param {number} [options.advantage]         One of the JOSTER_ADVANTAGE values.
  * @param {string} [options.flavor]            Label shown above the roll (e.g. the ability name).
  * @param {Actor} [options.actor]              The rolling actor, used for the chat speaker.
@@ -122,21 +124,18 @@ export function criticalResultFor(values, advantage) {
  * @param {{label: string, value: number}[]} [options.components]  Threshold components
  *   (e.g. attribute and skill) shown in the expanded roll breakdown.
  * @param {number} [options.bonus]             Situational modifier shown in the breakdown.
- * @param {boolean} [options.nonStandard]      Whether the roll used an attribute other than
- *   the skill's normally linked one, flagged in the chat card.
  * @param {object} [options.extraFlags]        Extra properties merged into the message's
  *   `flags.joster`, e.g. `{ replaces: <messageId> }` for a "Neuer Versuch" reroll.
- * @returns {Promise<{roll: Roll, success: boolean, message: ChatMessage}>}
+ * @returns {Promise<{roll: Roll, success: boolean|null, message: ChatMessage}>}
  */
 export async function rollJoster({
-  threshold,
+  threshold = null,
   advantage = JOSTER_ADVANTAGE.none,
   flavor = '',
   actor = null,
   rollMode = null,
   components = [],
   bonus = 0,
-  nonStandard = false,
   extraFlags = {},
 } = {}) {
   const dieCount = dieCountFor(advantage);
@@ -147,8 +146,11 @@ export async function rollJoster({
   const counting = pickCountingDie(values, advantage);
   const critical = criticalResultFor(values, advantage);
 
-  const success = critical ? critical === 'criticalSuccess' : counting.value <= threshold;
-  const outcome = critical ?? (success ? 'success' : 'failure');
+  // A base roll (no threshold) has nothing to evaluate success/failure
+  // against — only a landed critical still counts as an outcome.
+  const hasThreshold = threshold !== null;
+  const success = critical ? critical === 'criticalSuccess' : hasThreshold ? counting.value <= threshold : null;
+  const outcome = critical ?? (hasThreshold ? (success ? 'success' : 'failure') : null);
 
   const dice = values
     .map((value, index) => ({
@@ -161,20 +163,18 @@ export async function rollJoster({
 
   const content = await renderTemplate('systems/joster/templates/chat/roll-card.hbs', {
     flavor,
+    hasThreshold,
     threshold,
     dice,
     countingValue: counting.value,
     success,
     outcome,
-    outcomeLabel: game.i18n.localize(`JOSTER.RollOutcome.${outcome.charAt(0).toUpperCase()}${outcome.slice(1)}`),
+    outcomeLabel: outcome ? game.i18n.localize(`JOSTER.RollOutcome.${outcome.charAt(0).toUpperCase()}${outcome.slice(1)}`) : '',
     advantageLabel: game.i18n.localize(`JOSTER.Advantage.${advantageKey.charAt(0).toUpperCase()}${advantageKey.slice(1)}`),
     advantageAbbr: JOSTER_ADVANTAGE_ABBR[advantage],
     components,
     showBonus: bonus !== 0,
     bonusDisplay: bonus > 0 ? `+${bonus}` : `${bonus}`,
-    nonStandard,
-    nonStandardAbbr: game.i18n.localize('JOSTER.Roll.NonStandardAbbr'),
-    nonStandardLabel: game.i18n.localize('JOSTER.Roll.NonStandard'),
   });
 
   // Failed rolls carry enough context in flags.joster for the post-edge
@@ -198,7 +198,6 @@ export async function rollJoster({
         flavor,
         components,
         bonus,
-        nonStandard,
         outcome,
         edge: { consumed: null, findFlaw: null, newAttempt: null },
         ...extraFlags,
@@ -207,6 +206,28 @@ export async function rollJoster({
   });
 
   return { roll, success, message };
+}
+
+/**
+ * Roll the bare Joster dice mechanic ("Basiswürfel"): advantage/disadvantage
+ * picks the die count as usual, but there's no threshold to check against —
+ * only a landed critical (2+/all dice on 1 or 20, per advantage level) shows
+ * as an outcome. Meant for rolls made outside any actor/skill context (e.g.
+ * a GM calling for a plain 3d20), so it takes no actor by default.
+ *
+ * @param {object} [options]
+ * @param {number} [options.advantage]  One of the JOSTER_ADVANTAGE values.
+ * @param {string} [options.flavor]     Label shown above the roll.
+ * @param {Actor} [options.actor]       Optional rolling actor, used for the chat speaker.
+ * @returns {Promise<{roll: Roll, success: boolean|null, message: ChatMessage}>}
+ */
+export async function rollJosterBase({ advantage = JOSTER_ADVANTAGE.none, flavor = '', actor = null } = {}) {
+  return rollJoster({
+    threshold: null,
+    advantage,
+    flavor: flavor || game.i18n.localize('JOSTER.Roll.BaseDiceFlavor'),
+    actor,
+  });
 }
 
 /**
@@ -327,7 +348,6 @@ export async function startNewAttempt(message, actor) {
     actor,
     components: data.components ?? [],
     bonus: data.bonus ?? 0,
-    nonStandard: data.nonStandard ?? false,
     extraFlags: { replaces: message.id },
   });
 

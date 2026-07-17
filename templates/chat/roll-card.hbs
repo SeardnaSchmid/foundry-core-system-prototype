@@ -4,9 +4,6 @@
       {{#if flavor}}
       <h3 class="joster-roll-flavor">{{flavor}}</h3>
       {{/if}}
-      {{#if nonStandard}}
-      <span class="joster-roll-advantage-badge joster-roll-nonstandard-badge" title="{{nonStandardLabel}}">{{nonStandardAbbr}}</span>
-      {{/if}}
       <span class="joster-roll-advantage-badge" title="{{advantageLabel}}">{{advantageAbbr}}</span>
     </div>
 
@@ -14,10 +11,14 @@
       {{#each dice as |die|}}
       <span class="joster-die{{#if die.isCounted}} counted{{/if}}">{{die.value}}</span>
       {{/each}}
+      {{#if hasThreshold}}
       <span class="joster-roll-threshold" title="{{localize "JOSTER.Roll.Threshold"}}">&le; {{threshold}}</span>
+      {{/if}}
     </div>
 
+    {{#if outcome}}
     <div class="joster-roll-outcome {{outcome}}">{{outcomeLabel}}</div>
+    {{/if}}
   </div>
 
   <div class="dice-tooltip joster-roll-tooltip">
@@ -34,10 +35,12 @@
         <span class="joster-roll-detail-value">{{bonusDisplay}}</span>
       </div>
       {{/if}}
+      {{#if hasThreshold}}
       <div class="joster-roll-detail">
         <span class="joster-roll-detail-label">{{localize "JOSTER.Roll.Threshold"}}</span>
         <span class="joster-roll-detail-value">{{threshold}}</span>
       </div>
+      {{/if}}
       <div class="joster-roll-detail">
         <span class="joster-roll-detail-label">{{localize "JOSTER.Roll.Advantage"}}</span>
         <span class="joster-roll-detail-value">{{advantageLabel}}</span>

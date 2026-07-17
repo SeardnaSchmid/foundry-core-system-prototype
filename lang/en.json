@@ -123,6 +123,7 @@
     },
     "Notify": {
       "NoReserve": "No problem-solving reserve points left.",
+      "ReserveFull": "Problem-solving reserve is already full.",
       "ProblemSolvingGate": "Only usable when there's no time pressure right now — your GM makes that call."
     },
     "Dialog": {
@@ -164,15 +165,16 @@
       "FreeTitle": "Free Roll",
       "FreeHint": "Roll a selectable attribute plus a free skill value",
       "FreeSkillValue": "Skill Value",
-      "NonStandard": "Non-standard roll (linked attribute overridden)",
-      "NonStandardAbbr": "NSTD",
       "IdeaToggle": "Get an Idea",
       "IdeaComponent": "Get an Idea",
       "FindFlawReroll": "Reroll ({remaining} left)",
       "FindFlawSucceeded": "Flaw found!",
       "FindFlawExhausted": "No flaw found",
       "NewAttemptCounts": "New Attempt — this result counts",
-      "NewAttemptReplaced": "Replaced by a New Attempt (XP forfeited)"
+      "NewAttemptReplaced": "Replaced by a New Attempt (XP forfeited)",
+      "BaseDiceTitle": "Base Dice",
+      "BaseDiceFlavor": "Base Dice",
+      "BaseDiceButton": "Roll base dice"
     },
     "Advantage": {
       "StrongDisadvantage": "Strong Disadvantage",

@@ -7,9 +7,10 @@ import { JosterItemSheet } from './sheets/item-sheet.mjs';
 // Import helper/utility classes and constants.
 import { preloadHandlebarsTemplates } from './helpers/templates.mjs';
 import { JOSTER } from './helpers/config.mjs';
-import { rollJoster } from './helpers/dice.mjs';
+import { rollJoster, rollJosterBase } from './helpers/dice.mjs';
 import { registerChatListeners } from './helpers/chat.mjs';
 import { JosterRollDialog } from './apps/roll-dialog.mjs';
+import { JosterBaseRollDialog } from './apps/base-roll-dialog.mjs';
 
 /* -------------------------------------------- */
 /*  Init Hook                                   */
@@ -22,8 +23,11 @@ Hooks.once('init', function () {
     JosterActor,
     JosterItem,
     JosterRollDialog,
+    JosterBaseRollDialog,
     rollJoster,
+    rollJosterBase,
     rollItemMacro,
+    rollBaseDice,
   };
 
   // Add custom constants for configuration.
@@ -64,7 +68,45 @@ Hooks.once('init', function () {
 
   // Wire up the "Fehler finden" reroll tracker on failed roll cards.
   registerChatListeners();
+
+  // A quick-access button for the "Basiswürfel" roll (bare 3d20 mechanic,
+  // no threshold), reachable from the chat log without opening any actor
+  // sheet. Foundry v14 restructured the chat log's controls into the
+  // `renderChatInput` hook; older versions still render `#chat-controls`
+  // as part of `renderChatLog`, so both are handled here.
+  Hooks.on('renderChatInput', (app, elements) => injectBaseRollButton(elements?.['#chat-controls']));
+  Hooks.on('renderChatLog', (app, html) => {
+    const root = html instanceof HTMLElement ? html : html[0];
+    injectBaseRollButton(root?.querySelector('#chat-controls'));
+  });
 });
+
+/**
+ * Open the "Basiswürfel" quick-roll dialog (bare dice mechanic, no threshold).
+ */
+function rollBaseDice() {
+  new JosterBaseRollDialog().render(true);
+}
+
+/**
+ * Add the "Basiswürfel" button to the chat log's controls, once per element.
+ * @param {HTMLElement} [controls]
+ */
+function injectBaseRollButton(controls) {
+  if (!controls || controls.querySelector('.joster-base-roll-button')) return;
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.classList.add('joster-base-roll-button', 'ui-control', 'icon', 'fa-solid', 'fa-dice-d20');
+  const label = game.i18n.localize('JOSTER.Roll.BaseDiceButton');
+  button.dataset.tooltip = label;
+  button.setAttribute('aria-label', label);
+  button.addEventListener('click', (event) => {
+    event.preventDefault();
+    rollBaseDice();
+  });
+  controls.prepend(button);
+}
 
 /* -------------------------------------------- */
 /*  Handlebars Helpers                          */

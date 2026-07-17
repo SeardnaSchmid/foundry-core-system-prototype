@@ -123,6 +123,7 @@
     },
     "Notify": {
       "NoReserve": "Kein Problemlösen-Vorrat mehr übrig.",
+      "ReserveFull": "Problemlösen-Vorrat ist bereits voll.",
       "ProblemSolvingGate": "Nur einsetzbar, wenn gerade kein Zeitdruck herrscht — das entscheidet dein Spielleiter."
     },
     "Dialog": {
@@ -164,15 +165,16 @@
       "FreeTitle": "Freier Wurf",
       "FreeHint": "Ein wählbares Attribut plus einen freien Fähigkeitswert würfeln",
       "FreeSkillValue": "Fähigkeitswert",
-      "NonStandard": "Nicht-Standard-Wurf (verknüpftes Attribut abweichend)",
-      "NonStandardAbbr": "ABW",
       "IdeaToggle": "Idee haben",
       "IdeaComponent": "Idee haben",
       "FindFlawReroll": "Nochmal würfeln ({remaining} übrig)",
       "FindFlawSucceeded": "Fehler gefunden!",
       "FindFlawExhausted": "Kein Fehler gefunden",
       "NewAttemptCounts": "Neuer Versuch — dieses Ergebnis zählt",
-      "NewAttemptReplaced": "Ersetzt durch Neuen Versuch (XP verwirkt)"
+      "NewAttemptReplaced": "Ersetzt durch Neuen Versuch (XP verwirkt)",
+      "BaseDiceTitle": "Basiswürfel",
+      "BaseDiceFlavor": "Basiswürfel",
+      "BaseDiceButton": "Basiswürfel würfeln"
     },
     "Advantage": {
       "StrongDisadvantage": "Starker Nachteil",

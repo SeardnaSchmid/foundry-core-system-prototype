@@ -358,41 +358,41 @@
   text-transform: uppercase;
   color: #444;
 }
-.joster .sheet-header .problem-solving-group .problem-solving-actions {
+.joster .sheet-header .problem-solving-group .solve-tile {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.joster .sheet-header .problem-solving-group .ps-action {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 4px;
-  border: 1px solid #b5b3a4;
-  border-radius: 6px;
-  padding: 3px 10px;
-  background: #fff;
+  justify-content: center;
+  min-width: 44px;
+  padding: 3px 6px;
+  border-radius: 4px;
   text-decoration: none;
   color: inherit;
 }
-.joster .sheet-header .problem-solving-group .ps-analyze-flaw {
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
+.joster .sheet-header .problem-solving-group .solve-tile-value {
+  font-weight: bold;
+  font-size: var(--font-size-14, 14px);
+  line-height: 1;
 }
-.joster .sheet-header .problem-solving-group .ps-analyze-flaw:hover {
-  background: #444;
-  border-color: #444;
-}
-.joster .sheet-header .problem-solving-group .ps-action-label {
+.joster .sheet-header .problem-solving-group .solve-tile-label {
   font-size: var(--font-size-10, 10px);
   text-transform: uppercase;
-  letter-spacing: 0.03em;
   color: #444;
 }
-.joster .sheet-header .problem-solving-group .ps-action-value {
-  font-size: var(--font-size-14, 14px);
-  font-weight: bold;
-  line-height: 1;
+.joster .sheet-header .problem-solving-group .solve-analyze-flaw {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.joster .sheet-header .problem-solving-group .solve-analyze-flaw:hover {
+  background: #444;
+}
+.joster .sheet-header .problem-solving-group .solve-analyze-flaw:hover .solve-tile-value,
+.joster .sheet-header .problem-solving-group .solve-analyze-flaw:hover .solve-tile-label {
+  color: #fff;
+}
+.joster .sheet-header .problem-solving-group .solve-tile-disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 .joster .sheet-tabs {
   flex: 0;
@@ -579,16 +579,6 @@
   margin: 0 0 4px;
   font-size: var(--font-size-12, 12px);
   text-transform: uppercase;
-}
-.joster .free-roll-button {
-  flex: 0 0 auto;
-  padding: 2px 8px;
-  border: 1px solid #b5b3a4;
-  border-radius: 3px;
-  font-size: var(--font-size-11, 11px);
-  font-weight: bold;
-  white-space: nowrap;
-  cursor: pointer;
 }
 .joster .skill-groups {
   display: flex;
@@ -880,13 +870,6 @@
 .joster .joster-roll-dialog .joster-attribute-chip.active {
   box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(0, 0, 0, 0.6);
 }
-.joster .joster-roll-dialog .joster-roll-nonstandard-badge {
-  margin: -2px 0 4px;
-  font-size: var(--font-size-10, 10px);
-  font-weight: bold;
-  text-align: center;
-  color: #c62828;
-}
 .joster .joster-roll-dialog .joster-roll-divider {
   border: none;
   border-top: 1px solid #b5b3a4;
@@ -992,10 +975,6 @@
   border: 1px solid #444;
   border-radius: 3px;
   color: #444;
-}
-.joster-roll-card .joster-roll-nonstandard-badge {
-  border-color: #c62828;
-  color: #c62828;
 }
 .joster-roll-card .joster-roll-dice {
   display: flex;
@@ -1289,4 +1268,11 @@
 }
 .joster-roll-card .joster-find-flaw-done.failure {
   color: #c62828;
+}
+
+.joster-base-roll-button {
+  color: #444;
+}
+.joster-base-roll-button:hover {
+  color: #191813;
 }

@@ -49,11 +49,6 @@ export class JosterRollDialog extends FormApplication {
     this.freeSkill = freeSkill;
     this.fixedValue = fixedValue;
     this.flavor = flavor || game.i18n.localize('JOSTER.Roll.DialogTitle');
-    // The skill's linked attribute, as passed in by the sheet. In skill mode
-    // the player can override attributeA to roll against a different
-    // attribute; comparing against this original value is how the roll gets
-    // flagged as non-standard.
-    this.defaultAttributeA = attributeA;
   }
 
   /** @override */
@@ -125,7 +120,6 @@ export class JosterRollDialog extends FormApplication {
       );
       data.skillLabel = this.skill.label;
       data.skillValue = this.skill.value;
-      data.isOverridden = this.object.attributeA !== this.defaultAttributeA;
     } else if (this.fixedValue) {
       data.fixedLabel = this.fixedValue.label;
       data.fixedValueDisplay = this.fixedValue.value;
@@ -203,7 +197,6 @@ export class JosterRollDialog extends FormApplication {
       form.querySelector('input[name="attributeA"]').value = key;
       const data = new FormDataExtended(form).object;
       html.find('.joster-threshold-value').text(this._computeThreshold(data));
-      html.find('.joster-roll-nonstandard-badge').toggleClass('joster-hidden', key === this.defaultAttributeA);
     });
 
     // Free mode: recompute the threshold as the skill value is typed.
@@ -277,6 +270,13 @@ export class JosterRollDialog extends FormApplication {
       ui.notifications.warn(game.i18n.localize('JOSTER.Notify.NoReserve'));
     }
 
+    // Remember the attribute this skill was rolled against, per actor, so
+    // the next time this skill's roll dialog opens (on this sheet) it
+    // preselects it instead of the skill's configured default.
+    if (this.skill && formData.attributeA) {
+      await this.actor.update({ [`system.skills.${this.skill.key}.lastAttribute`]: formData.attributeA });
+    }
+
     await rollJoster({
       threshold,
       advantage: Number(formData.advantage),
@@ -284,7 +284,6 @@ export class JosterRollDialog extends FormApplication {
       actor: this.actor,
       components,
       bonus: Number(formData.bonus) || 0,
-      nonStandard: !!this.skill && formData.attributeA !== this.defaultAttributeA,
     });
   }
 }
