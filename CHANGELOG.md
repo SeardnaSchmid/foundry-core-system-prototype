@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.10.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.9.1...v0.10.0) (2026-07-17)
+
+
+### Features
+
+* implement Idee haben and Fehler finden as edge actions ([fad4015](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/fad401500dfaa07e8a1e4e072294420f39406dbb))
+
 ## [0.9.1](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.9.0...v0.9.1) (2026-07-16)
 
 
