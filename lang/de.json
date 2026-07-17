@@ -119,8 +119,6 @@
       "NoReserve": "Kein Problemlösen-Vorrat mehr übrig."
     },
     "Dialog": {
-      "SolveIdeaTitle": "Problem lösen - Idee haben",
-      "SolveIdeaContent": "<p>Das Problem ist groß und die Peilung ist klein? Da hilft es dir, eine gute Idee zu haben. Gib einen Punkt aus und addiere deinen 'Idee haben'-Wert (+{value}) obendrauf auf den ursprünglichen Wurf.</p>",
       "SolveFindFlawTitle": "Problem lösen - Fehler finden",
       "SolveFindFlawContent": "<p>Gib einen Punkt aus, um den misslungenen Wurf bis zu {value}-mal zu wiederholen, bis er gelingt.</p>",
       "SolveAnalyzeFlawTitle": "Problem lösen - Fehler Analysieren",
@@ -131,7 +129,6 @@
     "Chat": {
       "SolveAnalyzeFlawAttempt": "{name} versucht, einen Fehler zu analysieren, um den Problemlösen-Vorrat wieder aufzufüllen.",
       "SolveAnalyzeFlawSuccess": "{name} gewinnt durch Fehler Analysieren einen Punkt Problemlösen-Vorrat zurück ({current}/{max}).",
-      "SolveIdeaSuccess": "{name} hat eine Idee und addiert +{value} obendrauf auf den ursprünglichen Wurf.",
       "SolveFindFlawSuccess": "{name} gibt einen Punkt Problem lösen aus und darf den Wurf bis zu {value}-mal wiederholen, bis er gelingt.",
       "SolveNewAttemptSuccess": "{name} gibt einen Punkt Problem lösen aus, verzichtet auf den Erfahrungspunkt und würfelt die Probe noch einmal — der zweite Versuch zählt.",
       "SolveReserveSpent": "{name} gibt {count} Punkt(e) Problem lösen aus ({current}/{max})."
@@ -160,7 +157,12 @@
       "FreeHint": "Ein wählbares Attribut plus einen freien Fähigkeitswert würfeln",
       "FreeSkillValue": "Fähigkeitswert",
       "NonStandard": "Nicht-Standard-Wurf (verknüpftes Attribut abweichend)",
-      "NonStandardAbbr": "ABW"
+      "NonStandardAbbr": "ABW",
+      "IdeaToggle": "Idee haben",
+      "IdeaComponent": "Idee haben",
+      "FindFlawReroll": "Nochmal würfeln ({remaining} übrig)",
+      "FindFlawSucceeded": "Fehler gefunden!",
+      "FindFlawExhausted": "Kein Fehler gefunden"
     },
     "Advantage": {
       "StrongDisadvantage": "Starker Nachteil",

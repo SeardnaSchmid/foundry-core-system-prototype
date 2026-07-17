@@ -124,7 +124,7 @@ export function criticalResultFor(values, advantage) {
  * @param {number} [options.bonus]             Situational modifier shown in the breakdown.
  * @param {boolean} [options.nonStandard]      Whether the roll used an attribute other than
  *   the skill's normally linked one, flagged in the chat card.
- * @returns {Promise<{roll: Roll, success: boolean}>}
+ * @returns {Promise<{roll: Roll, success: boolean, message: ChatMessage}>}
  */
 export async function rollJoster({
   threshold,
@@ -174,14 +174,101 @@ export async function rollJoster({
     nonStandardLabel: game.i18n.localize('JOSTER.Roll.NonStandard'),
   });
 
-  await ChatMessage.create({
+  // Failed rolls carry enough context in flags.joster for the "Fehler
+  // finden" reroll tracker (see chat.mjs) to be offered and, once
+  // activated, to reroll under identical parameters without the original
+  // card content ever being touched.
+  const message = await ChatMessage.create({
     speaker: actor ? ChatMessage.getSpeaker({ actor }) : ChatMessage.getSpeaker(),
     flavor,
     content,
     rolls: [roll],
     sound: CONFIG.sounds.dice,
     rollMode: rollMode ?? game.settings.get('core', 'rollMode'),
+    flags: {
+      joster: {
+        actorId: actor?.id ?? null,
+        threshold,
+        advantage,
+        outcome,
+        edge: { consumed: null, findFlaw: null },
+      },
+    },
   });
 
-  return { roll, success };
+  return { roll, success, message };
+}
+
+/**
+ * Start the "Fehler finden" reroll tracker on a failed roll's chat message:
+ * spends one reserve point and attaches an empty tracker to the message's
+ * flags, which the renderChatMessageHTML hook (see chat.mjs) then renders
+ * as a pip tracker with a reroll button in place of the trigger button.
+ *
+ * @param {ChatMessage} message  The failed roll's chat message.
+ * @param {Actor} actor          The rolling actor, spending the reserve point.
+ * @returns {Promise<void>}
+ */
+export async function startFindFlaw(message, actor) {
+  const value = actor.system.derived?.solveFindFlaw ?? 0;
+  const spent = actor.system.problemSolving?.spent ?? 0;
+  await actor.update({ 'system.problemSolving.spent': spent + 1 });
+
+  await message.update({
+    'flags.joster.edge.consumed': 'findFlaw',
+    'flags.joster.edge.findFlaw': { max: value, used: 0, active: value > 0, attempts: [] },
+  });
+
+  ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor }),
+    content: game.i18n.format('JOSTER.Chat.SolveFindFlawSuccess', { name: actor.name, value }),
+  });
+}
+
+/**
+ * Reroll a check under the "Fehler finden" tracker: rolls the same die
+ * count against the same threshold/advantage as the original check,
+ * appends the attempt to the tracker, and stops the tracker at the first
+ * success or once the max reroll count is used up.
+ *
+ * @param {ChatMessage} message  The chat message carrying the active tracker.
+ * @returns {Promise<void>}
+ */
+export async function rerollFindFlaw(message) {
+  const data = message.flags?.joster;
+  const tracker = data?.edge?.findFlaw;
+  if (!tracker?.active) return;
+
+  const dieCount = dieCountFor(data.advantage);
+  const roll = new Roll(`${dieCount}d20`);
+  await roll.evaluate();
+
+  // The original roll's animation/sound comes for free from ChatMessage.create
+  // seeing `rolls: [roll]` (Dice So Nice hooks createChatMessage). This
+  // reroll never creates a new message — it only patches flags on the
+  // existing tracker — so it has to trigger Dice So Nice itself. Without
+  // the module, fall back to the plain roll sound so a reroll is still felt.
+  if (game.dice3d) {
+    await game.dice3d.showForRoll(roll, game.user, true);
+  } else {
+    foundry.audio.AudioHelper.play({ src: CONFIG.sounds.dice, volume: 0.8, autoplay: true, loop: false }, true);
+  }
+
+  const values = roll.terms[0].results.map((r) => r.result);
+  const counting = pickCountingDie(values, data.advantage);
+  const critical = criticalResultFor(values, data.advantage);
+  const success = critical ? critical === 'criticalSuccess' : counting.value <= data.threshold;
+  const outcome = critical ?? (success ? 'success' : 'failure');
+
+  const used = tracker.used + 1;
+  const active = !success && used < tracker.max;
+
+  await message.update({
+    'flags.joster.edge.findFlaw.used': used,
+    'flags.joster.edge.findFlaw.active': active,
+    'flags.joster.edge.findFlaw.attempts': [
+      ...tracker.attempts,
+      { dice: values, countingIndex: counting.index, success, outcome },
+    ],
+  });
 }

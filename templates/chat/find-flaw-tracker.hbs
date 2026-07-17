@@ -1,0 +1,30 @@
+<div class="joster-find-flaw-tracker">
+  <div class="joster-find-flaw-header">
+    <span class="joster-find-flaw-label"><i class="fa-solid fa-magnifying-glass"></i> {{localize "JOSTER.Derived.SolveFindFlaw"}}</span>
+    <div class="joster-find-flaw-pips">
+      {{#each pips as |pip|}}
+      <span class="joster-find-flaw-pip{{#if pip.filled}} filled{{/if}}{{#if pip.success}} success{{/if}}"></span>
+      {{/each}}
+    </div>
+  </div>
+
+  {{#each attempts as |attempt|}}
+  <div class="joster-find-flaw-attempt {{attempt.outcome}}">
+    <span class="joster-find-flaw-attempt-index">#{{attempt.index}}</span>
+    <span class="joster-find-flaw-attempt-dice">
+      {{#each attempt.dice as |die|}}
+      <span class="joster-find-flaw-die{{#if die.isCounted}} counted{{/if}}">{{die.value}}</span>
+      {{/each}}
+    </span>
+    <span class="joster-find-flaw-attempt-outcome">{{attempt.outcomeLabel}}</span>
+  </div>
+  {{/each}}
+
+  {{#if active}}
+  <a class="joster-find-flaw-reroll">
+    <i class="fa-solid fa-arrow-rotate-right"></i> {{rerollLabel}}
+  </a>
+  {{else}}
+  <div class="joster-find-flaw-done {{#if succeeded}}success{{else}}failure{{/if}}">{{doneLabel}}</div>
+  {{/if}}
+</div>

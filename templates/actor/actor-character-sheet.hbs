@@ -41,15 +41,17 @@
 
         {{!-- Problemlösen: Vorrat zeigt den aktuell verbleibenden Punktestand
         an (Maximalwert minus Verbrauch) und ist direkt editierbar, geclampt
-        auf 0..Maximalwert. "Idee haben", "Fehler finden" und "Neuer
-        Versuch" spendieren je einen Vorrat-Punkt (nach Bestätigung per
-        Dialog): Idee haben für einen Zusatz-Bonus auf die nächste Probe,
-        Fehler finden für eine begrenzte Anzahl Wiederholungswürfe bis zum
-        Erfolg, Neuer Versuch für genau einen Wiederholungswurf (der
+        auf 0..Maximalwert. "Neuer Versuch" spendiert einen Vorrat-Punkt
+        (nach Bestätigung per Dialog) für genau einen Wiederholungswurf (der
         zweite zählt). "Fehler Analysieren" ist bereits umgesetzt: ein
-        regulärer 3d20-Wurf gegen den Wert; bei Erfolg wird ein
-        Vorrat-Punkt zurückgewonnen (kein Punktverbrauch fürs Würfeln
-        selbst). --}}
+        regulärer 3d20-Wurf gegen den Wert; bei Erfolg wird ein Vorrat-Punkt
+        zurückgewonnen (kein Punktverbrauch fürs Würfeln selbst). "Idee
+        haben" ist ein Pre-Edge und lebt nicht hier, sondern als Toggle im
+        Würfel-Dialog selbst (JosterRollDialog). "Fehler finden" lebt auch
+        nicht hier, sondern als Reroll-Tracker auf der Wurf-Karte einer
+        fehlgeschlagenen Probe im Chat (siehe chat.mjs) — ein Post-Edge, der
+        an den konkreten Fehlschlag gebunden ist statt an einen Sheet-Klick
+        ohne Bezug zu einem bestimmten Wurf. --}}
         <div class="resource-group problem-solving-group">
           <div class="reserve-pool" title="{{localize 'JOSTER.Derived.SolveReserve'}}: {{localize 'JOSTER.DerivedHint.SolveReserve'}}">
             <span class="reserve-value">
@@ -58,14 +60,6 @@
             <label class="reserve-label">{{localize "JOSTER.DerivedShort.SolveReserve"}}</label>
           </div>
           <div class="problem-solving-actions">
-            <a class="ps-action ps-solve-idea rollable" data-roll-type="solveIdea" data-label="{{localize 'JOSTER.Derived.SolveIdea'}}" title="{{localize 'JOSTER.Derived.SolveIdea'}}: {{localize 'JOSTER.DerivedHint.SolveIdea'}}">
-              <span class="ps-action-label">{{localize "JOSTER.DerivedShort.SolveIdea"}}</span>
-              <span class="ps-action-value">{{system.derived.solveIdea}}</span>
-            </a>
-            <a class="ps-action ps-solve-find-flaw rollable" data-roll-type="solveFindFlaw" data-label="{{localize 'JOSTER.Derived.SolveFindFlaw'}}" title="{{localize 'JOSTER.Derived.SolveFindFlaw'}}: {{localize 'JOSTER.DerivedHint.SolveFindFlaw'}}">
-              <span class="ps-action-label">{{localize "JOSTER.DerivedShort.SolveFindFlaw"}}</span>
-              <span class="ps-action-value">{{system.derived.solveFindFlaw}}</span>
-            </a>
             <a class="ps-action ps-new-attempt rollable" data-roll-type="solveNewAttempt" data-label="{{localize 'JOSTER.Derived.SolveNewAttempt'}}" title="{{localize 'JOSTER.Derived.SolveNewAttempt'}}: {{localize 'JOSTER.DerivedHint.SolveNewAttempt'}}">
               <span class="ps-action-label">{{localize "JOSTER.DerivedShort.SolveNewAttempt"}}</span>
             </a>

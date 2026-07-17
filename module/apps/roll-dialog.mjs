@@ -15,8 +15,10 @@ const FREE_SKILL_MAX = 10;
  * dialog) and the player only dials in a situational modifier; in "ability"
  * mode the player picks one or two attributes themselves; in "free" mode
  * the player picks one attribute and types in an arbitrary skill value not
- * tied to any defined skill. Either way, the player also picks an
- * advantage/disadvantage level, then rolls.
+ * tied to any defined skill; in "fixed" mode the threshold is a single
+ * fixed value (e.g. a derived value) with no attribute or skill linked at
+ * all. Either way, the player also picks an advantage/disadvantage level,
+ * then rolls.
  * @extends {FormApplication}
  */
 export class JosterRollDialog extends FormApplication {
@@ -31,13 +33,18 @@ export class JosterRollDialog extends FormApplication {
    * @param {boolean} [options.freeSkill]  When true, the dialog switches to
    *   "free" mode: the player picks an attribute and enters a free skill
    *   value which together form the threshold base.
+   * @param {object} [options.fixedValue]  Fixed threshold component: { label, value }.
+   *   When set, the dialog switches to "fixed" mode: no attribute or skill
+   *   is linked at all, the fixed value alone (plus the bonus field) forms
+   *   the threshold.
    * @param {string} [options.flavor]      Label shown as the roll's subject heading and chat flavor.
    */
-  constructor(actor, { attributeA = '', skill = null, freeSkill = false, flavor = '' } = {}) {
-    super({ attributeA, attributeB: '', skillValue: 0, bonus: 0, advantage: JOSTER_ADVANTAGE.none });
+  constructor(actor, { attributeA = '', skill = null, freeSkill = false, fixedValue = null, flavor = '' } = {}) {
+    super({ attributeA, attributeB: '', skillValue: 0, bonus: 0, advantage: JOSTER_ADVANTAGE.none, useIdea: false });
     this.actor = actor;
     this.skill = skill;
     this.freeSkill = freeSkill;
+    this.fixedValue = fixedValue;
     this.flavor = flavor || game.i18n.localize('JOSTER.Roll.DialogTitle');
     // The skill's linked attribute, as passed in by the sheet. In skill mode
     // the player can override attributeA to roll against a different
@@ -81,8 +88,15 @@ export class JosterRollDialog extends FormApplication {
       advantageOptions,
       isSkillMode: !!this.skill,
       isFreeMode: this.freeSkill,
+      isFixedMode: !!this.fixedValue,
       threshold: this._computeThreshold(this.object),
       subject: game.i18n.format('JOSTER.Roll.Subject', { name: this.flavor }),
+      // "Idee haben" is a pre-edge: only offered here, in the roll dialog,
+      // before the dice are cast. There is deliberately no way to apply it
+      // retroactively to a roll already made (see problem-solving-prd.md).
+      hasIdeaOption: this.actor.type === 'character',
+      solveIdeaValue: this.actor.system.derived?.solveIdea ?? 0,
+      ideaDisabled: (this.actor.system.derived?.solveReserve ?? 0) <= 0,
     };
 
     if (this.skill) {
@@ -92,6 +106,9 @@ export class JosterRollDialog extends FormApplication {
       data.skillLabel = this.skill.label;
       data.skillValue = this.skill.value;
       data.isOverridden = this.object.attributeA !== this.defaultAttributeA;
+    } else if (this.fixedValue) {
+      data.fixedLabel = this.fixedValue.label;
+      data.fixedValueDisplay = this.fixedValue.value;
     }
 
     return data;
@@ -107,13 +124,29 @@ export class JosterRollDialog extends FormApplication {
   }
 
   /**
+   * The "Idee haben" bonus to add on top of the threshold, if the player has
+   * toggled it on and the actor still has a reserve point to spend on it.
+   * @param {object} data  Form data with useIdea.
+   * @returns {number}
+   */
+  _ideaBonus(data) {
+    if (this.actor.type !== 'character' || !data.useIdea) return 0;
+    if ((this.actor.system.derived?.solveReserve ?? 0) <= 0) return 0;
+    return this.actor.system.derived?.solveIdea ?? 0;
+  }
+
+  /**
    * Sum the fixed base (attribute, plus skill rank in skill mode, a free
    * skill value in free mode, or a second attribute in ability mode) with
-   * the bonus/malus.
-   * @param {object} data  Form data with attributeA/attributeB/skillValue/bonus.
+   * the bonus/malus and, if toggled, the "Idee haben" bonus. In fixed mode,
+   * the fixed value itself is the base.
+   * @param {object} data  Form data with attributeA/attributeB/skillValue/bonus/useIdea.
    * @returns {number}
    */
   _computeThreshold(data) {
+    if (this.fixedValue) {
+      return this.fixedValue.value + (Number(data.bonus) || 0) + this._ideaBonus(data);
+    }
     const abilities = this.actor.system.abilities ?? {};
     const valueOf = (key) => abilities[key]?.value ?? 0;
     const a = data.attributeA ? valueOf(data.attributeA) : 0;
@@ -124,7 +157,7 @@ export class JosterRollDialog extends FormApplication {
         : data.attributeB
           ? valueOf(data.attributeB)
           : 0;
-    return a + b + (Number(data.bonus) || 0);
+    return a + b + (Number(data.bonus) || 0) + this._ideaBonus(data);
   }
 
   /** @override */
@@ -182,24 +215,50 @@ export class JosterRollDialog extends FormApplication {
       html.find('.joster-advantage-option').removeClass('active');
       html.find(`.joster-advantage-option[data-value="${value}"]`).addClass('active');
     });
+
+    // "Idee haben" toggle: recompute the threshold preview live, same as
+    // any other component.
+    html.on('change', 'input[name="useIdea"]', (ev) => {
+      const data = new FormDataExtended(ev.currentTarget.form).object;
+      html.find('.joster-threshold-value').text(this._computeThreshold(data));
+    });
   }
 
   /** @override */
   async _updateObject(event, formData) {
-    const threshold = this._computeThreshold(formData);
     const abilities = this.actor.system.abilities ?? {};
     const abilityLabel = (key) => (key && CONFIG.JOSTER.abilities[key] ? game.i18n.localize(CONFIG.JOSTER.abilities[key]) : '');
 
     const components = [];
-    if (formData.attributeA) {
-      components.push({ label: abilityLabel(formData.attributeA), value: abilities[formData.attributeA]?.value ?? 0 });
+    if (this.fixedValue) {
+      components.push({ label: this.fixedValue.label, value: this.fixedValue.value });
+    } else {
+      if (formData.attributeA) {
+        components.push({ label: abilityLabel(formData.attributeA), value: abilities[formData.attributeA]?.value ?? 0 });
+      }
+      if (this.skill) {
+        components.push({ label: this.skill.label, value: this.skill.value });
+      } else if (this.freeSkill) {
+        components.push({ label: game.i18n.localize('JOSTER.Roll.FreeSkillValue'), value: this._freeSkillValue(formData) });
+      } else if (formData.attributeB) {
+        components.push({ label: abilityLabel(formData.attributeB), value: abilities[formData.attributeB]?.value ?? 0 });
+      }
     }
-    if (this.skill) {
-      components.push({ label: this.skill.label, value: this.skill.value });
-    } else if (this.freeSkill) {
-      components.push({ label: game.i18n.localize('JOSTER.Roll.FreeSkillValue'), value: this._freeSkillValue(formData) });
-    } else if (formData.attributeB) {
-      components.push({ label: abilityLabel(formData.attributeB), value: abilities[formData.attributeB]?.value ?? 0 });
+
+    // "Idee haben" (pre-edge): compute the threshold and bonus off the
+    // actor's state *before* spending the point — spending updates
+    // system.derived.solveReserve, and re-deriving after that point would
+    // make the just-spent point look unavailable again. There is no
+    // post-roll path to apply this; if the reserve ran out before this
+    // dialog was submitted, the roll proceeds without the bonus.
+    const threshold = this._computeThreshold(formData);
+    const ideaBonus = this._ideaBonus(formData);
+    if (ideaBonus !== 0) {
+      const spent = this.actor.system.problemSolving?.spent ?? 0;
+      await this.actor.update({ 'system.problemSolving.spent': spent + 1 });
+      components.push({ label: game.i18n.localize('JOSTER.Roll.IdeaComponent'), value: ideaBonus });
+    } else if (formData.useIdea) {
+      ui.notifications.warn(game.i18n.localize('JOSTER.Notify.NoReserve'));
     }
 
     await rollJoster({

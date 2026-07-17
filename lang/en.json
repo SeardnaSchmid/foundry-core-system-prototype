@@ -119,8 +119,6 @@
       "NoReserve": "No problem-solving reserve points left."
     },
     "Dialog": {
-      "SolveIdeaTitle": "Problem Solving - Get an Idea",
-      "SolveIdeaContent": "<p>The problem is big and you're at a loss? Having a good idea helps. Spend a point and add your 'Get an Idea' value (+{value}) on top of the original roll.</p>",
       "SolveFindFlawTitle": "Problem Solving - Find a Flaw",
       "SolveFindFlawContent": "<p>Spend a point to reroll the failed check up to {value} times, stopping at the first success.</p>",
       "SolveAnalyzeFlawTitle": "Problem Solving - Analyze a Flaw",
@@ -131,7 +129,6 @@
     "Chat": {
       "SolveAnalyzeFlawAttempt": "{name} attempts to analyze a flaw, trying to refill their problem-solving reserve.",
       "SolveAnalyzeFlawSuccess": "{name} regains one problem-solving reserve point by analyzing the flaw ({current}/{max}).",
-      "SolveIdeaSuccess": "{name} has an idea and adds +{value} on top of the original roll.",
       "SolveFindFlawSuccess": "{name} spends a problem-solving point and may reroll the check up to {value} times, stopping at the first success.",
       "SolveNewAttemptSuccess": "{name} spends a problem-solving point, forfeits the experience point, and rolls the check again — the second attempt counts.",
       "SolveReserveSpent": "{name} spends {count} problem-solving point(s) ({current}/{max})."
@@ -160,7 +157,12 @@
       "FreeHint": "Roll a selectable attribute plus a free skill value",
       "FreeSkillValue": "Skill Value",
       "NonStandard": "Non-standard roll (linked attribute overridden)",
-      "NonStandardAbbr": "NSTD"
+      "NonStandardAbbr": "NSTD",
+      "IdeaToggle": "Get an Idea",
+      "IdeaComponent": "Get an Idea",
+      "FindFlawReroll": "Reroll ({remaining} left)",
+      "FindFlawSucceeded": "Flaw found!",
+      "FindFlawExhausted": "No flaw found"
     },
     "Advantage": {
       "StrongDisadvantage": "Strong Disadvantage",

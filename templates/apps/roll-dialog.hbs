@@ -19,6 +19,11 @@
       <span class="joster-roll-detail-label">{{skillLabel}}</span>
       <span class="joster-roll-detail-value">{{skillValue}}</span>
     </div>
+    {{else if isFixedMode}}
+    <div class="joster-roll-detail">
+      <span class="joster-roll-detail-label">{{fixedLabel}}</span>
+      <span class="joster-roll-detail-value">{{fixedValueDisplay}}</span>
+    </div>
     {{else}}
     <div class="form-group">
       <label>{{localize "JOSTER.Roll.AttributeA"}}</label>
@@ -49,6 +54,7 @@
     {{/if}}
   </div>
 
+  {{#unless isFixedMode}}
   <hr class="joster-roll-divider"/>
 
   <div class="form-group">
@@ -70,6 +76,19 @@
     </div>
     <input type="hidden" name="advantage" value="{{advantage}}"/>
   </div>
+  {{else}}
+  <input type="hidden" name="bonus" value="{{bonus}}"/>
+  <input type="hidden" name="advantage" value="{{advantage}}"/>
+  {{/unless}}
+
+  {{#if hasIdeaOption}}
+  <div class="form-group joster-idea-field">
+    <label class="joster-idea-label {{#if ideaDisabled}}joster-idea-disabled{{/if}}" title="{{#if ideaDisabled}}{{localize 'JOSTER.Notify.NoReserve'}}{{else}}{{localize 'JOSTER.DerivedHint.SolveIdea'}}{{/if}}">
+      <input type="checkbox" name="useIdea" {{#if useIdea}}checked{{/if}} {{#if ideaDisabled}}disabled{{/if}}/>
+      {{localize "JOSTER.Roll.IdeaToggle"}} (+{{solveIdeaValue}})
+    </label>
+  </div>
+  {{/if}}
 
   <hr class="joster-roll-divider"/>
 

@@ -16,5 +16,6 @@ export const preloadHandlebarsTemplates = async function () {
     'systems/joster/templates/apps/roll-dialog.hbs',
     // Chat
     'systems/joster/templates/chat/roll-card.hbs',
+    'systems/joster/templates/chat/find-flaw-tracker.hbs',
   ]);
 };

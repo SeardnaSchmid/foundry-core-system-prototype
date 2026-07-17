@@ -40,6 +40,7 @@
 
   .resource-group {
     display: flex;
+    flex: 0 0 auto;
     align-items: center;
     gap: 6px;
     border: 1px solid $c-beige;
@@ -136,7 +137,7 @@
 
   .problem-solving-group {
     gap: 10px;
-    flex: 1 1 auto;
+    flex: 0 1 auto;
 
     .reserve-pool {
       display: flex;
@@ -196,8 +197,6 @@
     }
 
     .ps-analyze-flaw,
-    .ps-solve-idea,
-    .ps-solve-find-flaw,
     .ps-new-attempt {
       cursor: pointer;
       transition: background 0.15s ease, border-color 0.15s ease;

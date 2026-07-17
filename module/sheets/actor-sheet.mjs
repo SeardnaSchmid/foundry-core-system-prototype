@@ -331,9 +331,12 @@ export class JosterActorSheet extends ActorSheet {
       onManageActiveEffect(ev, document);
     });
 
-    // Rollable abilities. "Fehler Analysieren" and "Idee haben" (Fehler
-    // finden is still just informational until its mechanic is
-    // redesigned) go through the same handler via their data-roll-type.
+    // Rollable abilities. "Fehler Analysieren" and "Neuer Versuch" go
+    // through the same handler via their data-roll-type. "Idee haben" is
+    // not among them — it's a pre-edge, offered as a toggle inside the roll
+    // dialog itself (see JosterRollDialog). "Fehler finden" isn't either —
+    // it's a post-edge, triggered from the reroll tracker on a failed
+    // roll's chat card (see chat.mjs), not from the sheet.
     html.on('click', '.rollable', this._onRoll.bind(this));
 
     // Drag events for macros.
@@ -472,69 +475,13 @@ export class JosterActorSheet extends ActorSheet {
       }
 
       // Sixth Sense: a standard 3d20 roll against the derived value itself,
-      // with no bonus/malus and no advantage/disadvantage.
+      // via the regular roll dialog in "fixed" mode, since it's not linked
+      // to any attribute or skill.
       if (dataset.rollType == 'sixthSense') {
-        return rollJoster({
-          threshold: this.actor.system.derived?.sixthSense ?? 0,
-          advantage: JOSTER_ADVANTAGE.none,
+        return new JosterRollDialog(this.actor, {
+          fixedValue: { label: dataset.label, value: this.actor.system.derived?.sixthSense ?? 0 },
           flavor: dataset.label,
-          actor: this.actor,
-        });
-      }
-
-      // Idee haben: spends one reserve point (after confirmation) for a
-      // flat +X bonus, X being the actor's Idee-haben value, announced in
-      // chat for the player to apply to their next check by hand — no
-      // dice roll here, unlike Fehler Analysieren.
-      if (dataset.rollType == 'solveIdea') {
-        const reserve = this.actor.system.derived?.solveReserve ?? 0;
-        if (reserve <= 0) {
-          ui.notifications.warn(game.i18n.localize('JOSTER.Notify.NoReserve'));
-          return;
-        }
-
-        const value = this.actor.system.derived?.solveIdea ?? 0;
-        const confirmed = await foundry.applications.api.DialogV2.confirm({
-          window: { title: game.i18n.localize('JOSTER.Dialog.SolveIdeaTitle') },
-          content: game.i18n.format('JOSTER.Dialog.SolveIdeaContent', { value }),
-        });
-        if (!confirmed) return;
-
-        const spent = this.actor.system.problemSolving?.spent ?? 0;
-        await this.actor.update({ 'system.problemSolving.spent': spent + 1 });
-        ChatMessage.create({
-          speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-          content: game.i18n.format('JOSTER.Chat.SolveIdeaSuccess', { name: this.actor.name, value }),
-        });
-        return;
-      }
-
-      // Fehler finden: spends one reserve point (after confirmation) to
-      // reroll the botched check up to X times, X being the actor's
-      // Fehler-finden value, stopping at the first success. Announced in
-      // chat with the max reroll count for the player to carry out by
-      // hand — no dice roll here, unlike Fehler Analysieren.
-      if (dataset.rollType == 'solveFindFlaw') {
-        const reserve = this.actor.system.derived?.solveReserve ?? 0;
-        if (reserve <= 0) {
-          ui.notifications.warn(game.i18n.localize('JOSTER.Notify.NoReserve'));
-          return;
-        }
-
-        const value = this.actor.system.derived?.solveFindFlaw ?? 0;
-        const confirmed = await foundry.applications.api.DialogV2.confirm({
-          window: { title: game.i18n.localize('JOSTER.Dialog.SolveFindFlawTitle') },
-          content: game.i18n.format('JOSTER.Dialog.SolveFindFlawContent', { value }),
-        });
-        if (!confirmed) return;
-
-        const spentFlaw = this.actor.system.problemSolving?.spent ?? 0;
-        await this.actor.update({ 'system.problemSolving.spent': spentFlaw + 1 });
-        ChatMessage.create({
-          speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-          content: game.i18n.format('JOSTER.Chat.SolveFindFlawSuccess', { name: this.actor.name, value }),
-        });
-        return;
+        }).render(true);
       }
 
       // Neuer Versuch: spends one reserve point (after confirmation) to

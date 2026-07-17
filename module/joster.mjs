@@ -8,6 +8,7 @@ import { JosterItemSheet } from './sheets/item-sheet.mjs';
 import { preloadHandlebarsTemplates } from './helpers/templates.mjs';
 import { JOSTER } from './helpers/config.mjs';
 import { rollJoster } from './helpers/dice.mjs';
+import { registerChatListeners } from './helpers/chat.mjs';
 import { JosterRollDialog } from './apps/roll-dialog.mjs';
 
 /* -------------------------------------------- */
@@ -59,7 +60,10 @@ Hooks.once('init', function () {
   });
 
   // Preload Handlebars templates.
-  return preloadHandlebarsTemplates();
+  preloadHandlebarsTemplates();
+
+  // Wire up the "Fehler finden" reroll tracker on failed roll cards.
+  registerChatListeners();
 });
 
 /* -------------------------------------------- */
