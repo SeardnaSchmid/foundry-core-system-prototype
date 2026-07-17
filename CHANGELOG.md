@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.11.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.10.0...v0.11.0) (2026-07-17)
+
+
+### Features
+
+* consolidate Fehler finden/Neuer Versuch into unified chat edge panel ([0f626c4](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/0f626c464f0e8c821009ab851470b318aa635e09))
+
 # [0.10.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.9.1...v0.10.0) (2026-07-17)
 
 
