@@ -1,4 +1,5 @@
 import { JOSTER_ADVANTAGE, JOSTER_ADVANTAGE_ABBR, rollJoster } from '../helpers/dice.mjs';
+import { colorForValue } from '../helpers/heatmap.mjs';
 
 /** Bounds and step for the situational modification value. */
 const BONUS_MIN = -30;
@@ -10,9 +11,10 @@ const FREE_SKILL_MIN = 0;
 const FREE_SKILL_MAX = 10;
 
 /**
- * A small dialog for building a Joster roll. In "skill" mode the attribute
- * and skill rank are fixed threshold components (set by whatever opened the
- * dialog) and the player only dials in a situational modifier; in "ability"
+ * A small dialog for building a Joster roll. In "skill" mode the skill rank
+ * is a fixed threshold component (set by whatever opened the dialog) while
+ * the linked attribute is preselected but can be swapped via a chip picker,
+ * since the system doesn't bind a skill to one fixed attribute; in "ability"
  * mode the player picks one or two attributes themselves; in "free" mode
  * the player picks one attribute and types in an arbitrary skill value not
  * tied to any defined skill; in "fixed" mode the threshold is a single
@@ -27,9 +29,10 @@ export class JosterRollDialog extends FormApplication {
    * @param {object} [options]
    * @param {string} [options.attributeA]  Ability key to preselect as the first component.
    * @param {object} [options.skill]       Fixed skill component: { key, label, value }.
-   *   When set, the dialog switches to "skill" mode: attributeA is fixed
-   *   (not user-selectable) and its value plus the skill's value form the
-   *   threshold base, with the bonus field layered on top as a modifier.
+   *   When set, the dialog switches to "skill" mode: attributeA starts
+   *   preselected but is picked via an attribute chip grid, and its value
+   *   plus the skill's value form the threshold base, with the bonus field
+   *   layered on top as a modifier.
    * @param {boolean} [options.freeSkill]  When true, the dialog switches to
    *   "free" mode: the player picks an attribute and enters a free skill
    *   value which together form the threshold base.
@@ -101,8 +104,25 @@ export class JosterRollDialog extends FormApplication {
 
     if (this.skill) {
       const actorAbilities = this.actor.system.abilities ?? {};
-      data.attributeLabel = abilities[this.object.attributeA] ?? this.object.attributeA;
-      data.attributeValue = actorAbilities[this.object.attributeA]?.value ?? 0;
+      // Same 3-column (physical/social/mental) x 4-row grid and heatmap
+      // color grading as the character sheet's attribute table, minus its
+      // headers and base/temp stepper controls — here it's a pure picker.
+      data.attributeGrid = CONFIG.JOSTER.attributeRows.map((row) =>
+        row.map((key) => {
+          const labelKey = CONFIG.JOSTER.abilities[key];
+          const value = actorAbilities[key]?.value ?? 0;
+          const dc = colorForValue(value);
+          return {
+            key,
+            label: abilities[key],
+            abbr: game.i18n.localize(labelKey.replace(/\.long$/, '.abbr')).toUpperCase(),
+            value,
+            cellBg: dc.bg,
+            textColor: dc.textColor,
+            active: key === this.object.attributeA,
+          };
+        }),
+      );
       data.skillLabel = this.skill.label;
       data.skillValue = this.skill.value;
       data.isOverridden = this.object.attributeA !== this.defaultAttributeA;
@@ -164,30 +184,26 @@ export class JosterRollDialog extends FormApplication {
   activateListeners(html) {
     super.activateListeners(html);
 
-    // In skill mode, the linked attribute is shown as plain text; clicking
-    // it reveals a select so the player can roll against a different
-    // attribute instead.
-    html.on('click', '.joster-attribute-toggle', (ev) => {
-      const row = $(ev.currentTarget).closest('.joster-roll-attribute-row');
-      row.find('.joster-attribute-toggle').addClass('joster-hidden');
-      row.find('select[name="attributeA"]').removeClass('joster-hidden').trigger('focus');
-    });
-
     html.on('change', 'select[name="attributeA"], select[name="attributeB"]', (ev) => {
       const data = new FormDataExtended(ev.currentTarget.form).object;
       html.find('.joster-threshold-value').text(this._computeThreshold(data));
+    });
 
-      if (this.skill && ev.currentTarget.name === 'attributeA') {
-        const select = ev.currentTarget;
-        const key = select.value;
-        const label = select.selectedOptions[0]?.text ?? key;
-        const value = this.actor.system.abilities?.[key]?.value ?? 0;
-        const row = $(select).closest('.joster-roll-attribute-row');
-        row.find('.joster-attribute-toggle').text(label).removeClass('joster-hidden');
-        row.find('.joster-roll-detail-value').text(value);
-        $(select).addClass('joster-hidden');
-        html.find('.joster-roll-nonstandard-badge').toggleClass('joster-hidden', key === this.defaultAttributeA);
-      }
+    // Skill mode: the linked attribute is picked from a chip grid instead of
+    // a select, so the player sees every attribute's value at once.
+    html.on('click', '.joster-attribute-chip', (ev) => {
+      ev.preventDefault();
+      const chip = ev.currentTarget;
+      const key = chip.dataset.key;
+      const group = $(chip).closest('.joster-attribute-chip-grid');
+      group.find('.joster-attribute-chip').removeClass('active');
+      $(chip).addClass('active');
+
+      const form = $(chip).closest('form')[0];
+      form.querySelector('input[name="attributeA"]').value = key;
+      const data = new FormDataExtended(form).object;
+      html.find('.joster-threshold-value').text(this._computeThreshold(data));
+      html.find('.joster-roll-nonstandard-badge').toggleClass('joster-hidden', key === this.defaultAttributeA);
     });
 
     // Free mode: recompute the threshold as the skill value is typed.

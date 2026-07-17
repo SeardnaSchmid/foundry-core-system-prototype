@@ -5,14 +5,19 @@
 
   <div class="joster-roll-stats">
     {{#if isSkillMode}}
-    <div class="joster-roll-detail joster-roll-attribute-row">
-      <span class="joster-roll-detail-label joster-attribute-toggle" title="{{localize 'JOSTER.Roll.OverrideAttribute'}}">{{attributeLabel}}</span>
-      <select name="attributeA" class="joster-attribute-select joster-hidden">
-        {{#each abilities as |label key|}}
-        <option value="{{key}}" {{#ifEquals key ../attributeA}}selected{{/ifEquals}}>{{label}}</option>
+    <div class="form-group joster-attribute-field">
+      <label>{{localize "JOSTER.Roll.ChooseAttribute"}}</label>
+      <div class="joster-attribute-chip-grid">
+        {{#each attributeGrid as |row|}}
+        {{#each row as |chip|}}
+        <a class="joster-attribute-chip {{#if chip.active}}active{{/if}}" data-key="{{chip.key}}" title="{{chip.label}}" style="background:{{chip.cellBg}}; color:{{chip.textColor}};">
+          <span class="joster-attribute-chip-abbr">{{chip.abbr}}</span>
+          <span class="joster-attribute-chip-value">{{chip.value}}</span>
+        </a>
         {{/each}}
-      </select>
-      <span class="joster-roll-detail-value">{{attributeValue}}</span>
+        {{/each}}
+      </div>
+      <input type="hidden" name="attributeA" value="{{attributeA}}"/>
     </div>
     <div class="joster-roll-nonstandard-badge {{#unless isOverridden}}joster-hidden{{/unless}}">{{localize "JOSTER.Roll.NonStandard"}}</div>
     <div class="joster-roll-detail">

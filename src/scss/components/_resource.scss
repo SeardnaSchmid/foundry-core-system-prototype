@@ -272,7 +272,7 @@
   &:hover {
     background: rgba($c-beige, 0.3);
 
-    .skill-threshold {
+    .skill-level {
       color: $c-dark;
       background: rgba($c-black, 0.08);
     }
@@ -287,15 +287,7 @@
   white-space: nowrap;
 }
 
-.skill-attr {
-  flex: none;
-  font-size: var(--font-size-10, 10px);
-  font-variant-numeric: tabular-nums;
-  color: $c-tan;
-  white-space: nowrap;
-}
-
-.skill-threshold {
+.skill-level {
   flex: none;
   min-width: 2ch;
   padding: 0 4px;
@@ -308,33 +300,29 @@
   background: rgba($c-beige, 0.35);
 }
 
-.skill-rank-input {
+.skill-xp {
   flex: none;
-  width: 2ch;
+  min-width: 2ch;
+  font-size: var(--font-size-10, 10px);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: $c-tan;
+}
+
+.skill-advance-button {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
   height: 18px;
-  text-align: center;
-  font-weight: bold;
-  font-size: var(--font-size-11, 11px);
-  border: none;
   border-radius: 3px;
-  background: transparent;
-  color: $c-black;
-  padding: 0;
+  font-size: var(--font-size-10, 10px);
+  color: $c-tan;
+  cursor: pointer;
 
-  &:hover,
-  &:focus {
+  &:hover {
     background: rgba($c-beige, 0.3);
+    color: $c-dark;
   }
-
-  &:focus {
-    outline: none;
-  }
-
-  // Remove spinner arrows
-  &::-webkit-inner-spin-button,
-  &::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-  -moz-appearance: textfield;
 }

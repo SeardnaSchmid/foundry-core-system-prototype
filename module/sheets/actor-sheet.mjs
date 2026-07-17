@@ -4,6 +4,7 @@ import {
 } from '../helpers/effects.mjs';
 import { colorForValue } from '../helpers/heatmap.mjs';
 import { JosterRollDialog } from '../apps/roll-dialog.mjs';
+import { JosterSkillAdvanceDialog } from '../apps/skill-advance-dialog.mjs';
 import { JOSTER_ADVANTAGE, rollJoster } from '../helpers/dice.mjs';
 
 // Value ranges from the "Attribut-Heatmap" spec: Basiswert (base) is the
@@ -13,8 +14,6 @@ const BASE_MIN = 1;
 const BASE_MAX = 10;
 const TEMP_MIN = 0;
 const TEMP_MAX = 20;
-const SKILL_MIN = 0;
-const SKILL_MAX = 10;
 
 /**
  * Extend the basic ActorSheet with some very simple modifications
@@ -172,29 +171,16 @@ export class JosterActorSheet extends ActorSheet {
       label: game.i18n.localize(catLabelKey),
       skills: Object.entries(CONFIG.JOSTER.skills)
         .filter(([, skill]) => skill.category === catKey)
-        .map(([key, skill]) => {
-          const attributeValue = abilities[skill.attribute]?.value ?? 0;
-          const rank = skills[key]?.value ?? 0;
-          return {
-            key,
-            label: game.i18n.localize(skill.label),
-            attribute: skill.attribute,
-            attributeLabel: game.i18n.localize(CONFIG.JOSTER.abilities[skill.attribute]),
-            // Always the first 3 letters of the attribute's long name, e.g.
-            // "Dexterity" -> "Dex", so it stays correct across localizations
-            // without needing a separate translated abbreviation.
-            attributeAbbr: game.i18n
-              .localize(CONFIG.JOSTER.abilities[skill.attribute])
-              .slice(0, 3)
-              .replace(/^./, (c) => c.toUpperCase()),
-            attributeValue,
-            rank,
-            // The roll threshold this skill would use by default: attribute
-            // value + skill rank, mirroring RollDialog#_computeThreshold
-            // without any bonus/malus applied.
-            defaultThreshold: attributeValue + rank,
-          };
-        }),
+        .map(([key, skill]) => ({
+          key,
+          label: game.i18n.localize(skill.label),
+          // Kept only to preselect the roll dialog's attribute; the system
+          // doesn't bind a skill to one fixed attribute, so it's no longer
+          // shown in the row itself (see JosterRollDialog's attribute chips).
+          attribute: skill.attribute,
+          rank: skills[key]?.value ?? 0,
+          xp: skills[key]?.xp ?? 0,
+        })),
     }));
   }
 
@@ -275,13 +261,18 @@ export class JosterActorSheet extends ActorSheet {
       this._resetTemp(ev.currentTarget.dataset.key);
     });
 
-    // Skill rank input: validate on change and input
-    html.on('change input', '.skill-rank-input', (ev) => {
-      const input = ev.currentTarget;
-      const value = Math.clamp(Number(input.value) || 0, SKILL_MIN, SKILL_MAX);
-      if (value !== Number(input.value)) {
-        input.value = value;
-      }
+    // Open the skill advancement dialog.
+    html.on('click', '.skill-advance-button', (ev) => {
+      ev.preventDefault();
+      const key = ev.currentTarget.dataset.skill;
+      const skillConfig = CONFIG.JOSTER.skills[key];
+      const skill = this.actor.system.skills?.[key] ?? {};
+      new JosterSkillAdvanceDialog(this.actor, {
+        key,
+        label: game.i18n.localize(skillConfig?.label ?? key),
+        rank: skill.value ?? 0,
+        xp: skill.xp ?? 0,
+      }).render(true);
     });
 
     // Problem-solving reserve pool: editable directly, clamped to
@@ -412,19 +403,6 @@ export class JosterActorSheet extends ActorSheet {
     const ability = this.actor.system.abilities[key];
     if (!ability) return;
     await this.actor.update({ [`system.abilities.${key}.value`]: ability.base });
-  }
-
-  /**
-   * Handle a skill rank +/- stepper click.
-   * @param {string} key    Skill key, e.g. "brawling"
-   * @param {number} delta  +1 or -1
-   * @private
-   */
-  async _stepSkill(key, delta) {
-    const skill = this.actor.system.skills?.[key];
-    if (!skill) return;
-    const next = Math.clamp(skill.value + delta, SKILL_MIN, SKILL_MAX);
-    await this.actor.update({ [`system.skills.${key}.value`]: next });
   }
 
   /**

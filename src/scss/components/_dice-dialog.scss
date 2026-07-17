@@ -44,13 +44,55 @@
     display: none !important;
   }
 
-  .joster-attribute-toggle {
-    cursor: pointer;
-    border-bottom: 1px dashed $c-tan;
+  // Same fix as .joster-advantage-field below: Core's .form-group lays
+  // label/content out as a flex row, which squeezes the chip grid. Stack
+  // this one so the label sits on its own line above the full-width grid.
+  .joster-attribute-field {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+
+    > label {
+      flex: none;
+    }
   }
 
-  .joster-attribute-select {
-    flex: 1;
+  // 3 columns (physical/social/mental) x 4 rows, same grid shape as the
+  // character sheet's attribute table but without its header row/column.
+  .joster-attribute-chip-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+  }
+
+  .joster-attribute-chip {
+    cursor: pointer;
+    padding: 3px 0;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    text-align: center;
+    line-height: 1.3;
+
+    .joster-attribute-chip-abbr {
+      display: block;
+      font-size: var(--font-size-10, 10px);
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .joster-attribute-chip-value {
+      display: block;
+      font-size: var(--font-size-12, 12px);
+    }
+
+    // The background/text color is the heatmap grade (inline style, set
+    // per-cell in getData); selection can't repaint it, so it's marked with
+    // a ring instead — white-then-dark so it reads on any heat color.
+    &.active {
+      box-shadow:
+        0 0 0 2px #fff,
+        0 0 0 3px rgba(0, 0, 0, 0.6);
+    }
   }
 
   .joster-roll-nonstandard-badge {
