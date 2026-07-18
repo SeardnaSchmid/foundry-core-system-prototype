@@ -16,6 +16,47 @@ const TEMP_MIN = 0;
 const TEMP_MAX = 20;
 
 /**
+ * Case/diacritic-insensitive subsequence fuzzy match: true if every
+ * character of `query` appears in `text`, in order, possibly with gaps
+ * (e.g. "schl" matches "Schleichen", "sch" matches "Scharfschütze").
+ * @param {string} query
+ * @param {string} text
+ * @returns {boolean}
+ */
+function fuzzyMatch(query, text) {
+  const normalize = (s) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+  const q = normalize(query);
+  const t = normalize(text);
+  let qi = 0;
+  for (let ti = 0; ti < t.length && qi < q.length; ti++) {
+    if (t[ti] === q[qi]) qi++;
+  }
+  return qi === q.length;
+}
+
+/**
+ * Cumulative XP cost to reach a given skill rank, per the "Charakterentwicklung"
+ * level cost table (advancing to level N costs 3*N XP, e.g. rank 3 costs
+ * 3+6+9=18 XP in total).
+ * @param {number} rank
+ * @returns {number}
+ */
+function skillRankXpCost(rank) {
+  return (3 * rank * (rank + 1)) / 2;
+}
+
+/**
+ * Cumulative XP cost to reach a given attribute rank, per the level cost
+ * table (advancing to level N costs N*N XP, e.g. rank 3 costs 1+4+9=14 XP
+ * in total).
+ * @param {number} rank
+ * @returns {number}
+ */
+function attributeRankXpCost(rank) {
+  return (rank * (rank + 1) * (2 * rank + 1)) / 6;
+}
+
+/**
  * Extend the basic ActorSheet with some very simple modifications
  * @extends {ActorSheet}
  */
@@ -71,22 +112,6 @@ export class JosterActorSheet extends ActorSheet {
     if (actorData.type == 'npc') {
       this._prepareItems(context);
     }
-
-    // Enrich biography info for display
-    // Enrichment turns text like `[[/r 1d20]]` into buttons
-    context.enrichedBiography = await TextEditor.enrichHTML(
-      this.actor.system.biography,
-      {
-        // Whether to show secret blocks in the finished html
-        secrets: this.document.isOwner,
-        // Necessary in v11, can be removed in v12
-        async: true,
-        // Data to fill in for inline rolls
-        rollData: this.actor.getRollData(),
-        // Relative UUID resolution
-        relativeTo: this.actor,
-      }
-    );
 
     // Prepare active effects
     context.effects = prepareActiveEffectCategories(
@@ -162,14 +187,26 @@ export class JosterActorSheet extends ActorSheet {
         }),
       })),
     };
+    context.attributeGrid.totalXp = rows
+      .flat()
+      .reduce((sum, key) => sum + attributeRankXpCost(abilities[key]?.base ?? 0), 0);
+
+    // Skill list filter (All / Trained / Starter), persisted on the sheet
+    // instance so it survives re-renders while the sheet stays open.
+    this._skillFilter ??= 'trained';
+    context.skillFilter = this._skillFilter;
+
+    // Skill list fuzzy search, persisted the same way as the category filter.
+    // While a search term is active, it overrides the category filter so a
+    // skill can always be found regardless of trained/starter state.
+    this._skillSearch ??= '';
+    context.skillSearch = this._skillSearch;
 
     // Build the skill list, grouped by category, in JOSTER.skillCategories order.
     // Categories without any skills yet (WIP groups) still render, empty.
     const skills = context.system.skills ?? {};
-    context.skillGroups = Object.entries(CONFIG.JOSTER.skillCategories).map(([catKey, catLabelKey]) => ({
-      key: catKey,
-      label: game.i18n.localize(catLabelKey),
-      skills: Object.entries(CONFIG.JOSTER.skills)
+    context.skillGroups = Object.entries(CONFIG.JOSTER.skillCategories).map(([catKey, catLabelKey]) => {
+      const groupSkills = Object.entries(CONFIG.JOSTER.skills)
         .filter(([, skill]) => skill.category === catKey)
         .map(([key, skill]) => ({
           key,
@@ -183,8 +220,21 @@ export class JosterActorSheet extends ActorSheet {
           attribute: skills[key]?.lastAttribute || skill.attribute,
           rank: skills[key]?.value ?? 0,
           xp: skills[key]?.xp ?? 0,
-        })),
-    }));
+          starter: skill.starter ?? false,
+        }));
+      return {
+        key: catKey,
+        label: game.i18n.localize(catLabelKey),
+        skills: groupSkills,
+        totalRank: groupSkills.reduce((sum, skill) => sum + skill.rank, 0),
+        totalXp: groupSkills.reduce((sum, skill) => sum + skillRankXpCost(skill.rank), 0),
+      };
+    });
+
+    // XP invested so far, broken down by skills vs. attributes plus their
+    // combined grand total, shown as a chip in the sheet header.
+    context.skillXpTotal = context.skillGroups.reduce((sum, group) => sum + group.totalXp, 0);
+    context.totalXpSpent = context.attributeGrid.totalXp + context.skillXpTotal;
 
     // "Fehler Analysieren" only makes sense to attempt while the reserve
     // has room to regain a point; a full pool has nothing to refill.
@@ -252,6 +302,24 @@ export class JosterActorSheet extends ActorSheet {
       const item = this.actor.items.get(li.data('itemId'));
       item.sheet.render(true);
     });
+
+    // Skill list filter: toggles which rows are shown, purely client-side
+    // (no re-render), so it also works on read-only sheets.
+    html.on('click', '.skill-filter-btn', (ev) => {
+      ev.preventDefault();
+      this._skillFilter = ev.currentTarget.dataset.filter;
+      html.find('.skill-filter-btn').removeClass('active');
+      $(ev.currentTarget).addClass('active');
+      this._applySkillFilter(html);
+    });
+
+    // Skill list search: fuzzy-matches the skill name and, while active,
+    // overrides the category filter so any matching skill is shown.
+    html.on('input', '.skill-search-input', (ev) => {
+      this._skillSearch = ev.currentTarget.value;
+      this._applySkillFilter(html);
+    });
+    this._applySkillFilter(html);
 
     // -------------------------------------------------------------
     // Everything below here is only needed if the sheet is editable
@@ -378,9 +446,42 @@ export class JosterActorSheet extends ActorSheet {
   }
 
   /**
-   * Adjust an ability's temp value or base rating by +/-1. Adjusting the
-   * base (field "base") syncs the temp value to match, per the
-   * "Attribut-Heatmap" spec: changing the base clears any temp deviation.
+   * Show/hide skill rows per the current skill list filter ("trained" shows
+   * only rank > 0, "starter" shows only skills selectable at character
+   * creation, "all" shows everything) and the fuzzy search box. While a
+   * search term is entered, it takes priority over the category filter so
+   * any matching skill can be found regardless of trained/starter state.
+   * Groups with no visible rows are hidden too, unless they have no skills
+   * defined at all (those keep their "SkillCategoryEmptyHint" placeholder
+   * regardless of filter).
+   * @param {JQuery} html
+   * @private
+   */
+  _applySkillFilter(html) {
+    const filter = this._skillFilter ?? 'trained';
+    const search = (this._skillSearch ?? '').trim();
+    html.find('.skill-group').each((_i, groupEl) => {
+      const $group = $(groupEl);
+      const $rows = $group.find('.skill-row');
+      let anyVisible = false;
+      $rows.each((_j, rowEl) => {
+        const rank = Number(rowEl.dataset.rank) || 0;
+        const starter = rowEl.dataset.starter === 'true';
+        const visible = search
+          ? fuzzyMatch(search, rowEl.querySelector('.skill-name')?.textContent ?? '')
+          : filter === 'all' ||
+            (filter === 'trained' && rank !== 0) ||
+            (filter === 'starter' && starter);
+        rowEl.style.display = visible ? '' : 'none';
+        if (visible) anyVisible = true;
+      });
+      $group.toggle((filter === 'all' && !search) || $rows.length === 0 || anyVisible);
+    });
+  }
+
+  /**
+   * Step an ability's temp or base value up/down by one, clamped to its
+   * valid range.
    *
    * @param {string} key    Ability key, e.g. "str"
    * @param {number} delta  +1 or -1

@@ -303,6 +303,32 @@
   letter-spacing: 0.03em;
   color: #444;
 }
+.joster .sheet-header .xp-total-group {
+  gap: 10px;
+}
+.joster .sheet-header .xp-total-group .xp-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 44px;
+  padding-right: 8px;
+  border-right: 1px solid #b5b3a4;
+}
+.joster .sheet-header .xp-total-group .xp-tile:last-child {
+  padding-right: 0;
+  border-right: none;
+}
+.joster .sheet-header .xp-total-group .xp-tile-value {
+  font-size: var(--font-size-14, 14px);
+  font-weight: bold;
+  line-height: 1;
+}
+.joster .sheet-header .xp-total-group .xp-tile-label {
+  font-size: var(--font-size-10, 10px);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #444;
+}
 .joster .sheet-header .movement-group {
   gap: 10px;
 }
@@ -402,6 +428,15 @@
 .joster .sheet-body .tab .editor {
   height: 100%;
 }
+.joster .biography-textarea {
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+  border: 1px solid #b5b3a4;
+  background: #fff;
+  font-family: "Roboto", sans-serif;
+  resize: none;
+}
 .joster .tox .tox-editor-container {
   background: #fff;
 }
@@ -410,6 +445,23 @@
 }
 .joster .resource-label {
   font-weight: bold;
+}
+.joster .xp-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  padding: 1px 5px;
+  border: 1px solid #444;
+  border-radius: 3px;
+  font-size: var(--font-size-10, 10px);
+  font-weight: bold;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  text-transform: none;
+  letter-spacing: normal;
+  white-space: nowrap;
+  color: #444;
 }
 @keyframes heatmap-peak-pulse {
   0%, 100% {
@@ -429,67 +481,47 @@
 }
 .joster .attribute-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 4px;
   margin: 10px 0;
 }
 .joster .attribute-table th,
 .joster .attribute-table td {
-  border: 1px solid #b5b3a4;
-  padding: 5px;
-  vertical-align: top;
+  border: none;
+  padding: 0;
+  background: none;
+  vertical-align: middle;
   text-align: left;
 }
-.joster .attribute-table th {
-  background: #c9c7b8;
+.joster .attribute-table.heatmap thead th,
+.joster .attribute-table.heatmap .heatmap-row-header {
+  font-weight: 500;
+  font-size: var(--font-size-11, 11px);
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  font-size: var(--font-size-12, 12px);
+  color: #444;
+}
+.joster .attribute-table.heatmap thead {
+  background: none;
 }
 .joster .attribute-table.heatmap thead th,
-.joster .attribute-table.heatmap .heatmap-row-header,
-.joster .attribute-table.heatmap .attribute-corner {
-  vertical-align: middle;
-}
-.joster .attribute-table.heatmap .attribute-corner {
+.joster .attribute-table.heatmap .heatmap-row-header {
   text-align: center;
-  font-size: var(--font-size-16, 16px);
-}
-.joster .attribute-table.heatmap .heatmap-info-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border: 1px solid #444;
-  border-radius: 50%;
-  font-family: Georgia, "Times New Roman", serif;
-  font-style: italic;
-  font-weight: bold;
-  font-size: var(--font-size-11, 11px);
-  line-height: 1;
-  color: #444;
-  cursor: help;
-  transition: color 0.15s ease, border-color 0.15s ease;
-}
-.joster .attribute-table.heatmap .heatmap-info-badge:hover {
-  color: #191813;
-  border-color: #191813;
-}
-.joster .attribute-table.heatmap .heatmap-col-label,
-.joster .attribute-table.heatmap .heatmap-row-label {
-  display: block;
-  margin-bottom: 3px;
+  padding: 0 2px 2px;
 }
 .joster .attribute-table.heatmap .heatmap-row-header {
   white-space: nowrap;
 }
-.joster .attribute-table.heatmap .heatmap-peak {
-  animation: heatmap-peak-pulse 2.2s ease-in-out infinite;
+.joster .attribute-table.heatmap .heatmap-col-label,
+.joster .attribute-table.heatmap .heatmap-row-label {
+  display: block;
 }
 .joster .attribute-table.heatmap .heatmap-cell {
   position: relative;
   text-align: center;
-  border-width: 1.5px;
-  border-style: solid;
+  padding: 7px 8px;
+  border-radius: 4px;
+  border: 1.5px solid transparent;
 }
 .joster .attribute-table.heatmap .heatmap-cell.heatmap-critical {
   animation: heatmap-critical-pulse 1.4s ease-in-out infinite;
@@ -511,9 +543,8 @@
   font-size: var(--font-size-12, 12px);
 }
 .joster .attribute-table.heatmap .heatmap-cell .heatmap-cell-name {
-  font-weight: bold;
+  font-weight: 600;
   font-size: var(--font-size-12, 12px);
-  opacity: 0.9;
 }
 .joster .attribute-table.heatmap .heatmap-cell .heatmap-delta {
   position: absolute;
@@ -523,7 +554,6 @@
   font-weight: bold;
   font-size: var(--font-size-10, 10px);
   cursor: pointer;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 .joster .attribute-table.heatmap .heatmap-cell .heatmap-cell-values {
   gap: 6px;
@@ -569,16 +599,70 @@
   font-weight: 800;
   opacity: 0.5;
 }
+.joster .attributes-header,
 .joster .skills-header {
   align-items: center;
   justify-content: space-between;
   margin: 0 0 4px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #b5b3a4;
 }
+.joster .attributes-title,
 .joster .skills-title {
   flex: 1;
-  margin: 0 0 4px;
+  margin: 0;
+  padding: 0;
+  border: none;
   font-size: var(--font-size-12, 12px);
+  line-height: 1;
   text-transform: uppercase;
+}
+.joster .attributes-title .xp-badge,
+.joster .skills-title .xp-badge {
+  margin-left: 6px;
+  text-transform: none;
+  vertical-align: middle;
+}
+.joster .skill-search-input {
+  flex: 0 0 120px;
+  width: 120px;
+  height: auto;
+  margin: 0;
+  padding: 3px 7px;
+  border: 1px solid #b5b3a4;
+  border-radius: 3px;
+  background: transparent;
+  font-size: var(--font-size-10, 10px);
+}
+.joster .skill-search-input:focus {
+  border-color: #444;
+  box-shadow: none;
+}
+.joster .skill-filter-group {
+  display: flex;
+  flex: none;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid #b5b3a4;
+  border-radius: 3px;
+}
+.joster .skill-filter-btn {
+  padding: 2px 7px;
+  border-radius: 2px;
+  font-size: var(--font-size-10, 10px);
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: #444;
+  cursor: pointer;
+  transition: background-color 0.1s ease, color 0.1s ease;
+}
+.joster .skill-filter-btn:hover {
+  color: #191813;
+}
+.joster .skill-filter-btn.active {
+  background: #444;
+  color: #fff;
 }
 .joster .skill-groups {
   display: flex;
@@ -595,6 +679,10 @@
   padding: 3px 5px;
 }
 .joster .skill-group-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
   margin: 0 0 3px;
   padding-bottom: 2px;
   border-bottom: 1px solid #b5b3a4;
@@ -603,6 +691,11 @@
   text-transform: uppercase;
   letter-spacing: 0.02em;
   color: #191813;
+}
+.joster .skill-group-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .joster .skill-group-empty {
   margin: 0;

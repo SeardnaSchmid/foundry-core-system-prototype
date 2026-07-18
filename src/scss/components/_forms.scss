@@ -112,6 +112,37 @@
     }
   }
 
+  .xp-total-group {
+    gap: 10px;
+
+    .xp-tile {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 44px;
+      padding-right: 8px;
+      border-right: 1px solid $c-beige;
+
+      &:last-child {
+        padding-right: 0;
+        border-right: none;
+      }
+    }
+
+    .xp-tile-value {
+      font-size: var(--font-size-14, 14px);
+      font-weight: bold;
+      line-height: 1;
+    }
+
+    .xp-tile-label {
+      font-size: var(--font-size-10, 10px);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: $c-tan;
+    }
+  }
+
   .movement-group {
     gap: 10px;
 
@@ -233,6 +264,16 @@
 .sheet-body .tab,
 .sheet-body .tab .editor {
   height: 100%;
+}
+
+.biography-textarea {
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+  border: 1px solid $c-beige;
+  background: $c-white;
+  font-family: $font-primary;
+  resize: none;
 }
 
 .tox {

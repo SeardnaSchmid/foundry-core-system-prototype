@@ -38,8 +38,10 @@
 
     {{!-- Biography Tab --}}
     <div class="tab biography" data-group="primary" data-tab="description">
-      {{!-- Editors must receive enriched text data from getData to properly handle rolls --}}
-      {{editor enrichedBiography target="system.biography" engine="prosemirror" button=true editable=editable}}
+      {{!-- Plain textarea instead of the ProseMirror editor helper: the
+      editor requires an explicit click into an edit mode before typing,
+      which is unnecessary friction for a simple freetext notes field. --}}
+      <textarea name="system.biography" class="biography-textarea">{{system.biography}}</textarea>
     </div>
 
     {{!-- Owned Items Tab --}}

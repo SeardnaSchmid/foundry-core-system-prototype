@@ -2,6 +2,27 @@
   font-weight: bold;
 }
 
+// Shared pill used everywhere a small "N / MxP" or "MxP" summary is shown
+// next to a group/section header (skill groups, attribute heatmap corner),
+// so both header row and header column badges share one consistent look.
+.xp-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  padding: 1px 5px;
+  border: 1px solid $c-tan;
+  border-radius: 3px;
+  font-size: var(--font-size-10, 10px);
+  font-weight: bold;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  text-transform: none;
+  letter-spacing: normal;
+  white-space: nowrap;
+  color: $c-tan;
+}
+
 @keyframes heatmap-peak-pulse {
   0%, 100% { box-shadow: 0 0 0 2px rgba(241, 244, 247, 0.9), 0 0 8px 1px rgba(241, 244, 247, 0.35); }
   50% { box-shadow: 0 0 0 2px rgba(241, 244, 247, 0.6), 0 0 4px 1px rgba(241, 244, 247, 0.2); }
@@ -14,77 +35,64 @@
 
 .attribute-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 4px;
   margin: 10px 0;
 
+  // Coloured attribute cells float as rounded tiles in a small gutter grid:
+  // no gridlines, no filled header boxes. The cell colours carry all the
+  // visual weight so the eye lands on the attributes, not the chrome.
   th,
   td {
-    border: 1px solid $c-beige;
-    padding: $padding-sm;
-    vertical-align: top;
+    border: none;
+    padding: 0;
+    background: none;
+    vertical-align: middle;
     text-align: left;
   }
 
-  th {
-    background: $c-faint;
-    text-transform: uppercase;
-    font-size: var(--font-size-12, 12px);
-  }
-
   &.heatmap {
+    // Header labels (column categories + row themes) are quiet muted
+    // captions — no fill, no border, no bold — so they frame the coloured
+    // tiles without competing with them.
     thead th,
-    .heatmap-row-header,
-    .attribute-corner {
-      vertical-align: middle;
-    }
-
-    .attribute-corner {
-      text-align: center;
-      font-size: var(--font-size-16, 16px);
-    }
-
-    .heatmap-info-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 16px;
-      height: 16px;
-      border: 1px solid $c-tan;
-      border-radius: 50%;
-      font-family: Georgia, 'Times New Roman', serif;
-      font-style: italic;
-      font-weight: bold;
+    .heatmap-row-header {
+      font-weight: 500;
       font-size: var(--font-size-11, 11px);
-      line-height: 1;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
       color: $c-tan;
-      cursor: help;
-      transition: color 0.15s ease, border-color 0.15s ease;
-
-      &:hover {
-        color: $c-dark;
-        border-color: $c-dark;
-      }
     }
 
-    .heatmap-col-label,
-    .heatmap-row-label {
-      display: block;
-      margin-bottom: 3px;
+    // Foundry core paints a dark gradient band on <thead>; clear it so the
+    // top header row has no background and stays exactly as quiet as the row
+    // headers on the left.
+    thead {
+      background: none;
+    }
+
+    // Both header row and header column are centred quiet captions.
+    thead th,
+    .heatmap-row-header {
+      text-align: center;
+      padding: 0 2px 2px;
     }
 
     .heatmap-row-header {
       white-space: nowrap;
     }
 
-    .heatmap-peak {
-      animation: heatmap-peak-pulse 2.2s ease-in-out infinite;
+    .heatmap-col-label,
+    .heatmap-row-label {
+      display: block;
     }
 
     .heatmap-cell {
       position: relative;
       text-align: center;
-      border-width: 1.5px;
-      border-style: solid;
+      padding: 7px 8px;
+      border-radius: 4px;
+      border: 1.5px solid transparent;
 
       &.heatmap-critical {
         animation: heatmap-critical-pulse 1.4s ease-in-out infinite;
@@ -112,9 +120,8 @@
       }
 
       .heatmap-cell-name {
-        font-weight: bold;
+        font-weight: 600;
         font-size: var(--font-size-12, 12px);
-        opacity: 0.9;
       }
 
       .heatmap-delta {
@@ -125,7 +132,6 @@
         font-weight: bold;
         font-size: var(--font-size-10, 10px);
         cursor: pointer;
-        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.35);
       }
 
       .heatmap-cell-values {
@@ -181,17 +187,83 @@
   }
 }
 
+// Section headers for the attribute grid and the skill list share one look:
+// an uppercase title on the left, meta/controls on the right, over a
+// full-width divider.
+.attributes-header,
 .skills-header {
   align-items: center;
   justify-content: space-between;
   margin: 0 0 4px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid $c-beige;
 }
 
+.attributes-title,
 .skills-title {
   flex: 1;
-  margin: 0 0 4px;
+  // Strip Foundry core's default <h3> box (border-bottom + padding) so the
+  // title is a plain text line that centres cleanly against the controls on
+  // the right; the divider lives on the header container instead.
+  margin: 0;
+  padding: 0;
+  border: none;
   font-size: var(--font-size-12, 12px);
+  line-height: 1;
   text-transform: uppercase;
+
+  .xp-badge {
+    margin-left: 6px;
+    text-transform: none;
+    vertical-align: middle;
+  }
+}
+
+.skill-search-input {
+  flex: 0 0 120px;
+  width: 120px;
+  height: auto;
+  margin: 0;
+  padding: 3px 7px;
+  border: 1px solid $c-beige;
+  border-radius: 3px;
+  background: transparent;
+  font-size: var(--font-size-10, 10px);
+
+  &:focus {
+    border-color: $c-tan;
+    box-shadow: none;
+  }
+}
+
+.skill-filter-group {
+  display: flex;
+  flex: none;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid $c-beige;
+  border-radius: 3px;
+}
+
+.skill-filter-btn {
+  padding: 2px 7px;
+  border-radius: 2px;
+  font-size: var(--font-size-10, 10px);
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: $c-tan;
+  cursor: pointer;
+  transition: background-color 0.1s ease, color 0.1s ease;
+
+  &:hover {
+    color: $c-dark;
+  }
+
+  &.active {
+    background: $c-tan;
+    color: #fff;
+  }
 }
 
 .skill-groups {
@@ -211,6 +283,10 @@
 }
 
 .skill-group-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
   margin: 0 0 3px;
   padding-bottom: 2px;
   border-bottom: 1px solid $c-beige;
@@ -219,6 +295,12 @@
   text-transform: uppercase;
   letter-spacing: 0.02em;
   color: $c-dark;
+}
+
+.skill-group-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .skill-group-empty {

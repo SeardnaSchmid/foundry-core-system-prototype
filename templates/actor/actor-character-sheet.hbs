@@ -74,6 +74,24 @@
           </div>
         </div>
 
+        {{!-- Gesamt-XP, die bislang in Attribute und Fertigkeiten investiert
+        wurden (Summe der kumulierten Stufenkosten beider Bereiche), plus die
+        Aufschlüsselung nach Fertigkeiten und Attributen. --}}
+        <div class="resource-group xp-total-group" title="{{localize 'JOSTER.XpTotalHint'}}">
+          <div class="xp-tile">
+            <span class="xp-tile-value">{{totalXpSpent}}</span>
+            <label class="xp-tile-label">{{localize "JOSTER.XpTotalAll"}}</label>
+          </div>
+          <div class="xp-tile">
+            <span class="xp-tile-value">{{attributeGrid.totalXp}}</span>
+            <label class="xp-tile-label">{{localize "JOSTER.XpTotalAttributes"}}</label>
+          </div>
+          <div class="xp-tile">
+            <span class="xp-tile-value">{{skillXpTotal}}</span>
+            <label class="xp-tile-label">{{localize "JOSTER.XpTotalSkills"}}</label>
+          </div>
+        </div>
+
       </div>
     </div>
   </header>
@@ -98,12 +116,13 @@
         mirroring the "Attribute" table in the rulebook. Cell and sum-badge
         backgrounds are color-graded relative to the character's own values,
         ported from the "Attribut-Heatmap" prototype. --}}
+        <div class="attributes-header flexrow">
+          <h3 class="attributes-title">{{localize "JOSTER.AttributesTitle"}} <span class="xp-badge">{{attributeGrid.totalXp}}xp</span></h3>
+        </div>
         <table class="attribute-table heatmap">
           <thead>
             <tr>
-              <th class="attribute-corner">
-                <span class="heatmap-info-badge" title="{{localize 'JOSTER.AttributeModeHint'}}">i</span>
-              </th>
+              <th class="attribute-corner"></th>
               {{#each attributeGrid.colHeaders as |col|}}
               <th>
                 <span class="heatmap-col-label">{{col.label}}</span>
@@ -145,20 +164,29 @@
         {{!-- Skills, grouped by category. Each skill rolls with its linked
         attribute; the rank is added as the roll dialog's starting bonus. --}}
         <div class="skills-header flexrow">
-          <h3 class="skills-title">{{localize "JOSTER.SkillsTitle"}}</h3>
+          <h3 class="skills-title">{{localize "JOSTER.SkillsTitle"}} <span class="xp-badge">{{skillXpTotal}}xp</span></h3>
+          <input type="text" class="skill-search-input" value="{{skillSearch}}" placeholder="{{localize 'JOSTER.SkillSearchPlaceholder'}}" title="{{localize 'JOSTER.SkillSearchHint'}}" />
+          <div class="skill-filter-group">
+            <a class="skill-filter-btn {{#ifEquals skillFilter 'trained'}}active{{/ifEquals}}" data-filter="trained" title="{{localize 'JOSTER.SkillFilterTrainedHint'}}">{{localize "JOSTER.SkillFilterTrained"}}</a>
+            <a class="skill-filter-btn {{#ifEquals skillFilter 'starter'}}active{{/ifEquals}}" data-filter="starter" title="{{localize 'JOSTER.SkillFilterStarterHint'}}">{{localize "JOSTER.SkillFilterStarter"}}</a>
+            <a class="skill-filter-btn {{#ifEquals skillFilter 'all'}}active{{/ifEquals}}" data-filter="all" title="{{localize 'JOSTER.SkillFilterAllHint'}}">{{localize "JOSTER.SkillFilterAll"}}</a>
+          </div>
         </div>
         <div class="skill-groups">
           {{#each skillGroups as |group|}}
           <div class="skill-group">
-            <h4 class="skill-group-title">{{group.label}}</h4>
+            <h4 class="skill-group-title">
+              <span class="skill-group-name">{{group.label}}</span>
+              <span class="xp-badge">{{group.totalRank}} / {{group.totalXp}}xp</span>
+            </h4>
             {{#if group.skills.length}}
             <ul class="skill-list">
               {{#each group.skills as |skill|}}
-              <li class="skill-row">
+              <li class="skill-row" data-rank="{{skill.rank}}" data-starter="{{skill.starter}}">
                 <span class="skill-info rollable" data-roll-type="skill" data-skill="{{skill.key}}" data-ability="{{skill.attribute}}" data-label="{{skill.label}}" title="{{localize 'JOSTER.RollSkill'}}: {{skill.label}}">
                   <span class="skill-name">{{skill.label}}</span>
                   <span class="skill-level">{{skill.rank}}</span>
-                  <span class="skill-xp">{{skill.xp}}</span>
+                  <span class="skill-xp">{{skill.xp}}xp</span>
                 </span>
                 <a class="skill-advance-button" data-skill="{{skill.key}}" title="{{localize 'JOSTER.SkillAdvance'}}">
                   <i class="fas fa-arrow-up"></i>
@@ -178,8 +206,10 @@
 
     {{!-- Biography Tab --}}
     <div class="tab biography" data-group="primary" data-tab="description">
-      {{!-- Editors must receive enriched text data from getData to properly handle rolls --}}
-      {{editor enrichedBiography target="system.biography" engine="prosemirror" button=true editable=editable}}
+      {{!-- Plain textarea instead of the ProseMirror editor helper: the
+      editor requires an explicit click into an edit mode before typing,
+      which is unnecessary friction for a simple freetext notes field. --}}
+      <textarea name="system.biography" class="biography-textarea">{{system.biography}}</textarea>
     </div>
 
     {{!-- Owned Items Tab --}}
