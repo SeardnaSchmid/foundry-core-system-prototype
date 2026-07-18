@@ -69,6 +69,13 @@
     "SkillRankLabel": "Rang",
     "SkillXpLabel": "XP",
     "SkillAdvanceSubmit": "Speichern",
+    "AttributeAdvanceHint": "XP verwalten und Attribut steigern",
+    "AdvanceMaxRank": "Maximaler Rang erreicht",
+    "AdvanceBuy": "Stufe kaufen",
+    "AdvanceBuyHint": "Nächste Stufe kaufen — die XP fallen dabei auf Null zurück",
+    "AdvanceXpIncHint": "Einen Erfahrungspunkt hinzufügen",
+    "AdvanceXpDecHint": "Einen Erfahrungspunkt abziehen",
+    "AdvanceCorrection": "Manuell korrigieren",
     "SkillCategory": {
       "Combat": "Kampf",
       "Maneuvers": "Manöver",

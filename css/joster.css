@@ -443,6 +443,111 @@
 .joster .tox .tox-edit-area {
   padding: 0 8px;
 }
+.joster .joster-advance-dialog {
+  gap: 10px;
+  padding: 6px 4px 4px;
+}
+.joster .joster-advance-dialog .advance-progress-head {
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 5px;
+  font-size: var(--font-size-12, 12px);
+}
+.joster .joster-advance-dialog .advance-rank {
+  font-weight: bold;
+}
+.joster .joster-advance-dialog .advance-rank .fas {
+  margin: 0 2px;
+  font-size: var(--font-size-10, 10px);
+  opacity: 0.6;
+}
+.joster .joster-advance-dialog .advance-xp-count {
+  font-variant-numeric: tabular-nums;
+  color: #444;
+}
+.joster .joster-advance-dialog .advance-bar {
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(181, 179, 164, 0.35);
+  border: 1px solid rgba(181, 179, 164, 0.5);
+  overflow: hidden;
+}
+.joster .joster-advance-dialog .advance-bar-fill {
+  height: 100%;
+  background: #444;
+  transition: width 0.15s ease;
+}
+.joster .joster-advance-dialog .advance-bar-fill.ready {
+  background: #1f6b3a;
+}
+.joster .joster-advance-dialog .advance-actions {
+  gap: 6px;
+  align-items: stretch;
+}
+.joster .joster-advance-dialog .advance-actions .advance-action {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 26px;
+  margin: 0;
+  padding: 0 6px;
+  line-height: 1;
+  font-size: var(--font-size-11, 11px);
+}
+.joster .joster-advance-dialog .advance-actions .advance-buy {
+  flex: 1.5;
+}
+.joster .joster-advance-dialog .advance-actions .advance-buy:not(:disabled) {
+  border-color: #1f6b3a;
+  color: #1f6b3a;
+}
+.joster .joster-advance-dialog .advance-actions .advance-buy:not(:disabled):hover {
+  background: rgba(31, 107, 58, 0.12);
+}
+.joster .joster-advance-dialog .advance-actions .advance-buy:disabled {
+  opacity: 0.5;
+}
+.joster .joster-advance-dialog .advance-correction {
+  padding-top: 8px;
+  border-top: 1px solid rgba(181, 179, 164, 0.5);
+}
+.joster .joster-advance-dialog .advance-correction-label {
+  margin: 0 0 5px;
+  font-size: var(--font-size-10, 10px);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #444;
+}
+.joster .joster-advance-dialog .advance-correction .flexrow {
+  gap: 8px;
+}
+.joster .joster-advance-dialog .advance-correction .form-group {
+  flex: 1;
+  margin: 0;
+}
+.joster .joster-advance-dialog .advance-correction .form-group label {
+  display: block;
+  margin-bottom: 2px;
+  font-size: var(--font-size-10, 10px);
+  color: #444;
+}
+.joster .joster-advance-dialog .advance-correction .form-group input {
+  width: 100%;
+  height: 26px;
+  margin: 0;
+  text-align: center;
+}
+.joster .joster-advance-dialog .sheet-footer {
+  margin-top: 2px;
+}
+.joster .joster-advance-dialog .sheet-footer button {
+  height: 28px;
+  margin: 0;
+  line-height: 1;
+  font-size: var(--font-size-12, 12px);
+}
 .joster .resource-label {
   font-weight: bold;
 }
@@ -538,13 +643,33 @@
   min-height: 16px;
 }
 .joster .attribute-table.heatmap .heatmap-cell .heatmap-warn {
-  position: absolute;
-  left: 0;
+  margin-right: 2px;
   font-size: var(--font-size-12, 12px);
 }
 .joster .attribute-table.heatmap .heatmap-cell .heatmap-cell-name {
   font-weight: 600;
   font-size: var(--font-size-12, 12px);
+}
+.joster .attribute-table.heatmap .heatmap-cell .heatmap-xp-badge {
+  position: absolute;
+  left: 0;
+  border-radius: 999px;
+  padding: 1px 6px;
+  font-size: var(--font-size-10, 10px);
+  font-variant-numeric: tabular-nums;
+  font-weight: bold;
+  color: inherit;
+  background: rgba(0, 0, 0, 0.14);
+  opacity: 0.75;
+  cursor: pointer;
+}
+.joster .attribute-table.heatmap .heatmap-cell .heatmap-xp-badge:hover {
+  opacity: 1;
+}
+.joster .attribute-table.heatmap .heatmap-cell .heatmap-xp-badge.ready {
+  background: #1f6b3a;
+  color: #e9ffea;
+  opacity: 1;
 }
 .joster .attribute-table.heatmap .heatmap-cell .heatmap-delta {
   position: absolute;
@@ -779,6 +904,13 @@
 .joster .skill-advance-button:hover {
   background: rgba(181, 179, 164, 0.3);
   color: #191813;
+}
+.joster .skill-advance-button.ready {
+  color: #1f6b3a;
+}
+.joster .skill-advance-button.ready:hover {
+  background: rgba(31, 107, 58, 0.15);
+  color: #1f6b3a;
 }
 .joster .items-header {
   height: 28px;

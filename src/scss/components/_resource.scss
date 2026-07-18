@@ -114,14 +114,41 @@
       }
 
       .heatmap-warn {
-        position: absolute;
-        left: 0;
+        margin-right: 2px;
         font-size: var(--font-size-12, 12px);
       }
 
       .heatmap-cell-name {
         font-weight: 600;
         font-size: var(--font-size-12, 12px);
+      }
+
+      // Persistent XP-toward-next-rank chip, pinned to the cell's top-left
+      // (mirroring the temp-delta badge on the right). Click opens the
+      // attribute advancement dialog; it turns green once the next rank is
+      // affordable.
+      .heatmap-xp-badge {
+        position: absolute;
+        left: 0;
+        border-radius: 999px;
+        padding: 1px 6px;
+        font-size: var(--font-size-10, 10px);
+        font-variant-numeric: tabular-nums;
+        font-weight: bold;
+        color: inherit;
+        background: rgba($c-black, 0.14);
+        opacity: 0.75;
+        cursor: pointer;
+
+        &:hover {
+          opacity: 1;
+        }
+
+        &.ready {
+          background: #1f6b3a;
+          color: #e9ffea;
+          opacity: 1;
+        }
       }
 
       .heatmap-delta {
@@ -395,5 +422,15 @@
   &:hover {
     background: rgba($c-beige, 0.3);
     color: $c-dark;
+  }
+
+  // Lit up once the skill has banked enough XP to buy its next rank.
+  &.ready {
+    color: #1f6b3a;
+
+    &:hover {
+      background: rgba(#1f6b3a, 0.15);
+      color: #1f6b3a;
+    }
   }
 }

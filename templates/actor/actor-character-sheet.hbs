@@ -139,10 +139,8 @@
               {{#each row.cells as |cell|}}
               <td class="heatmap-cell{{#if cell.isPeak}} heatmap-peak{{/if}}{{#if cell.isCritical}} heatmap-critical{{/if}}" style="background:{{cell.cellBg}}; color:{{cell.textColor}}; border-color:{{cell.critBorder}};" title="{{cell.hint}}">
                 <div class="heatmap-cell-top">
-                  {{#if cell.isCritical}}
-                  <span class="heatmap-warn" title="{{localize 'JOSTER.AttributeCritical'}}">⚠</span>
-                  {{/if}}
-                  <span class="heatmap-cell-name" data-key="{{cell.key}}">{{cell.label}}</span>
+                  <a class="heatmap-xp-badge{{#if cell.xpReady}} ready{{/if}}" data-key="{{cell.key}}" title="{{localize 'JOSTER.AttributeAdvanceHint'}}">{{cell.xp}}/{{cell.xpCost}}</a>
+                  <span class="heatmap-cell-name" data-key="{{cell.key}}">{{#if cell.isCritical}}<span class="heatmap-warn" title="{{localize 'JOSTER.AttributeCritical'}}">⚠</span>{{/if}}{{cell.label}}</span>
                   {{#if cell.hasDelta}}
                   <a class="heatmap-delta" data-key="{{cell.key}}" title="{{localize 'JOSTER.ResetTemp'}}" style="background:{{cell.deltaBg}}; color:{{cell.deltaText}};">{{cell.deltaLabel}}</a>
                   {{/if}}
@@ -186,9 +184,9 @@
                 <span class="skill-info rollable" data-roll-type="skill" data-skill="{{skill.key}}" data-ability="{{skill.attribute}}" data-label="{{skill.label}}" title="{{localize 'JOSTER.RollSkill'}}: {{skill.label}}">
                   <span class="skill-name">{{skill.label}}</span>
                   <span class="skill-level">{{skill.rank}}</span>
-                  <span class="skill-xp">{{skill.xp}}xp</span>
+                  <span class="skill-xp">{{skill.xp}}/{{skill.xpCost}}</span>
                 </span>
-                <a class="skill-advance-button" data-skill="{{skill.key}}" title="{{localize 'JOSTER.SkillAdvance'}}">
+                <a class="skill-advance-button{{#if skill.xpReady}} ready{{/if}}" data-skill="{{skill.key}}" title="{{localize 'JOSTER.SkillAdvance'}}">
                   <i class="fas fa-arrow-up"></i>
                 </a>
               </li>

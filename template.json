@@ -14,51 +14,63 @@
       "abilities": {
         "str": {
           "base": 4,
-          "value": 4
+          "value": 4,
+          "xp": 0
         },
         "dex": {
           "base": 4,
-          "value": 4
+          "value": 4,
+          "xp": 0
         },
         "fin": {
           "base": 4,
-          "value": 4
+          "value": 4,
+          "xp": 0
         },
         "per": {
           "base": 4,
-          "value": 4
+          "value": 4,
+          "xp": 0
         },
         "aut": {
           "base": 4,
-          "value": 4
+          "value": 4,
+          "xp": 0
         },
         "cha": {
           "base": 4,
-          "value": 4
+          "value": 4,
+          "xp": 0
         },
         "man": {
           "base": 4,
-          "value": 4
+          "value": 4,
+          "xp": 0
         },
         "emp": {
           "base": 4,
-          "value": 4
+          "value": 4,
+          "xp": 0
         },
         "wil": {
           "base": 4,
-          "value": 4
+          "value": 4,
+          "xp": 0
         },
         "int": {
           "base": 4,
-          "value": 4
+          "value": 4,
+          "xp": 0
         },
         "wis": {
           "base": 4,
-          "value": 4
+          "value": 4,
+          "xp": 0
         },
         "inv": {
           "base": 4,
-          "value": 4
+          "value": 4,
+          "xp": 0
         }
       },
       "skills": {

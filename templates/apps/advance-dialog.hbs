@@ -1,0 +1,49 @@
+<form class="joster-advance-dialog flexcol">
+
+  {{!-- Progress toward the next rank: current rank -> next, XP over the cost
+  of that step, and a bar. At max rank the bar is full and the cost line is
+  replaced by a "maxed out" note. --}}
+  <div class="advance-progress">
+    <div class="advance-progress-head flexrow">
+      {{#if atMax}}
+      <span class="advance-rank">{{localize "JOSTER.AdvanceMaxRank"}}</span>
+      {{else}}
+      <span class="advance-rank">{{localize "JOSTER.SkillRankLabel"}} {{rank}} <i class="fas fa-arrow-right"></i> {{nextRank}}</span>
+      <span class="advance-xp-count">{{xp}}/{{cost}} xp</span>
+      {{/if}}
+    </div>
+    <div class="advance-bar">
+      <div class="advance-bar-fill{{#if canBuy}} ready{{/if}}" style="width: {{percent}}%;"></div>
+    </div>
+  </div>
+
+  {{!-- Guided actions: spend/refund one XP, or buy the next rank (only enabled
+  once enough XP is banked; buying resets XP to zero per the rules). --}}
+  <div class="advance-actions flexrow">
+    <button type="button" class="advance-action" data-action="xp-dec" title="{{localize 'JOSTER.AdvanceXpDecHint'}}">−1 xp</button>
+    <button type="button" class="advance-action" data-action="xp-inc" title="{{localize 'JOSTER.AdvanceXpIncHint'}}">+1 xp</button>
+    <button type="button" class="advance-action advance-buy" data-action="buy" {{#unless canBuy}}disabled{{/unless}} title="{{localize 'JOSTER.AdvanceBuyHint'}}">
+      <i class="fas fa-arrow-up"></i> {{localize "JOSTER.AdvanceBuy"}}{{#unless atMax}} ({{cost}}){{/unless}}
+    </button>
+  </div>
+
+  {{!-- Manual correction: rank and XP are directly editable to fix mistakes;
+  saving persists whatever is in these fields. --}}
+  <div class="advance-correction">
+    <p class="advance-correction-label">{{localize "JOSTER.AdvanceCorrection"}}</p>
+    <div class="flexrow">
+      <div class="form-group">
+        <label>{{localize "JOSTER.SkillRankLabel"}}</label>
+        <input type="number" name="rank" value="{{rank}}" min="0" max="10"/>
+      </div>
+      <div class="form-group">
+        <label>{{localize "JOSTER.SkillXpLabel"}}</label>
+        <input type="number" name="xp" value="{{xp}}" min="0"/>
+      </div>
+    </div>
+  </div>
+
+  <footer class="sheet-footer flexrow">
+    <button type="submit"><i class="fas fa-check"></i> {{localize "JOSTER.SkillAdvanceSubmit"}}</button>
+  </footer>
+</form>

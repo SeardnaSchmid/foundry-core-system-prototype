@@ -4,7 +4,7 @@ import {
 } from '../helpers/effects.mjs';
 import { colorForValue } from '../helpers/heatmap.mjs';
 import { JosterRollDialog } from '../apps/roll-dialog.mjs';
-import { JosterSkillAdvanceDialog } from '../apps/skill-advance-dialog.mjs';
+import { JosterAdvanceDialog } from '../apps/advance-dialog.mjs';
 import { JOSTER_ADVANTAGE, rollJoster } from '../helpers/dice.mjs';
 
 // Value ranges from the "Attribut-Heatmap" spec: Basiswert (base) is the
@@ -150,9 +150,16 @@ export class JosterActorSheet extends ActorSheet {
           const ability = abilities[key];
           const baseValue = ability?.base ?? 0;
           const tempValue = ability?.value ?? 0;
+          const xp = ability?.xp ?? 0;
           const delta = tempValue - baseValue;
           const isCritical = tempValue === 0;
           const dc = colorForValue(baseValue);
+
+          // XP progress toward the next base rank: advancing to rank N costs
+          // N*N XP; the badge turns "ready" once enough is banked (and the
+          // attribute isn't already at the cap).
+          const xpCost = (baseValue + 1) ** 2;
+          const xpReady = baseValue < BASE_MAX && xp >= xpCost;
 
           // Zero cells swap their tooltip for the attribute's specific
           // in-fiction consequence (e.g. "FIN 0: keine Handaktionen")
@@ -168,6 +175,9 @@ export class JosterActorSheet extends ActorSheet {
             hint: isCritical ? zeroHint : game.i18n.localize(labelKey.replace('.long', '.hint')),
             tempValue,
             baseValue,
+            xp,
+            xpCost,
+            xpReady,
             tempHint: game.i18n.localize('JOSTER.AttributeCurrent'),
             baseHint: game.i18n.localize('JOSTER.AttributeBase'),
             cellBg: isCritical ? '#3D1418' : dc.bg,
@@ -208,20 +218,29 @@ export class JosterActorSheet extends ActorSheet {
     context.skillGroups = Object.entries(CONFIG.JOSTER.skillCategories).map(([catKey, catLabelKey]) => {
       const groupSkills = Object.entries(CONFIG.JOSTER.skills)
         .filter(([, skill]) => skill.category === catKey)
-        .map(([key, skill]) => ({
-          key,
-          label: game.i18n.localize(skill.label),
-          // Kept only to preselect the roll dialog's attribute; the system
-          // doesn't bind a skill to one fixed attribute, so it's no longer
-          // shown in the row itself (see JosterRollDialog's attribute chips).
-          // Prefers whatever attribute this actor last rolled this skill
-          // against, falling back to the skill's configured default until
-          // it's ever been rolled.
-          attribute: skills[key]?.lastAttribute || skill.attribute,
-          rank: skills[key]?.value ?? 0,
-          xp: skills[key]?.xp ?? 0,
-          starter: skill.starter ?? false,
-        }));
+        .map(([key, skill]) => {
+          const rank = skills[key]?.value ?? 0;
+          const xp = skills[key]?.xp ?? 0;
+          // XP progress toward the next rank: advancing to rank N costs 3*N XP;
+          // "ready" flags the advance arrow green once the step is affordable.
+          const xpCost = 3 * (rank + 1);
+          return {
+            key,
+            label: game.i18n.localize(skill.label),
+            // Kept only to preselect the roll dialog's attribute; the system
+            // doesn't bind a skill to one fixed attribute, so it's no longer
+            // shown in the row itself (see JosterRollDialog's attribute chips).
+            // Prefers whatever attribute this actor last rolled this skill
+            // against, falling back to the skill's configured default until
+            // it's ever been rolled.
+            attribute: skills[key]?.lastAttribute || skill.attribute,
+            rank,
+            xp,
+            xpCost,
+            xpReady: rank < 10 && xp >= xpCost,
+            starter: skill.starter ?? false,
+          };
+        });
       return {
         key: catKey,
         label: game.i18n.localize(catLabelKey),
@@ -344,11 +363,27 @@ export class JosterActorSheet extends ActorSheet {
       const key = ev.currentTarget.dataset.skill;
       const skillConfig = CONFIG.JOSTER.skills[key];
       const skill = this.actor.system.skills?.[key] ?? {};
-      new JosterSkillAdvanceDialog(this.actor, {
+      new JosterAdvanceDialog(this.actor, {
+        type: 'skill',
         key,
         label: game.i18n.localize(skillConfig?.label ?? key),
         rank: skill.value ?? 0,
         xp: skill.xp ?? 0,
+      }).render(true);
+    });
+
+    // Open the attribute advancement dialog from the heatmap cell's XP badge.
+    html.on('click', '.heatmap-xp-badge', (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      const key = ev.currentTarget.dataset.key;
+      const ability = this.actor.system.abilities?.[key] ?? {};
+      new JosterAdvanceDialog(this.actor, {
+        type: 'attribute',
+        key,
+        label: game.i18n.localize(CONFIG.JOSTER.abilities[key] ?? key),
+        rank: ability.base ?? 0,
+        xp: ability.xp ?? 0,
       }).render(true);
     });
 

@@ -285,3 +285,134 @@
     padding: 0 8px;
   }
 }
+
+// Attribute/skill advancement dialog: a progress line toward the next rank,
+// guided XP/buy actions, and a manual correction block.
+.joster-advance-dialog {
+  gap: 10px;
+  padding: 6px 4px 4px;
+
+  .advance-progress-head {
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 5px;
+    font-size: var(--font-size-12, 12px);
+  }
+
+  .advance-rank {
+    font-weight: bold;
+
+    .fas {
+      margin: 0 2px;
+      font-size: var(--font-size-10, 10px);
+      opacity: 0.6;
+    }
+  }
+
+  .advance-xp-count {
+    font-variant-numeric: tabular-nums;
+    color: $c-tan;
+  }
+
+  .advance-bar {
+    height: 5px;
+    border-radius: 999px;
+    background: rgba($c-beige, 0.35);
+    border: 1px solid rgba($c-beige, 0.5);
+    overflow: hidden;
+  }
+
+  .advance-bar-fill {
+    height: 100%;
+    background: $c-tan;
+    transition: width 0.15s ease;
+
+    &.ready {
+      background: #1f6b3a;
+    }
+  }
+
+  // Buttons override Core's default (tall, heavily padded) button chrome
+  // with a compact, evenly sized row that matches the sheet's tighter scale.
+  .advance-actions {
+    gap: 6px;
+    align-items: stretch;
+
+    .advance-action {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      height: 26px;
+      margin: 0;
+      padding: 0 6px;
+      line-height: 1;
+      font-size: var(--font-size-11, 11px);
+    }
+
+    .advance-buy {
+      flex: 1.5;
+
+      &:not(:disabled) {
+        border-color: #1f6b3a;
+        color: #1f6b3a;
+      }
+
+      &:not(:disabled):hover {
+        background: rgba(#1f6b3a, 0.12);
+      }
+
+      &:disabled {
+        opacity: 0.5;
+      }
+    }
+  }
+
+  .advance-correction {
+    padding-top: 8px;
+    border-top: 1px solid rgba($c-beige, 0.5);
+  }
+
+  .advance-correction-label {
+    margin: 0 0 5px;
+    font-size: var(--font-size-10, 10px);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: $c-tan;
+  }
+
+  .advance-correction .flexrow {
+    gap: 8px;
+  }
+
+  .advance-correction .form-group {
+    flex: 1;
+    margin: 0;
+
+    label {
+      display: block;
+      margin-bottom: 2px;
+      font-size: var(--font-size-10, 10px);
+      color: $c-tan;
+    }
+
+    input {
+      width: 100%;
+      height: 26px;
+      margin: 0;
+      text-align: center;
+    }
+  }
+
+  .sheet-footer {
+    margin-top: 2px;
+
+    button {
+      height: 28px;
+      margin: 0;
+      line-height: 1;
+      font-size: var(--font-size-12, 12px);
+    }
+  }
+}
