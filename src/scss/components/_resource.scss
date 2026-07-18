@@ -113,8 +113,13 @@
         min-height: 16px;
       }
 
-      .heatmap-warn {
-        margin-right: 2px;
+      // Standalone warning badge (top-left), only shown for the rare case of
+      // a critical cell without a temp/base delta. Normally the warning is
+      // folded into .heatmap-delta instead — see below.
+      .heatmap-warn-badge {
+        position: absolute;
+        top: 0;
+        left: 0;
         font-size: var(--font-size-12, 12px);
       }
 
@@ -123,13 +128,53 @@
         font-size: var(--font-size-12, 12px);
       }
 
-      // Persistent XP-toward-next-rank chip, pinned to the cell's top-left
-      // (mirroring the temp-delta badge on the right). Click opens the
-      // attribute advancement dialog; it turns green once the next rank is
-      // affordable.
+      // XP-toward-next-rank bar, full-bleed along the cell's bottom edge
+      // (negative margins cancel the cell's own padding so it touches all
+      // three outer edges). Purely a visual progress indicator — the
+      // XP badge above is the click target. The fill turns green once the
+      // next rank is affordable; track/fill colors come from the cell data
+      // (mirroring the stepper chips' light/dark adaptation) so the bar
+      // stays legible on every heatmap tone.
+      .heatmap-xp-bar {
+        display: block;
+        margin: 6px -8px -7px;
+        height: 4px;
+        border-radius: 0 0 3px 3px;
+        overflow: hidden;
+
+        &.ready .heatmap-xp-bar-fill {
+          background: #1f6b3a !important;
+        }
+      }
+
+      .heatmap-xp-bar-fill {
+        display: block;
+        height: 100%;
+        transition: width 0.15s ease;
+      }
+
+      // Temp/base delta badge, pinned to the cell's top-left corner. For a
+      // critical cell (temp = 0) it also carries the warning icon instead of
+      // showing a separate one, since that case always coincides with a
+      // delta (base is never 0).
+      .heatmap-delta {
+        position: absolute;
+        top: 0;
+        left: 0;
+        border-radius: 999px;
+        padding: 1px 6px;
+        font-weight: bold;
+        font-size: var(--font-size-10, 10px);
+        cursor: pointer;
+      }
+
+      // Persistent XP-toward-next-rank badge, pinned to the cell's top-right
+      // corner. Click opens the attribute advancement dialog; it turns green
+      // once the next rank is affordable.
       .heatmap-xp-badge {
         position: absolute;
-        left: 0;
+        top: 0;
+        right: 0;
         border-radius: 999px;
         padding: 1px 6px;
         font-size: var(--font-size-10, 10px);
@@ -149,16 +194,6 @@
           color: #e9ffea;
           opacity: 1;
         }
-      }
-
-      .heatmap-delta {
-        position: absolute;
-        right: 0;
-        border-radius: 999px;
-        padding: 1px 6px;
-        font-weight: bold;
-        font-size: var(--font-size-10, 10px);
-        cursor: pointer;
       }
 
       .heatmap-cell-values {

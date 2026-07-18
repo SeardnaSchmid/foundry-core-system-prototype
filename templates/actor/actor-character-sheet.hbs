@@ -139,18 +139,23 @@
               {{#each row.cells as |cell|}}
               <td class="heatmap-cell{{#if cell.isPeak}} heatmap-peak{{/if}}{{#if cell.isCritical}} heatmap-critical{{/if}}" style="background:{{cell.cellBg}}; color:{{cell.textColor}}; border-color:{{cell.critBorder}};" title="{{cell.hint}}">
                 <div class="heatmap-cell-top">
-                  <a class="heatmap-xp-badge{{#if cell.xpReady}} ready{{/if}}" data-key="{{cell.key}}" title="{{localize 'JOSTER.AttributeAdvanceHint'}}">{{cell.xp}}/{{cell.xpCost}}</a>
-                  <span class="heatmap-cell-name" data-key="{{cell.key}}">{{#if cell.isCritical}}<span class="heatmap-warn" title="{{localize 'JOSTER.AttributeCritical'}}">⚠</span>{{/if}}{{cell.label}}</span>
                   {{#if cell.hasDelta}}
-                  <a class="heatmap-delta" data-key="{{cell.key}}" title="{{localize 'JOSTER.ResetTemp'}}" style="background:{{cell.deltaBg}}; color:{{cell.deltaText}};">{{cell.deltaLabel}}</a>
+                  <a class="heatmap-delta" data-key="{{cell.key}}" title="{{#if cell.isCritical}}{{localize 'JOSTER.AttributeCritical'}} — {{/if}}{{localize 'JOSTER.ResetTemp'}}" style="background:{{cell.deltaBg}}; color:{{cell.deltaText}};">{{#if cell.isCritical}}⚠ {{/if}}{{cell.deltaLabel}}</a>
+                  {{else if cell.isCritical}}
+                  <span class="heatmap-warn-badge" title="{{localize 'JOSTER.AttributeCritical'}}">⚠</span>
                   {{/if}}
+                  <span class="heatmap-cell-name">{{cell.label}}</span>
+                  <a class="heatmap-xp-badge{{#if cell.xpReady}} ready{{/if}}" data-key="{{cell.key}}" title="{{cell.xp}}/{{cell.xpCost}} xp — {{localize 'JOSTER.AttributeAdvanceHint'}}">{{#if cell.xpAtMax}}{{localize "JOSTER.XpMaxBadge"}}{{else}}{{cell.xp}}/{{cell.xpCost}}{{/if}}</a>
                 </div>
                 <div class="heatmap-cell-values flexrow flex-center">
                   <a class="heatmap-stepper" data-key="{{cell.key}}" data-action="decrement" title="{{localize 'JOSTER.AttributeDecrease'}}" style="background:{{cell.stepperBg}}; border-color:{{cell.stepperBorder}}; color:{{cell.stepperColor}};">−</a>
                   <span class="heatmap-value-pair">
-                    <span class="heatmap-temp active" title="{{cell.tempHint}}">{{cell.tempValue}}</span><span class="heatmap-slash">/</span><span class="heatmap-base inactive" title="{{cell.baseHint}}">{{cell.baseValue}}</span>
+                    <span class="heatmap-temp active" title="{{cell.tempHint}}">{{cell.tempValue}}</span>{{#if cell.hasDelta}}<span class="heatmap-slash">/</span><span class="heatmap-base inactive" title="{{cell.baseHint}}">{{cell.baseValue}}</span>{{/if}}
                   </span>
                   <a class="heatmap-stepper" data-key="{{cell.key}}" data-action="increment" title="{{localize 'JOSTER.AttributeIncrease'}}" style="background:{{cell.stepperBg}}; border-color:{{cell.stepperBorder}}; color:{{cell.stepperColor}};">+</a>
+                </div>
+                <div class="heatmap-xp-bar{{#if cell.xpReady}} ready{{/if}}" style="background:{{cell.xpBarTrack}};">
+                  <span class="heatmap-xp-bar-fill" style="width:{{cell.xpPercent}}%; background:{{cell.xpBarFill}};"></span>
                 </div>
               </td>
               {{/each}}

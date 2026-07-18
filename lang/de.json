@@ -76,6 +76,7 @@
     "AdvanceXpIncHint": "Einen Erfahrungspunkt hinzufügen",
     "AdvanceXpDecHint": "Einen Erfahrungspunkt abziehen",
     "AdvanceCorrection": "Manuell korrigieren",
+    "XpMaxBadge": "MAX",
     "SkillCategory": {
       "Combat": "Kampf",
       "Maneuvers": "Manöver",

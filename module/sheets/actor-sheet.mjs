@@ -156,10 +156,12 @@ export class JosterActorSheet extends ActorSheet {
           const dc = colorForValue(baseValue);
 
           // XP progress toward the next base rank: advancing to rank N costs
-          // N*N XP; the badge turns "ready" once enough is banked (and the
-          // attribute isn't already at the cap).
+          // N*N XP; the bar fills as XP accrues and turns "ready" once enough
+          // is banked (and the attribute isn't already at the cap).
+          const xpAtMax = baseValue >= BASE_MAX;
           const xpCost = (baseValue + 1) ** 2;
-          const xpReady = baseValue < BASE_MAX && xp >= xpCost;
+          const xpReady = !xpAtMax && xp >= xpCost;
+          const xpPercent = xpAtMax ? 100 : Math.min(100, Math.round((xp / xpCost) * 100));
 
           // Zero cells swap their tooltip for the attribute's specific
           // in-fiction consequence (e.g. "FIN 0: keine Handaktionen")
@@ -178,6 +180,13 @@ export class JosterActorSheet extends ActorSheet {
             xp,
             xpCost,
             xpReady,
+            xpAtMax,
+            xpPercent,
+            // The XP bar reuses the stepper chip's adaptive colors so it stays
+            // legible whether the cell is a light/dark heatmap tone or the
+            // critical (temp = 0) red state.
+            xpBarTrack: isCritical ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)',
+            xpBarFill: isCritical ? 'rgba(255,217,220,0.6)' : 'rgba(51,45,34,0.45)',
             tempHint: game.i18n.localize('JOSTER.AttributeCurrent'),
             baseHint: game.i18n.localize('JOSTER.AttributeBase'),
             cellBg: isCritical ? '#3D1418' : dc.bg,
