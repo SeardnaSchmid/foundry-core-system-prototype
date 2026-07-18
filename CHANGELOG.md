@@ -1,5 +1,13 @@
 # Changelog
 
+# [0.16.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.15.0...v0.16.0) (2026-07-18)
+
+
+### Features
+
+* add custom skills, heatmap lab, and refine skill/XP UI ([1f6cfba](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/1f6cfbae3da4dfea0b288ac1d7b3cd856b570761))
+* add XP progress bar and rework heatmap cell badge layout ([a3a0332](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/a3a0332c371b804ce3233b2ee4f3e2e1b73ef112))
+
 # [0.15.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.14.0...v0.15.0) (2026-07-18)
 
 
