@@ -75,20 +75,11 @@
         </div>
 
         {{!-- Gesamt-XP, die bislang in Attribute und Fertigkeiten investiert
-        wurden (Summe der kumulierten Stufenkosten beider Bereiche), plus die
-        Aufschlüsselung nach Fertigkeiten und Attributen. --}}
+        wurden (Summe der kumulierten Stufenkosten beider Bereiche). --}}
         <div class="resource-group xp-total-group">
           <div class="xp-tile" title="{{localize 'JOSTER.XpTotalAllHint'}}">
             <span class="xp-tile-value">{{totalXpSpent}}xp</span>
             <label class="xp-tile-label">{{localize "JOSTER.XpTotalAll"}}</label>
-          </div>
-          <div class="xp-tile" title="{{localize 'JOSTER.XpTotalAttributesHint'}}">
-            <span class="xp-tile-value xp-tile-value-split">{{attributeGrid.totalValue}}pt | {{attributeGrid.totalXp}}xp</span>
-            <label class="xp-tile-label">{{localize "JOSTER.XpTotalAttributes"}}</label>
-          </div>
-          <div class="xp-tile" title="{{localize 'JOSTER.XpTotalSkillsHint'}}">
-            <span class="xp-tile-value xp-tile-value-split">{{skillRankTotal}}pt | {{skillXpTotal}}xp</span>
-            <label class="xp-tile-label">{{localize "JOSTER.XpTotalSkills"}}</label>
           </div>
         </div>
 
@@ -117,7 +108,7 @@
         backgrounds are color-graded relative to the character's own values,
         ported from the "Attribut-Heatmap" prototype. --}}
         <div class="attributes-header flexrow">
-          <h3 class="attributes-title">{{localize "JOSTER.AttributesTitle"}} <span class="xp-badge">{{attributeGrid.totalValue}}pt | {{attributeGrid.totalXp}}xp</span></h3>
+          <h3 class="attributes-title">{{localize "JOSTER.AttributesTitle"}} <span class="xp-badge" title="{{localize 'JOSTER.XpTotalAttributesHint'}}">{{attributeGrid.totalValue}}pt | {{attributeGrid.totalXp}}xp</span></h3>
           <a class="heatmap-lab-btn" title="{{localize 'JOSTER.Settings.HeatmapPreset.Name'}}"><i class="fa-solid fa-palette"></i></a>
         </div>
         <table class="attribute-table heatmap">
@@ -168,7 +159,7 @@
         {{!-- Skills, grouped by category. Each skill rolls with its linked
         attribute; the rank is added as the roll dialog's starting bonus. --}}
         <div class="skills-header flexrow">
-          <h3 class="skills-title">{{localize "JOSTER.SkillsTitle"}} <span class="xp-badge">{{skillRankTotal}}pt | {{skillXpTotal}}xp</span></h3>
+          <h3 class="skills-title">{{localize "JOSTER.SkillsTitle"}} <span class="xp-badge" title="{{localize 'JOSTER.XpTotalSkillsHint'}}">{{skillRankTotal}}pt | {{skillXpTotal}}xp</span></h3>
           <input type="text" class="skill-search-input" value="{{skillSearch}}" placeholder="{{localize 'JOSTER.SkillSearchPlaceholder'}}" title="{{localize 'JOSTER.SkillSearchHint'}}" />
           <div class="skill-filter-group">
             <a class="skill-filter-btn {{#ifEquals skillFilter 'trained'}}active{{/ifEquals}}" data-filter="trained" title="{{localize 'JOSTER.SkillFilterTrainedHint'}}">{{localize "JOSTER.SkillFilterTrained"}}</a>
@@ -191,7 +182,7 @@
             {{#if group.skills.length}}
             <ul class="skill-list">
               {{#each group.skills as |skill|}}
-              <li class="skill-row" data-rank="{{skill.rank}}" data-starter="{{skill.starter}}" data-custom="{{skill.custom}}">
+              <li class="skill-row" data-rank="{{skill.rank}}" data-xp="{{skill.xp}}" data-starter="{{skill.starter}}" data-custom="{{skill.custom}}">
                 <span class="skill-info rollable" data-roll-type="skill" data-skill="{{skill.key}}" data-ability="{{skill.attribute}}" data-label="{{skill.label}}" title="{{#if skill.custom}}{{localize 'JOSTER.CustomSkill.ShiftClickHint'}}{{else}}{{localize 'JOSTER.RollSkill'}}: {{skill.label}}{{/if}}">
                   <span class="skill-name">
                     <span class="skill-name-text">{{skill.label}}</span>
@@ -200,7 +191,7 @@
                     {{/if}}
                   </span>
                   <span class="skill-level">{{skill.rank}}</span>
-                  <span class="skill-xp">{{skill.xp}}/{{skill.xpCost}}</span>
+                  <span class="skill-xp{{#if skill.xpReady}} ready{{/if}}">{{skill.xp}}/{{skill.xpCost}}</span>
                 </span>
                 <a class="skill-advance-button{{#if skill.xpReady}} ready{{/if}}" data-skill="{{skill.key}}" title="{{localize 'JOSTER.SkillAdvance'}}">
                   <i class="fas fa-arrow-up"></i>

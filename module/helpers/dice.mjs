@@ -227,6 +227,9 @@ export async function rollJosterBase({ advantage = JOSTER_ADVANTAGE.none, flavor
     advantage,
     flavor: flavor || game.i18n.localize('JOSTER.Roll.BaseDiceFlavor'),
     actor,
+    // Not a skill+attribute check — a landed critical failure here must not
+    // offer the "Problem lösen" edge pool (see problem-solving-prd.md).
+    extraFlags: { edgeExempt: true },
   });
 }
 

@@ -943,6 +943,7 @@
 .joster .skill-group {
   flex: 1 1 220px;
   min-width: 180px;
+  max-width: 300px;
   border: 1px solid #b5b3a4;
   border-radius: 3px;
   padding: 3px 5px;
@@ -1051,6 +1052,10 @@
   font-variant-numeric: tabular-nums;
   text-align: right;
   color: #444;
+}
+.joster .skill-xp.ready {
+  color: #1f6b3a;
+  font-weight: bold;
 }
 .joster .skill-advance-button {
   flex: none;

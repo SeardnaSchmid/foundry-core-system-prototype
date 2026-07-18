@@ -519,12 +519,13 @@ export class JosterActorSheet extends ActorSheet {
 
   /**
    * Show/hide skill rows per the current skill list filter ("trained" shows
-   * only rank > 0, "starter" shows only skills selectable at character
-   * creation, "all" shows everything) and the fuzzy search box. While a
-   * search term is entered, it takes priority over the category filter so
-   * any matching skill can be found regardless of trained/starter state.
-   * Custom skills always count as "trained" regardless of rank, so a
-   * freshly added rank-0 custom skill doesn't immediately vanish from view.
+   * only rank > 0 or with xp already banked toward the next rank, "starter"
+   * shows only skills selectable at character creation, "all" shows
+   * everything) and the fuzzy search box. While a search term is entered, it
+   * takes priority over the category filter so any matching skill can be
+   * found regardless of trained/starter state. Custom skills always count as
+   * "trained" regardless of rank, so a freshly added rank-0 custom skill
+   * doesn't immediately vanish from view.
    * Groups with no visible rows are hidden too, unless they have no skills
    * defined at all (those keep their "SkillCategoryEmptyHint" placeholder
    * regardless of filter).
@@ -540,12 +541,13 @@ export class JosterActorSheet extends ActorSheet {
       let anyVisible = false;
       $rows.each((_j, rowEl) => {
         const rank = Number(rowEl.dataset.rank) || 0;
+        const xp = Number(rowEl.dataset.xp) || 0;
         const starter = rowEl.dataset.starter === 'true';
         const custom = rowEl.dataset.custom === 'true';
         const visible = search
           ? fuzzyMatch(search, rowEl.querySelector('.skill-name-text')?.textContent ?? '')
           : filter === 'all' ||
-            (filter === 'trained' && (rank !== 0 || custom)) ||
+            (filter === 'trained' && (rank !== 0 || custom || xp !== 0)) ||
             (filter === 'starter' && starter);
         rowEl.style.display = visible ? '' : 'none';
         if (visible) anyVisible = true;
@@ -646,14 +648,20 @@ export class JosterActorSheet extends ActorSheet {
         }).render(true);
       }
 
-      // Sixth Sense: a standard 3d20 roll against the derived value itself,
-      // via the regular roll dialog in "fixed" mode, since it's not linked
-      // to any attribute or skill.
+      // Sixth Sense: a plain standard 3d20 roll against the derived value
+      // itself, with no dialog — no modifier, no advantage/disadvantage,
+      // and no "Idee haben" pre-edge, since it's an instinctive reaction
+      // rather than a deliberate check.
       if (dataset.rollType == 'sixthSense') {
-        return new JosterRollDialog(this.actor, {
-          fixedValue: { label: dataset.label, value: this.actor.system.derived?.sixthSense ?? 0 },
+        return rollJoster({
+          threshold: this.actor.system.derived?.sixthSense ?? 0,
+          advantage: JOSTER_ADVANTAGE.none,
           flavor: dataset.label,
-        }).render(true);
+          actor: this.actor,
+          // Not a skill+attribute check, so the "Problem lösen" edge pool
+          // can't be spent on it (see problem-solving-prd.md).
+          extraFlags: { edgeExempt: true },
+        });
       }
 
       // Fehler Analysieren: a standard 3d20 roll against the derived value,

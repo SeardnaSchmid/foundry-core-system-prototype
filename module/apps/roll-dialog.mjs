@@ -285,6 +285,10 @@ export class JosterRollDialog extends FormApplication {
       actor: this.actor,
       components,
       bonus: Number(formData.bonus) || 0,
+      // The "Problem lösen" edge pool may only be spent on a regular
+      // skill+attribute check — not on a bare attribute roll, a free-typed
+      // skill value, or a fixed-value roll (see problem-solving-prd.md).
+      extraFlags: { edgeExempt: !this.skill },
     });
   }
 }

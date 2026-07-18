@@ -352,8 +352,14 @@
 }
 
 .skill-group {
+  // Capped so a group with few/short skill names doesn't stretch across
+  // the whole row just because it's alone on its flex-wrap line. 300px
+  // fits the 80th-percentile skill name (~31 characters) plus the fixed
+  // row chrome (level/xp/advance button); longer names ellipsize via
+  // .skill-name-text's text-overflow instead of forcing extra width.
   flex: 1 1 220px;
   min-width: 180px;
+  max-width: 300px;
   border: 1px solid $c-beige;
   border-radius: 3px;
   padding: 3px 5px;
@@ -478,6 +484,13 @@
   font-variant-numeric: tabular-nums;
   text-align: right;
   color: $c-tan;
+
+  // Lit up once the skill has banked enough XP to buy its next rank,
+  // matching the .heatmap-xp-badge/.skill-advance-button "ready" green.
+  &.ready {
+    color: #1f6b3a;
+    font-weight: bold;
+  }
 }
 
 .skill-advance-button {
