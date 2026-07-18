@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.15.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.14.0...v0.15.0) (2026-07-18)
+
+
+### Features
+
+* add unified XP advancement workflow for attributes and skills ([640cef5](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/640cef5bdf5a5056e73e578939755b3302083ba7))
+
 # [0.14.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.13.0...v0.14.0) (2026-07-18)
 
 
