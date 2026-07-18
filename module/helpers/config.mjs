@@ -88,8 +88,10 @@ JOSTER.skillCategories = {
 };
 
 /**
- * The set of Skills used within the system. Each skill is linked to the
- * Attribute it's rolled with; `category` groups it under JOSTER.skillCategories.
+ * The set of Skills used within the system. `attribute` is only the
+ * suggested pairing preselected when rolling this skill — any attribute can
+ * be swapped in via the roll dialog's chip picker, since a skill is never
+ * bound to one fixed attribute. `category` groups it under JOSTER.skillCategories.
  * @type {Object}
  */
 JOSTER.skills = {

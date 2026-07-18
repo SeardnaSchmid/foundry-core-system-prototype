@@ -13,12 +13,12 @@ const FREE_SKILL_MAX = 10;
 /**
  * A small dialog for building a Joster roll. In "skill" mode the skill rank
  * is a fixed threshold component (set by whatever opened the dialog) while
- * the linked attribute is preselected but can be swapped via a chip picker,
- * since the system doesn't bind a skill to one fixed attribute; in "ability"
+ * its suggested attribute is preselected but can be swapped via a chip
+ * picker, since a skill is never bound to one fixed attribute; in "ability"
  * mode the player picks one or two attributes themselves; in "free" mode
  * the player picks one attribute and types in an arbitrary skill value not
  * tied to any defined skill; in "fixed" mode the threshold is a single
- * fixed value (e.g. a derived value) with no attribute or skill linked at
+ * fixed value (e.g. a derived value) with no attribute or skill involved at
  * all. Either way, the player also picks an advantage/disadvantage level,
  * then rolls.
  * @extends {FormApplication}
@@ -183,8 +183,9 @@ export class JosterRollDialog extends FormApplication {
       html.find('.joster-threshold-value').text(this._computeThreshold(data));
     });
 
-    // Skill mode: the linked attribute is picked from a chip grid instead of
-    // a select, so the player sees every attribute's value at once.
+    // Skill mode: the suggested attribute is picked from a chip grid instead
+    // of a select, so the player sees every attribute's value at once and
+    // can freely swap to any other one.
     html.on('click', '.joster-attribute-chip', (ev) => {
       ev.preventDefault();
       const chip = ev.currentTarget;

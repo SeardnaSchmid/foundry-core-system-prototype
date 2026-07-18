@@ -12,9 +12,13 @@
   margin-bottom: 10px;
 
   .profile-img {
-    flex: 0 0 100px;
-    height: 100px;
+    flex: 0 0 120px;
+    width: 120px;
+    height: 160px;
     margin-right: 10px;
+    object-fit: cover;
+    object-position: top center;
+    border-radius: 4px;
   }
 
   .header-fields {
@@ -414,5 +418,138 @@
       line-height: 1;
       font-size: var(--font-size-12, 12px);
     }
+  }
+}
+
+// Heatmap gradient editor: quick-preset row, three color stops, a midpoint
+// slider, two per-segment curve sliders, a live 1-10 preview strip that
+// mirrors the character sheet's own grading function, and the dedicated
+// "critical" color swatch.
+.joster-heatmap-lab {
+  gap: 10px;
+  padding: 6px 4px 4px;
+
+  .heatmap-lab-presets {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .heatmap-lab-preset-btn {
+    flex: 1 1 auto;
+    height: 24px;
+    margin: 0;
+    padding: 0 8px;
+    line-height: 1;
+    font-size: var(--font-size-10, 10px);
+  }
+
+  .heatmap-lab-stops {
+    gap: 8px;
+
+    .form-group {
+      flex: 1;
+      margin: 0;
+      text-align: center;
+
+      label {
+        display: block;
+        margin-bottom: 2px;
+        font-size: var(--font-size-10, 10px);
+        color: $c-tan;
+      }
+
+      input[type='color'] {
+        width: 100%;
+        height: 30px;
+        padding: 2px;
+      }
+    }
+  }
+
+  .heatmap-lab-curves {
+    gap: 8px;
+
+    .heatmap-lab-curve {
+      flex: 1;
+      margin: 0;
+    }
+  }
+
+  .heatmap-lab-curve,
+  .heatmap-lab-midpoint {
+    margin: 0;
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 3px;
+      font-size: var(--font-size-10, 10px);
+      color: $c-tan;
+    }
+
+    span {
+      font-variant-numeric: tabular-nums;
+      color: $c-dark;
+    }
+
+    input[type='range'] {
+      width: 100%;
+      margin: 0;
+    }
+  }
+
+  .heatmap-lab-preview {
+    gap: 2px;
+
+    .heatmap-lab-swatch {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 26px;
+      border-radius: 3px;
+      font-size: var(--font-size-10, 10px);
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  .heatmap-lab-critical {
+    margin: 0;
+
+    label {
+      display: block;
+      margin-bottom: 2px;
+      font-size: var(--font-size-10, 10px);
+      color: $c-tan;
+    }
+
+    .heatmap-lab-critical-row {
+      gap: 8px;
+      align-items: center;
+    }
+
+    input[type='color'] {
+      flex: 1;
+      height: 30px;
+      padding: 2px;
+    }
+
+    .heatmap-lab-critical-swatch {
+      flex: 0 0 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 26px;
+      border-radius: 3px;
+      font-size: var(--font-size-10, 10px);
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  .heatmap-lab-hint {
+    margin: 0;
+    font-size: var(--font-size-10, 10px);
+    color: $c-tan;
+    text-align: center;
   }
 }

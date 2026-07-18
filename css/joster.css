@@ -217,9 +217,13 @@
   margin-bottom: 10px;
 }
 .joster .sheet-header .profile-img {
-  flex: 0 0 100px;
-  height: 100px;
+  flex: 0 0 120px;
+  width: 120px;
+  height: 160px;
   margin-right: 10px;
+  object-fit: cover;
+  object-position: top center;
+  border-radius: 4px;
 }
 .joster .sheet-header .header-fields {
   flex: 1;
@@ -548,6 +552,117 @@
   line-height: 1;
   font-size: var(--font-size-12, 12px);
 }
+.joster .joster-heatmap-lab {
+  gap: 10px;
+  padding: 6px 4px 4px;
+}
+.joster .joster-heatmap-lab .heatmap-lab-presets {
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.joster .joster-heatmap-lab .heatmap-lab-preset-btn {
+  flex: 1 1 auto;
+  height: 24px;
+  margin: 0;
+  padding: 0 8px;
+  line-height: 1;
+  font-size: var(--font-size-10, 10px);
+}
+.joster .joster-heatmap-lab .heatmap-lab-stops {
+  gap: 8px;
+}
+.joster .joster-heatmap-lab .heatmap-lab-stops .form-group {
+  flex: 1;
+  margin: 0;
+  text-align: center;
+}
+.joster .joster-heatmap-lab .heatmap-lab-stops .form-group label {
+  display: block;
+  margin-bottom: 2px;
+  font-size: var(--font-size-10, 10px);
+  color: #444;
+}
+.joster .joster-heatmap-lab .heatmap-lab-stops .form-group input[type=color] {
+  width: 100%;
+  height: 30px;
+  padding: 2px;
+}
+.joster .joster-heatmap-lab .heatmap-lab-curves {
+  gap: 8px;
+}
+.joster .joster-heatmap-lab .heatmap-lab-curves .heatmap-lab-curve {
+  flex: 1;
+  margin: 0;
+}
+.joster .joster-heatmap-lab .heatmap-lab-curve,
+.joster .joster-heatmap-lab .heatmap-lab-midpoint {
+  margin: 0;
+}
+.joster .joster-heatmap-lab .heatmap-lab-curve label,
+.joster .joster-heatmap-lab .heatmap-lab-midpoint label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 3px;
+  font-size: var(--font-size-10, 10px);
+  color: #444;
+}
+.joster .joster-heatmap-lab .heatmap-lab-curve span,
+.joster .joster-heatmap-lab .heatmap-lab-midpoint span {
+  font-variant-numeric: tabular-nums;
+  color: #191813;
+}
+.joster .joster-heatmap-lab .heatmap-lab-curve input[type=range],
+.joster .joster-heatmap-lab .heatmap-lab-midpoint input[type=range] {
+  width: 100%;
+  margin: 0;
+}
+.joster .joster-heatmap-lab .heatmap-lab-preview {
+  gap: 2px;
+}
+.joster .joster-heatmap-lab .heatmap-lab-preview .heatmap-lab-swatch {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  border-radius: 3px;
+  font-size: var(--font-size-10, 10px);
+  font-variant-numeric: tabular-nums;
+}
+.joster .joster-heatmap-lab .heatmap-lab-critical {
+  margin: 0;
+}
+.joster .joster-heatmap-lab .heatmap-lab-critical label {
+  display: block;
+  margin-bottom: 2px;
+  font-size: var(--font-size-10, 10px);
+  color: #444;
+}
+.joster .joster-heatmap-lab .heatmap-lab-critical .heatmap-lab-critical-row {
+  gap: 8px;
+  align-items: center;
+}
+.joster .joster-heatmap-lab .heatmap-lab-critical input[type=color] {
+  flex: 1;
+  height: 30px;
+  padding: 2px;
+}
+.joster .joster-heatmap-lab .heatmap-lab-critical .heatmap-lab-critical-swatch {
+  flex: 0 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  border-radius: 3px;
+  font-size: var(--font-size-10, 10px);
+  font-variant-numeric: tabular-nums;
+}
+.joster .joster-heatmap-lab .heatmap-lab-hint {
+  margin: 0;
+  font-size: var(--font-size-10, 10px);
+  color: #444;
+  text-align: center;
+}
 .joster .resource-label {
   font-weight: bold;
 }
@@ -767,6 +882,16 @@
   text-transform: none;
   vertical-align: middle;
 }
+.joster .heatmap-lab-btn {
+  flex: 0 0 auto;
+  color: #b5b3a4;
+  opacity: 0.6;
+  cursor: pointer;
+}
+.joster .heatmap-lab-btn:hover {
+  opacity: 1;
+  color: #c9c7b8;
+}
 .joster .skill-search-input {
   flex: 0 0 120px;
   width: 120px;
@@ -825,7 +950,6 @@
 .joster .skill-group-title {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 6px;
   margin: 0 0 3px;
   padding-bottom: 2px;
@@ -882,11 +1006,31 @@
   background: rgba(0, 0, 0, 0.08);
 }
 .joster .skill-name {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.joster .skill-name-text {
   font-size: var(--font-size-11, 11px);
   line-height: 1.3;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.joster .skill-custom-badge {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  border-radius: 3px;
+  font-size: var(--font-size-9, 9px);
+  font-weight: bold;
+  color: #191813;
+  background: rgba(68, 68, 68, 0.35);
 }
 .joster .skill-level {
   flex: none;
@@ -930,6 +1074,96 @@
 .joster .skill-advance-button.ready:hover {
   background: rgba(31, 107, 58, 0.15);
   color: #1f6b3a;
+}
+.joster .skill-create-button {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  font-size: var(--font-size-9, 9px);
+  color: #444;
+  cursor: pointer;
+  margin-left: auto;
+}
+.joster .skill-create-button:hover {
+  background: rgba(181, 179, 164, 0.3);
+  color: #191813;
+}
+.joster .skill-edit-button,
+.joster .skill-delete-button {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  font-size: var(--font-size-10, 10px);
+  color: #444;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+.joster .skill-edit-button:hover,
+.joster .skill-delete-button:hover {
+  background: rgba(181, 179, 164, 0.3);
+  color: #191813;
+}
+.joster .skill-edit-button.skill-action-hidden,
+.joster .skill-delete-button.skill-action-hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+.joster .skill-row:hover .skill-edit-button:not(.skill-action-hidden),
+.joster .skill-row:hover .skill-delete-button:not(.skill-action-hidden) {
+  opacity: 1;
+}
+.joster .joster-custom-skills-overview {
+  padding: 6px 8px;
+}
+.joster .overview-toolbar {
+  justify-content: flex-end;
+  margin-bottom: 4px;
+}
+.joster .overview-refresh {
+  font-size: var(--font-size-11, 11px);
+  color: #444;
+  cursor: pointer;
+}
+.joster .overview-refresh:hover {
+  color: #191813;
+}
+.joster .overview-empty {
+  font-size: var(--font-size-11, 11px);
+  font-style: italic;
+  color: #444;
+}
+.joster .overview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-11, 11px);
+}
+.joster .overview-table th,
+.joster .overview-table td {
+  padding: 3px 6px;
+  text-align: left;
+  border-bottom: 1px solid rgba(181, 179, 164, 0.4);
+}
+.joster .overview-table th {
+  color: #444;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: var(--font-size-9, 9px);
+}
+.joster .overview-table .overview-open-actor {
+  cursor: pointer;
+  color: #444;
+}
+.joster .overview-table .overview-open-actor:hover {
+  color: #191813;
 }
 .joster .items-header {
   height: 28px;

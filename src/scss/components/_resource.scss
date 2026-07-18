@@ -281,6 +281,21 @@
   }
 }
 
+// Small icon button that opens the heatmap gradient editor (see
+// apps/heatmap-lab.mjs) — sits opposite the attributes title, sized to match
+// the other header-row controls.
+.heatmap-lab-btn {
+  flex: 0 0 auto;
+  color: $c-beige;
+  opacity: 0.6;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 1;
+    color: $c-faint;
+  }
+}
+
 .skill-search-input {
   flex: 0 0 120px;
   width: 120px;
@@ -347,7 +362,6 @@
 .skill-group-title {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 6px;
   margin: 0 0 3px;
   padding-bottom: 2px;
@@ -413,11 +427,35 @@
 }
 
 .skill-name {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.skill-name-text {
   font-size: var(--font-size-11, 11px);
   line-height: 1.3;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+// Marks a skill as actor-defined rather than one of the system's own, right
+// next to its name so it reads at a glance in the trained/all skill list.
+.skill-custom-badge {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  border-radius: 3px;
+  font-size: var(--font-size-9, 9px);
+  font-weight: bold;
+  color: $c-dark;
+  background: rgba($c-tan, 0.35);
 }
 
 .skill-level {
@@ -466,6 +504,122 @@
     &:hover {
       background: rgba(#1f6b3a, 0.15);
       color: #1f6b3a;
+    }
+  }
+}
+
+// Adding a custom skill lives in the group title, pinned to the far right
+// past the name and its XP badge; editing or deleting one lives on its row
+// and only shows up once the row is hovered, so the built-in skills sitting
+// next to it aren't cluttered with icons that would never do anything for
+// them.
+.skill-create-button {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  font-size: var(--font-size-9, 9px);
+  color: $c-tan;
+  cursor: pointer;
+  margin-left: auto;
+
+  &:hover {
+    background: rgba($c-beige, 0.3);
+    color: $c-dark;
+  }
+}
+
+// Always rendered (see the "skill-action-hidden" template comment) so every
+// row in a group reserves the same trailing width; without this, a custom
+// row's extra icons would shrink its skill-info column and knock its
+// rank/xp/advance-button out of alignment with the rest of the group.
+.skill-edit-button,
+.skill-delete-button {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  font-size: var(--font-size-10, 10px);
+  color: $c-tan;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+
+  &:hover {
+    background: rgba($c-beige, 0.3);
+    color: $c-dark;
+  }
+
+  &.skill-action-hidden {
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+
+.skill-row:hover {
+  .skill-edit-button:not(.skill-action-hidden),
+  .skill-delete-button:not(.skill-action-hidden) {
+    opacity: 1;
+  }
+}
+
+// GM overview of every custom skill defined across the world's actors.
+.joster-custom-skills-overview {
+  padding: 6px 8px;
+}
+
+.overview-toolbar {
+  justify-content: flex-end;
+  margin-bottom: 4px;
+}
+
+.overview-refresh {
+  font-size: var(--font-size-11, 11px);
+  color: $c-tan;
+  cursor: pointer;
+
+  &:hover {
+    color: $c-dark;
+  }
+}
+
+.overview-empty {
+  font-size: var(--font-size-11, 11px);
+  font-style: italic;
+  color: $c-tan;
+}
+
+.overview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-11, 11px);
+
+  th,
+  td {
+    padding: 3px 6px;
+    text-align: left;
+    border-bottom: 1px solid rgba($c-beige, 0.4);
+  }
+
+  th {
+    color: $c-tan;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: var(--font-size-9, 9px);
+  }
+
+  .overview-open-actor {
+    cursor: pointer;
+    color: $c-tan;
+
+    &:hover {
+      color: $c-dark;
     }
   }
 }

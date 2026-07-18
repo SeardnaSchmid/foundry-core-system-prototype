@@ -2,10 +2,13 @@ import {
   onManageActiveEffect,
   prepareActiveEffectCategories,
 } from '../helpers/effects.mjs';
-import { colorForValue } from '../helpers/heatmap.mjs';
+import { colorForValue, colorForCritical } from '../helpers/heatmap.mjs';
 import { JosterRollDialog } from '../apps/roll-dialog.mjs';
 import { JosterAdvanceDialog } from '../apps/advance-dialog.mjs';
+import { JosterHeatmapLab } from '../apps/heatmap-lab.mjs';
+import { JosterCustomSkillDialog } from '../apps/custom-skill-dialog.mjs';
 import { JOSTER_ADVANTAGE, rollJoster } from '../helpers/dice.mjs';
+import { getSkillDefinitions, getSkillDefinition } from '../helpers/skills.mjs';
 
 // Value ranges from the "Attribut-Heatmap" spec: Basiswert (base) is the
 // trained/leveled rating, Temp-Wert (value) is the current, independently
@@ -154,6 +157,7 @@ export class JosterActorSheet extends ActorSheet {
           const delta = tempValue - baseValue;
           const isCritical = tempValue === 0;
           const dc = colorForValue(baseValue);
+          const cc = isCritical ? colorForCritical() : null;
 
           // XP progress toward the next base rank: advancing to rank N costs
           // N*N XP; the bar fills as XP accrues and turns "ready" once enough
@@ -189,8 +193,8 @@ export class JosterActorSheet extends ActorSheet {
             xpBarFill: isCritical ? 'rgba(255,217,220,0.6)' : 'rgba(51,45,34,0.45)',
             tempHint: game.i18n.localize('JOSTER.AttributeCurrent'),
             baseHint: game.i18n.localize('JOSTER.AttributeBase'),
-            cellBg: isCritical ? '#3D1418' : dc.bg,
-            textColor: isCritical ? '#FFD9DC' : dc.textColor,
+            cellBg: isCritical ? cc.bg : dc.bg,
+            textColor: isCritical ? cc.textColor : dc.textColor,
             critBorder: isCritical ? 'rgba(255,90,100,0.7)' : 'transparent',
             isPeak: dc.isPeak && !isCritical,
             isCritical,
@@ -209,6 +213,9 @@ export class JosterActorSheet extends ActorSheet {
     context.attributeGrid.totalXp = rows
       .flat()
       .reduce((sum, key) => sum + attributeRankXpCost(abilities[key]?.base ?? 0), 0);
+    context.attributeGrid.totalValue = rows
+      .flat()
+      .reduce((sum, key) => sum + (abilities[key]?.base ?? 0), 0);
 
     // Skill list filter (All / Trained / Starter), persisted on the sheet
     // instance so it survives re-renders while the sheet stays open.
@@ -223,9 +230,12 @@ export class JosterActorSheet extends ActorSheet {
 
     // Build the skill list, grouped by category, in JOSTER.skillCategories order.
     // Categories without any skills yet (WIP groups) still render, empty.
+    // Custom, actor-defined skills are merged in alongside the built-ins by
+    // getSkillDefinitions() and behave identically from here on.
     const skills = context.system.skills ?? {};
+    const definitions = getSkillDefinitions(this.actor);
     context.skillGroups = Object.entries(CONFIG.JOSTER.skillCategories).map(([catKey, catLabelKey]) => {
-      const groupSkills = Object.entries(CONFIG.JOSTER.skills)
+      const groupSkills = Object.entries(definitions)
         .filter(([, skill]) => skill.category === catKey)
         .map(([key, skill]) => {
           const rank = skills[key]?.value ?? 0;
@@ -235,12 +245,12 @@ export class JosterActorSheet extends ActorSheet {
           const xpCost = 3 * (rank + 1);
           return {
             key,
-            label: game.i18n.localize(skill.label),
-            // Kept only to preselect the roll dialog's attribute; the system
-            // doesn't bind a skill to one fixed attribute, so it's no longer
-            // shown in the row itself (see JosterRollDialog's attribute chips).
+            label: skill.label,
+            // Kept only to preselect the roll dialog's attribute; a skill is
+            // never bound to one fixed attribute, so it's no longer shown in
+            // the row itself (see JosterRollDialog's attribute chips).
             // Prefers whatever attribute this actor last rolled this skill
-            // against, falling back to the skill's configured default until
+            // against, falling back to the skill's suggested attribute until
             // it's ever been rolled.
             attribute: skills[key]?.lastAttribute || skill.attribute,
             rank,
@@ -248,6 +258,7 @@ export class JosterActorSheet extends ActorSheet {
             xpCost,
             xpReady: rank < 10 && xp >= xpCost,
             starter: skill.starter ?? false,
+            custom: skill.custom,
           };
         });
       return {
@@ -260,8 +271,11 @@ export class JosterActorSheet extends ActorSheet {
     });
 
     // XP invested so far, broken down by skills vs. attributes plus their
-    // combined grand total, shown as a chip in the sheet header.
+    // combined grand total, shown as a chip in the sheet header. The grand
+    // total only ever sums XP: adding up attribute points and skill ranks
+    // together wouldn't mean anything, since they're on different scales.
     context.skillXpTotal = context.skillGroups.reduce((sum, group) => sum + group.totalXp, 0);
+    context.skillRankTotal = context.skillGroups.reduce((sum, group) => sum + group.totalRank, 0);
     context.totalXpSpent = context.attributeGrid.totalXp + context.skillXpTotal;
 
     // "Fehler Analysieren" only makes sense to attempt while the reserve
@@ -331,6 +345,15 @@ export class JosterActorSheet extends ActorSheet {
       item.sheet.render(true);
     });
 
+    // Open the heatmap gradient editor (see apps/heatmap-lab.mjs) for quick
+    // in-app experimentation, without leaving the sheet. This only touches a
+    // client display setting, not actor data, so it works on read-only
+    // sheets too.
+    html.on('click', '.heatmap-lab-btn', (ev) => {
+      ev.preventDefault();
+      new JosterHeatmapLab().render(true);
+    });
+
     // Skill list filter: toggles which rows are shown, purely client-side
     // (no re-render), so it also works on read-only sheets.
     html.on('click', '.skill-filter-btn', (ev) => {
@@ -370,15 +393,20 @@ export class JosterActorSheet extends ActorSheet {
     html.on('click', '.skill-advance-button', (ev) => {
       ev.preventDefault();
       const key = ev.currentTarget.dataset.skill;
-      const skillConfig = CONFIG.JOSTER.skills[key];
       const skill = this.actor.system.skills?.[key] ?? {};
       new JosterAdvanceDialog(this.actor, {
         type: 'skill',
         key,
-        label: game.i18n.localize(skillConfig?.label ?? key),
+        label: getSkillDefinition(this.actor, key)?.label ?? key,
         rank: skill.value ?? 0,
         xp: skill.xp ?? 0,
       }).render(true);
+    });
+
+    // Add a new custom skill to the group whose "+" was clicked.
+    html.on('click', '.skill-create-button', (ev) => {
+      ev.preventDefault();
+      new JosterCustomSkillDialog(this.actor, { category: ev.currentTarget.dataset.category }).render(true);
     });
 
     // Open the attribute advancement dialog from the heatmap cell's XP badge.
@@ -495,6 +523,8 @@ export class JosterActorSheet extends ActorSheet {
    * creation, "all" shows everything) and the fuzzy search box. While a
    * search term is entered, it takes priority over the category filter so
    * any matching skill can be found regardless of trained/starter state.
+   * Custom skills always count as "trained" regardless of rank, so a
+   * freshly added rank-0 custom skill doesn't immediately vanish from view.
    * Groups with no visible rows are hidden too, unless they have no skills
    * defined at all (those keep their "SkillCategoryEmptyHint" placeholder
    * regardless of filter).
@@ -511,10 +541,11 @@ export class JosterActorSheet extends ActorSheet {
       $rows.each((_j, rowEl) => {
         const rank = Number(rowEl.dataset.rank) || 0;
         const starter = rowEl.dataset.starter === 'true';
+        const custom = rowEl.dataset.custom === 'true';
         const visible = search
-          ? fuzzyMatch(search, rowEl.querySelector('.skill-name')?.textContent ?? '')
+          ? fuzzyMatch(search, rowEl.querySelector('.skill-name-text')?.textContent ?? '')
           : filter === 'all' ||
-            (filter === 'trained' && rank !== 0) ||
+            (filter === 'trained' && (rank !== 0 || custom)) ||
             (filter === 'starter' && starter);
         rowEl.style.display = visible ? '' : 'none';
         if (visible) anyVisible = true;
@@ -594,10 +625,19 @@ export class JosterActorSheet extends ActorSheet {
         }).render(true);
       }
 
-      // Open the roll dialog for a skill. The linked attribute and skill
-      // rank are fixed threshold components; the dialog's bonus field is
-      // left at 0 for the player to dial in a situational modifier.
+      // Open the roll dialog for a skill. The suggested attribute (or
+      // whichever the player last swapped to) and the skill rank are fixed
+      // threshold components; the dialog's bonus field is left at 0 for the
+      // player to dial in a situational modifier.
+      //
+      // Shift-clicking a custom skill opens its edit dialog instead of
+      // rolling, so the row doesn't need a dedicated edit button (which
+      // would force every row's rank/xp/advance-button column to align to
+      // the same width regardless of whether it's custom).
       if (dataset.rollType == 'skill') {
+        if (event.shiftKey && this.actor.system.skills?.[dataset.skill]?.custom) {
+          return new JosterCustomSkillDialog(this.actor, { key: dataset.skill }).render(true);
+        }
         const rank = this.actor.system.skills?.[dataset.skill]?.value ?? 0;
         return new JosterRollDialog(this.actor, {
           attributeA: dataset.ability,

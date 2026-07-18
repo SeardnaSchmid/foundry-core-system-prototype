@@ -16,6 +16,9 @@ export const preloadHandlebarsTemplates = async function () {
     'systems/joster/templates/apps/roll-dialog.hbs',
     'systems/joster/templates/apps/advance-dialog.hbs',
     'systems/joster/templates/apps/base-roll-dialog.hbs',
+    'systems/joster/templates/apps/heatmap-lab.hbs',
+    'systems/joster/templates/apps/custom-skill-dialog.hbs',
+    'systems/joster/templates/apps/custom-skills-overview.hbs',
     // Chat
     'systems/joster/templates/chat/roll-card.hbs',
     'systems/joster/templates/chat/find-flaw-tracker.hbs',

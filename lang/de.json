@@ -48,7 +48,9 @@
     "XpTotalAll": "Alle",
     "XpTotalSkills": "Skills",
     "XpTotalAttributes": "Attribute",
-    "XpTotalHint": "In Attribute und Fertigkeiten investierte XP, insgesamt und aufgeschlüsselt",
+    "XpTotalAllHint": "Insgesamt investierte XP in Attribute und Fertigkeiten (Summe der kumulierten Stufenkosten beider Bereiche).",
+    "XpTotalAttributesHint": "pt = Summe aller Attributwerte. xp = insgesamt in Attribute investierte Erfahrungspunkte.",
+    "XpTotalSkillsHint": "pt = Summe aller Fertigkeitsränge. xp = insgesamt in Fertigkeiten investierte Erfahrungspunkte.",
     "SkillsTitle": "Fertigkeiten",
     "AttributesTitle": "Attribute",
     "RollSkill": "Würfeln",
@@ -77,6 +79,37 @@
     "AdvanceXpDecHint": "Einen Erfahrungspunkt abziehen",
     "AdvanceCorrection": "Manuell korrigieren",
     "XpMaxBadge": "MAX",
+    "Settings": {
+      "HeatmapPreset": {
+        "Name": "Heatmap-Stil",
+        "Hint": "Farbverlauf und Kurve der Attribut-Heatmap auf dem Charakterbogen live bearbeiten."
+      },
+      "CustomSkillsOverview": {
+        "Name": "Übersicht: Eigene Fertigkeiten",
+        "Hint": "Listet alle von Spielern angelegten eigenen Fertigkeiten über alle Charaktere dieser Welt auf."
+      }
+    },
+    "HeatmapPreset": {
+      "Viridis": "Viridis",
+      "Plasma": "Plasma",
+      "Inferno": "Inferno",
+      "Magma": "Magma",
+      "Cividis": "Cividis",
+      "Turbo": "Turbo",
+      "Coolwarm": "Coolwarm",
+      "Greys": "Grautöne",
+      "Banded": "Gebändert"
+    },
+    "HeatmapLab": {
+      "Low": "Schwach",
+      "Mid": "Mitte",
+      "High": "Stark",
+      "MidValue": "Mittelfarbe bei Wert",
+      "LowCurve": "Kurve: Schwach → Mitte",
+      "HighCurve": "Kurve: Mitte → Stark",
+      "Critical": "Kritisch (Wert 0)",
+      "Hint": "Änderungen wirken sofort auf alle offenen Charakterbögen."
+    },
     "SkillCategory": {
       "Combat": "Kampf",
       "Maneuvers": "Manöver",
@@ -179,6 +212,40 @@
       "CultReligion": "Kulturwissenschaften - Religion",
       "CultHistory": "Kulturwissenschaften - Geschichte"
     },
+    "CustomSkill": {
+      "Add": "Eigene Fertigkeit hinzufügen",
+      "Edit": "Eigene Fertigkeit bearbeiten",
+      "Delete": "Eigene Fertigkeit löschen",
+      "Badge": "C",
+      "BadgeHint": "Eigene Fertigkeit",
+      "ShiftClickHint": "Umschalt-Klick zum Bearbeiten dieser eigenen Fertigkeit",
+      "Name": "Name",
+      "Category": "Kategorie",
+      "Attribute": "Attribut",
+      "Save": "Speichern",
+      "AddTitle": "Eigene Fertigkeit hinzufügen",
+      "EditTitle": "Eigene Fertigkeit bearbeiten",
+      "NameRequired": "Bitte einen Namen für die Fertigkeit eingeben.",
+      "DuplicateName": "Eine Fertigkeit mit diesem Namen existiert bereits.",
+      "DeleteTitle": "Eigene Fertigkeit löschen",
+      "DeleteConfirm": "\"{name}\" löschen?",
+      "DeleteConfirmXp": "\"{name}\" hat Rang {rank} und {xp} nicht ausgegebene XP investiert. Trotzdem löschen?"
+    },
+    "CustomSkillsOverview": {
+      "Actor": "Charakter",
+      "Skill": "Fertigkeit",
+      "Category": "Kategorie",
+      "Attribute": "Attribut",
+      "Rank": "Rang",
+      "Xp": "XP",
+      "Empty": "Es wurden noch keine eigenen Fertigkeiten angelegt.",
+      "OpenSheet": "Charakterbogen öffnen",
+      "Refresh": "Aktualisieren"
+    },
+    "Migration": {
+      "Started": "Joster-Systemdaten werden auf v{version} migriert…",
+      "Completed": "Migration der Joster-Systemdaten abgeschlossen."
+    },
     "Derived": {
       "Initiative": "Initiativegrundwert",
       "MovementWalk": "Bewegungsreichweite (Gehen)",
@@ -199,8 +266,8 @@
       "MovementCrawl": "Kriechen",
       "CarrySlots": "Slots",
       "SixthSense": "6. Sinn",
-      "SolveIdea": "Idee",
-      "SolveFindFlaw": "Fehler",
+      "SolveIdea": "Idee+",
+      "SolveFindFlaw": "Versuche",
       "SolveReserve": "Vorrat",
       "SolveAnalyzeFlaw": "Analyse",
       "SolveNewAttempt": "Neuer Versuch"
@@ -212,11 +279,10 @@
       "MovementCrawl": "1",
       "CarrySlots": "2×Stärke+Beweglichkeit",
       "SixthSense": "(Sinnesschärfe+Menschenkenntnis+Untersuchen)/3",
-      "SolveIdea": "(Intelligenz+Wissen)/2 (aufgerundet)",
-      "SolveFindFlaw": "(Intelligenz+Willenskraft)/2 (aufgerundet)",
-      "SolveReserve": "(Willenskraft+Wissen)/2 (aufgerundet)",
-      "SolveReserveUsage": "Wird für die Problemlösen-Edges ausgegeben: Idee haben, Fehler finden, Neuer Versuch.",
-      "SolveAnalyzeFlaw": "2×Untersuchen",
+      "SolveIdea": "Gib 1 Punkt Vorrat aus, um diesen Wert zu deinem Wurfergebnis zu addieren. Wert: (Intelligenz+Wissen)/2, aufgerundet.",
+      "SolveFindFlaw": "Gib 1 Punkt Vorrat aus, um bis zu so viele neue Versuche wie diesen Wert zu bekommen (nur ohne Zeitdruck). Wert: (Intelligenz+Willenskraft)/2, aufgerundet.",
+      "SolveReserve": "Punkte, die du für Problemlösen-Effekte ausgibst (Idee haben, Fehler finden, Neuer Versuch) — jeder Effekt kostet 1 Punkt. Wert: (Willenskraft+Wissen)/2, aufgerundet.",
+      "SolveAnalyzeFlaw": "Nach einem Fehlschlag: Ein erfolgreicher Wurf gegen diesen Wert füllt 1 Punkt Vorrat wieder auf — kostet dafür den Erfahrungspunkt, den der Fehlschlag gebracht hätte. Wert: 2×Untersuchen.",
       "SolveNewAttempt": "1 Punkt + Verzicht auf den XP, zweiter Versuch zählt"
     },
     "Notify": {

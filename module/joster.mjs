@@ -11,6 +11,10 @@ import { rollJoster, rollJosterBase } from './helpers/dice.mjs';
 import { registerChatListeners } from './helpers/chat.mjs';
 import { JosterRollDialog } from './apps/roll-dialog.mjs';
 import { JosterBaseRollDialog } from './apps/base-roll-dialog.mjs';
+import { JosterHeatmapLab } from './apps/heatmap-lab.mjs';
+import { DEFAULT_HEATMAP_CONFIG, setActiveHeatmapConfig } from './helpers/heatmap.mjs';
+import { JosterCustomSkillsOverview } from './apps/custom-skills-overview.mjs';
+import { registerMigrationSettings, migrateWorld } from './helpers/migrations.mjs';
 
 /* -------------------------------------------- */
 /*  Init Hook                                   */
@@ -65,6 +69,54 @@ Hooks.once('init', function () {
 
   // Preload Handlebars templates.
   preloadHandlebarsTemplates();
+
+  // Client-scoped so each person at the table can dial in their own heatmap
+  // gradient without affecting anyone else's view. The raw settings are
+  // hidden (config: false); they're only ever edited through the
+  // JosterHeatmapLab menu below, which keeps color-picker/slider UI out of
+  // Foundry's plain settings list.
+  game.settings.register('joster', 'heatmapLow', { scope: 'client', config: false, type: String, default: DEFAULT_HEATMAP_CONFIG.low });
+  game.settings.register('joster', 'heatmapMid', { scope: 'client', config: false, type: String, default: DEFAULT_HEATMAP_CONFIG.mid });
+  game.settings.register('joster', 'heatmapHigh', { scope: 'client', config: false, type: String, default: DEFAULT_HEATMAP_CONFIG.high });
+  game.settings.register('joster', 'heatmapMidValue', { scope: 'client', config: false, type: Number, default: DEFAULT_HEATMAP_CONFIG.midValue });
+  game.settings.register('joster', 'heatmapLowCurve', { scope: 'client', config: false, type: Number, default: DEFAULT_HEATMAP_CONFIG.lowCurve });
+  game.settings.register('joster', 'heatmapHighCurve', { scope: 'client', config: false, type: Number, default: DEFAULT_HEATMAP_CONFIG.highCurve });
+  game.settings.register('joster', 'heatmapCritical', { scope: 'client', config: false, type: String, default: DEFAULT_HEATMAP_CONFIG.critical });
+
+  game.settings.registerMenu('joster', 'heatmapLabMenu', {
+    name: 'JOSTER.Settings.HeatmapPreset.Name',
+    hint: 'JOSTER.Settings.HeatmapPreset.Hint',
+    label: 'JOSTER.Settings.HeatmapPreset.Name',
+    icon: 'fa-solid fa-palette',
+    type: JosterHeatmapLab,
+    restricted: false,
+  });
+
+  // Tracks which migration steps have already run for this world; see
+  // helpers/migrations.mjs. Applied on ready, below.
+  registerMigrationSettings();
+
+  // GM-only overview of every custom skill defined across the world's
+  // character actors, since custom skills otherwise live invisibly inside
+  // each actor's own data.
+  game.settings.registerMenu('joster', 'customSkillsOverviewMenu', {
+    name: 'JOSTER.Settings.CustomSkillsOverview.Name',
+    hint: 'JOSTER.Settings.CustomSkillsOverview.Hint',
+    label: 'JOSTER.Settings.CustomSkillsOverview.Name',
+    icon: 'fa-solid fa-list-check',
+    type: JosterCustomSkillsOverview,
+    restricted: true,
+  });
+
+  setActiveHeatmapConfig({
+    low: game.settings.get('joster', 'heatmapLow'),
+    mid: game.settings.get('joster', 'heatmapMid'),
+    high: game.settings.get('joster', 'heatmapHigh'),
+    midValue: game.settings.get('joster', 'heatmapMidValue'),
+    lowCurve: game.settings.get('joster', 'heatmapLowCurve'),
+    highCurve: game.settings.get('joster', 'heatmapHighCurve'),
+    critical: game.settings.get('joster', 'heatmapCritical'),
+  });
 
   // Wire up the "Fehler finden" reroll tracker on failed roll cards.
   registerChatListeners();
@@ -128,6 +180,8 @@ Handlebars.registerHelper('ifEquals', function (a, b, options) {
 Hooks.once('ready', function () {
   // Wait to register hotbar drop hook on ready so that modules could register earlier if they want to
   Hooks.on('hotbarDrop', (bar, data, slot) => createItemMacro(data, slot));
+
+  migrateWorld();
 });
 
 /* -------------------------------------------- */

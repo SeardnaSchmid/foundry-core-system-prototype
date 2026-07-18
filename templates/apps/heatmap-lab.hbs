@@ -1,0 +1,72 @@
+<form class="joster-heatmap-lab flexcol">
+
+  {{!-- Quick starting points — load a preset's stops/midpoint into the
+  fields below, then keep tweaking from there. --}}
+  <div class="heatmap-lab-presets flexrow">
+    {{#each presets as |preset|}}
+    <button type="button" class="heatmap-lab-preset-btn" data-action="load-preset" data-preset="{{preset.id}}">{{preset.label}}</button>
+    {{/each}}
+  </div>
+
+  {{!-- The three gradient stops: weakest value, the midpoint, strongest
+  value. Interpolated as two linear segments (low->mid, mid->high). --}}
+  <div class="heatmap-lab-stops flexrow">
+    <div class="form-group">
+      <label>{{localize "JOSTER.HeatmapLab.Low"}}</label>
+      <input type="color" name="low" value="{{low}}"/>
+    </div>
+    <div class="form-group">
+      <label>{{localize "JOSTER.HeatmapLab.Mid"}}</label>
+      <input type="color" name="mid" value="{{mid}}"/>
+    </div>
+    <div class="form-group">
+      <label>{{localize "JOSTER.HeatmapLab.High"}}</label>
+      <input type="color" name="high" value="{{high}}"/>
+    </div>
+  </div>
+
+  {{!-- Where the middle gradient color sits on the 1-10 scale. Moving it
+  down shrinks the low->mid segment (values below read close to "low") and
+  widens mid->high (more room for a gradual ramp toward "high" at the top);
+  moving it up does the opposite. --}}
+  <div class="form-group heatmap-lab-midpoint">
+    <label>{{localize "JOSTER.HeatmapLab.MidValue"}} <span class="heatmap-lab-midpoint-value">{{midValue}}</span></label>
+    <input type="range" name="midValue" min="{{midValueMin}}" max="{{midValueMax}}" step="0.5" value="{{midValue}}"/>
+  </div>
+
+  {{!-- Per-segment curve: 1 is a plain linear ramp; above 1 the segment
+  holds close to its start color before swinging hard near the pivot/end
+  (a sharp banded cutoff instead of a smooth gradient); below 1 spreads the
+  contrast the other way. --}}
+  <div class="heatmap-lab-curves flexrow">
+    <div class="form-group heatmap-lab-curve">
+      <label>{{localize "JOSTER.HeatmapLab.LowCurve"}} <span class="heatmap-lab-lowcurve-value">{{lowCurve}}</span></label>
+      <input type="range" name="lowCurve" min="{{curveMin}}" max="{{curveMax}}" step="0.1" value="{{lowCurve}}"/>
+    </div>
+    <div class="form-group heatmap-lab-curve">
+      <label>{{localize "JOSTER.HeatmapLab.HighCurve"}} <span class="heatmap-lab-highcurve-value">{{highCurve}}</span></label>
+      <input type="range" name="highCurve" min="{{curveMin}}" max="{{curveMax}}" step="0.1" value="{{highCurve}}"/>
+    </div>
+  </div>
+
+  {{!-- Live preview across the full 1-10 attribute scale, using the exact
+  same grading function the character sheet cells use. --}}
+  <div class="heatmap-lab-preview flexrow">
+    {{#each preview as |cell|}}
+    <div class="heatmap-lab-swatch" data-value="{{cell.value}}" style="background:{{cell.bg}}; color:{{cell.textColor}};">{{cell.value}}</div>
+    {{/each}}
+  </div>
+
+  {{!-- The dedicated color for the attribute's "critical" (temp value at
+  rock bottom) state — outside the 1-10 gradient entirely, since it
+  represents a distinct in-fiction consequence rather than a low roll. --}}
+  <div class="form-group heatmap-lab-critical">
+    <label>{{localize "JOSTER.HeatmapLab.Critical"}}</label>
+    <div class="heatmap-lab-critical-row flexrow">
+      <input type="color" name="critical" value="{{critical}}"/>
+      <span class="heatmap-lab-critical-swatch" style="background:{{criticalPreview.bg}}; color:{{criticalPreview.textColor}};">0</span>
+    </div>
+  </div>
+
+  <p class="heatmap-lab-hint">{{localize "JOSTER.HeatmapLab.Hint"}}</p>
+</form>

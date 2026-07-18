@@ -1,0 +1,31 @@
+<form class="joster-custom-skill-dialog flexcol">
+  <div class="form-group">
+    <label>{{localize "JOSTER.CustomSkill.Name"}}</label>
+    <input type="text" name="name" value="{{name}}" required autofocus/>
+  </div>
+
+  <div class="form-group">
+    <label>{{localize "JOSTER.CustomSkill.Category"}}</label>
+    <select name="category">
+      {{#each categories as |cat|}}
+      <option value="{{cat.key}}" {{#ifEquals cat.key ../category}}selected{{/ifEquals}}>{{cat.label}}</option>
+      {{/each}}
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>{{localize "JOSTER.CustomSkill.Attribute"}}</label>
+    <select name="attribute">
+      {{#each abilities as |abl|}}
+      <option value="{{abl.key}}" {{#ifEquals abl.key ../attribute}}selected{{/ifEquals}}>{{abl.label}}</option>
+      {{/each}}
+    </select>
+  </div>
+
+  <footer class="sheet-footer flexrow">
+    {{#if isEdit}}
+    <button type="button" class="custom-skill-delete"><i class="fas fa-trash"></i> {{localize "JOSTER.CustomSkill.Delete"}}</button>
+    {{/if}}
+    <button type="submit"><i class="fas fa-check"></i> {{localize "JOSTER.CustomSkill.Save"}}</button>
+  </footer>
+</form>
