@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.17.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.16.0...v0.17.0) (2026-07-18)
+
+
+### Features
+
+* highlight ready-to-advance XP, exempt non-skill rolls from edge pool ([49f313d](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/49f313dd278086d70fb9f496a9e7d0314ef709b7))
+
 # [0.16.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.15.0...v0.16.0) (2026-07-18)
 
 
