@@ -1,4 +1,4 @@
-<form class="edgefall-advance-dialog flexcol">
+<form class="tno-advance-dialog flexcol">
 
   {{!-- Progress toward the next rank: current rank -> next, XP over the cost
   of that step, and a bar. At max rank the bar is full and the cost line is
@@ -6,9 +6,9 @@
   <div class="advance-progress">
     <div class="advance-progress-head flexrow">
       {{#if atMax}}
-      <span class="advance-rank">{{localize "EDGEFALL.AdvanceMaxRank"}}</span>
+      <span class="advance-rank">{{localize "TNO.AdvanceMaxRank"}}</span>
       {{else}}
-      <span class="advance-rank">{{localize "EDGEFALL.SkillRankLabel"}} {{rank}} <i class="fas fa-arrow-right"></i> {{nextRank}}</span>
+      <span class="advance-rank">{{localize "TNO.SkillRankLabel"}} {{rank}} <i class="fas fa-arrow-right"></i> {{nextRank}}</span>
       <span class="advance-xp-count">{{xp}}/{{cost}} xp</span>
       {{/if}}
     </div>
@@ -20,30 +20,30 @@
   {{!-- Guided actions: spend/refund one XP, or buy the next rank (only enabled
   once enough XP is banked; buying resets XP to zero per the rules). --}}
   <div class="advance-actions flexrow">
-    <button type="button" class="advance-action" data-action="xp-dec" title="{{localize 'EDGEFALL.AdvanceXpDecHint'}}">−1 xp</button>
-    <button type="button" class="advance-action" data-action="xp-inc" title="{{localize 'EDGEFALL.AdvanceXpIncHint'}}">+1 xp</button>
-    <button type="button" class="advance-action advance-buy" data-action="buy" {{#unless canBuy}}disabled{{/unless}} title="{{localize 'EDGEFALL.AdvanceBuyHint'}}">
-      <i class="fas fa-arrow-up"></i> {{localize "EDGEFALL.AdvanceBuy"}}{{#unless atMax}} ({{cost}}){{/unless}}
+    <button type="button" class="advance-action" data-action="xp-dec" title="{{localize 'TNO.AdvanceXpDecHint'}}">−1 xp</button>
+    <button type="button" class="advance-action" data-action="xp-inc" title="{{localize 'TNO.AdvanceXpIncHint'}}">+1 xp</button>
+    <button type="button" class="advance-action advance-buy" data-action="buy" {{#unless canBuy}}disabled{{/unless}} title="{{localize 'TNO.AdvanceBuyHint'}}">
+      <i class="fas fa-arrow-up"></i> {{localize "TNO.AdvanceBuy"}}{{#unless atMax}} ({{cost}}){{/unless}}
     </button>
   </div>
 
   {{!-- Manual correction: rank and XP are directly editable to fix mistakes;
   saving persists whatever is in these fields. --}}
   <div class="advance-correction">
-    <p class="advance-correction-label">{{localize "EDGEFALL.AdvanceCorrection"}}</p>
+    <p class="advance-correction-label">{{localize "TNO.AdvanceCorrection"}}</p>
     <div class="flexrow">
       <div class="form-group">
-        <label>{{localize "EDGEFALL.SkillRankLabel"}}</label>
+        <label>{{localize "TNO.SkillRankLabel"}}</label>
         <input type="number" name="rank" value="{{rank}}" min="0" max="10"/>
       </div>
       <div class="form-group">
-        <label>{{localize "EDGEFALL.SkillXpLabel"}}</label>
+        <label>{{localize "TNO.SkillXpLabel"}}</label>
         <input type="number" name="xp" value="{{xp}}" min="0"/>
       </div>
     </div>
   </div>
 
   <footer class="sheet-footer flexrow">
-    <button type="submit"><i class="fas fa-check"></i> {{localize "EDGEFALL.SkillAdvanceSubmit"}}</button>
+    <button type="submit"><i class="fas fa-check"></i> {{localize "TNO.SkillAdvanceSubmit"}}</button>
   </footer>
 </form>

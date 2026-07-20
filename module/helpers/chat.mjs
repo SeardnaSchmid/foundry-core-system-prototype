@@ -4,7 +4,7 @@ import { startFindFlaw, rerollFindFlaw, startNewAttempt } from './dice.mjs';
  * Wire up the post-edge actions on a failed roll's chat card ("Fehler
  * finden" and "Neuer Versuch") plus the "Neuer Versuch" replacement banner
  * on the reroll card it produces. Nothing here touches the persisted card
- * content — everything is driven off `flags.edgefall` and re-rendered per
+ * content — everything is driven off `flags.tno` and re-rendered per
  * viewer, so only the rolling actor's owner (or a GM) ever sees the
  * controls, and every reopen of the chat log reflects the current state.
  */
@@ -31,7 +31,7 @@ export function registerChatListeners() {
 function refreshEdgeSectionsFor(actor) {
   for (const element of document.querySelectorAll('[data-message-id]')) {
     const message = game.messages.get(element.dataset.messageId);
-    if (message?.flags?.edgefall?.actorId !== actor.id) continue;
+    if (message?.flags?.tno?.actorId !== actor.id) continue;
     renderEdgeSection(message, element);
   }
 }
@@ -43,22 +43,22 @@ function scrollToMessage(messageId) {
 
 /**
  * If this message is itself a "Neuer Versuch" reroll of another failed
- * check (flags.edgefall.replaces), banner it as the result that counts, with
+ * check (flags.tno.replaces), banner it as the result that counts, with
  * a link back to the check it replaced.
  *
  * @param {ChatMessage} message
  * @param {HTMLElement} html
  */
 function renderReplacementBanner(message, html) {
-  const data = message.flags?.edgefall;
+  const data = message.flags?.tno;
   if (!data?.replaces) return;
 
-  const card = html.querySelector('.edgefall-roll-card');
+  const card = html.querySelector('.tno-roll-card');
   if (!card) return;
 
   const banner = document.createElement('div');
-  banner.className = 'edgefall-new-attempt-banner';
-  banner.innerHTML = `<i class="fa-solid fa-arrow-rotate-right"></i> ${game.i18n.localize('EDGEFALL.Roll.NewAttemptCounts')}`;
+  banner.className = 'tno-new-attempt-banner';
+  banner.innerHTML = `<i class="fa-solid fa-arrow-rotate-right"></i> ${game.i18n.localize('TNO.Roll.NewAttemptCounts')}`;
   banner.addEventListener('click', (event) => {
     event.preventDefault();
     event.stopPropagation();
@@ -72,7 +72,7 @@ function renderReplacementBanner(message, html) {
  * - Untouched: a single "Problem lösen" toggle that expands, inline on the
  *   card, into the two options ("Fehler finden" and "Neuer Versuch") with
  *   their trade-offs (see renderSolvePanel). Running either claims
- *   `flags.edgefall.edge.consumed` and locks out the other for this roll.
+ *   `flags.tno.edge.consumed` and locks out the other for this roll.
  * - "Fehler finden" claimed: the reroll-until-success tracker.
  * - "Neuer Versuch" claimed: a stamp marking the roll as replaced (XP
  *   forfeited), linking forward to the reroll that now counts.
@@ -81,17 +81,17 @@ function renderReplacementBanner(message, html) {
  * @param {HTMLElement} html
  */
 async function renderEdgeSection(message, html) {
-  const data = message.flags?.edgefall;
+  const data = message.flags?.tno;
   if (!data) return;
 
-  const card = html.querySelector('.edgefall-roll-card');
+  const card = html.querySelector('.tno-roll-card');
   if (!card) return;
 
   // Idempotent: this can now run more than once per card (see
   // refreshEdgeSectionsFor), so clear whatever it appended last time before
   // recomputing rather than stacking a second panel/tracker/stamp on top.
-  card.querySelectorAll('.edgefall-edge-actions').forEach((el) => el.remove());
-  card.classList.remove('edgefall-replaced');
+  card.querySelectorAll('.tno-edge-actions').forEach((el) => el.remove());
+  card.classList.remove('tno-replaced');
 
   // A "Neuer Versuch" reroll replaces the check it came from exactly once
   // (see problem-solving-prd.md) — it's a final result, not a new failed
@@ -142,15 +142,15 @@ async function renderSolvePanel(message, card, actor, reserve) {
   const findFlawValue = actor.system.derived?.solveFindFlaw ?? 0;
 
   const container = document.createElement('div');
-  container.className = 'edgefall-edge-actions';
-  container.innerHTML = await renderTemplate('systems/edgefall/templates/chat/edge-panel.hbs', {
-    triggerLabel: game.i18n.format('EDGEFALL.Dialog.SolveTrigger', { value: reserve }),
-    findFlawHint: game.i18n.format('EDGEFALL.Dialog.SolveFindFlawHint', { value: findFlawValue }),
-    newAttemptHint: game.i18n.localize('EDGEFALL.Dialog.SolveNewAttemptHint'),
+  container.className = 'tno-edge-actions';
+  container.innerHTML = await renderTemplate('systems/tno/templates/chat/edge-panel.hbs', {
+    triggerLabel: game.i18n.format('TNO.Dialog.SolveTrigger', { value: reserve }),
+    findFlawHint: game.i18n.format('TNO.Dialog.SolveFindFlawHint', { value: findFlawValue }),
+    newAttemptHint: game.i18n.localize('TNO.Dialog.SolveNewAttemptHint'),
   });
   card.appendChild(container);
 
-  const toggle = container.querySelector('.edgefall-solve-toggle');
+  const toggle = container.querySelector('.tno-solve-toggle');
   toggle.addEventListener('click', (event) => {
     event.preventDefault();
     event.stopPropagation();
@@ -162,7 +162,7 @@ async function renderSolvePanel(message, card, actor, reserve) {
       event.preventDefault();
       event.stopPropagation();
       if ((actor.system.derived?.solveReserve ?? 0) <= 0) {
-        ui.notifications.warn(game.i18n.localize('EDGEFALL.Notify.NoReserve'));
+        ui.notifications.warn(game.i18n.localize('TNO.Notify.NoReserve'));
         return;
       }
       if (option.dataset.solveAction === 'findFlaw') {
@@ -189,7 +189,7 @@ async function renderFindFlawTracker(message, card, data, isOwner) {
       .sort((a, b) => a.value - b.value),
     outcome: attempt.outcome,
     outcomeLabel: game.i18n.localize(
-      `EDGEFALL.RollOutcome.${attempt.outcome.charAt(0).toUpperCase()}${attempt.outcome.slice(1)}`
+      `TNO.RollOutcome.${attempt.outcome.charAt(0).toUpperCase()}${attempt.outcome.slice(1)}`
     ),
   }));
   const pips = Array.from({ length: tracker.max }, (_, index) => {
@@ -200,21 +200,21 @@ async function renderFindFlawTracker(message, card, data, isOwner) {
   const active = tracker.active && isOwner;
 
   const container = document.createElement('div');
-  container.className = 'edgefall-edge-actions';
-  container.innerHTML = await renderTemplate('systems/edgefall/templates/chat/find-flaw-tracker.hbs', {
+  container.className = 'tno-edge-actions';
+  container.innerHTML = await renderTemplate('systems/tno/templates/chat/find-flaw-tracker.hbs', {
     attempts,
     pips,
     active,
     succeeded,
-    rerollLabel: game.i18n.format('EDGEFALL.Roll.FindFlawReroll', { remaining: tracker.max - tracker.used }),
+    rerollLabel: game.i18n.format('TNO.Roll.FindFlawReroll', { remaining: tracker.max - tracker.used }),
     doneLabel: game.i18n.localize(
-      succeeded ? 'EDGEFALL.Roll.FindFlawSucceeded' : 'EDGEFALL.Roll.FindFlawExhausted'
+      succeeded ? 'TNO.Roll.FindFlawSucceeded' : 'TNO.Roll.FindFlawExhausted'
     ),
   });
   card.appendChild(container);
 
   if (active) {
-    container.querySelector('.edgefall-find-flaw-reroll')?.addEventListener('click', async (event) => {
+    container.querySelector('.tno-find-flaw-reroll')?.addEventListener('click', async (event) => {
       event.preventDefault();
       event.stopPropagation();
       await rerollFindFlaw(message);
@@ -227,18 +227,18 @@ async function renderFindFlawTracker(message, card, data, isOwner) {
  * @param {object} data
  */
 function renderNewAttemptStamp(card, data) {
-  card.classList.add('edgefall-replaced');
+  card.classList.add('tno-replaced');
 
   const replacedBy = data.edge.newAttempt?.replacedBy;
 
   const container = document.createElement('div');
-  container.className = 'edgefall-edge-actions';
+  container.className = 'tno-edge-actions';
 
   const stamp = document.createElement('div');
-  stamp.className = 'edgefall-new-attempt-stamp';
-  stamp.innerHTML = `<i class="fa-solid fa-arrow-rotate-right"></i> ${game.i18n.localize('EDGEFALL.Roll.NewAttemptReplaced')}`;
+  stamp.className = 'tno-new-attempt-stamp';
+  stamp.innerHTML = `<i class="fa-solid fa-arrow-rotate-right"></i> ${game.i18n.localize('TNO.Roll.NewAttemptReplaced')}`;
   if (replacedBy) {
-    stamp.classList.add('edgefall-clickable');
+    stamp.classList.add('tno-clickable');
     stamp.addEventListener('click', (event) => {
       event.preventDefault();
       event.stopPropagation();

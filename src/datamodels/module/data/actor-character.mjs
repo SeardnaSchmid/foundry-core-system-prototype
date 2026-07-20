@@ -1,6 +1,6 @@
-import EdgefallActorBase from "./base-actor.mjs";
+import TnoActorBase from "./base-actor.mjs";
 
-export default class EdgefallCharacter extends EdgefallActorBase {
+export default class TnoCharacter extends TnoActorBase {
 
   static defineSchema() {
     const fields = foundry.data.fields;
@@ -10,7 +10,7 @@ export default class EdgefallCharacter extends EdgefallActorBase {
     // Iterate over ability names and create a new SchemaField for each.
     // `base` is the trained/leveled rating; `value` is the current,
     // damage-adjusted rating that rolls actually use.
-    schema.abilities = new fields.SchemaField(Object.keys(CONFIG.EDGEFALL.abilities).reduce((obj, ability) => {
+    schema.abilities = new fields.SchemaField(Object.keys(CONFIG.TNO.abilities).reduce((obj, ability) => {
       obj[ability] = new fields.SchemaField({
         base: new fields.NumberField({ ...requiredInteger, initial: 4, min: 0 }),
         value: new fields.NumberField({ ...requiredInteger, initial: 4, min: 0 }),
@@ -27,7 +27,7 @@ export default class EdgefallCharacter extends EdgefallActorBase {
       // Calculate the modifier using d20 rules.
       this.abilities[key].mod = Math.floor((this.abilities[key].value - 10) / 2);
       // Handle ability label localization.
-      this.abilities[key].label = game.i18n.localize(CONFIG.EDGEFALL.abilities[key]) ?? key;
+      this.abilities[key].label = game.i18n.localize(CONFIG.TNO.abilities[key]) ?? key;
     }
   }
 

@@ -39,13 +39,13 @@ export function generateCustomSkillKey(existingKeys, name) {
 
 /**
  * The unified set of skill definitions available to an actor: every
- * built-in skill from CONFIG.EDGEFALL.skills (label pre-localized), plus any
+ * built-in skill from CONFIG.TNO.skills (label pre-localized), plus any
  * custom skills the actor has defined for itself. Built-in skills always
  * win a key collision (impossible in practice given the "custom-" prefix,
  * but keeps this helper safe if that convention is ever broken).
  *
  * Every consumer (sheet prep, roll/advance handlers) should read skill
- * definitions through this helper rather than CONFIG.EDGEFALL.skills
+ * definitions through this helper rather than CONFIG.TNO.skills
  * directly, so custom skills behave identically to built-in ones.
  * @param {Actor} actor
  * @returns {Object<string, {label: string, category: string, attribute: string, starter: boolean, custom: boolean}>}
@@ -53,7 +53,7 @@ export function generateCustomSkillKey(existingKeys, name) {
 export function getSkillDefinitions(actor) {
   const definitions = {};
 
-  for (const [key, skill] of Object.entries(CONFIG.EDGEFALL.skills)) {
+  for (const [key, skill] of Object.entries(CONFIG.TNO.skills)) {
     definitions[key] = {
       label: game.i18n.localize(skill.label),
       category: skill.category,
@@ -69,8 +69,8 @@ export function getSkillDefinitions(actor) {
     const custom = entry.custom;
     definitions[key] = {
       label: typeof custom.label === 'string' && custom.label.trim() ? custom.label : key,
-      category: custom.category in CONFIG.EDGEFALL.skillCategories ? custom.category : DEFAULT_CATEGORY,
-      attribute: custom.attribute in CONFIG.EDGEFALL.abilities ? custom.attribute : DEFAULT_ATTRIBUTE,
+      category: custom.category in CONFIG.TNO.skillCategories ? custom.category : DEFAULT_CATEGORY,
+      attribute: custom.attribute in CONFIG.TNO.abilities ? custom.attribute : DEFAULT_ATTRIBUTE,
       starter: false,
       custom: true,
     };

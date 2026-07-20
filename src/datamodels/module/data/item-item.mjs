@@ -1,6 +1,6 @@
-import EdgefallItemBase from "./base-item.mjs";
+import TnoItemBase from "./base-item.mjs";
 
-export default class EdgefallItem extends EdgefallItemBase {
+export default class TnoItem extends TnoItemBase {
 
   static defineSchema() {
     const fields = foundry.data.fields;

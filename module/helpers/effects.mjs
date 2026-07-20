@@ -43,17 +43,17 @@ export function prepareActiveEffectCategories(effects) {
   const categories = {
     temporary: {
       type: 'temporary',
-      label: game.i18n.localize('EDGEFALL.Effect.Temporary'),
+      label: game.i18n.localize('TNO.Effect.Temporary'),
       effects: [],
     },
     passive: {
       type: 'passive',
-      label: game.i18n.localize('EDGEFALL.Effect.Passive'),
+      label: game.i18n.localize('TNO.Effect.Passive'),
       effects: [],
     },
     inactive: {
       type: 'inactive',
-      label: game.i18n.localize('EDGEFALL.Effect.Inactive'),
+      label: game.i18n.localize('TNO.Effect.Inactive'),
       effects: [],
     },
   };

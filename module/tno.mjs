@@ -1,19 +1,19 @@
 // Import document classes.
-import { EdgefallActor } from './documents/actor.mjs';
-import { EdgefallItem } from './documents/item.mjs';
+import { TnoActor } from './documents/actor.mjs';
+import { TnoItem } from './documents/item.mjs';
 // Import sheet classes.
-import { EdgefallActorSheet } from './sheets/actor-sheet.mjs';
-import { EdgefallItemSheet } from './sheets/item-sheet.mjs';
+import { TnoActorSheet } from './sheets/actor-sheet.mjs';
+import { TnoItemSheet } from './sheets/item-sheet.mjs';
 // Import helper/utility classes and constants.
 import { preloadHandlebarsTemplates } from './helpers/templates.mjs';
-import { EDGEFALL } from './helpers/config.mjs';
-import { rollEdgefall, rollEdgefallBase } from './helpers/dice.mjs';
+import { TNO } from './helpers/config.mjs';
+import { rollTno, rollTnoBase } from './helpers/dice.mjs';
 import { registerChatListeners } from './helpers/chat.mjs';
-import { EdgefallRollDialog } from './apps/roll-dialog.mjs';
-import { EdgefallBaseRollDialog } from './apps/base-roll-dialog.mjs';
-import { EdgefallHeatmapLab } from './apps/heatmap-lab.mjs';
+import { TnoRollDialog } from './apps/roll-dialog.mjs';
+import { TnoBaseRollDialog } from './apps/base-roll-dialog.mjs';
+import { TnoHeatmapLab } from './apps/heatmap-lab.mjs';
 import { DEFAULT_HEATMAP_CONFIG, setActiveHeatmapConfig } from './helpers/heatmap.mjs';
-import { EdgefallCustomSkillsOverview } from './apps/custom-skills-overview.mjs';
+import { TnoCustomSkillsOverview } from './apps/custom-skills-overview.mjs';
 import { registerMigrationSettings, migrateWorld } from './helpers/migrations.mjs';
 
 /* -------------------------------------------- */
@@ -23,19 +23,19 @@ import { registerMigrationSettings, migrateWorld } from './helpers/migrations.mj
 Hooks.once('init', function () {
   // Add utility classes to the global game object so that they're more easily
   // accessible in global contexts.
-  game.edgefall = {
-    EdgefallActor,
-    EdgefallItem,
-    EdgefallRollDialog,
-    EdgefallBaseRollDialog,
-    rollEdgefall,
-    rollEdgefallBase,
+  game.tno = {
+    TnoActor,
+    TnoItem,
+    TnoRollDialog,
+    TnoBaseRollDialog,
+    rollTno,
+    rollTnoBase,
     rollItemMacro,
     rollBaseDice,
   };
 
   // Add custom constants for configuration.
-  CONFIG.EDGEFALL = EDGEFALL;
+  CONFIG.TNO = TNO;
 
   /**
    * Set an initiative formula for the system
@@ -47,8 +47,8 @@ Hooks.once('init', function () {
   };
 
   // Define custom Document classes
-  CONFIG.Actor.documentClass = EdgefallActor;
-  CONFIG.Item.documentClass = EdgefallItem;
+  CONFIG.Actor.documentClass = TnoActor;
+  CONFIG.Item.documentClass = TnoItem;
 
   // Active Effects are never copied to the Actor,
   // but will still apply to the Actor from within the Item
@@ -57,14 +57,14 @@ Hooks.once('init', function () {
 
   // Register sheet application classes
   Actors.unregisterSheet('core', ActorSheet);
-  Actors.registerSheet('edgefall', EdgefallActorSheet, {
+  Actors.registerSheet('tno', TnoActorSheet, {
     makeDefault: true,
-    label: 'EDGEFALL.SheetLabels.Actor',
+    label: 'TNO.SheetLabels.Actor',
   });
   Items.unregisterSheet('core', ItemSheet);
-  Items.registerSheet('edgefall', EdgefallItemSheet, {
+  Items.registerSheet('tno', TnoItemSheet, {
     makeDefault: true,
-    label: 'EDGEFALL.SheetLabels.Item',
+    label: 'TNO.SheetLabels.Item',
   });
 
   // Preload Handlebars templates.
@@ -73,22 +73,22 @@ Hooks.once('init', function () {
   // Client-scoped so each person at the table can dial in their own heatmap
   // gradient without affecting anyone else's view. The raw settings are
   // hidden (config: false); they're only ever edited through the
-  // EdgefallHeatmapLab menu below, which keeps color-picker/slider UI out of
+  // TnoHeatmapLab menu below, which keeps color-picker/slider UI out of
   // Foundry's plain settings list.
-  game.settings.register('edgefall', 'heatmapLow', { scope: 'client', config: false, type: String, default: DEFAULT_HEATMAP_CONFIG.low });
-  game.settings.register('edgefall', 'heatmapMid', { scope: 'client', config: false, type: String, default: DEFAULT_HEATMAP_CONFIG.mid });
-  game.settings.register('edgefall', 'heatmapHigh', { scope: 'client', config: false, type: String, default: DEFAULT_HEATMAP_CONFIG.high });
-  game.settings.register('edgefall', 'heatmapMidValue', { scope: 'client', config: false, type: Number, default: DEFAULT_HEATMAP_CONFIG.midValue });
-  game.settings.register('edgefall', 'heatmapLowCurve', { scope: 'client', config: false, type: Number, default: DEFAULT_HEATMAP_CONFIG.lowCurve });
-  game.settings.register('edgefall', 'heatmapHighCurve', { scope: 'client', config: false, type: Number, default: DEFAULT_HEATMAP_CONFIG.highCurve });
-  game.settings.register('edgefall', 'heatmapCritical', { scope: 'client', config: false, type: String, default: DEFAULT_HEATMAP_CONFIG.critical });
+  game.settings.register('tno', 'heatmapLow', { scope: 'client', config: false, type: String, default: DEFAULT_HEATMAP_CONFIG.low });
+  game.settings.register('tno', 'heatmapMid', { scope: 'client', config: false, type: String, default: DEFAULT_HEATMAP_CONFIG.mid });
+  game.settings.register('tno', 'heatmapHigh', { scope: 'client', config: false, type: String, default: DEFAULT_HEATMAP_CONFIG.high });
+  game.settings.register('tno', 'heatmapMidValue', { scope: 'client', config: false, type: Number, default: DEFAULT_HEATMAP_CONFIG.midValue });
+  game.settings.register('tno', 'heatmapLowCurve', { scope: 'client', config: false, type: Number, default: DEFAULT_HEATMAP_CONFIG.lowCurve });
+  game.settings.register('tno', 'heatmapHighCurve', { scope: 'client', config: false, type: Number, default: DEFAULT_HEATMAP_CONFIG.highCurve });
+  game.settings.register('tno', 'heatmapCritical', { scope: 'client', config: false, type: String, default: DEFAULT_HEATMAP_CONFIG.critical });
 
-  game.settings.registerMenu('edgefall', 'heatmapLabMenu', {
-    name: 'EDGEFALL.Settings.HeatmapPreset.Name',
-    hint: 'EDGEFALL.Settings.HeatmapPreset.Hint',
-    label: 'EDGEFALL.Settings.HeatmapPreset.Name',
+  game.settings.registerMenu('tno', 'heatmapLabMenu', {
+    name: 'TNO.Settings.HeatmapPreset.Name',
+    hint: 'TNO.Settings.HeatmapPreset.Hint',
+    label: 'TNO.Settings.HeatmapPreset.Name',
     icon: 'fa-solid fa-palette',
-    type: EdgefallHeatmapLab,
+    type: TnoHeatmapLab,
     restricted: false,
   });
 
@@ -99,23 +99,23 @@ Hooks.once('init', function () {
   // GM-only overview of every custom skill defined across the world's
   // character actors, since custom skills otherwise live invisibly inside
   // each actor's own data.
-  game.settings.registerMenu('edgefall', 'customSkillsOverviewMenu', {
-    name: 'EDGEFALL.Settings.CustomSkillsOverview.Name',
-    hint: 'EDGEFALL.Settings.CustomSkillsOverview.Hint',
-    label: 'EDGEFALL.Settings.CustomSkillsOverview.Name',
+  game.settings.registerMenu('tno', 'customSkillsOverviewMenu', {
+    name: 'TNO.Settings.CustomSkillsOverview.Name',
+    hint: 'TNO.Settings.CustomSkillsOverview.Hint',
+    label: 'TNO.Settings.CustomSkillsOverview.Name',
     icon: 'fa-solid fa-list-check',
-    type: EdgefallCustomSkillsOverview,
+    type: TnoCustomSkillsOverview,
     restricted: true,
   });
 
   setActiveHeatmapConfig({
-    low: game.settings.get('edgefall', 'heatmapLow'),
-    mid: game.settings.get('edgefall', 'heatmapMid'),
-    high: game.settings.get('edgefall', 'heatmapHigh'),
-    midValue: game.settings.get('edgefall', 'heatmapMidValue'),
-    lowCurve: game.settings.get('edgefall', 'heatmapLowCurve'),
-    highCurve: game.settings.get('edgefall', 'heatmapHighCurve'),
-    critical: game.settings.get('edgefall', 'heatmapCritical'),
+    low: game.settings.get('tno', 'heatmapLow'),
+    mid: game.settings.get('tno', 'heatmapMid'),
+    high: game.settings.get('tno', 'heatmapHigh'),
+    midValue: game.settings.get('tno', 'heatmapMidValue'),
+    lowCurve: game.settings.get('tno', 'heatmapLowCurve'),
+    highCurve: game.settings.get('tno', 'heatmapHighCurve'),
+    critical: game.settings.get('tno', 'heatmapCritical'),
   });
 
   // Wire up the "Fehler finden" reroll tracker on failed roll cards.
@@ -137,7 +137,7 @@ Hooks.once('init', function () {
  * Open the "Basiswürfel" quick-roll dialog (bare dice mechanic, no threshold).
  */
 function rollBaseDice() {
-  new EdgefallBaseRollDialog().render(true);
+  new TnoBaseRollDialog().render(true);
 }
 
 /**
@@ -145,12 +145,12 @@ function rollBaseDice() {
  * @param {HTMLElement} [controls]
  */
 function injectBaseRollButton(controls) {
-  if (!controls || controls.querySelector('.edgefall-base-roll-button')) return;
+  if (!controls || controls.querySelector('.tno-base-roll-button')) return;
 
   const button = document.createElement('button');
   button.type = 'button';
-  button.classList.add('edgefall-base-roll-button', 'ui-control', 'icon', 'fa-solid', 'fa-dice-d20');
-  const label = game.i18n.localize('EDGEFALL.Roll.BaseDiceButton');
+  button.classList.add('tno-base-roll-button', 'ui-control', 'icon', 'fa-solid', 'fa-dice-d20');
+  const label = game.i18n.localize('TNO.Roll.BaseDiceButton');
   button.dataset.tooltip = label;
   button.setAttribute('aria-label', label);
   button.addEventListener('click', (event) => {
@@ -207,7 +207,7 @@ async function createItemMacro(data, slot) {
   const item = await Item.fromDropData(data);
 
   // Create the macro command using the uuid.
-  const command = `game.edgefall.rollItemMacro("${data.uuid}");`;
+  const command = `game.tno.rollItemMacro("${data.uuid}");`;
   let macro = game.macros.find(
     (m) => m.name === item.name && m.command === command
   );
@@ -217,7 +217,7 @@ async function createItemMacro(data, slot) {
       type: 'script',
       img: item.img,
       command: command,
-      flags: { 'edgefall.itemMacro': true },
+      flags: { 'tno.itemMacro': true },
     });
   }
   game.user.assignHotbarMacro(macro, slot);

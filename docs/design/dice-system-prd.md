@@ -1,4 +1,4 @@
-# Edgefall Dice System - Product Requirements Document
+# Tno Dice System - Product Requirements Document
 
 **Version:** 1.0  
 **Last Updated:** 2026-07-13  
@@ -23,7 +23,7 @@
 
 ## Overview
 
-The Edgefall dice system is a **3d20 roll-under mechanic** with narrative-driven advantage/disadvantage states. It features dynamic critical success/failure conditions that fundamentally alter risk profiles based on the character's situation, creating distinct "Plot Armor" and "Doom" scenarios.
+The Tno dice system is a **3d20 roll-under mechanic** with narrative-driven advantage/disadvantage states. It features dynamic critical success/failure conditions that fundamentally alter risk profiles based on the character's situation, creating distinct "Plot Armor" and "Doom" scenarios.
 
 ### Design Philosophy
 
@@ -526,30 +526,30 @@ SA = Strong Advantage
 ### Required Translation Keys
 
 **Roll Dialog:**
-- `EDGEFALL.Roll.DialogTitle`
-- `EDGEFALL.Roll.Attribute`
-- `EDGEFALL.Roll.Ability`
-- `EDGEFALL.Roll.Modifier`
-- `EDGEFALL.Roll.Threshold`
-- `EDGEFALL.Roll.RollButton`
+- `TNO.Roll.DialogTitle`
+- `TNO.Roll.Attribute`
+- `TNO.Roll.Ability`
+- `TNO.Roll.Modifier`
+- `TNO.Roll.Threshold`
+- `TNO.Roll.RollButton`
 
 **Advantage States:**
-- `EDGEFALL.Advantage.StrongDisadvantage`
-- `EDGEFALL.Advantage.Disadvantage`
-- `EDGEFALL.Advantage.None`
-- `EDGEFALL.Advantage.Advantage`
-- `EDGEFALL.Advantage.StrongAdvantage`
+- `TNO.Advantage.StrongDisadvantage`
+- `TNO.Advantage.Disadvantage`
+- `TNO.Advantage.None`
+- `TNO.Advantage.Advantage`
+- `TNO.Advantage.StrongAdvantage`
 
 **Outcomes:**
-- `EDGEFALL.RollOutcome.Success`
-- `EDGEFALL.RollOutcome.Failure`
-- `EDGEFALL.RollOutcome.CriticalSuccess`
-- `EDGEFALL.RollOutcome.CriticalFailure`
+- `TNO.RollOutcome.Success`
+- `TNO.RollOutcome.Failure`
+- `TNO.RollOutcome.CriticalSuccess`
+- `TNO.RollOutcome.CriticalFailure`
 
 **Chat Card:**
-- `EDGEFALL.Roll.CountingDie`
-- `EDGEFALL.Roll.Threshold`
-- `EDGEFALL.Roll.DiscardedDice`
+- `TNO.Roll.CountingDie`
+- `TNO.Roll.Threshold`
+- `TNO.Roll.DiscardedDice`
 
 ---
 

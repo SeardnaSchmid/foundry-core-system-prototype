@@ -1,12 +1,12 @@
 // Import document classes.
-import { EdgefallActor } from './documents/actor.mjs';
-import { EdgefallItem } from './documents/item.mjs';
+import { TnoActor } from './documents/actor.mjs';
+import { TnoItem } from './documents/item.mjs';
 // Import sheet classes.
-import { EdgefallActorSheet } from './sheets/actor-sheet.mjs';
-import { EdgefallItemSheet } from './sheets/item-sheet.mjs';
+import { TnoActorSheet } from './sheets/actor-sheet.mjs';
+import { TnoItemSheet } from './sheets/item-sheet.mjs';
 // Import helper/utility classes and constants.
 import { preloadHandlebarsTemplates } from './helpers/templates.mjs';
-import { EDGEFALL } from './helpers/config.mjs';
+import { TNO } from './helpers/config.mjs';
 // Import DataModel classes
 import * as models from './data/_module.mjs';
 
@@ -17,14 +17,14 @@ import * as models from './data/_module.mjs';
 Hooks.once('init', function () {
   // Add utility classes to the global game object so that they're more easily
   // accessible in global contexts.
-  game.edgefall = {
-    EdgefallActor,
-    EdgefallItem,
+  game.tno = {
+    TnoActor,
+    TnoItem,
     rollItemMacro,
   };
 
   // Add custom constants for configuration.
-  CONFIG.EDGEFALL = EDGEFALL;
+  CONFIG.TNO = TNO;
 
   /**
    * Set an initiative formula for the system
@@ -36,20 +36,20 @@ Hooks.once('init', function () {
   };
 
   // Define custom Document and DataModel classes
-  CONFIG.Actor.documentClass = EdgefallActor;
+  CONFIG.Actor.documentClass = TnoActor;
 
   // Note that you don't need to declare a DataModel
   // for the base actor/item classes - they are included
   // with the Character/NPC as part of super.defineSchema()
   CONFIG.Actor.dataModels = {
-    character: models.EdgefallCharacter,
-    npc: models.EdgefallNPC
+    character: models.TnoCharacter,
+    npc: models.TnoNPC
   }
-  CONFIG.Item.documentClass = EdgefallItem;
+  CONFIG.Item.documentClass = TnoItem;
   CONFIG.Item.dataModels = {
-    item: models.EdgefallItem,
-    feature: models.EdgefallFeature,
-    spell: models.EdgefallSpell
+    item: models.TnoItem,
+    feature: models.TnoFeature,
+    spell: models.TnoSpell
   }
 
   // Active Effects are never copied to the Actor,
@@ -59,14 +59,14 @@ Hooks.once('init', function () {
 
   // Register sheet application classes
   Actors.unregisterSheet('core', ActorSheet);
-  Actors.registerSheet('edgefall', EdgefallActorSheet, {
+  Actors.registerSheet('tno', TnoActorSheet, {
     makeDefault: true,
-    label: 'EDGEFALL.SheetLabels.Actor',
+    label: 'TNO.SheetLabels.Actor',
   });
   Items.unregisterSheet('core', ItemSheet);
-  Items.registerSheet('edgefall', EdgefallItemSheet, {
+  Items.registerSheet('tno', TnoItemSheet, {
     makeDefault: true,
-    label: 'EDGEFALL.SheetLabels.Item',
+    label: 'TNO.SheetLabels.Item',
   });
 
   // Preload Handlebars templates.
@@ -114,7 +114,7 @@ async function createItemMacro(data, slot) {
   const item = await Item.fromDropData(data);
 
   // Create the macro command using the uuid.
-  const command = `game.edgefall.rollItemMacro("${data.uuid}");`;
+  const command = `game.tno.rollItemMacro("${data.uuid}");`;
   let macro = game.macros.find(
     (m) => m.name === item.name && m.command === command
   );
@@ -124,7 +124,7 @@ async function createItemMacro(data, slot) {
       type: 'script',
       img: item.img,
       command: command,
-      flags: { 'edgefall.itemMacro': true },
+      flags: { 'tno.itemMacro': true },
     });
   }
   game.user.assignHotbarMacro(macro, slot);

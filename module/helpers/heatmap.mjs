@@ -48,7 +48,7 @@ export const HEATMAP_QUICK_PRESETS = {
   // Viridis (matplotlib default since 2.0): dark violet -> teal -> yellow.
   // The reference perceptually-uniform, colorblind-safe colormap.
   viridis: {
-    label: 'EDGEFALL.HeatmapPreset.Viridis',
+    label: 'TNO.HeatmapPreset.Viridis',
     low: '#440154',
     mid: '#21918c',
     high: '#fde725',
@@ -60,7 +60,7 @@ export const HEATMAP_QUICK_PRESETS = {
   // Plasma: dark indigo -> magenta -> yellow. Same design family as
   // Viridis (matplotlib/cmocean), warmer in tone.
   plasma: {
-    label: 'EDGEFALL.HeatmapPreset.Plasma',
+    label: 'TNO.HeatmapPreset.Plasma',
     low: '#0d0887',
     mid: '#cc4778',
     high: '#f0f921',
@@ -72,7 +72,7 @@ export const HEATMAP_QUICK_PRESETS = {
   // Inferno: near-black -> crimson -> pale yellow. High-contrast member of
   // the same perceptually-uniform family, good for dark UIs.
   inferno: {
-    label: 'EDGEFALL.HeatmapPreset.Inferno',
+    label: 'TNO.HeatmapPreset.Inferno',
     low: '#000004',
     mid: '#bb3754',
     high: '#fcffa4',
@@ -83,7 +83,7 @@ export const HEATMAP_QUICK_PRESETS = {
   },
   // Magma: near-black -> magenta -> pale cream. Inferno's cooler sibling.
   magma: {
-    label: 'EDGEFALL.HeatmapPreset.Magma',
+    label: 'TNO.HeatmapPreset.Magma',
     low: '#000004',
     mid: '#b63679',
     high: '#fcfdbf',
@@ -95,7 +95,7 @@ export const HEATMAP_QUICK_PRESETS = {
   // Cividis: navy -> grey -> gold. Purpose-built so red-green colorblind
   // and fully-sighted viewers perceive the same value ordering.
   cividis: {
-    label: 'EDGEFALL.HeatmapPreset.Cividis',
+    label: 'TNO.HeatmapPreset.Cividis',
     low: '#00204d',
     mid: '#7c7b78',
     high: '#ffea46',
@@ -107,7 +107,7 @@ export const HEATMAP_QUICK_PRESETS = {
   // Turbo (Google AI, 2019): an improved rainbow map — wide hue sweep like
   // classic "jet" but smoothed to avoid jet's misleading perceptual banding.
   turbo: {
-    label: 'EDGEFALL.HeatmapPreset.Turbo',
+    label: 'TNO.HeatmapPreset.Turbo',
     low: '#30123b',
     mid: '#29bf12',
     high: '#7a0403',
@@ -119,7 +119,7 @@ export const HEATMAP_QUICK_PRESETS = {
   // Coolwarm: blue -> near-white -> red. The standard diverging map for
   // "below/at/above a reference point" scientific heatmaps and dashboards.
   coolwarm: {
-    label: 'EDGEFALL.HeatmapPreset.Coolwarm',
+    label: 'TNO.HeatmapPreset.Coolwarm',
     low: '#3b4cc0',
     mid: '#dddddd',
     high: '#b40426',
@@ -131,7 +131,7 @@ export const HEATMAP_QUICK_PRESETS = {
   // Greys: white -> mid grey -> black. The classic print-safe sequential
   // scale, included alongside the color maps above.
   greys: {
-    label: 'EDGEFALL.HeatmapPreset.Greys',
+    label: 'TNO.HeatmapPreset.Greys',
     low: '#ffffff',
     mid: '#969696',
     high: '#000000',
@@ -146,7 +146,7 @@ export const HEATMAP_QUICK_PRESETS = {
   // the way to "high" (linear highCurve) — a sharper "bad" cutoff than the
   // other presets' plain linear ramps.
   banded: {
-    label: 'EDGEFALL.HeatmapPreset.Banded',
+    label: 'TNO.HeatmapPreset.Banded',
     low: '#ebece9',
     mid: '#67c44f',
     high: '#054224',

@@ -292,7 +292,7 @@
 
 // Attribute/skill advancement dialog: a progress line toward the next rank,
 // guided XP/buy actions, and a manual correction block.
-.edgefall-advance-dialog {
+.tno-advance-dialog {
   gap: 10px;
   padding: 6px 4px 4px;
 
@@ -425,7 +425,7 @@
 // slider, two per-segment curve sliders, a live 1-10 preview strip that
 // mirrors the character sheet's own grading function, and the dedicated
 // "critical" color swatch.
-.edgefall-heatmap-lab {
+.tno-heatmap-lab {
   gap: 10px;
   padding: 6px 4px 4px;
 

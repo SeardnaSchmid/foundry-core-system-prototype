@@ -1,10 +1,10 @@
 // Export Actors
-export {default as EdgefallActorBase} from "./base-actor.mjs";
-export {default as EdgefallCharacter} from "./actor-character.mjs";
-export {default as EdgefallNPC} from "./actor-npc.mjs";
+export {default as TnoActorBase} from "./base-actor.mjs";
+export {default as TnoCharacter} from "./actor-character.mjs";
+export {default as TnoNPC} from "./actor-npc.mjs";
 
 // Export Items
-export {default as EdgefallItemBase} from "./base-item.mjs";
-export {default as EdgefallItem} from "./item-item.mjs";
-export {default as EdgefallFeature} from "./item-feature.mjs";
-export {default as EdgefallSpell} from "./item-spell.mjs";
+export {default as TnoItemBase} from "./base-item.mjs";
+export {default as TnoItem} from "./item-item.mjs";
+export {default as TnoFeature} from "./item-feature.mjs";
+export {default as TnoSpell} from "./item-spell.mjs";

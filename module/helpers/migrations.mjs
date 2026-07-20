@@ -13,7 +13,7 @@ export const MIGRATIONS = [{ version: '0.16.0', migrate: migrateNormalizeCustomS
  * already run. Call once from the init hook.
  */
 export function registerMigrationSettings() {
-  game.settings.register('edgefall', 'systemMigrationVersion', {
+  game.settings.register('tno', 'systemMigrationVersion', {
     scope: 'world',
     config: false,
     type: String,
@@ -31,23 +31,23 @@ export function registerMigrationSettings() {
 export async function migrateWorld() {
   if (!game.user.isGM) return;
 
-  const stored = game.settings.get('edgefall', 'systemMigrationVersion');
+  const stored = game.settings.get('tno', 'systemMigrationVersion');
   const pending = MIGRATIONS.filter((m) => foundry.utils.isNewerVersion(m.version, stored));
 
   if (pending.length) {
-    ui.notifications.info(game.i18n.format('EDGEFALL.Migration.Started', { version: game.system.version }));
+    ui.notifications.info(game.i18n.format('TNO.Migration.Started', { version: game.system.version }));
     for (const migration of pending) await migration.migrate();
-    ui.notifications.info(game.i18n.localize('EDGEFALL.Migration.Completed'));
+    ui.notifications.info(game.i18n.localize('TNO.Migration.Completed'));
   }
 
   if (stored !== game.system.version) {
-    await game.settings.set('edgefall', 'systemMigrationVersion', game.system.version);
+    await game.settings.set('tno', 'systemMigrationVersion', game.system.version);
   }
 }
 
 /**
  * Normalize every actor's custom skill entries: fall back to safe defaults
- * for a category/attribute that no longer exists in CONFIG.EDGEFALL, and
+ * for a category/attribute that no longer exists in CONFIG.TNO, and
  * coerce rank/xp back to numbers. Only writes actors that actually need a
  * change, and only ever touches `.custom` skill entries.
  */
@@ -62,8 +62,8 @@ async function migrateNormalizeCustomSkills() {
       const custom = entry.custom;
       const fixed = {
         label: typeof custom.label === 'string' && custom.label.trim() ? custom.label : key,
-        category: custom.category in CONFIG.EDGEFALL.skillCategories ? custom.category : 'general',
-        attribute: custom.attribute in CONFIG.EDGEFALL.abilities ? custom.attribute : 'wil',
+        category: custom.category in CONFIG.TNO.skillCategories ? custom.category : 'general',
+        attribute: custom.attribute in CONFIG.TNO.abilities ? custom.attribute : 'wil',
       };
       const value = Number(entry.value) || 0;
       const xp = Number(entry.xp) || 0;

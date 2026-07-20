@@ -1,4 +1,4 @@
-.edgefall-roll-dialog {
+.tno-roll-dialog {
   padding: $padding-md;
 
   .form-group {
@@ -11,17 +11,17 @@
     }
   }
 
-  .edgefall-roll-subject {
+  .tno-roll-subject {
     text-align: center;
     margin-bottom: $padding-sm;
   }
 
-  .edgefall-roll-subject-name {
+  .tno-roll-subject-name {
     margin: 0;
     border-bottom: none;
   }
 
-  .edgefall-roll-stats {
+  .tno-roll-stats {
     margin-bottom: $padding-sm;
 
     .form-group {
@@ -29,25 +29,25 @@
     }
   }
 
-  .edgefall-roll-detail {
+  .tno-roll-detail {
     display: flex;
     justify-content: space-between;
     gap: 10px;
     padding: 2px 0;
 
-    .edgefall-roll-detail-value {
+    .tno-roll-detail-value {
       font-weight: bold;
     }
   }
 
-  .edgefall-hidden {
+  .tno-hidden {
     display: none !important;
   }
 
-  // Same fix as .edgefall-advantage-field below: Core's .form-group lays
+  // Same fix as .tno-advantage-field below: Core's .form-group lays
   // label/content out as a flex row, which squeezes the chip grid. Stack
   // this one so the label sits on its own line above the full-width grid.
-  .edgefall-attribute-field {
+  .tno-attribute-field {
     flex-direction: column;
     align-items: stretch;
     gap: 4px;
@@ -59,13 +59,13 @@
 
   // 3 columns (physical/social/mental) x 4 rows, same grid shape as the
   // character sheet's attribute table but without its header row/column.
-  .edgefall-attribute-chip-grid {
+  .tno-attribute-chip-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 4px;
   }
 
-  .edgefall-attribute-chip {
+  .tno-attribute-chip {
     cursor: pointer;
     padding: 3px 0;
     border: 1px solid transparent;
@@ -73,14 +73,14 @@
     text-align: center;
     line-height: 1.3;
 
-    .edgefall-attribute-chip-abbr {
+    .tno-attribute-chip-abbr {
       display: block;
       font-size: var(--font-size-10, 10px);
       font-weight: bold;
       text-transform: uppercase;
     }
 
-    .edgefall-attribute-chip-value {
+    .tno-attribute-chip-value {
       display: block;
       font-size: var(--font-size-12, 12px);
     }
@@ -95,17 +95,17 @@
     }
   }
 
-  .edgefall-roll-divider {
+  .tno-roll-divider {
     border: none;
     border-top: 1px solid $c-beige;
     margin: $padding-md 0;
   }
 
-  .edgefall-bonus-stepper-group {
+  .tno-bonus-stepper-group {
     gap: $padding-md;
     justify-content: center;
 
-    .edgefall-bonus-stepper {
+    .tno-bonus-stepper {
       cursor: pointer;
       font-weight: bold;
       width: 28px;
@@ -115,7 +115,7 @@
       border-radius: 3px;
     }
 
-    .edgefall-bonus-value {
+    .tno-bonus-value {
       min-width: 32px;
       text-align: center;
       font-weight: bold;
@@ -126,7 +126,7 @@
   // content flex: 3); that squeezes the 5-button advantage picker against a
   // long label. Stack this one field instead so the label sits on its own
   // line above the full-width button row.
-  .edgefall-advantage-field {
+  .tno-advantage-field {
     flex-direction: column;
     align-items: stretch;
     gap: 4px;
@@ -136,11 +136,11 @@
     }
   }
 
-  .edgefall-advantage-group {
+  .tno-advantage-group {
     flex-wrap: nowrap;
     gap: 4px;
 
-    .edgefall-advantage-option {
+    .tno-advantage-option {
       flex: 1;
       cursor: pointer;
       padding: 4px 0;
@@ -159,11 +159,11 @@
     }
   }
 
-  .edgefall-idea-field {
+  .tno-idea-field {
     margin-bottom: $padding-sm;
   }
 
-  .edgefall-idea-label {
+  .tno-idea-label {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -175,17 +175,17 @@
     }
   }
 
-  .edgefall-idea-disabled {
+  .tno-idea-disabled {
     cursor: not-allowed;
     opacity: 0.5;
   }
 
-  .edgefall-roll-threshold-preview {
+  .tno-roll-threshold-preview {
     margin: $padding-sm 0;
     font-weight: bold;
     text-align: center;
 
-    .edgefall-threshold-value {
+    .tno-threshold-value {
       font-size: var(--font-size-16, 16px);
     }
   }

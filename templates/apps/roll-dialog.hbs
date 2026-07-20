@@ -1,36 +1,36 @@
-<form class="edgefall-roll-dialog flexcol">
-  <div class="edgefall-roll-subject">
-    <h2 class="edgefall-roll-subject-name">{{subject}}</h2>
+<form class="tno-roll-dialog flexcol">
+  <div class="tno-roll-subject">
+    <h2 class="tno-roll-subject-name">{{subject}}</h2>
   </div>
 
-  <div class="edgefall-roll-stats">
+  <div class="tno-roll-stats">
     {{#if isSkillMode}}
-    <div class="form-group edgefall-attribute-field">
-      <label>{{localize "EDGEFALL.Roll.ChooseAttribute"}}</label>
-      <div class="edgefall-attribute-chip-grid">
+    <div class="form-group tno-attribute-field">
+      <label>{{localize "TNO.Roll.ChooseAttribute"}}</label>
+      <div class="tno-attribute-chip-grid">
         {{#each attributeGrid as |row|}}
         {{#each row as |chip|}}
-        <a class="edgefall-attribute-chip {{#if chip.active}}active{{/if}}" data-key="{{chip.key}}" title="{{chip.label}}" style="background:{{chip.cellBg}}; color:{{chip.textColor}};">
-          <span class="edgefall-attribute-chip-abbr">{{chip.abbr}}</span>
-          <span class="edgefall-attribute-chip-value">{{chip.value}}</span>
+        <a class="tno-attribute-chip {{#if chip.active}}active{{/if}}" data-key="{{chip.key}}" title="{{chip.label}}" style="background:{{chip.cellBg}}; color:{{chip.textColor}};">
+          <span class="tno-attribute-chip-abbr">{{chip.abbr}}</span>
+          <span class="tno-attribute-chip-value">{{chip.value}}</span>
         </a>
         {{/each}}
         {{/each}}
       </div>
       <input type="hidden" name="attributeA" value="{{attributeA}}"/>
     </div>
-    <div class="edgefall-roll-detail">
-      <span class="edgefall-roll-detail-label">{{skillLabel}}</span>
-      <span class="edgefall-roll-detail-value">{{skillValue}}</span>
+    <div class="tno-roll-detail">
+      <span class="tno-roll-detail-label">{{skillLabel}}</span>
+      <span class="tno-roll-detail-value">{{skillValue}}</span>
     </div>
     {{else if isFixedMode}}
-    <div class="edgefall-roll-detail">
-      <span class="edgefall-roll-detail-label">{{fixedLabel}}</span>
-      <span class="edgefall-roll-detail-value">{{fixedValueDisplay}}</span>
+    <div class="tno-roll-detail">
+      <span class="tno-roll-detail-label">{{fixedLabel}}</span>
+      <span class="tno-roll-detail-value">{{fixedValueDisplay}}</span>
     </div>
     {{else}}
     <div class="form-group">
-      <label>{{localize "EDGEFALL.Roll.AttributeA"}}</label>
+      <label>{{localize "TNO.Roll.AttributeA"}}</label>
       <select name="attributeA">
         <option value="">-</option>
         {{#each abilities as |label key|}}
@@ -41,12 +41,12 @@
 
     {{#if isFreeMode}}
     <div class="form-group">
-      <label>{{localize "EDGEFALL.Roll.FreeSkillValue"}}</label>
+      <label>{{localize "TNO.Roll.FreeSkillValue"}}</label>
       <input type="number" name="skillValue" value="{{skillValue}}" min="0" max="10" step="1"/>
     </div>
     {{else}}
     <div class="form-group">
-      <label>{{localize "EDGEFALL.Roll.AttributeB"}}</label>
+      <label>{{localize "TNO.Roll.AttributeB"}}</label>
       <select name="attributeB">
         <option value="">-</option>
         {{#each abilities as |label key|}}
@@ -59,23 +59,23 @@
   </div>
 
   {{#unless isFixedMode}}
-  <hr class="edgefall-roll-divider"/>
+  <hr class="tno-roll-divider"/>
 
   <div class="form-group">
-    <label>{{localize "EDGEFALL.Roll.Bonus"}}</label>
-    <div class="edgefall-bonus-stepper-group flexrow flex-center">
-      <a class="edgefall-bonus-stepper" data-action="decrement">−</a>
-      <span class="edgefall-bonus-value">{{bonus}}</span>
-      <a class="edgefall-bonus-stepper" data-action="increment">+</a>
+    <label>{{localize "TNO.Roll.Bonus"}}</label>
+    <div class="tno-bonus-stepper-group flexrow flex-center">
+      <a class="tno-bonus-stepper" data-action="decrement">−</a>
+      <span class="tno-bonus-value">{{bonus}}</span>
+      <a class="tno-bonus-stepper" data-action="increment">+</a>
     </div>
     <input type="hidden" name="bonus" value="{{bonus}}"/>
   </div>
 
-  <div class="form-group edgefall-advantage-field">
-    <label>{{localize "EDGEFALL.Roll.Advantage"}}</label>
-    <div class="edgefall-advantage-group flexrow flex-center">
+  <div class="form-group tno-advantage-field">
+    <label>{{localize "TNO.Roll.Advantage"}}</label>
+    <div class="tno-advantage-group flexrow flex-center">
       {{#each advantageOptions as |option|}}
-      <a class="edgefall-advantage-option {{#ifEquals option.value ../advantage}}active{{/ifEquals}}" data-value="{{option.value}}" title="{{#if option.isDefault}}{{localize 'EDGEFALL.Roll.AdvantageDefaultHint' label=option.label}}{{else}}{{option.label}}{{/if}}">{{option.abbr}}</a>
+      <a class="tno-advantage-option {{#ifEquals option.value ../advantage}}active{{/ifEquals}}" data-value="{{option.value}}" title="{{#if option.isDefault}}{{localize 'TNO.Roll.AdvantageDefaultHint' label=option.label}}{{else}}{{option.label}}{{/if}}">{{option.abbr}}</a>
       {{/each}}
     </div>
     <input type="hidden" name="advantage" value="{{advantage}}"/>
@@ -86,21 +86,21 @@
   {{/unless}}
 
   {{#if hasIdeaOption}}
-  <div class="form-group edgefall-idea-field">
-    <label class="edgefall-idea-label {{#if ideaDisabled}}edgefall-idea-disabled{{/if}}" title="{{#if ideaDisabled}}{{localize 'EDGEFALL.Notify.NoReserve'}}{{else}}{{localize 'EDGEFALL.DerivedHint.SolveIdea'}} — {{localize 'EDGEFALL.Notify.ProblemSolvingGate'}}{{/if}}">
+  <div class="form-group tno-idea-field">
+    <label class="tno-idea-label {{#if ideaDisabled}}tno-idea-disabled{{/if}}" title="{{#if ideaDisabled}}{{localize 'TNO.Notify.NoReserve'}}{{else}}{{localize 'TNO.DerivedHint.SolveIdea'}} — {{localize 'TNO.Notify.ProblemSolvingGate'}}{{/if}}">
       <input type="checkbox" name="useIdea" {{#if useIdea}}checked{{/if}} {{#if ideaDisabled}}disabled{{/if}}/>
-      {{localize "EDGEFALL.Roll.IdeaToggle"}} (+{{solveIdeaValue}})
+      {{localize "TNO.Roll.IdeaToggle"}} (+{{solveIdeaValue}})
     </label>
   </div>
   {{/if}}
 
-  <hr class="edgefall-roll-divider"/>
+  <hr class="tno-roll-divider"/>
 
-  <div class="edgefall-roll-threshold-preview">
-    {{localize "EDGEFALL.Roll.Threshold"}}: &lt;= <span class="edgefall-threshold-value">{{threshold}}</span>
+  <div class="tno-roll-threshold-preview">
+    {{localize "TNO.Roll.Threshold"}}: &lt;= <span class="tno-threshold-value">{{threshold}}</span>
   </div>
 
   <footer class="sheet-footer flexrow">
-    <button type="submit"><i class="fas fa-dice-d20"></i> {{localize "EDGEFALL.Roll.Submit"}}</button>
+    <button type="submit"><i class="fas fa-dice-d20"></i> {{localize "TNO.Roll.Submit"}}</button>
   </footer>
 </form>

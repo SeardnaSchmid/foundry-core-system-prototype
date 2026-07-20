@@ -1,8 +1,8 @@
 // "Basiswürfel" quick-roll button injected into the chat log's controls
-// (see injectBaseRollButton in edgefall.mjs) — rendered outside any
-// edgefall-classed sheet, so it can't rely on the .edgefall scope's variables
+// (see injectBaseRollButton in tno.mjs) — rendered outside any
+// tno-classed sheet, so it can't rely on the .tno scope's variables
 // beyond what's imported here.
-.edgefall-base-roll-button {
+.tno-base-roll-button {
   color: $c-tan;
 
   &:hover {

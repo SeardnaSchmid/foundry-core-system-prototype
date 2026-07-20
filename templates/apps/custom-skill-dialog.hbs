@@ -1,11 +1,11 @@
-<form class="edgefall-custom-skill-dialog flexcol">
+<form class="tno-custom-skill-dialog flexcol">
   <div class="form-group">
-    <label>{{localize "EDGEFALL.CustomSkill.Name"}}</label>
+    <label>{{localize "TNO.CustomSkill.Name"}}</label>
     <input type="text" name="name" value="{{name}}" required autofocus/>
   </div>
 
   <div class="form-group">
-    <label>{{localize "EDGEFALL.CustomSkill.Category"}}</label>
+    <label>{{localize "TNO.CustomSkill.Category"}}</label>
     <select name="category">
       {{#each categories as |cat|}}
       <option value="{{cat.key}}" {{#ifEquals cat.key ../category}}selected{{/ifEquals}}>{{cat.label}}</option>
@@ -14,7 +14,7 @@
   </div>
 
   <div class="form-group">
-    <label>{{localize "EDGEFALL.CustomSkill.Attribute"}}</label>
+    <label>{{localize "TNO.CustomSkill.Attribute"}}</label>
     <select name="attribute">
       {{#each abilities as |abl|}}
       <option value="{{abl.key}}" {{#ifEquals abl.key ../attribute}}selected{{/ifEquals}}>{{abl.label}}</option>
@@ -24,8 +24,8 @@
 
   <footer class="sheet-footer flexrow">
     {{#if isEdit}}
-    <button type="button" class="custom-skill-delete"><i class="fas fa-trash"></i> {{localize "EDGEFALL.CustomSkill.Delete"}}</button>
+    <button type="button" class="custom-skill-delete"><i class="fas fa-trash"></i> {{localize "TNO.CustomSkill.Delete"}}</button>
     {{/if}}
-    <button type="submit"><i class="fas fa-check"></i> {{localize "EDGEFALL.CustomSkill.Save"}}</button>
+    <button type="submit"><i class="fas fa-check"></i> {{localize "TNO.CustomSkill.Save"}}</button>
   </footer>
 </form>

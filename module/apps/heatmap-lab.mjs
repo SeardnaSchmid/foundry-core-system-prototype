@@ -29,7 +29,7 @@ const CONFIG_FIELDS = ['low', 'mid', 'high', 'midValue', 'lowCurve', 'highCurve'
  *
  * @extends {FormApplication}
  */
-export class EdgefallHeatmapLab extends FormApplication {
+export class TnoHeatmapLab extends FormApplication {
   constructor() {
     super({ ...getActiveHeatmapConfig() });
   }
@@ -37,9 +37,9 @@ export class EdgefallHeatmapLab extends FormApplication {
   /** @override */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      id: 'edgefall-heatmap-lab',
-      classes: ['edgefall', 'sheet', 'edgefall-heatmap-lab'],
-      template: 'systems/edgefall/templates/apps/heatmap-lab.hbs',
+      id: 'tno-heatmap-lab',
+      classes: ['tno', 'sheet', 'tno-heatmap-lab'],
+      template: 'systems/tno/templates/apps/heatmap-lab.hbs',
       width: 340,
       height: 'auto',
       closeOnSubmit: false,
@@ -49,7 +49,7 @@ export class EdgefallHeatmapLab extends FormApplication {
 
   /** @override */
   get title() {
-    return game.i18n.localize('EDGEFALL.Settings.HeatmapPreset.Name');
+    return game.i18n.localize('TNO.Settings.HeatmapPreset.Name');
   }
 
   /** @override */
@@ -153,13 +153,13 @@ export class EdgefallHeatmapLab extends FormApplication {
   async _apply() {
     setActiveHeatmapConfig(this.object);
     await Promise.all([
-      game.settings.set('edgefall', 'heatmapLow', this.object.low),
-      game.settings.set('edgefall', 'heatmapMid', this.object.mid),
-      game.settings.set('edgefall', 'heatmapHigh', this.object.high),
-      game.settings.set('edgefall', 'heatmapMidValue', this.object.midValue),
-      game.settings.set('edgefall', 'heatmapLowCurve', this.object.lowCurve),
-      game.settings.set('edgefall', 'heatmapHighCurve', this.object.highCurve),
-      game.settings.set('edgefall', 'heatmapCritical', this.object.critical),
+      game.settings.set('tno', 'heatmapLow', this.object.low),
+      game.settings.set('tno', 'heatmapMid', this.object.mid),
+      game.settings.set('tno', 'heatmapHigh', this.object.high),
+      game.settings.set('tno', 'heatmapMidValue', this.object.midValue),
+      game.settings.set('tno', 'heatmapLowCurve', this.object.lowCurve),
+      game.settings.set('tno', 'heatmapHighCurve', this.object.highCurve),
+      game.settings.set('tno', 'heatmapCritical', this.object.critical),
     ]);
     Object.values(ui.windows).forEach((w) => {
       if (w !== this) w.render?.(false);

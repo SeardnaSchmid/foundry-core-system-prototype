@@ -1,3 +1,3 @@
-import EdgefallItemBase from "./base-item.mjs";
+import TnoItemBase from "./base-item.mjs";
 
-export default class EdgefallFeature extends EdgefallItemBase {}
+export default class TnoFeature extends TnoItemBase {}

@@ -1,4 +1,4 @@
-export default class EdgefallDataModel extends foundry.abstract.TypeDataModel {
+export default class TnoDataModel extends foundry.abstract.TypeDataModel {
   /**
    * Convert the schema to a plain object.
    * 

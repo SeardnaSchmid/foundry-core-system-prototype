@@ -1,22 +1,22 @@
-<div class="edgefall-custom-skills-overview flexcol">
+<div class="tno-custom-skills-overview flexcol">
   <div class="overview-toolbar flexrow">
-    <a class="overview-refresh" title="{{localize 'EDGEFALL.CustomSkillsOverview.Refresh'}}">
-      <i class="fas fa-rotate"></i> {{localize "EDGEFALL.CustomSkillsOverview.Refresh"}}
+    <a class="overview-refresh" title="{{localize 'TNO.CustomSkillsOverview.Refresh'}}">
+      <i class="fas fa-rotate"></i> {{localize "TNO.CustomSkillsOverview.Refresh"}}
     </a>
   </div>
 
   {{#if isEmpty}}
-  <p class="overview-empty">{{localize "EDGEFALL.CustomSkillsOverview.Empty"}}</p>
+  <p class="overview-empty">{{localize "TNO.CustomSkillsOverview.Empty"}}</p>
   {{else}}
   <table class="overview-table">
     <thead>
       <tr>
-        <th>{{localize "EDGEFALL.CustomSkillsOverview.Actor"}}</th>
-        <th>{{localize "EDGEFALL.CustomSkillsOverview.Skill"}}</th>
-        <th>{{localize "EDGEFALL.CustomSkillsOverview.Category"}}</th>
-        <th>{{localize "EDGEFALL.CustomSkillsOverview.Attribute"}}</th>
-        <th>{{localize "EDGEFALL.CustomSkillsOverview.Rank"}}</th>
-        <th>{{localize "EDGEFALL.CustomSkillsOverview.Xp"}}</th>
+        <th>{{localize "TNO.CustomSkillsOverview.Actor"}}</th>
+        <th>{{localize "TNO.CustomSkillsOverview.Skill"}}</th>
+        <th>{{localize "TNO.CustomSkillsOverview.Category"}}</th>
+        <th>{{localize "TNO.CustomSkillsOverview.Attribute"}}</th>
+        <th>{{localize "TNO.CustomSkillsOverview.Rank"}}</th>
+        <th>{{localize "TNO.CustomSkillsOverview.Xp"}}</th>
         <th></th>
       </tr>
     </thead>
@@ -30,7 +30,7 @@
         <td>{{row.rank}}</td>
         <td>{{row.xp}}</td>
         <td>
-          <a class="overview-open-actor" data-actor-id="{{row.actorId}}" title="{{localize 'EDGEFALL.CustomSkillsOverview.OpenSheet'}}">
+          <a class="overview-open-actor" data-actor-id="{{row.actorId}}" title="{{localize 'TNO.CustomSkillsOverview.OpenSheet'}}">
             <i class="fas fa-arrow-up-right-from-square"></i>
           </a>
         </td>
