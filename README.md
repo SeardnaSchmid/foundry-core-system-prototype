@@ -3,7 +3,7 @@ foundry-core-system-prototype
 
 ## Working title → finaler Name
 
-„Trans-Neptunian Subjects" ist aktuell der Arbeitstitel (System-ID `tno`).
+„Trans-Neptunian Objects" ist aktuell der Arbeitstitel (System-ID `tno`).
 Der öffentlich sichtbare Name wird zentral über `title` in
 [system.json](system.json) gesteuert — dort reicht eine Änderung.
 
