@@ -424,6 +424,10 @@
   cursor: not-allowed;
   opacity: 0.5;
 }
+.tno .sheet-main {
+  flex: 1;
+  min-width: 0;
+}
 .tno .sheet-tabs {
   flex: 0;
 }
@@ -431,6 +435,40 @@
 .tno .sheet-body .tab,
 .tno .sheet-body .tab .editor {
   height: 100%;
+}
+.tno .tabs-right {
+  position: absolute;
+  top: 160px;
+  left: 100%;
+  width: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 0;
+  border: 1px solid #b5b3a4;
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+  background: #191813;
+}
+.tno .tabs-right .item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 4px;
+  color: #c9c7b8;
+  font-size: 15px;
+  transition: background-color 0.1s ease, color 0.1s ease;
+}
+.tno .tabs-right .item:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+.tno .tabs-right .item.active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.2);
 }
 .tno .biography-textarea {
   width: 100%;

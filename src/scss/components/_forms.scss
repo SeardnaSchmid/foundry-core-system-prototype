@@ -260,6 +260,15 @@
   }
 }
 
+// The form's own flex direction is switched to row (see the actor sheet
+// templates) so the tab rail can dock along the right edge, full height;
+// .sheet-main carries the header+body column that used to be the form's
+// entire content.
+.sheet-main {
+  flex: 1;
+  min-width: 0;
+}
+
 .sheet-tabs {
   flex: 0;
 }
@@ -268,6 +277,48 @@
 .sheet-body .tab,
 .sheet-body .tab .editor {
   height: 100%;
+}
+
+// Vertical icon-only tab rail docked outside the sheet's right edge, styled
+// after the reference dnd5e sheet's tab layout: re-parented onto the app
+// window element by TnoActorSheet#_dockTabsRail so it can hang past the
+// window-content bounds instead of living inside the scrollable form.
+.tabs-right {
+  position: absolute;
+  top: 160px;
+  left: 100%;
+  width: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 0;
+  border: 1px solid $c-beige;
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+  background: $c-dark;
+
+  .item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    color: $c-faint;
+    font-size: 15px;
+    transition: background-color 0.1s ease, color 0.1s ease;
+
+    &:hover {
+      color: $c-white;
+      background: rgba($c-white, 0.12);
+    }
+
+    &.active {
+      color: $c-white;
+      background: rgba($c-white, 0.2);
+    }
+  }
 }
 
 .biography-textarea {

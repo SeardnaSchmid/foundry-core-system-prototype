@@ -341,9 +341,22 @@ export class TnoActorSheet extends ActorSheet {
 
   /* -------------------------------------------- */
 
+  /**
+   * Move the tab rail nav out of `.window-content` and re-parent it directly
+   * onto the app window element, so it can be positioned outside the sheet's
+   * visible bounds (`.tabs-right` docks to the right, past the window edge)
+   * without being clipped by the window-content scroll container.
+   */
+  _dockTabsRail() {
+    const nav = this.element.find('> .window-content .tabs-right');
+    if (nav.length && !nav.parent().is(this.element)) this.element.append(nav);
+  }
+
   /** @override */
   activateListeners(html) {
     super.activateListeners(html);
+
+    this._dockTabsRail();
 
     // Render the item sheet for viewing/editing prior to the editable check.
     html.on('click', '.item-edit', (ev) => {
