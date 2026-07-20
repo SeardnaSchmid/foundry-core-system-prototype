@@ -1,5 +1,19 @@
 # Changelog
 
+# [0.18.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.17.0...v0.18.0) (2026-07-20)
+
+
+### Bug Fixes
+
+* correct English title to Trans-Neptunian Objects ([af28e0b](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/af28e0bdf24ef060b4b50dffd3c72107a0999d56))
+
+
+### Features
+
+* dock actor sheet tabs as icon rail outside sheet edge ([87459ca](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/87459ca9f7dad3c07869f19b617a9eae4c2984b7)), closes [TnoActorSheet#_dockTabsRail](https://github.com/TnoActorSheet/issues/_dockTabsRail)
+* rebrand edgefall to Trans-Neptunian Subjects (tno) ([ed84ddb](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/ed84ddb9a5d60b2b49fcb26df9312de7a3e7a9df))
+* rebrand joster to edgefall, add heatmap coloring to skill ranks ([b82ea55](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/b82ea55ee8d756c450b289be84e90917150aa25b))
+
 # [0.17.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.16.0...v0.17.0) (2026-07-18)
 
 
