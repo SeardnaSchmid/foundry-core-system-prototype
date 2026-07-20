@@ -1,22 +1,22 @@
-<div class="joster-custom-skills-overview flexcol">
+<div class="edgefall-custom-skills-overview flexcol">
   <div class="overview-toolbar flexrow">
-    <a class="overview-refresh" title="{{localize 'JOSTER.CustomSkillsOverview.Refresh'}}">
-      <i class="fas fa-rotate"></i> {{localize "JOSTER.CustomSkillsOverview.Refresh"}}
+    <a class="overview-refresh" title="{{localize 'EDGEFALL.CustomSkillsOverview.Refresh'}}">
+      <i class="fas fa-rotate"></i> {{localize "EDGEFALL.CustomSkillsOverview.Refresh"}}
     </a>
   </div>
 
   {{#if isEmpty}}
-  <p class="overview-empty">{{localize "JOSTER.CustomSkillsOverview.Empty"}}</p>
+  <p class="overview-empty">{{localize "EDGEFALL.CustomSkillsOverview.Empty"}}</p>
   {{else}}
   <table class="overview-table">
     <thead>
       <tr>
-        <th>{{localize "JOSTER.CustomSkillsOverview.Actor"}}</th>
-        <th>{{localize "JOSTER.CustomSkillsOverview.Skill"}}</th>
-        <th>{{localize "JOSTER.CustomSkillsOverview.Category"}}</th>
-        <th>{{localize "JOSTER.CustomSkillsOverview.Attribute"}}</th>
-        <th>{{localize "JOSTER.CustomSkillsOverview.Rank"}}</th>
-        <th>{{localize "JOSTER.CustomSkillsOverview.Xp"}}</th>
+        <th>{{localize "EDGEFALL.CustomSkillsOverview.Actor"}}</th>
+        <th>{{localize "EDGEFALL.CustomSkillsOverview.Skill"}}</th>
+        <th>{{localize "EDGEFALL.CustomSkillsOverview.Category"}}</th>
+        <th>{{localize "EDGEFALL.CustomSkillsOverview.Attribute"}}</th>
+        <th>{{localize "EDGEFALL.CustomSkillsOverview.Rank"}}</th>
+        <th>{{localize "EDGEFALL.CustomSkillsOverview.Xp"}}</th>
         <th></th>
       </tr>
     </thead>
@@ -30,7 +30,7 @@
         <td>{{row.rank}}</td>
         <td>{{row.xp}}</td>
         <td>
-          <a class="overview-open-actor" data-actor-id="{{row.actorId}}" title="{{localize 'JOSTER.CustomSkillsOverview.OpenSheet'}}">
+          <a class="overview-open-actor" data-actor-id="{{row.actorId}}" title="{{localize 'EDGEFALL.CustomSkillsOverview.OpenSheet'}}">
             <i class="fas fa-arrow-up-right-from-square"></i>
           </a>
         </td>

@@ -203,11 +203,11 @@
   text-align: center;
 }
 
-/* Styles limited to joster sheets */
-.joster .item-form {
+/* Styles limited to edgefall sheets */
+.edgefall .item-form {
   font-family: "Roboto", sans-serif;
 }
-.joster .sheet-header {
+.edgefall .sheet-header {
   flex: 0 auto;
   overflow: hidden;
   display: flex;
@@ -216,7 +216,7 @@
   justify-content: flex-start;
   margin-bottom: 10px;
 }
-.joster .sheet-header .profile-img {
+.edgefall .sheet-header .profile-img {
   flex: 0 0 120px;
   width: 120px;
   height: 160px;
@@ -225,25 +225,25 @@
   object-position: top center;
   border-radius: 4px;
 }
-.joster .sheet-header .header-fields {
+.edgefall .sheet-header .header-fields {
   flex: 1;
 }
-.joster .sheet-header h1.charname {
+.edgefall .sheet-header h1.charname {
   height: 50px;
   padding: 0px;
   margin: 5px 0;
   border-bottom: 0;
 }
-.joster .sheet-header h1.charname input {
+.edgefall .sheet-header h1.charname input {
   width: 100%;
   height: 100%;
   margin: 0;
 }
-.joster .sheet-header .resources {
+.edgefall .sheet-header .resources {
   align-items: stretch;
   gap: 8px;
 }
-.joster .sheet-header .resource-group {
+.edgefall .sheet-header .resource-group {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
@@ -253,7 +253,7 @@
   padding: 4px 8px;
   background: #c9c7b8;
 }
-.joster .sheet-header .initiative-group {
+.edgefall .sheet-header .initiative-group {
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -263,27 +263,27 @@
   color: inherit;
   transition: background 0.15s ease;
 }
-.joster .sheet-header .initiative-group:hover {
+.edgefall .sheet-header .initiative-group:hover {
   background: #444;
 }
-.joster .sheet-header .initiative-group .initiative-label {
+.edgefall .sheet-header .initiative-group .initiative-label {
   font-size: var(--font-size-10, 10px);
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: #444;
 }
-.joster .sheet-header .initiative-group .initiative-value {
+.edgefall .sheet-header .initiative-group .initiative-value {
   font-size: var(--font-size-14, 14px);
   font-weight: bold;
   line-height: 1;
 }
-.joster .sheet-header .initiative-group .initiative-value small {
+.edgefall .sheet-header .initiative-group .initiative-value small {
   margin-left: 3px;
   font-size: var(--font-size-11, 11px);
   font-weight: normal;
   color: #444;
 }
-.joster .sheet-header .sixth-sense-group {
+.edgefall .sheet-header .sixth-sense-group {
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -293,24 +293,24 @@
   color: inherit;
   transition: background 0.15s ease;
 }
-.joster .sheet-header .sixth-sense-group:hover {
+.edgefall .sheet-header .sixth-sense-group:hover {
   background: #444;
 }
-.joster .sheet-header .sixth-sense-group .sixth-sense-value {
+.edgefall .sheet-header .sixth-sense-group .sixth-sense-value {
   font-size: var(--font-size-14, 14px);
   font-weight: bold;
   line-height: 1;
 }
-.joster .sheet-header .sixth-sense-group .sixth-sense-label {
+.edgefall .sheet-header .sixth-sense-group .sixth-sense-label {
   font-size: var(--font-size-10, 10px);
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: #444;
 }
-.joster .sheet-header .xp-total-group {
+.edgefall .sheet-header .xp-total-group {
   gap: 10px;
 }
-.joster .sheet-header .xp-total-group .xp-tile {
+.edgefall .sheet-header .xp-total-group .xp-tile {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -318,45 +318,45 @@
   padding-right: 8px;
   border-right: 1px solid #b5b3a4;
 }
-.joster .sheet-header .xp-total-group .xp-tile:last-child {
+.edgefall .sheet-header .xp-total-group .xp-tile:last-child {
   padding-right: 0;
   border-right: none;
 }
-.joster .sheet-header .xp-total-group .xp-tile-value {
+.edgefall .sheet-header .xp-total-group .xp-tile-value {
   font-size: var(--font-size-14, 14px);
   font-weight: bold;
   line-height: 1;
 }
-.joster .sheet-header .xp-total-group .xp-tile-label {
+.edgefall .sheet-header .xp-total-group .xp-tile-label {
   font-size: var(--font-size-10, 10px);
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: #444;
 }
-.joster .sheet-header .movement-group {
+.edgefall .sheet-header .movement-group {
   gap: 10px;
 }
-.joster .sheet-header .movement-group .movement-tile {
+.edgefall .sheet-header .movement-group .movement-tile {
   display: flex;
   flex-direction: column;
   align-items: center;
   min-width: 44px;
 }
-.joster .sheet-header .movement-group .movement-value {
+.edgefall .sheet-header .movement-group .movement-value {
   font-weight: bold;
   font-size: var(--font-size-14, 14px);
   line-height: 1;
 }
-.joster .sheet-header .movement-group .movement-label {
+.edgefall .sheet-header .movement-group .movement-label {
   font-size: var(--font-size-10, 10px);
   text-transform: uppercase;
   color: #444;
 }
-.joster .sheet-header .problem-solving-group {
+.edgefall .sheet-header .problem-solving-group {
   gap: 10px;
   flex: 0 1 auto;
 }
-.joster .sheet-header .problem-solving-group .reserve-pool {
+.edgefall .sheet-header .problem-solving-group .reserve-pool {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -364,12 +364,12 @@
   padding-right: 8px;
   border-right: 1px solid #b5b3a4;
 }
-.joster .sheet-header .problem-solving-group .reserve-value {
+.edgefall .sheet-header .problem-solving-group .reserve-value {
   font-weight: bold;
   font-size: var(--font-size-14, 14px);
   line-height: 1;
 }
-.joster .sheet-header .problem-solving-group .reserve-value-input {
+.edgefall .sheet-header .problem-solving-group .reserve-value-input {
   width: 22px;
   padding: 0;
   border: none;
@@ -380,15 +380,15 @@
   line-height: 1;
   color: inherit;
 }
-.joster .sheet-header .problem-solving-group .reserve-value-input::-webkit-inner-spin-button, .joster .sheet-header .problem-solving-group .reserve-value-input::-webkit-outer-spin-button {
+.edgefall .sheet-header .problem-solving-group .reserve-value-input::-webkit-inner-spin-button, .edgefall .sheet-header .problem-solving-group .reserve-value-input::-webkit-outer-spin-button {
   margin: 0;
 }
-.joster .sheet-header .problem-solving-group .reserve-label {
+.edgefall .sheet-header .problem-solving-group .reserve-label {
   font-size: var(--font-size-10, 10px);
   text-transform: uppercase;
   color: #444;
 }
-.joster .sheet-header .problem-solving-group .solve-tile {
+.edgefall .sheet-header .problem-solving-group .solve-tile {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -399,40 +399,40 @@
   text-decoration: none;
   color: inherit;
 }
-.joster .sheet-header .problem-solving-group .solve-tile-value {
+.edgefall .sheet-header .problem-solving-group .solve-tile-value {
   font-weight: bold;
   font-size: var(--font-size-14, 14px);
   line-height: 1;
 }
-.joster .sheet-header .problem-solving-group .solve-tile-label {
+.edgefall .sheet-header .problem-solving-group .solve-tile-label {
   font-size: var(--font-size-10, 10px);
   text-transform: uppercase;
   color: #444;
 }
-.joster .sheet-header .problem-solving-group .solve-analyze-flaw {
+.edgefall .sheet-header .problem-solving-group .solve-analyze-flaw {
   cursor: pointer;
   transition: background 0.15s ease;
 }
-.joster .sheet-header .problem-solving-group .solve-analyze-flaw:hover {
+.edgefall .sheet-header .problem-solving-group .solve-analyze-flaw:hover {
   background: #444;
 }
-.joster .sheet-header .problem-solving-group .solve-analyze-flaw:hover .solve-tile-value,
-.joster .sheet-header .problem-solving-group .solve-analyze-flaw:hover .solve-tile-label {
+.edgefall .sheet-header .problem-solving-group .solve-analyze-flaw:hover .solve-tile-value,
+.edgefall .sheet-header .problem-solving-group .solve-analyze-flaw:hover .solve-tile-label {
   color: #fff;
 }
-.joster .sheet-header .problem-solving-group .solve-tile-disabled {
+.edgefall .sheet-header .problem-solving-group .solve-tile-disabled {
   cursor: not-allowed;
   opacity: 0.5;
 }
-.joster .sheet-tabs {
+.edgefall .sheet-tabs {
   flex: 0;
 }
-.joster .sheet-body,
-.joster .sheet-body .tab,
-.joster .sheet-body .tab .editor {
+.edgefall .sheet-body,
+.edgefall .sheet-body .tab,
+.edgefall .sheet-body .tab .editor {
   height: 100%;
 }
-.joster .biography-textarea {
+.edgefall .biography-textarea {
   width: 100%;
   height: 100%;
   padding: 8px;
@@ -441,54 +441,54 @@
   font-family: "Roboto", sans-serif;
   resize: none;
 }
-.joster .tox .tox-editor-container {
+.edgefall .tox .tox-editor-container {
   background: #fff;
 }
-.joster .tox .tox-edit-area {
+.edgefall .tox .tox-edit-area {
   padding: 0 8px;
 }
-.joster .joster-advance-dialog {
+.edgefall .edgefall-advance-dialog {
   gap: 10px;
   padding: 6px 4px 4px;
 }
-.joster .joster-advance-dialog .advance-progress-head {
+.edgefall .edgefall-advance-dialog .advance-progress-head {
   justify-content: space-between;
   align-items: baseline;
   margin-bottom: 5px;
   font-size: var(--font-size-12, 12px);
 }
-.joster .joster-advance-dialog .advance-rank {
+.edgefall .edgefall-advance-dialog .advance-rank {
   font-weight: bold;
 }
-.joster .joster-advance-dialog .advance-rank .fas {
+.edgefall .edgefall-advance-dialog .advance-rank .fas {
   margin: 0 2px;
   font-size: var(--font-size-10, 10px);
   opacity: 0.6;
 }
-.joster .joster-advance-dialog .advance-xp-count {
+.edgefall .edgefall-advance-dialog .advance-xp-count {
   font-variant-numeric: tabular-nums;
   color: #444;
 }
-.joster .joster-advance-dialog .advance-bar {
+.edgefall .edgefall-advance-dialog .advance-bar {
   height: 5px;
   border-radius: 999px;
   background: rgba(181, 179, 164, 0.35);
   border: 1px solid rgba(181, 179, 164, 0.5);
   overflow: hidden;
 }
-.joster .joster-advance-dialog .advance-bar-fill {
+.edgefall .edgefall-advance-dialog .advance-bar-fill {
   height: 100%;
   background: #444;
   transition: width 0.15s ease;
 }
-.joster .joster-advance-dialog .advance-bar-fill.ready {
+.edgefall .edgefall-advance-dialog .advance-bar-fill.ready {
   background: #1f6b3a;
 }
-.joster .joster-advance-dialog .advance-actions {
+.edgefall .edgefall-advance-dialog .advance-actions {
   gap: 6px;
   align-items: stretch;
 }
-.joster .joster-advance-dialog .advance-actions .advance-action {
+.edgefall .edgefall-advance-dialog .advance-actions .advance-action {
   flex: 1;
   display: flex;
   align-items: center;
@@ -500,67 +500,67 @@
   line-height: 1;
   font-size: var(--font-size-11, 11px);
 }
-.joster .joster-advance-dialog .advance-actions .advance-buy {
+.edgefall .edgefall-advance-dialog .advance-actions .advance-buy {
   flex: 1.5;
 }
-.joster .joster-advance-dialog .advance-actions .advance-buy:not(:disabled) {
+.edgefall .edgefall-advance-dialog .advance-actions .advance-buy:not(:disabled) {
   border-color: #1f6b3a;
   color: #1f6b3a;
 }
-.joster .joster-advance-dialog .advance-actions .advance-buy:not(:disabled):hover {
+.edgefall .edgefall-advance-dialog .advance-actions .advance-buy:not(:disabled):hover {
   background: rgba(31, 107, 58, 0.12);
 }
-.joster .joster-advance-dialog .advance-actions .advance-buy:disabled {
+.edgefall .edgefall-advance-dialog .advance-actions .advance-buy:disabled {
   opacity: 0.5;
 }
-.joster .joster-advance-dialog .advance-correction {
+.edgefall .edgefall-advance-dialog .advance-correction {
   padding-top: 8px;
   border-top: 1px solid rgba(181, 179, 164, 0.5);
 }
-.joster .joster-advance-dialog .advance-correction-label {
+.edgefall .edgefall-advance-dialog .advance-correction-label {
   margin: 0 0 5px;
   font-size: var(--font-size-10, 10px);
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: #444;
 }
-.joster .joster-advance-dialog .advance-correction .flexrow {
+.edgefall .edgefall-advance-dialog .advance-correction .flexrow {
   gap: 8px;
 }
-.joster .joster-advance-dialog .advance-correction .form-group {
+.edgefall .edgefall-advance-dialog .advance-correction .form-group {
   flex: 1;
   margin: 0;
 }
-.joster .joster-advance-dialog .advance-correction .form-group label {
+.edgefall .edgefall-advance-dialog .advance-correction .form-group label {
   display: block;
   margin-bottom: 2px;
   font-size: var(--font-size-10, 10px);
   color: #444;
 }
-.joster .joster-advance-dialog .advance-correction .form-group input {
+.edgefall .edgefall-advance-dialog .advance-correction .form-group input {
   width: 100%;
   height: 26px;
   margin: 0;
   text-align: center;
 }
-.joster .joster-advance-dialog .sheet-footer {
+.edgefall .edgefall-advance-dialog .sheet-footer {
   margin-top: 2px;
 }
-.joster .joster-advance-dialog .sheet-footer button {
+.edgefall .edgefall-advance-dialog .sheet-footer button {
   height: 28px;
   margin: 0;
   line-height: 1;
   font-size: var(--font-size-12, 12px);
 }
-.joster .joster-heatmap-lab {
+.edgefall .edgefall-heatmap-lab {
   gap: 10px;
   padding: 6px 4px 4px;
 }
-.joster .joster-heatmap-lab .heatmap-lab-presets {
+.edgefall .edgefall-heatmap-lab .heatmap-lab-presets {
   flex-wrap: wrap;
   gap: 4px;
 }
-.joster .joster-heatmap-lab .heatmap-lab-preset-btn {
+.edgefall .edgefall-heatmap-lab .heatmap-lab-preset-btn {
   flex: 1 1 auto;
   height: 24px;
   margin: 0;
@@ -568,58 +568,58 @@
   line-height: 1;
   font-size: var(--font-size-10, 10px);
 }
-.joster .joster-heatmap-lab .heatmap-lab-stops {
+.edgefall .edgefall-heatmap-lab .heatmap-lab-stops {
   gap: 8px;
 }
-.joster .joster-heatmap-lab .heatmap-lab-stops .form-group {
+.edgefall .edgefall-heatmap-lab .heatmap-lab-stops .form-group {
   flex: 1;
   margin: 0;
   text-align: center;
 }
-.joster .joster-heatmap-lab .heatmap-lab-stops .form-group label {
+.edgefall .edgefall-heatmap-lab .heatmap-lab-stops .form-group label {
   display: block;
   margin-bottom: 2px;
   font-size: var(--font-size-10, 10px);
   color: #444;
 }
-.joster .joster-heatmap-lab .heatmap-lab-stops .form-group input[type=color] {
+.edgefall .edgefall-heatmap-lab .heatmap-lab-stops .form-group input[type=color] {
   width: 100%;
   height: 30px;
   padding: 2px;
 }
-.joster .joster-heatmap-lab .heatmap-lab-curves {
+.edgefall .edgefall-heatmap-lab .heatmap-lab-curves {
   gap: 8px;
 }
-.joster .joster-heatmap-lab .heatmap-lab-curves .heatmap-lab-curve {
+.edgefall .edgefall-heatmap-lab .heatmap-lab-curves .heatmap-lab-curve {
   flex: 1;
   margin: 0;
 }
-.joster .joster-heatmap-lab .heatmap-lab-curve,
-.joster .joster-heatmap-lab .heatmap-lab-midpoint {
+.edgefall .edgefall-heatmap-lab .heatmap-lab-curve,
+.edgefall .edgefall-heatmap-lab .heatmap-lab-midpoint {
   margin: 0;
 }
-.joster .joster-heatmap-lab .heatmap-lab-curve label,
-.joster .joster-heatmap-lab .heatmap-lab-midpoint label {
+.edgefall .edgefall-heatmap-lab .heatmap-lab-curve label,
+.edgefall .edgefall-heatmap-lab .heatmap-lab-midpoint label {
   display: flex;
   justify-content: space-between;
   margin-bottom: 3px;
   font-size: var(--font-size-10, 10px);
   color: #444;
 }
-.joster .joster-heatmap-lab .heatmap-lab-curve span,
-.joster .joster-heatmap-lab .heatmap-lab-midpoint span {
+.edgefall .edgefall-heatmap-lab .heatmap-lab-curve span,
+.edgefall .edgefall-heatmap-lab .heatmap-lab-midpoint span {
   font-variant-numeric: tabular-nums;
   color: #191813;
 }
-.joster .joster-heatmap-lab .heatmap-lab-curve input[type=range],
-.joster .joster-heatmap-lab .heatmap-lab-midpoint input[type=range] {
+.edgefall .edgefall-heatmap-lab .heatmap-lab-curve input[type=range],
+.edgefall .edgefall-heatmap-lab .heatmap-lab-midpoint input[type=range] {
   width: 100%;
   margin: 0;
 }
-.joster .joster-heatmap-lab .heatmap-lab-preview {
+.edgefall .edgefall-heatmap-lab .heatmap-lab-preview {
   gap: 2px;
 }
-.joster .joster-heatmap-lab .heatmap-lab-preview .heatmap-lab-swatch {
+.edgefall .edgefall-heatmap-lab .heatmap-lab-preview .heatmap-lab-swatch {
   flex: 1;
   display: flex;
   align-items: center;
@@ -629,25 +629,25 @@
   font-size: var(--font-size-10, 10px);
   font-variant-numeric: tabular-nums;
 }
-.joster .joster-heatmap-lab .heatmap-lab-critical {
+.edgefall .edgefall-heatmap-lab .heatmap-lab-critical {
   margin: 0;
 }
-.joster .joster-heatmap-lab .heatmap-lab-critical label {
+.edgefall .edgefall-heatmap-lab .heatmap-lab-critical label {
   display: block;
   margin-bottom: 2px;
   font-size: var(--font-size-10, 10px);
   color: #444;
 }
-.joster .joster-heatmap-lab .heatmap-lab-critical .heatmap-lab-critical-row {
+.edgefall .edgefall-heatmap-lab .heatmap-lab-critical .heatmap-lab-critical-row {
   gap: 8px;
   align-items: center;
 }
-.joster .joster-heatmap-lab .heatmap-lab-critical input[type=color] {
+.edgefall .edgefall-heatmap-lab .heatmap-lab-critical input[type=color] {
   flex: 1;
   height: 30px;
   padding: 2px;
 }
-.joster .joster-heatmap-lab .heatmap-lab-critical .heatmap-lab-critical-swatch {
+.edgefall .edgefall-heatmap-lab .heatmap-lab-critical .heatmap-lab-critical-swatch {
   flex: 0 0 40px;
   display: flex;
   align-items: center;
@@ -657,16 +657,16 @@
   font-size: var(--font-size-10, 10px);
   font-variant-numeric: tabular-nums;
 }
-.joster .joster-heatmap-lab .heatmap-lab-hint {
+.edgefall .edgefall-heatmap-lab .heatmap-lab-hint {
   margin: 0;
   font-size: var(--font-size-10, 10px);
   color: #444;
   text-align: center;
 }
-.joster .resource-label {
+.edgefall .resource-label {
   font-weight: bold;
 }
-.joster .xp-badge {
+.edgefall .xp-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -699,57 +699,57 @@
     box-shadow: 0 0 0 2px rgba(255, 90, 100, 0.5), 0 0 4px 1px rgba(255, 90, 100, 0.2);
   }
 }
-.joster .attribute-table {
+.edgefall .attribute-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 4px;
   margin: 10px 0;
 }
-.joster .attribute-table th,
-.joster .attribute-table td {
+.edgefall .attribute-table th,
+.edgefall .attribute-table td {
   border: none;
   padding: 0;
   background: none;
   vertical-align: middle;
   text-align: left;
 }
-.joster .attribute-table.heatmap thead th,
-.joster .attribute-table.heatmap .heatmap-row-header {
+.edgefall .attribute-table.heatmap thead th,
+.edgefall .attribute-table.heatmap .heatmap-row-header {
   font-weight: 500;
   font-size: var(--font-size-11, 11px);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: #444;
 }
-.joster .attribute-table.heatmap thead {
+.edgefall .attribute-table.heatmap thead {
   background: none;
 }
-.joster .attribute-table.heatmap thead th,
-.joster .attribute-table.heatmap .heatmap-row-header {
+.edgefall .attribute-table.heatmap thead th,
+.edgefall .attribute-table.heatmap .heatmap-row-header {
   text-align: center;
   padding: 0 2px 2px;
 }
-.joster .attribute-table.heatmap .heatmap-row-header {
+.edgefall .attribute-table.heatmap .heatmap-row-header {
   white-space: nowrap;
 }
-.joster .attribute-table.heatmap .heatmap-col-label,
-.joster .attribute-table.heatmap .heatmap-row-label {
+.edgefall .attribute-table.heatmap .heatmap-col-label,
+.edgefall .attribute-table.heatmap .heatmap-row-label {
   display: block;
 }
-.joster .attribute-table.heatmap .heatmap-cell {
+.edgefall .attribute-table.heatmap .heatmap-cell {
   position: relative;
   text-align: center;
   padding: 7px 8px;
   border-radius: 4px;
   border: 1.5px solid transparent;
 }
-.joster .attribute-table.heatmap .heatmap-cell.heatmap-critical {
+.edgefall .attribute-table.heatmap .heatmap-cell.heatmap-critical {
   animation: heatmap-critical-pulse 1.4s ease-in-out infinite;
 }
-.joster .attribute-table.heatmap .heatmap-cell.heatmap-peak:not(.heatmap-critical) {
+.edgefall .attribute-table.heatmap .heatmap-cell.heatmap-peak:not(.heatmap-critical) {
   animation: heatmap-peak-pulse 2.2s ease-in-out infinite;
 }
-.joster .attribute-table.heatmap .heatmap-cell .heatmap-cell-top {
+.edgefall .attribute-table.heatmap .heatmap-cell .heatmap-cell-top {
   position: relative;
   display: flex;
   align-items: center;
@@ -757,32 +757,32 @@
   margin-bottom: 6px;
   min-height: 16px;
 }
-.joster .attribute-table.heatmap .heatmap-cell .heatmap-warn-badge {
+.edgefall .attribute-table.heatmap .heatmap-cell .heatmap-warn-badge {
   position: absolute;
   top: 0;
   left: 0;
   font-size: var(--font-size-12, 12px);
 }
-.joster .attribute-table.heatmap .heatmap-cell .heatmap-cell-name {
+.edgefall .attribute-table.heatmap .heatmap-cell .heatmap-cell-name {
   font-weight: 600;
   font-size: var(--font-size-12, 12px);
 }
-.joster .attribute-table.heatmap .heatmap-cell .heatmap-xp-bar {
+.edgefall .attribute-table.heatmap .heatmap-cell .heatmap-xp-bar {
   display: block;
   margin: 6px -8px -7px;
   height: 4px;
   border-radius: 0 0 3px 3px;
   overflow: hidden;
 }
-.joster .attribute-table.heatmap .heatmap-cell .heatmap-xp-bar.ready .heatmap-xp-bar-fill {
+.edgefall .attribute-table.heatmap .heatmap-cell .heatmap-xp-bar.ready .heatmap-xp-bar-fill {
   background: #1f6b3a !important;
 }
-.joster .attribute-table.heatmap .heatmap-cell .heatmap-xp-bar-fill {
+.edgefall .attribute-table.heatmap .heatmap-cell .heatmap-xp-bar-fill {
   display: block;
   height: 100%;
   transition: width 0.15s ease;
 }
-.joster .attribute-table.heatmap .heatmap-cell .heatmap-delta {
+.edgefall .attribute-table.heatmap .heatmap-cell .heatmap-delta {
   position: absolute;
   top: 0;
   left: 0;
@@ -792,7 +792,7 @@
   font-size: var(--font-size-10, 10px);
   cursor: pointer;
 }
-.joster .attribute-table.heatmap .heatmap-cell .heatmap-xp-badge {
+.edgefall .attribute-table.heatmap .heatmap-cell .heatmap-xp-badge {
   position: absolute;
   top: 0;
   right: 0;
@@ -806,18 +806,18 @@
   opacity: 0.75;
   cursor: pointer;
 }
-.joster .attribute-table.heatmap .heatmap-cell .heatmap-xp-badge:hover {
+.edgefall .attribute-table.heatmap .heatmap-cell .heatmap-xp-badge:hover {
   opacity: 1;
 }
-.joster .attribute-table.heatmap .heatmap-cell .heatmap-xp-badge.ready {
+.edgefall .attribute-table.heatmap .heatmap-cell .heatmap-xp-badge.ready {
   background: #1f6b3a;
   color: #e9ffea;
   opacity: 1;
 }
-.joster .attribute-table.heatmap .heatmap-cell .heatmap-cell-values {
+.edgefall .attribute-table.heatmap .heatmap-cell .heatmap-cell-values {
   gap: 6px;
 }
-.joster .attribute-table.heatmap .heatmap-cell .heatmap-stepper {
+.edgefall .attribute-table.heatmap .heatmap-cell .heatmap-stepper {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -829,45 +829,45 @@
   font-weight: bold;
   cursor: pointer;
 }
-.joster .attribute-table.heatmap .heatmap-cell .heatmap-stepper:hover {
+.edgefall .attribute-table.heatmap .heatmap-cell .heatmap-stepper:hover {
   filter: brightness(0.95);
 }
-.joster .attribute-table.heatmap .heatmap-cell .heatmap-value-pair {
+.edgefall .attribute-table.heatmap .heatmap-cell .heatmap-value-pair {
   display: inline-flex;
   align-items: baseline;
   gap: 1px;
   min-width: 40px;
   justify-content: center;
 }
-.joster .attribute-table.heatmap .heatmap-cell .heatmap-temp,
-.joster .attribute-table.heatmap .heatmap-cell .heatmap-base {
+.edgefall .attribute-table.heatmap .heatmap-cell .heatmap-temp,
+.edgefall .attribute-table.heatmap .heatmap-cell .heatmap-base {
   font-weight: 800;
   transition: font-size 0.15s ease, opacity 0.15s ease;
 }
-.joster .attribute-table.heatmap .heatmap-cell .heatmap-temp.active,
-.joster .attribute-table.heatmap .heatmap-cell .heatmap-base.active {
+.edgefall .attribute-table.heatmap .heatmap-cell .heatmap-temp.active,
+.edgefall .attribute-table.heatmap .heatmap-cell .heatmap-base.active {
   font-size: var(--font-size-20, 20px);
   opacity: 1;
 }
-.joster .attribute-table.heatmap .heatmap-cell .heatmap-temp.inactive,
-.joster .attribute-table.heatmap .heatmap-cell .heatmap-base.inactive {
+.edgefall .attribute-table.heatmap .heatmap-cell .heatmap-temp.inactive,
+.edgefall .attribute-table.heatmap .heatmap-cell .heatmap-base.inactive {
   font-size: var(--font-size-11, 11px);
   opacity: 0.55;
 }
-.joster .attribute-table.heatmap .heatmap-cell .heatmap-slash {
+.edgefall .attribute-table.heatmap .heatmap-cell .heatmap-slash {
   font-weight: 800;
   opacity: 0.5;
 }
-.joster .attributes-header,
-.joster .skills-header {
+.edgefall .attributes-header,
+.edgefall .skills-header {
   align-items: center;
   justify-content: space-between;
   margin: 0 0 4px;
   padding-bottom: 4px;
   border-bottom: 1px solid #b5b3a4;
 }
-.joster .attributes-title,
-.joster .skills-title {
+.edgefall .attributes-title,
+.edgefall .skills-title {
   flex: 1;
   margin: 0;
   padding: 0;
@@ -876,23 +876,23 @@
   line-height: 1;
   text-transform: uppercase;
 }
-.joster .attributes-title .xp-badge,
-.joster .skills-title .xp-badge {
+.edgefall .attributes-title .xp-badge,
+.edgefall .skills-title .xp-badge {
   margin-left: 6px;
   text-transform: none;
   vertical-align: middle;
 }
-.joster .heatmap-lab-btn {
+.edgefall .heatmap-lab-btn {
   flex: 0 0 auto;
   color: #b5b3a4;
   opacity: 0.6;
   cursor: pointer;
 }
-.joster .heatmap-lab-btn:hover {
+.edgefall .heatmap-lab-btn:hover {
   opacity: 1;
   color: #c9c7b8;
 }
-.joster .skill-search-input {
+.edgefall .skill-search-input {
   flex: 0 0 120px;
   width: 120px;
   height: auto;
@@ -903,11 +903,11 @@
   background: transparent;
   font-size: var(--font-size-10, 10px);
 }
-.joster .skill-search-input:focus {
+.edgefall .skill-search-input:focus {
   border-color: #444;
   box-shadow: none;
 }
-.joster .skill-filter-group {
+.edgefall .skill-filter-group {
   display: flex;
   flex: none;
   gap: 2px;
@@ -915,7 +915,7 @@
   border: 1px solid #b5b3a4;
   border-radius: 3px;
 }
-.joster .skill-filter-btn {
+.edgefall .skill-filter-btn {
   padding: 2px 7px;
   border-radius: 2px;
   font-size: var(--font-size-10, 10px);
@@ -926,21 +926,21 @@
   cursor: pointer;
   transition: background-color 0.1s ease, color 0.1s ease;
 }
-.joster .skill-filter-btn:hover {
+.edgefall .skill-filter-btn:hover {
   color: #191813;
 }
-.joster .skill-filter-btn.active {
+.edgefall .skill-filter-btn.active {
   background: #444;
   color: #fff;
 }
-.joster .skill-groups {
+.edgefall .skill-groups {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
   gap: 6px;
   margin: 0 0 10px;
 }
-.joster .skill-group {
+.edgefall .skill-group {
   flex: 1 1 220px;
   min-width: 180px;
   max-width: 300px;
@@ -948,7 +948,7 @@
   border-radius: 3px;
   padding: 3px 5px;
 }
-.joster .skill-group-title {
+.edgefall .skill-group-title {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -961,33 +961,33 @@
   letter-spacing: 0.02em;
   color: #191813;
 }
-.joster .skill-group-name {
+.edgefall .skill-group-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.joster .skill-group-empty {
+.edgefall .skill-group-empty {
   margin: 0;
   font-size: var(--font-size-10, 10px);
   font-style: italic;
   color: #444;
 }
-.joster .skill-list {
+.edgefall .skill-list {
   list-style: none;
   margin: 0;
   padding: 0;
 }
-.joster .skill-row {
+.edgefall .skill-row {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 2px 0;
   border-radius: 3px;
 }
-.joster .skill-row + .joster .skill-row {
+.edgefall .skill-row + .edgefall .skill-row {
   border-top: 1px solid rgba(181, 179, 164, 0.4);
 }
-.joster .skill-info {
+.edgefall .skill-info {
   display: grid;
   grid-template-columns: 1fr auto auto;
   align-items: center;
@@ -999,27 +999,27 @@
   padding: 1px 2px;
   transition: background-color 0.1s ease;
 }
-.joster .skill-info:hover {
+.edgefall .skill-info:hover {
   background: rgba(181, 179, 164, 0.3);
 }
-.joster .skill-info:hover .skill-level {
+.edgefall .skill-info:hover .skill-level {
   color: #191813;
   background: rgba(0, 0, 0, 0.08);
 }
-.joster .skill-name {
+.edgefall .skill-name {
   display: flex;
   align-items: center;
   gap: 4px;
   min-width: 0;
 }
-.joster .skill-name-text {
+.edgefall .skill-name-text {
   font-size: var(--font-size-11, 11px);
   line-height: 1.3;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.joster .skill-custom-badge {
+.edgefall .skill-custom-badge {
   flex: none;
   display: flex;
   align-items: center;
@@ -1033,7 +1033,7 @@
   color: #191813;
   background: rgba(68, 68, 68, 0.35);
 }
-.joster .skill-level {
+.edgefall .skill-level {
   flex: none;
   min-width: 2ch;
   padding: 0 4px;
@@ -1045,7 +1045,7 @@
   color: #191813;
   background: rgba(181, 179, 164, 0.35);
 }
-.joster .skill-xp {
+.edgefall .skill-xp {
   flex: none;
   min-width: 2ch;
   font-size: var(--font-size-10, 10px);
@@ -1053,11 +1053,11 @@
   text-align: right;
   color: #444;
 }
-.joster .skill-xp.ready {
+.edgefall .skill-xp.ready {
   color: #1f6b3a;
   font-weight: bold;
 }
-.joster .skill-advance-button {
+.edgefall .skill-advance-button {
   flex: none;
   display: flex;
   align-items: center;
@@ -1069,18 +1069,18 @@
   color: #444;
   cursor: pointer;
 }
-.joster .skill-advance-button:hover {
+.edgefall .skill-advance-button:hover {
   background: rgba(181, 179, 164, 0.3);
   color: #191813;
 }
-.joster .skill-advance-button.ready {
+.edgefall .skill-advance-button.ready {
   color: #1f6b3a;
 }
-.joster .skill-advance-button.ready:hover {
+.edgefall .skill-advance-button.ready:hover {
   background: rgba(31, 107, 58, 0.15);
   color: #1f6b3a;
 }
-.joster .skill-create-button {
+.edgefall .skill-create-button {
   flex: none;
   display: flex;
   align-items: center;
@@ -1093,12 +1093,12 @@
   cursor: pointer;
   margin-left: auto;
 }
-.joster .skill-create-button:hover {
+.edgefall .skill-create-button:hover {
   background: rgba(181, 179, 164, 0.3);
   color: #191813;
 }
-.joster .skill-edit-button,
-.joster .skill-delete-button {
+.edgefall .skill-edit-button,
+.edgefall .skill-delete-button {
   flex: none;
   display: flex;
   align-items: center;
@@ -1112,65 +1112,65 @@
   opacity: 0;
   transition: opacity 0.1s ease;
 }
-.joster .skill-edit-button:hover,
-.joster .skill-delete-button:hover {
+.edgefall .skill-edit-button:hover,
+.edgefall .skill-delete-button:hover {
   background: rgba(181, 179, 164, 0.3);
   color: #191813;
 }
-.joster .skill-edit-button.skill-action-hidden,
-.joster .skill-delete-button.skill-action-hidden {
+.edgefall .skill-edit-button.skill-action-hidden,
+.edgefall .skill-delete-button.skill-action-hidden {
   visibility: hidden;
   pointer-events: none;
 }
-.joster .skill-row:hover .skill-edit-button:not(.skill-action-hidden),
-.joster .skill-row:hover .skill-delete-button:not(.skill-action-hidden) {
+.edgefall .skill-row:hover .skill-edit-button:not(.skill-action-hidden),
+.edgefall .skill-row:hover .skill-delete-button:not(.skill-action-hidden) {
   opacity: 1;
 }
-.joster .joster-custom-skills-overview {
+.edgefall .edgefall-custom-skills-overview {
   padding: 6px 8px;
 }
-.joster .overview-toolbar {
+.edgefall .overview-toolbar {
   justify-content: flex-end;
   margin-bottom: 4px;
 }
-.joster .overview-refresh {
+.edgefall .overview-refresh {
   font-size: var(--font-size-11, 11px);
   color: #444;
   cursor: pointer;
 }
-.joster .overview-refresh:hover {
+.edgefall .overview-refresh:hover {
   color: #191813;
 }
-.joster .overview-empty {
+.edgefall .overview-empty {
   font-size: var(--font-size-11, 11px);
   font-style: italic;
   color: #444;
 }
-.joster .overview-table {
+.edgefall .overview-table {
   width: 100%;
   border-collapse: collapse;
   font-size: var(--font-size-11, 11px);
 }
-.joster .overview-table th,
-.joster .overview-table td {
+.edgefall .overview-table th,
+.edgefall .overview-table td {
   padding: 3px 6px;
   text-align: left;
   border-bottom: 1px solid rgba(181, 179, 164, 0.4);
 }
-.joster .overview-table th {
+.edgefall .overview-table th {
   color: #444;
   font-weight: bold;
   text-transform: uppercase;
   font-size: var(--font-size-9, 9px);
 }
-.joster .overview-table .overview-open-actor {
+.edgefall .overview-table .overview-open-actor {
   cursor: pointer;
   color: #444;
 }
-.joster .overview-table .overview-open-actor:hover {
+.edgefall .overview-table .overview-open-actor:hover {
   color: #191813;
 }
-.joster .items-header {
+.edgefall .items-header {
   height: 28px;
   margin: 2px 0;
   padding: 0;
@@ -1179,17 +1179,17 @@
   border: 2px groove #eeede0;
   font-weight: bold;
 }
-.joster .items-header > * {
+.edgefall .items-header > * {
   font-size: 14px;
   text-align: center;
 }
-.joster .items-header .item-name {
+.edgefall .items-header .item-name {
   font-weight: bold;
   padding-left: 5px;
   text-align: left;
   display: flex;
 }
-.joster .items-list {
+.edgefall .items-list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -1197,12 +1197,12 @@
   scrollbar-width: thin;
   color: #444;
 }
-.joster .items-list .item-list {
+.edgefall .items-list .item-list {
   list-style: none;
   margin: 0;
   padding: 0;
 }
-.joster .items-list .item-name {
+.edgefall .items-list .item-name {
   flex: 2;
   margin: 0;
   overflow: hidden;
@@ -1211,46 +1211,46 @@
   align-items: center;
   display: flex;
 }
-.joster .items-list .item-name h3, .joster .items-list .item-name h4 {
+.edgefall .items-list .item-name h3, .edgefall .items-list .item-name h4 {
   margin: 0;
   white-space: nowrap;
   overflow-x: hidden;
 }
-.joster .items-list .item-controls {
+.edgefall .items-list .item-controls {
   display: flex;
   flex: 0 0 100px;
   justify-content: flex-end;
 }
-.joster .items-list .item-controls a {
+.edgefall .items-list .item-controls a {
   font-size: 12px;
   text-align: center;
   margin: 0 6px;
 }
-.joster .items-list .item {
+.edgefall .items-list .item {
   align-items: center;
   padding: 0 2px;
   border-bottom: 1px solid #c9c7b8;
 }
-.joster .items-list .item:last-child {
+.edgefall .items-list .item:last-child {
   border-bottom: none;
 }
-.joster .items-list .item .item-name {
+.edgefall .items-list .item .item-name {
   color: #191813;
 }
-.joster .items-list .item .item-name .item-image {
+.edgefall .items-list .item .item-name .item-image {
   flex: 0 0 30px;
   height: 30px;
   background-size: 30px;
   border: none;
   margin-right: 5px;
 }
-.joster .items-list .item-prop {
+.edgefall .items-list .item-prop {
   text-align: center;
   border-left: 1px solid #c9c7b8;
   border-right: 1px solid #c9c7b8;
   font-size: 12px;
 }
-.joster .items-list .items-header {
+.edgefall .items-list .items-header {
   height: 28px;
   margin: 2px 0;
   padding: 0;
@@ -1259,80 +1259,80 @@
   border: 2px groove #eeede0;
   font-weight: bold;
 }
-.joster .items-list .items-header > * {
+.edgefall .items-list .items-header > * {
   font-size: 12px;
   text-align: center;
 }
-.joster .items-list .items-header .item-name {
+.edgefall .items-list .items-header .item-name {
   padding-left: 5px;
   text-align: left;
 }
-.joster .item-formula {
+.edgefall .item-formula {
   flex: 0 0 200px;
   padding: 0 8px;
 }
-.joster .effects .item .effect-source,
-.joster .effects .item .effect-duration,
-.joster .effects .item .effect-controls {
+.edgefall .effects .item .effect-source,
+.edgefall .effects .item .effect-duration,
+.edgefall .effects .item .effect-controls {
   text-align: center;
   border-left: 1px solid #c9c7b8;
   border-right: 1px solid #c9c7b8;
   font-size: 12px;
 }
-.joster .effects .item .effect-controls {
+.edgefall .effects .item .effect-controls {
   border: none;
 }
-.joster .joster-roll-dialog {
+.edgefall .edgefall-roll-dialog {
   padding: 10px;
 }
-.joster .joster-roll-dialog .form-group {
+.edgefall .edgefall-roll-dialog .form-group {
   margin-bottom: 10px;
 }
-.joster .joster-roll-dialog .form-group > label {
+.edgefall .edgefall-roll-dialog .form-group > label {
   display: block;
   margin-bottom: 5px;
   font-weight: bold;
 }
-.joster .joster-roll-dialog .joster-roll-subject {
+.edgefall .edgefall-roll-dialog .edgefall-roll-subject {
   text-align: center;
   margin-bottom: 5px;
 }
-.joster .joster-roll-dialog .joster-roll-subject-name {
+.edgefall .edgefall-roll-dialog .edgefall-roll-subject-name {
   margin: 0;
   border-bottom: none;
 }
-.joster .joster-roll-dialog .joster-roll-stats {
+.edgefall .edgefall-roll-dialog .edgefall-roll-stats {
   margin-bottom: 5px;
 }
-.joster .joster-roll-dialog .joster-roll-stats .form-group {
+.edgefall .edgefall-roll-dialog .edgefall-roll-stats .form-group {
   margin-bottom: 5px;
 }
-.joster .joster-roll-dialog .joster-roll-detail {
+.edgefall .edgefall-roll-dialog .edgefall-roll-detail {
   display: flex;
   justify-content: space-between;
   gap: 10px;
   padding: 2px 0;
 }
-.joster .joster-roll-dialog .joster-roll-detail .joster-roll-detail-value {
+.edgefall .edgefall-roll-dialog .edgefall-roll-detail .edgefall-roll-detail-value {
   font-weight: bold;
 }
-.joster .joster-roll-dialog .joster-hidden {
+.edgefall .edgefall-roll-dialog .edgefall-hidden {
   display: none !important;
 }
-.joster .joster-roll-dialog .joster-attribute-field {
+.edgefall .edgefall-roll-dialog .edgefall-attribute-field {
   flex-direction: column;
   align-items: stretch;
   gap: 4px;
 }
-.joster .joster-roll-dialog .joster-attribute-field > label {
+.edgefall .edgefall-roll-dialog .edgefall-attribute-field > label {
   flex: none;
 }
-.joster .joster-roll-dialog .joster-attribute-chip-grid {
+.edgefall .edgefall-roll-dialog .edgefall-attribute-chip-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 4px;
 }
-.joster .joster-roll-dialog .joster-attribute-chip {
+.edgefall .edgefall-roll-dialog .edgefall-attribute-chip {
   cursor: pointer;
   padding: 3px 0;
   border: 1px solid transparent;
@@ -1340,29 +1340,29 @@
   text-align: center;
   line-height: 1.3;
 }
-.joster .joster-roll-dialog .joster-attribute-chip .joster-attribute-chip-abbr {
+.edgefall .edgefall-roll-dialog .edgefall-attribute-chip .edgefall-attribute-chip-abbr {
   display: block;
   font-size: var(--font-size-10, 10px);
   font-weight: bold;
   text-transform: uppercase;
 }
-.joster .joster-roll-dialog .joster-attribute-chip .joster-attribute-chip-value {
+.edgefall .edgefall-roll-dialog .edgefall-attribute-chip .edgefall-attribute-chip-value {
   display: block;
   font-size: var(--font-size-12, 12px);
 }
-.joster .joster-roll-dialog .joster-attribute-chip.active {
+.edgefall .edgefall-roll-dialog .edgefall-attribute-chip.active {
   box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(0, 0, 0, 0.6);
 }
-.joster .joster-roll-dialog .joster-roll-divider {
+.edgefall .edgefall-roll-dialog .edgefall-roll-divider {
   border: none;
   border-top: 1px solid #b5b3a4;
   margin: 10px 0;
 }
-.joster .joster-roll-dialog .joster-bonus-stepper-group {
+.edgefall .edgefall-roll-dialog .edgefall-bonus-stepper-group {
   gap: 10px;
   justify-content: center;
 }
-.joster .joster-roll-dialog .joster-bonus-stepper-group .joster-bonus-stepper {
+.edgefall .edgefall-roll-dialog .edgefall-bonus-stepper-group .edgefall-bonus-stepper {
   cursor: pointer;
   font-weight: bold;
   width: 28px;
@@ -1371,24 +1371,24 @@
   border: 1px solid #b5b3a4;
   border-radius: 3px;
 }
-.joster .joster-roll-dialog .joster-bonus-stepper-group .joster-bonus-value {
+.edgefall .edgefall-roll-dialog .edgefall-bonus-stepper-group .edgefall-bonus-value {
   min-width: 32px;
   text-align: center;
   font-weight: bold;
 }
-.joster .joster-roll-dialog .joster-advantage-field {
+.edgefall .edgefall-roll-dialog .edgefall-advantage-field {
   flex-direction: column;
   align-items: stretch;
   gap: 4px;
 }
-.joster .joster-roll-dialog .joster-advantage-field > label {
+.edgefall .edgefall-roll-dialog .edgefall-advantage-field > label {
   flex: none;
 }
-.joster .joster-roll-dialog .joster-advantage-group {
+.edgefall .edgefall-roll-dialog .edgefall-advantage-group {
   flex-wrap: nowrap;
   gap: 4px;
 }
-.joster .joster-roll-dialog .joster-advantage-group .joster-advantage-option {
+.edgefall .edgefall-roll-dialog .edgefall-advantage-group .edgefall-advantage-option {
   flex: 1;
   cursor: pointer;
   padding: 4px 0;
@@ -1399,58 +1399,58 @@
   text-align: center;
   white-space: nowrap;
 }
-.joster .joster-roll-dialog .joster-advantage-group .joster-advantage-option.active {
+.edgefall .edgefall-roll-dialog .edgefall-advantage-group .edgefall-advantage-option.active {
   background: #444;
   color: #fff;
   border-color: #444;
 }
-.joster .joster-roll-dialog .joster-idea-field {
+.edgefall .edgefall-roll-dialog .edgefall-idea-field {
   margin-bottom: 5px;
 }
-.joster .joster-roll-dialog .joster-idea-label {
+.edgefall .edgefall-roll-dialog .edgefall-idea-label {
   display: flex;
   align-items: center;
   gap: 6px;
   cursor: pointer;
   font-weight: normal;
 }
-.joster .joster-roll-dialog .joster-idea-label input[type=checkbox] {
+.edgefall .edgefall-roll-dialog .edgefall-idea-label input[type=checkbox] {
   margin: 0;
 }
-.joster .joster-roll-dialog .joster-idea-disabled {
+.edgefall .edgefall-roll-dialog .edgefall-idea-disabled {
   cursor: not-allowed;
   opacity: 0.5;
 }
-.joster .joster-roll-dialog .joster-roll-threshold-preview {
+.edgefall .edgefall-roll-dialog .edgefall-roll-threshold-preview {
   margin: 5px 0;
   font-weight: bold;
   text-align: center;
 }
-.joster .joster-roll-dialog .joster-roll-threshold-preview .joster-threshold-value {
+.edgefall .edgefall-roll-dialog .edgefall-roll-threshold-preview .edgefall-threshold-value {
   font-size: var(--font-size-16, 16px);
 }
 
-/* Chat message styles, rendered outside of any joster-classed sheet */
-.joster-roll-card {
+/* Chat message styles, rendered outside of any edgefall-classed sheet */
+.edgefall-roll-card {
   text-align: center;
   cursor: pointer;
 }
-.joster-roll-card .joster-roll-summary {
+.edgefall-roll-card .edgefall-roll-summary {
   order: 0;
   flex: 0 0 100%;
 }
-.joster-roll-card .joster-roll-title {
+.edgefall-roll-card .edgefall-roll-title {
   display: flex;
   align-items: baseline;
   justify-content: center;
   gap: 6px;
   margin-bottom: 4px;
 }
-.joster-roll-card .joster-roll-flavor {
+.edgefall-roll-card .edgefall-roll-flavor {
   margin: 0;
   border-bottom: none;
 }
-.joster-roll-card .joster-roll-advantage-badge {
+.edgefall-roll-card .edgefall-roll-advantage-badge {
   font-size: var(--font-size-10, 10px);
   font-weight: bold;
   letter-spacing: 0.02em;
@@ -1459,13 +1459,13 @@
   border-radius: 3px;
   color: #444;
 }
-.joster-roll-card .joster-roll-dice {
+.edgefall-roll-card .edgefall-roll-dice {
   display: flex;
   justify-content: center;
   gap: 6px;
   margin-bottom: 4px;
 }
-.joster-roll-card .joster-die {
+.edgefall-roll-card .edgefall-die {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1476,12 +1476,12 @@
   font-weight: bold;
   opacity: 0.5;
 }
-.joster-roll-card .joster-die.counted {
+.edgefall-roll-card .edgefall-die.counted {
   opacity: 1;
   border-width: 2px;
   border-color: #191813;
 }
-.joster-roll-card .joster-roll-threshold {
+.edgefall-roll-card .edgefall-roll-threshold {
   display: inline-flex;
   align-items: center;
   height: 28px;
@@ -1492,31 +1492,31 @@
   font-weight: bold;
   color: #444;
 }
-.joster-roll-card .joster-roll-outcome {
+.edgefall-roll-card .edgefall-roll-outcome {
   font-weight: bold;
   text-transform: uppercase;
   border-radius: 3px;
   padding: 2px 0;
 }
-.joster-roll-card .joster-roll-outcome.success, .joster-roll-card .joster-roll-outcome.criticalSuccess {
+.edgefall-roll-card .edgefall-roll-outcome.success, .edgefall-roll-card .edgefall-roll-outcome.criticalSuccess {
   color: #2e7d32;
 }
-.joster-roll-card .joster-roll-outcome.failure, .joster-roll-card .joster-roll-outcome.criticalFailure {
+.edgefall-roll-card .edgefall-roll-outcome.failure, .edgefall-roll-card .edgefall-roll-outcome.criticalFailure {
   color: #c62828;
 }
-.joster-roll-card .joster-roll-outcome.criticalSuccess, .joster-roll-card .joster-roll-outcome.criticalFailure {
+.edgefall-roll-card .edgefall-roll-outcome.criticalSuccess, .edgefall-roll-card .edgefall-roll-outcome.criticalFailure {
   font-size: var(--font-size-14, 14px);
 }
-.joster-roll-card .joster-roll-tooltip {
+.edgefall-roll-card .edgefall-roll-tooltip {
   order: 1;
   text-align: left;
 }
-.joster-roll-card .joster-roll-tooltip .wrapper {
+.edgefall-roll-card .edgefall-roll-tooltip .wrapper {
   padding-top: 4px;
   border-top: 1px solid #b5b3a4;
   margin-top: 4px;
 }
-.joster-roll-card .joster-roll-detail {
+.edgefall-roll-card .edgefall-roll-detail {
   display: flex;
   justify-content: space-between;
   gap: 10px;
@@ -1524,15 +1524,15 @@
   color: #444;
   padding: 1px 0;
 }
-.joster-roll-card .joster-roll-detail .joster-roll-detail-value {
+.edgefall-roll-card .edgefall-roll-detail .edgefall-roll-detail-value {
   font-weight: bold;
 }
-.joster-roll-card .joster-edge-actions {
+.edgefall-roll-card .edgefall-edge-actions {
   order: 2;
   margin-top: 4px;
   cursor: default;
 }
-.joster-roll-card .joster-solve-toggle {
+.edgefall-roll-card .edgefall-solve-toggle {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1547,30 +1547,30 @@
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
-.joster-roll-card .joster-solve-toggle:hover {
+.edgefall-roll-card .edgefall-solve-toggle:hover {
   background: #444;
   border-color: #444;
 }
-.joster-roll-card .joster-solve-chevron {
+.edgefall-roll-card .edgefall-solve-chevron {
   font-size: var(--font-size-10, 10px);
   transition: transform 0.15s ease;
 }
-.joster-roll-card .joster-edge-actions.expanded .joster-solve-chevron {
+.edgefall-roll-card .edgefall-edge-actions.expanded .edgefall-solve-chevron {
   transform: rotate(180deg);
 }
-.joster-roll-card .joster-solve-panel {
+.edgefall-roll-card .edgefall-solve-panel {
   display: grid;
   grid-template-rows: 0fr;
   transition: grid-template-rows 0.2s ease;
 }
-.joster-roll-card .joster-edge-actions.expanded .joster-solve-panel {
+.edgefall-roll-card .edgefall-edge-actions.expanded .edgefall-solve-panel {
   grid-template-rows: 1fr;
 }
-.joster-roll-card .joster-solve-panel-inner {
+.edgefall-roll-card .edgefall-solve-panel-inner {
   overflow: hidden;
   min-height: 0;
 }
-.joster-roll-card .joster-solve-option {
+.edgefall-roll-card .edgefall-solve-option {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1582,37 +1582,37 @@
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
-.joster-roll-card .joster-solve-option:hover {
+.edgefall-roll-card .edgefall-solve-option:hover {
   background: #444;
   border-color: #444;
 }
-.joster-roll-card .joster-solve-option-icon {
+.edgefall-roll-card .edgefall-solve-option-icon {
   font-size: var(--font-size-12, 12px);
   width: 14px;
   text-align: center;
 }
-.joster-roll-card .joster-solve-option-text {
+.edgefall-roll-card .edgefall-solve-option-text {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
-.joster-roll-card .joster-solve-option-title {
+.edgefall-roll-card .edgefall-solve-option-title {
   font-size: var(--font-size-11, 11px);
   font-weight: bold;
 }
-.joster-roll-card .joster-solve-option-hint {
+.edgefall-roll-card .edgefall-solve-option-hint {
   font-size: var(--font-size-10, 10px);
   color: #444;
 }
-.joster-roll-card .joster-solve-option-run {
+.edgefall-roll-card .edgefall-solve-option-run {
   font-size: var(--font-size-10, 10px);
   color: #444;
 }
-.joster-roll-card.joster-replaced {
+.edgefall-roll-card.edgefall-replaced {
   opacity: 0.55;
 }
-.joster-roll-card .joster-new-attempt-banner {
+.edgefall-roll-card .edgefall-new-attempt-banner {
   order: -1;
   width: 100%;
   text-align: center;
@@ -1625,29 +1625,29 @@
   border-bottom: 1px solid #b5b3a4;
   cursor: pointer;
 }
-.joster-roll-card .joster-new-attempt-banner:hover {
+.edgefall-roll-card .edgefall-new-attempt-banner:hover {
   color: #191813;
 }
-.joster-roll-card .joster-new-attempt-stamp {
+.edgefall-roll-card .edgefall-new-attempt-stamp {
   text-align: center;
   font-size: var(--font-size-11, 11px);
   font-weight: bold;
   color: #444;
 }
-.joster-roll-card .joster-new-attempt-stamp.joster-clickable {
+.edgefall-roll-card .edgefall-new-attempt-stamp.edgefall-clickable {
   cursor: pointer;
   text-decoration: underline;
 }
-.joster-roll-card .joster-new-attempt-stamp.joster-clickable:hover {
+.edgefall-roll-card .edgefall-new-attempt-stamp.edgefall-clickable:hover {
   color: #191813;
 }
-.joster-roll-card .joster-find-flaw-tracker {
+.edgefall-roll-card .edgefall-find-flaw-tracker {
   border: 1px solid #b5b3a4;
   border-radius: 6px;
   padding: 6px 8px;
   text-align: left;
 }
-.joster-roll-card .joster-find-flaw-header {
+.edgefall-roll-card .edgefall-find-flaw-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1655,24 +1655,24 @@
   font-size: var(--font-size-11, 11px);
   font-weight: bold;
 }
-.joster-roll-card .joster-find-flaw-pips {
+.edgefall-roll-card .edgefall-find-flaw-pips {
   display: flex;
   gap: 3px;
 }
-.joster-roll-card .joster-find-flaw-pip {
+.edgefall-roll-card .edgefall-find-flaw-pip {
   width: 9px;
   height: 9px;
   border-radius: 50%;
   border: 1px solid #444;
 }
-.joster-roll-card .joster-find-flaw-pip.filled {
+.edgefall-roll-card .edgefall-find-flaw-pip.filled {
   background: #444;
 }
-.joster-roll-card .joster-find-flaw-pip.success {
+.edgefall-roll-card .edgefall-find-flaw-pip.success {
   background: #2e7d32;
   border-color: #2e7d32;
 }
-.joster-roll-card .joster-find-flaw-attempt {
+.edgefall-roll-card .edgefall-find-flaw-attempt {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
@@ -1684,24 +1684,24 @@
   margin-top: 3px;
   padding-top: 3px;
 }
-.joster-roll-card .joster-find-flaw-attempt.success, .joster-roll-card .joster-find-flaw-attempt.criticalSuccess {
+.edgefall-roll-card .edgefall-find-flaw-attempt.success, .edgefall-roll-card .edgefall-find-flaw-attempt.criticalSuccess {
   color: #2e7d32;
 }
-.joster-roll-card .joster-find-flaw-attempt.failure, .joster-roll-card .joster-find-flaw-attempt.criticalFailure {
+.edgefall-roll-card .edgefall-find-flaw-attempt.failure, .edgefall-roll-card .edgefall-find-flaw-attempt.criticalFailure {
   color: #c62828;
 }
-.joster-roll-card .joster-find-flaw-attempt-index {
+.edgefall-roll-card .edgefall-find-flaw-attempt-index {
   text-align: left;
 }
-.joster-roll-card .joster-find-flaw-attempt-dice {
+.edgefall-roll-card .edgefall-find-flaw-attempt-dice {
   display: flex;
   justify-content: center;
   gap: 3px;
 }
-.joster-roll-card .joster-find-flaw-attempt-outcome {
+.edgefall-roll-card .edgefall-find-flaw-attempt-outcome {
   text-align: right;
 }
-.joster-roll-card .joster-find-flaw-die {
+.edgefall-roll-card .edgefall-find-flaw-die {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1714,12 +1714,12 @@
   color: #191813;
   opacity: 0.5;
 }
-.joster-roll-card .joster-find-flaw-die.counted {
+.edgefall-roll-card .edgefall-find-flaw-die.counted {
   opacity: 1;
   border-width: 2px;
   border-color: #191813;
 }
-.joster-roll-card .joster-find-flaw-reroll {
+.edgefall-roll-card .edgefall-find-flaw-reroll {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1735,27 +1735,27 @@
   text-decoration: none;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
-.joster-roll-card .joster-find-flaw-reroll:hover {
+.edgefall-roll-card .edgefall-find-flaw-reroll:hover {
   background: #444;
   border-color: #444;
 }
-.joster-roll-card .joster-find-flaw-done {
+.edgefall-roll-card .edgefall-find-flaw-done {
   margin-top: 4px;
   text-align: center;
   font-size: var(--font-size-11, 11px);
   font-weight: bold;
   text-transform: uppercase;
 }
-.joster-roll-card .joster-find-flaw-done.success {
+.edgefall-roll-card .edgefall-find-flaw-done.success {
   color: #2e7d32;
 }
-.joster-roll-card .joster-find-flaw-done.failure {
+.edgefall-roll-card .edgefall-find-flaw-done.failure {
   color: #c62828;
 }
 
-.joster-base-roll-button {
+.edgefall-base-roll-button {
   color: #444;
 }
-.joster-base-roll-button:hover {
+.edgefall-base-roll-button:hover {
   color: #191813;
 }

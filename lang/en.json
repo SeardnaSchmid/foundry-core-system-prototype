@@ -1,5 +1,5 @@
 {
-  "JOSTER": {
+  "EDGEFALL": {
     "AttributeCategory": {
       "Physical": "Physical",
       "Social": "Social",
@@ -243,8 +243,8 @@
       "Refresh": "Refresh"
     },
     "Migration": {
-      "Started": "Joster system data is being migrated to v{version}…",
-      "Completed": "Joster system data migration complete."
+      "Started": "System data is being migrated to v{version}…",
+      "Completed": "System data migration complete."
     },
     "Derived": {
       "Initiative": "Initiative",
@@ -307,8 +307,8 @@
       "SolveReserveSpent": "{name} spends {count} problem-solving point(s) ({current}/{max})."
     },
     "SheetLabels": {
-      "Actor": "Joster Actor Sheet",
-      "Item": "Joster Item Sheet"
+      "Actor": "Character Sheet",
+      "Item": "Item Sheet"
     },
     "Item": {
       "Spell": {
@@ -323,6 +323,7 @@
       "AttributeB": "Attribute/Skill 2",
       "Bonus": "Modification",
       "Advantage": "Roll Type",
+      "AdvantageDefaultHint": "{label} (default)",
       "Threshold": "Threshold",
       "Submit": "Roll",
       "ChooseAttribute": "Attribute",

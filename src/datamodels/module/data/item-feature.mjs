@@ -1,3 +1,3 @@
-import JosterItemBase from "./base-item.mjs";
+import EdgefallItemBase from "./base-item.mjs";
 
-export default class JosterFeature extends JosterItemBase {}
+export default class EdgefallFeature extends EdgefallItemBase {}

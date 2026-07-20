@@ -29,7 +29,7 @@ const CONFIG_FIELDS = ['low', 'mid', 'high', 'midValue', 'lowCurve', 'highCurve'
  *
  * @extends {FormApplication}
  */
-export class JosterHeatmapLab extends FormApplication {
+export class EdgefallHeatmapLab extends FormApplication {
   constructor() {
     super({ ...getActiveHeatmapConfig() });
   }
@@ -37,9 +37,9 @@ export class JosterHeatmapLab extends FormApplication {
   /** @override */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      id: 'joster-heatmap-lab',
-      classes: ['joster', 'sheet', 'joster-heatmap-lab'],
-      template: 'systems/joster/templates/apps/heatmap-lab.hbs',
+      id: 'edgefall-heatmap-lab',
+      classes: ['edgefall', 'sheet', 'edgefall-heatmap-lab'],
+      template: 'systems/edgefall/templates/apps/heatmap-lab.hbs',
       width: 340,
       height: 'auto',
       closeOnSubmit: false,
@@ -49,7 +49,7 @@ export class JosterHeatmapLab extends FormApplication {
 
   /** @override */
   get title() {
-    return game.i18n.localize('JOSTER.Settings.HeatmapPreset.Name');
+    return game.i18n.localize('EDGEFALL.Settings.HeatmapPreset.Name');
   }
 
   /** @override */
@@ -153,13 +153,13 @@ export class JosterHeatmapLab extends FormApplication {
   async _apply() {
     setActiveHeatmapConfig(this.object);
     await Promise.all([
-      game.settings.set('joster', 'heatmapLow', this.object.low),
-      game.settings.set('joster', 'heatmapMid', this.object.mid),
-      game.settings.set('joster', 'heatmapHigh', this.object.high),
-      game.settings.set('joster', 'heatmapMidValue', this.object.midValue),
-      game.settings.set('joster', 'heatmapLowCurve', this.object.lowCurve),
-      game.settings.set('joster', 'heatmapHighCurve', this.object.highCurve),
-      game.settings.set('joster', 'heatmapCritical', this.object.critical),
+      game.settings.set('edgefall', 'heatmapLow', this.object.low),
+      game.settings.set('edgefall', 'heatmapMid', this.object.mid),
+      game.settings.set('edgefall', 'heatmapHigh', this.object.high),
+      game.settings.set('edgefall', 'heatmapMidValue', this.object.midValue),
+      game.settings.set('edgefall', 'heatmapLowCurve', this.object.lowCurve),
+      game.settings.set('edgefall', 'heatmapHighCurve', this.object.highCurve),
+      game.settings.set('edgefall', 'heatmapCritical', this.object.critical),
     ]);
     Object.values(ui.windows).forEach((w) => {
       if (w !== this) w.render?.(false);

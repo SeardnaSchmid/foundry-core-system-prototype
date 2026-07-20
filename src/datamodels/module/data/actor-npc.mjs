@@ -1,6 +1,6 @@
-import JosterActorBase from "./base-actor.mjs";
+import EdgefallActorBase from "./base-actor.mjs";
 
-export default class JosterNPC extends JosterActorBase {
+export default class EdgefallNPC extends EdgefallActorBase {
 
   static defineSchema() {
     const fields = foundry.data.fields;

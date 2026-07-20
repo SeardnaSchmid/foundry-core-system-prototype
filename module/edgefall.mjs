@@ -1,19 +1,19 @@
 // Import document classes.
-import { JosterActor } from './documents/actor.mjs';
-import { JosterItem } from './documents/item.mjs';
+import { EdgefallActor } from './documents/actor.mjs';
+import { EdgefallItem } from './documents/item.mjs';
 // Import sheet classes.
-import { JosterActorSheet } from './sheets/actor-sheet.mjs';
-import { JosterItemSheet } from './sheets/item-sheet.mjs';
+import { EdgefallActorSheet } from './sheets/actor-sheet.mjs';
+import { EdgefallItemSheet } from './sheets/item-sheet.mjs';
 // Import helper/utility classes and constants.
 import { preloadHandlebarsTemplates } from './helpers/templates.mjs';
-import { JOSTER } from './helpers/config.mjs';
-import { rollJoster, rollJosterBase } from './helpers/dice.mjs';
+import { EDGEFALL } from './helpers/config.mjs';
+import { rollEdgefall, rollEdgefallBase } from './helpers/dice.mjs';
 import { registerChatListeners } from './helpers/chat.mjs';
-import { JosterRollDialog } from './apps/roll-dialog.mjs';
-import { JosterBaseRollDialog } from './apps/base-roll-dialog.mjs';
-import { JosterHeatmapLab } from './apps/heatmap-lab.mjs';
+import { EdgefallRollDialog } from './apps/roll-dialog.mjs';
+import { EdgefallBaseRollDialog } from './apps/base-roll-dialog.mjs';
+import { EdgefallHeatmapLab } from './apps/heatmap-lab.mjs';
 import { DEFAULT_HEATMAP_CONFIG, setActiveHeatmapConfig } from './helpers/heatmap.mjs';
-import { JosterCustomSkillsOverview } from './apps/custom-skills-overview.mjs';
+import { EdgefallCustomSkillsOverview } from './apps/custom-skills-overview.mjs';
 import { registerMigrationSettings, migrateWorld } from './helpers/migrations.mjs';
 
 /* -------------------------------------------- */
@@ -23,19 +23,19 @@ import { registerMigrationSettings, migrateWorld } from './helpers/migrations.mj
 Hooks.once('init', function () {
   // Add utility classes to the global game object so that they're more easily
   // accessible in global contexts.
-  game.joster = {
-    JosterActor,
-    JosterItem,
-    JosterRollDialog,
-    JosterBaseRollDialog,
-    rollJoster,
-    rollJosterBase,
+  game.edgefall = {
+    EdgefallActor,
+    EdgefallItem,
+    EdgefallRollDialog,
+    EdgefallBaseRollDialog,
+    rollEdgefall,
+    rollEdgefallBase,
     rollItemMacro,
     rollBaseDice,
   };
 
   // Add custom constants for configuration.
-  CONFIG.JOSTER = JOSTER;
+  CONFIG.EDGEFALL = EDGEFALL;
 
   /**
    * Set an initiative formula for the system
@@ -47,8 +47,8 @@ Hooks.once('init', function () {
   };
 
   // Define custom Document classes
-  CONFIG.Actor.documentClass = JosterActor;
-  CONFIG.Item.documentClass = JosterItem;
+  CONFIG.Actor.documentClass = EdgefallActor;
+  CONFIG.Item.documentClass = EdgefallItem;
 
   // Active Effects are never copied to the Actor,
   // but will still apply to the Actor from within the Item
@@ -57,14 +57,14 @@ Hooks.once('init', function () {
 
   // Register sheet application classes
   Actors.unregisterSheet('core', ActorSheet);
-  Actors.registerSheet('joster', JosterActorSheet, {
+  Actors.registerSheet('edgefall', EdgefallActorSheet, {
     makeDefault: true,
-    label: 'JOSTER.SheetLabels.Actor',
+    label: 'EDGEFALL.SheetLabels.Actor',
   });
   Items.unregisterSheet('core', ItemSheet);
-  Items.registerSheet('joster', JosterItemSheet, {
+  Items.registerSheet('edgefall', EdgefallItemSheet, {
     makeDefault: true,
-    label: 'JOSTER.SheetLabels.Item',
+    label: 'EDGEFALL.SheetLabels.Item',
   });
 
   // Preload Handlebars templates.
@@ -73,22 +73,22 @@ Hooks.once('init', function () {
   // Client-scoped so each person at the table can dial in their own heatmap
   // gradient without affecting anyone else's view. The raw settings are
   // hidden (config: false); they're only ever edited through the
-  // JosterHeatmapLab menu below, which keeps color-picker/slider UI out of
+  // EdgefallHeatmapLab menu below, which keeps color-picker/slider UI out of
   // Foundry's plain settings list.
-  game.settings.register('joster', 'heatmapLow', { scope: 'client', config: false, type: String, default: DEFAULT_HEATMAP_CONFIG.low });
-  game.settings.register('joster', 'heatmapMid', { scope: 'client', config: false, type: String, default: DEFAULT_HEATMAP_CONFIG.mid });
-  game.settings.register('joster', 'heatmapHigh', { scope: 'client', config: false, type: String, default: DEFAULT_HEATMAP_CONFIG.high });
-  game.settings.register('joster', 'heatmapMidValue', { scope: 'client', config: false, type: Number, default: DEFAULT_HEATMAP_CONFIG.midValue });
-  game.settings.register('joster', 'heatmapLowCurve', { scope: 'client', config: false, type: Number, default: DEFAULT_HEATMAP_CONFIG.lowCurve });
-  game.settings.register('joster', 'heatmapHighCurve', { scope: 'client', config: false, type: Number, default: DEFAULT_HEATMAP_CONFIG.highCurve });
-  game.settings.register('joster', 'heatmapCritical', { scope: 'client', config: false, type: String, default: DEFAULT_HEATMAP_CONFIG.critical });
+  game.settings.register('edgefall', 'heatmapLow', { scope: 'client', config: false, type: String, default: DEFAULT_HEATMAP_CONFIG.low });
+  game.settings.register('edgefall', 'heatmapMid', { scope: 'client', config: false, type: String, default: DEFAULT_HEATMAP_CONFIG.mid });
+  game.settings.register('edgefall', 'heatmapHigh', { scope: 'client', config: false, type: String, default: DEFAULT_HEATMAP_CONFIG.high });
+  game.settings.register('edgefall', 'heatmapMidValue', { scope: 'client', config: false, type: Number, default: DEFAULT_HEATMAP_CONFIG.midValue });
+  game.settings.register('edgefall', 'heatmapLowCurve', { scope: 'client', config: false, type: Number, default: DEFAULT_HEATMAP_CONFIG.lowCurve });
+  game.settings.register('edgefall', 'heatmapHighCurve', { scope: 'client', config: false, type: Number, default: DEFAULT_HEATMAP_CONFIG.highCurve });
+  game.settings.register('edgefall', 'heatmapCritical', { scope: 'client', config: false, type: String, default: DEFAULT_HEATMAP_CONFIG.critical });
 
-  game.settings.registerMenu('joster', 'heatmapLabMenu', {
-    name: 'JOSTER.Settings.HeatmapPreset.Name',
-    hint: 'JOSTER.Settings.HeatmapPreset.Hint',
-    label: 'JOSTER.Settings.HeatmapPreset.Name',
+  game.settings.registerMenu('edgefall', 'heatmapLabMenu', {
+    name: 'EDGEFALL.Settings.HeatmapPreset.Name',
+    hint: 'EDGEFALL.Settings.HeatmapPreset.Hint',
+    label: 'EDGEFALL.Settings.HeatmapPreset.Name',
     icon: 'fa-solid fa-palette',
-    type: JosterHeatmapLab,
+    type: EdgefallHeatmapLab,
     restricted: false,
   });
 
@@ -99,23 +99,23 @@ Hooks.once('init', function () {
   // GM-only overview of every custom skill defined across the world's
   // character actors, since custom skills otherwise live invisibly inside
   // each actor's own data.
-  game.settings.registerMenu('joster', 'customSkillsOverviewMenu', {
-    name: 'JOSTER.Settings.CustomSkillsOverview.Name',
-    hint: 'JOSTER.Settings.CustomSkillsOverview.Hint',
-    label: 'JOSTER.Settings.CustomSkillsOverview.Name',
+  game.settings.registerMenu('edgefall', 'customSkillsOverviewMenu', {
+    name: 'EDGEFALL.Settings.CustomSkillsOverview.Name',
+    hint: 'EDGEFALL.Settings.CustomSkillsOverview.Hint',
+    label: 'EDGEFALL.Settings.CustomSkillsOverview.Name',
     icon: 'fa-solid fa-list-check',
-    type: JosterCustomSkillsOverview,
+    type: EdgefallCustomSkillsOverview,
     restricted: true,
   });
 
   setActiveHeatmapConfig({
-    low: game.settings.get('joster', 'heatmapLow'),
-    mid: game.settings.get('joster', 'heatmapMid'),
-    high: game.settings.get('joster', 'heatmapHigh'),
-    midValue: game.settings.get('joster', 'heatmapMidValue'),
-    lowCurve: game.settings.get('joster', 'heatmapLowCurve'),
-    highCurve: game.settings.get('joster', 'heatmapHighCurve'),
-    critical: game.settings.get('joster', 'heatmapCritical'),
+    low: game.settings.get('edgefall', 'heatmapLow'),
+    mid: game.settings.get('edgefall', 'heatmapMid'),
+    high: game.settings.get('edgefall', 'heatmapHigh'),
+    midValue: game.settings.get('edgefall', 'heatmapMidValue'),
+    lowCurve: game.settings.get('edgefall', 'heatmapLowCurve'),
+    highCurve: game.settings.get('edgefall', 'heatmapHighCurve'),
+    critical: game.settings.get('edgefall', 'heatmapCritical'),
   });
 
   // Wire up the "Fehler finden" reroll tracker on failed roll cards.
@@ -137,7 +137,7 @@ Hooks.once('init', function () {
  * Open the "Basiswürfel" quick-roll dialog (bare dice mechanic, no threshold).
  */
 function rollBaseDice() {
-  new JosterBaseRollDialog().render(true);
+  new EdgefallBaseRollDialog().render(true);
 }
 
 /**
@@ -145,12 +145,12 @@ function rollBaseDice() {
  * @param {HTMLElement} [controls]
  */
 function injectBaseRollButton(controls) {
-  if (!controls || controls.querySelector('.joster-base-roll-button')) return;
+  if (!controls || controls.querySelector('.edgefall-base-roll-button')) return;
 
   const button = document.createElement('button');
   button.type = 'button';
-  button.classList.add('joster-base-roll-button', 'ui-control', 'icon', 'fa-solid', 'fa-dice-d20');
-  const label = game.i18n.localize('JOSTER.Roll.BaseDiceButton');
+  button.classList.add('edgefall-base-roll-button', 'ui-control', 'icon', 'fa-solid', 'fa-dice-d20');
+  const label = game.i18n.localize('EDGEFALL.Roll.BaseDiceButton');
   button.dataset.tooltip = label;
   button.setAttribute('aria-label', label);
   button.addEventListener('click', (event) => {
@@ -207,7 +207,7 @@ async function createItemMacro(data, slot) {
   const item = await Item.fromDropData(data);
 
   // Create the macro command using the uuid.
-  const command = `game.joster.rollItemMacro("${data.uuid}");`;
+  const command = `game.edgefall.rollItemMacro("${data.uuid}");`;
   let macro = game.macros.find(
     (m) => m.name === item.name && m.command === command
   );
@@ -217,7 +217,7 @@ async function createItemMacro(data, slot) {
       type: 'script',
       img: item.img,
       command: command,
-      flags: { 'joster.itemMacro': true },
+      flags: { 'edgefall.itemMacro': true },
     });
   }
   game.user.assignHotbarMacro(macro, slot);

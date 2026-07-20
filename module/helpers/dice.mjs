@@ -1,8 +1,8 @@
 /**
- * Advantage/disadvantage levels for the Joster 3d20 roll mechanic.
+ * Advantage/disadvantage levels for the Edgefall 3d20 roll mechanic.
  * @type {Object<string, number>}
  */
-export const JOSTER_ADVANTAGE = {
+export const EDGEFALL_ADVANTAGE = {
   strongDisadvantage: -2,
   disadvantage: -1,
   none: 0,
@@ -15,18 +15,18 @@ export const JOSTER_ADVANTAGE = {
  * needs to be shown at a glance (chat card badge, roll dialog picker).
  * @type {Object<number, string>}
  */
-export const JOSTER_ADVANTAGE_ABBR = {
-  [JOSTER_ADVANTAGE.strongDisadvantage]: 'DIS+',
-  [JOSTER_ADVANTAGE.disadvantage]: 'DIS',
-  [JOSTER_ADVANTAGE.none]: 'STD',
-  [JOSTER_ADVANTAGE.advantage]: 'ADV',
-  [JOSTER_ADVANTAGE.strongAdvantage]: 'ADV+',
+export const EDGEFALL_ADVANTAGE_ABBR = {
+  [EDGEFALL_ADVANTAGE.strongDisadvantage]: 'DIS+',
+  [EDGEFALL_ADVANTAGE.disadvantage]: 'DIS',
+  [EDGEFALL_ADVANTAGE.none]: 'STD',
+  [EDGEFALL_ADVANTAGE.advantage]: 'ADV',
+  [EDGEFALL_ADVANTAGE.strongAdvantage]: 'ADV+',
 };
 
 /**
  * How many d20 are rolled for a given advantage level. Simple advantage/
  * disadvantage only ever look at 2 dice; everything else rolls the full 3d20.
- * @param {number} advantage  One of the JOSTER_ADVANTAGE values.
+ * @param {number} advantage  One of the EDGEFALL_ADVANTAGE values.
  * @returns {number}
  */
 export function dieCountFor(advantage) {
@@ -43,7 +43,7 @@ export function dieCountFor(advantage) {
  * threshold.
  *
  * @param {number[]} values     Raw die results, in roll order.
- * @param {number} advantage    One of the JOSTER_ADVANTAGE values.
+ * @param {number} advantage    One of the EDGEFALL_ADVANTAGE values.
  * @returns {{value: number, index: number}}  The counting die's value and
  *   its index into `values`.
  */
@@ -53,15 +53,15 @@ export function pickCountingDie(values, advantage) {
     .sort((a, b) => a.value - b.value);
 
   switch (advantage) {
-    case JOSTER_ADVANTAGE.strongDisadvantage:
+    case EDGEFALL_ADVANTAGE.strongDisadvantage:
       return order[order.length - 1];
-    case JOSTER_ADVANTAGE.disadvantage:
+    case EDGEFALL_ADVANTAGE.disadvantage:
       return order[order.length - 1];
-    case JOSTER_ADVANTAGE.advantage:
+    case EDGEFALL_ADVANTAGE.advantage:
       return order[0];
-    case JOSTER_ADVANTAGE.strongAdvantage:
+    case EDGEFALL_ADVANTAGE.strongAdvantage:
       return order[0];
-    case JOSTER_ADVANTAGE.none:
+    case EDGEFALL_ADVANTAGE.none:
     default:
       return order[Math.floor(order.length / 2)];
   }
@@ -77,7 +77,7 @@ export function pickCountingDie(values, advantage) {
  * - strong disadvantage: 1+ die shows 20 -> critical failure; all 3 dice show 1 -> critical success.
  *
  * @param {number[]} values    Raw die results.
- * @param {number} advantage   One of the JOSTER_ADVANTAGE values.
+ * @param {number} advantage   One of the EDGEFALL_ADVANTAGE values.
  * @returns {'criticalSuccess'|'criticalFailure'|null}
  */
 export function criticalResultFor(values, advantage) {
@@ -85,23 +85,23 @@ export function criticalResultFor(values, advantage) {
   const twenties = values.filter((v) => v === 20).length;
 
   switch (advantage) {
-    case JOSTER_ADVANTAGE.advantage:
+    case EDGEFALL_ADVANTAGE.advantage:
       if (ones >= 1) return 'criticalSuccess';
       if (twenties >= 2) return 'criticalFailure';
       return null;
-    case JOSTER_ADVANTAGE.disadvantage:
+    case EDGEFALL_ADVANTAGE.disadvantage:
       if (twenties >= 1) return 'criticalFailure';
       if (ones >= 2) return 'criticalSuccess';
       return null;
-    case JOSTER_ADVANTAGE.strongAdvantage:
+    case EDGEFALL_ADVANTAGE.strongAdvantage:
       if (ones >= 1) return 'criticalSuccess';
       if (twenties === 3) return 'criticalFailure';
       return null;
-    case JOSTER_ADVANTAGE.strongDisadvantage:
+    case EDGEFALL_ADVANTAGE.strongDisadvantage:
       if (twenties >= 1) return 'criticalFailure';
       if (ones === 3) return 'criticalSuccess';
       return null;
-    case JOSTER_ADVANTAGE.none:
+    case EDGEFALL_ADVANTAGE.none:
     default:
       if (ones >= 2) return 'criticalSuccess';
       if (twenties >= 2) return 'criticalFailure';
@@ -110,14 +110,14 @@ export function criticalResultFor(values, advantage) {
 }
 
 /**
- * Roll the Joster dice mechanic against a threshold and post the result to
+ * Roll the Edgefall dice mechanic against a threshold and post the result to
  * chat.
  *
  * @param {object} options
  * @param {number} [options.threshold]         The threshold to roll against. Omit for a "base"
  *   roll with no success/failure evaluation (just the dice and, if it lands, a critical) —
- *   see rollJosterBase.
- * @param {number} [options.advantage]         One of the JOSTER_ADVANTAGE values.
+ *   see rollEdgefallBase.
+ * @param {number} [options.advantage]         One of the EDGEFALL_ADVANTAGE values.
  * @param {string} [options.flavor]            Label shown above the roll (e.g. the ability name).
  * @param {Actor} [options.actor]              The rolling actor, used for the chat speaker.
  * @param {string} [options.rollMode]          Chat roll mode; defaults to the current core setting.
@@ -125,12 +125,12 @@ export function criticalResultFor(values, advantage) {
  *   (e.g. attribute and skill) shown in the expanded roll breakdown.
  * @param {number} [options.bonus]             Situational modifier shown in the breakdown.
  * @param {object} [options.extraFlags]        Extra properties merged into the message's
- *   `flags.joster`, e.g. `{ replaces: <messageId> }` for a "Neuer Versuch" reroll.
+ *   `flags.edgefall`, e.g. `{ replaces: <messageId> }` for a "Neuer Versuch" reroll.
  * @returns {Promise<{roll: Roll, success: boolean|null, message: ChatMessage}>}
  */
-export async function rollJoster({
+export async function rollEdgefall({
   threshold = null,
-  advantage = JOSTER_ADVANTAGE.none,
+  advantage = EDGEFALL_ADVANTAGE.none,
   flavor = '',
   actor = null,
   rollMode = null,
@@ -159,9 +159,9 @@ export async function rollJoster({
     }))
     .sort((a, b) => a.value - b.value);
 
-  const advantageKey = Object.keys(JOSTER_ADVANTAGE).find((key) => JOSTER_ADVANTAGE[key] === advantage);
+  const advantageKey = Object.keys(EDGEFALL_ADVANTAGE).find((key) => EDGEFALL_ADVANTAGE[key] === advantage);
 
-  const content = await renderTemplate('systems/joster/templates/chat/roll-card.hbs', {
+  const content = await renderTemplate('systems/edgefall/templates/chat/roll-card.hbs', {
     flavor,
     hasThreshold,
     threshold,
@@ -169,19 +169,19 @@ export async function rollJoster({
     countingValue: counting.value,
     success,
     outcome,
-    outcomeLabel: outcome ? game.i18n.localize(`JOSTER.RollOutcome.${outcome.charAt(0).toUpperCase()}${outcome.slice(1)}`) : '',
-    advantageLabel: game.i18n.localize(`JOSTER.Advantage.${advantageKey.charAt(0).toUpperCase()}${advantageKey.slice(1)}`),
-    advantageAbbr: JOSTER_ADVANTAGE_ABBR[advantage],
+    outcomeLabel: outcome ? game.i18n.localize(`EDGEFALL.RollOutcome.${outcome.charAt(0).toUpperCase()}${outcome.slice(1)}`) : '',
+    advantageLabel: game.i18n.localize(`EDGEFALL.Advantage.${advantageKey.charAt(0).toUpperCase()}${advantageKey.slice(1)}`),
+    advantageAbbr: EDGEFALL_ADVANTAGE_ABBR[advantage],
     components,
     showBonus: bonus !== 0,
     bonusDisplay: bonus > 0 ? `+${bonus}` : `${bonus}`,
   });
 
-  // Failed rolls carry enough context in flags.joster for the post-edge
+  // Failed rolls carry enough context in flags.edgefall for the post-edge
   // actions (see chat.mjs) to be offered and, once activated, to replay
   // this roll's parameters exactly: "Fehler finden" rerolls in place on
   // this same message, "Neuer Versuch" spins up a brand-new message via
-  // this same rollJoster() call, fed straight from these flags. The
+  // this same rollEdgefall() call, fed straight from these flags. The
   // original card content is never touched by either.
   const message = await ChatMessage.create({
     speaker: actor ? ChatMessage.getSpeaker({ actor }) : ChatMessage.getSpeaker(),
@@ -191,7 +191,7 @@ export async function rollJoster({
     sound: CONFIG.sounds.dice,
     rollMode: rollMode ?? game.settings.get('core', 'rollMode'),
     flags: {
-      joster: {
+      edgefall: {
         actorId: actor?.id ?? null,
         threshold,
         advantage,
@@ -209,23 +209,23 @@ export async function rollJoster({
 }
 
 /**
- * Roll the bare Joster dice mechanic ("Basiswürfel"): advantage/disadvantage
+ * Roll the bare Edgefall dice mechanic ("Basiswürfel"): advantage/disadvantage
  * picks the die count as usual, but there's no threshold to check against —
  * only a landed critical (2+/all dice on 1 or 20, per advantage level) shows
  * as an outcome. Meant for rolls made outside any actor/skill context (e.g.
  * a GM calling for a plain 3d20), so it takes no actor by default.
  *
  * @param {object} [options]
- * @param {number} [options.advantage]  One of the JOSTER_ADVANTAGE values.
+ * @param {number} [options.advantage]  One of the EDGEFALL_ADVANTAGE values.
  * @param {string} [options.flavor]     Label shown above the roll.
  * @param {Actor} [options.actor]       Optional rolling actor, used for the chat speaker.
  * @returns {Promise<{roll: Roll, success: boolean|null, message: ChatMessage}>}
  */
-export async function rollJosterBase({ advantage = JOSTER_ADVANTAGE.none, flavor = '', actor = null } = {}) {
-  return rollJoster({
+export async function rollEdgefallBase({ advantage = EDGEFALL_ADVANTAGE.none, flavor = '', actor = null } = {}) {
+  return rollEdgefall({
     threshold: null,
     advantage,
-    flavor: flavor || game.i18n.localize('JOSTER.Roll.BaseDiceFlavor'),
+    flavor: flavor || game.i18n.localize('EDGEFALL.Roll.BaseDiceFlavor'),
     actor,
     // Not a skill+attribute check — a landed critical failure here must not
     // offer the "Problem lösen" edge pool (see problem-solving-prd.md).
@@ -249,8 +249,8 @@ export async function startFindFlaw(message, actor) {
   await actor.update({ 'system.problemSolving.spent': spent + 1 });
 
   await message.update({
-    'flags.joster.edge.consumed': 'findFlaw',
-    'flags.joster.edge.findFlaw': { max: value, used: 0, active: value > 0, attempts: [] },
+    'flags.edgefall.edge.consumed': 'findFlaw',
+    'flags.edgefall.edge.findFlaw': { max: value, used: 0, active: value > 0, attempts: [] },
   });
 
   const reserveMax = actor.system.derived?.solveReserveMax ?? 0;
@@ -258,7 +258,7 @@ export async function startFindFlaw(message, actor) {
 
   ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),
-    content: game.i18n.format('JOSTER.Chat.SolveFindFlawSuccess', { name: actor.name, value, current: reserve, max: reserveMax }),
+    content: game.i18n.format('EDGEFALL.Chat.SolveFindFlawSuccess', { name: actor.name, value, current: reserve, max: reserveMax }),
   });
 }
 
@@ -272,7 +272,7 @@ export async function startFindFlaw(message, actor) {
  * @returns {Promise<void>}
  */
 export async function rerollFindFlaw(message) {
-  const data = message.flags?.joster;
+  const data = message.flags?.edgefall;
   const tracker = data?.edge?.findFlaw;
   if (!tracker?.active) return;
 
@@ -301,9 +301,9 @@ export async function rerollFindFlaw(message) {
   const active = !success && used < tracker.max;
 
   await message.update({
-    'flags.joster.edge.findFlaw.used': used,
-    'flags.joster.edge.findFlaw.active': active,
-    'flags.joster.edge.findFlaw.attempts': [
+    'flags.edgefall.edge.findFlaw.used': used,
+    'flags.edgefall.edge.findFlaw.active': active,
+    'flags.edgefall.edge.findFlaw.attempts': [
       ...tracker.attempts,
       { dice: values, countingIndex: counting.index, success, outcome },
     ],
@@ -318,22 +318,22 @@ export async function rerollFindFlaw(message) {
  * triggered — the second result replaces the first outright — so the
  * reroll isn't handed to the player as a number to act on; it's carried out
  * here as a brand-new chat message, and the original is stamped (via
- * `flags.joster.edge.newAttempt`) as replaced, linking forward to it.
+ * `flags.edgefall.edge.newAttempt`) as replaced, linking forward to it.
  *
  * @param {ChatMessage} message  The failed roll's chat message.
  * @param {Actor} actor          The rolling actor, spending the reserve point.
  * @returns {Promise<void>}
  */
 export async function startNewAttempt(message, actor) {
-  const data = message.flags?.joster;
+  const data = message.flags?.edgefall;
   if (!data) return;
 
   const spent = actor.system.problemSolving?.spent ?? 0;
   await actor.update({ 'system.problemSolving.spent': spent + 1 });
 
   await message.update({
-    'flags.joster.edge.consumed': 'newAttempt',
-    'flags.joster.edge.newAttempt': { replacedBy: null },
+    'flags.edgefall.edge.consumed': 'newAttempt',
+    'flags.edgefall.edge.newAttempt': { replacedBy: null },
   });
 
   const reserveMax = actor.system.derived?.solveReserveMax ?? 0;
@@ -341,10 +341,10 @@ export async function startNewAttempt(message, actor) {
 
   ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),
-    content: game.i18n.format('JOSTER.Chat.SolveNewAttemptSuccess', { name: actor.name, current: reserve, max: reserveMax }),
+    content: game.i18n.format('EDGEFALL.Chat.SolveNewAttemptSuccess', { name: actor.name, current: reserve, max: reserveMax }),
   });
 
-  const { message: rerollMessage } = await rollJoster({
+  const { message: rerollMessage } = await rollEdgefall({
     threshold: data.threshold,
     advantage: data.advantage,
     flavor: data.flavor,
@@ -354,5 +354,5 @@ export async function startNewAttempt(message, actor) {
     extraFlags: { replaces: message.id },
   });
 
-  await message.update({ 'flags.joster.edge.newAttempt.replacedBy': rerollMessage.id });
+  await message.update({ 'flags.edgefall.edge.newAttempt.replacedBy': rerollMessage.id });
 }

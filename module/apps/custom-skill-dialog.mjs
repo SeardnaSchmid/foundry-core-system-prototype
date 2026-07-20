@@ -9,7 +9,7 @@ import { getSkillDefinitions, generateCustomSkillKey } from '../helpers/skills.m
  * discards progress.
  * @extends {FormApplication}
  */
-export class JosterCustomSkillDialog extends FormApplication {
+export class EdgefallCustomSkillDialog extends FormApplication {
   /**
    * @param {Actor} actor           The actor to add/edit the custom skill on.
    * @param {object} [options]
@@ -30,9 +30,9 @@ export class JosterCustomSkillDialog extends FormApplication {
   /** @override */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      id: 'joster-custom-skill-dialog',
-      classes: ['joster', 'sheet'],
-      template: 'systems/joster/templates/apps/custom-skill-dialog.hbs',
+      id: 'edgefall-custom-skill-dialog',
+      classes: ['edgefall', 'sheet'],
+      template: 'systems/edgefall/templates/apps/custom-skill-dialog.hbs',
       width: 320,
       closeOnSubmit: true,
     });
@@ -45,7 +45,7 @@ export class JosterCustomSkillDialog extends FormApplication {
 
   /** @override */
   get title() {
-    return game.i18n.localize(this.isEdit ? 'JOSTER.CustomSkill.EditTitle' : 'JOSTER.CustomSkill.AddTitle');
+    return game.i18n.localize(this.isEdit ? 'EDGEFALL.CustomSkill.EditTitle' : 'EDGEFALL.CustomSkill.AddTitle');
   }
 
   /** @override */
@@ -61,10 +61,10 @@ export class JosterCustomSkillDialog extends FormApplication {
       const rank = entry.value ?? 0;
       const xp = entry.xp ?? 0;
       const content = rank > 0 || xp > 0
-        ? game.i18n.format('JOSTER.CustomSkill.DeleteConfirmXp', { name: entry.custom.label, rank, xp })
-        : game.i18n.format('JOSTER.CustomSkill.DeleteConfirm', { name: entry.custom.label });
+        ? game.i18n.format('EDGEFALL.CustomSkill.DeleteConfirmXp', { name: entry.custom.label, rank, xp })
+        : game.i18n.format('EDGEFALL.CustomSkill.DeleteConfirm', { name: entry.custom.label });
       const confirmed = await foundry.applications.api.DialogV2.confirm({
-        window: { title: game.i18n.localize('JOSTER.CustomSkill.DeleteTitle') },
+        window: { title: game.i18n.localize('EDGEFALL.CustomSkill.DeleteTitle') },
         content,
       });
       if (!confirmed) return;
@@ -75,11 +75,11 @@ export class JosterCustomSkillDialog extends FormApplication {
 
   /** @override */
   getData() {
-    const categories = Object.entries(CONFIG.JOSTER.skillCategories).map(([key, labelKey]) => ({
+    const categories = Object.entries(CONFIG.EDGEFALL.skillCategories).map(([key, labelKey]) => ({
       key,
       label: game.i18n.localize(labelKey),
     }));
-    const abilities = Object.entries(CONFIG.JOSTER.abilities).map(([key, labelKey]) => ({
+    const abilities = Object.entries(CONFIG.EDGEFALL.abilities).map(([key, labelKey]) => ({
       key,
       label: game.i18n.localize(labelKey),
     }));
@@ -97,7 +97,7 @@ export class JosterCustomSkillDialog extends FormApplication {
   async _updateObject(event, formData) {
     const label = (formData.name ?? '').trim();
     if (!label) {
-      ui.notifications.warn(game.i18n.localize('JOSTER.CustomSkill.NameRequired'));
+      ui.notifications.warn(game.i18n.localize('EDGEFALL.CustomSkill.NameRequired'));
       return;
     }
 
@@ -106,12 +106,12 @@ export class JosterCustomSkillDialog extends FormApplication {
       ([key, def]) => key !== this.key && def.label.toLowerCase() === label.toLowerCase()
     );
     if (duplicate) {
-      ui.notifications.warn(game.i18n.localize('JOSTER.CustomSkill.DuplicateName'));
+      ui.notifications.warn(game.i18n.localize('EDGEFALL.CustomSkill.DuplicateName'));
       return;
     }
 
-    const category = formData.category in CONFIG.JOSTER.skillCategories ? formData.category : 'general';
-    const attribute = formData.attribute in CONFIG.JOSTER.abilities ? formData.attribute : 'wil';
+    const category = formData.category in CONFIG.EDGEFALL.skillCategories ? formData.category : 'general';
+    const attribute = formData.attribute in CONFIG.EDGEFALL.abilities ? formData.attribute : 'wil';
 
     if (this.isEdit) {
       await this.actor.update({ [`system.skills.${this.key}.custom`]: { label, category, attribute } });

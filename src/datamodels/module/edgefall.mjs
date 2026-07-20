@@ -1,12 +1,12 @@
 // Import document classes.
-import { JosterActor } from './documents/actor.mjs';
-import { JosterItem } from './documents/item.mjs';
+import { EdgefallActor } from './documents/actor.mjs';
+import { EdgefallItem } from './documents/item.mjs';
 // Import sheet classes.
-import { JosterActorSheet } from './sheets/actor-sheet.mjs';
-import { JosterItemSheet } from './sheets/item-sheet.mjs';
+import { EdgefallActorSheet } from './sheets/actor-sheet.mjs';
+import { EdgefallItemSheet } from './sheets/item-sheet.mjs';
 // Import helper/utility classes and constants.
 import { preloadHandlebarsTemplates } from './helpers/templates.mjs';
-import { JOSTER } from './helpers/config.mjs';
+import { EDGEFALL } from './helpers/config.mjs';
 // Import DataModel classes
 import * as models from './data/_module.mjs';
 
@@ -17,14 +17,14 @@ import * as models from './data/_module.mjs';
 Hooks.once('init', function () {
   // Add utility classes to the global game object so that they're more easily
   // accessible in global contexts.
-  game.joster = {
-    JosterActor,
-    JosterItem,
+  game.edgefall = {
+    EdgefallActor,
+    EdgefallItem,
     rollItemMacro,
   };
 
   // Add custom constants for configuration.
-  CONFIG.JOSTER = JOSTER;
+  CONFIG.EDGEFALL = EDGEFALL;
 
   /**
    * Set an initiative formula for the system
@@ -36,20 +36,20 @@ Hooks.once('init', function () {
   };
 
   // Define custom Document and DataModel classes
-  CONFIG.Actor.documentClass = JosterActor;
+  CONFIG.Actor.documentClass = EdgefallActor;
 
   // Note that you don't need to declare a DataModel
   // for the base actor/item classes - they are included
   // with the Character/NPC as part of super.defineSchema()
   CONFIG.Actor.dataModels = {
-    character: models.JosterCharacter,
-    npc: models.JosterNPC
+    character: models.EdgefallCharacter,
+    npc: models.EdgefallNPC
   }
-  CONFIG.Item.documentClass = JosterItem;
+  CONFIG.Item.documentClass = EdgefallItem;
   CONFIG.Item.dataModels = {
-    item: models.JosterItem,
-    feature: models.JosterFeature,
-    spell: models.JosterSpell
+    item: models.EdgefallItem,
+    feature: models.EdgefallFeature,
+    spell: models.EdgefallSpell
   }
 
   // Active Effects are never copied to the Actor,
@@ -59,14 +59,14 @@ Hooks.once('init', function () {
 
   // Register sheet application classes
   Actors.unregisterSheet('core', ActorSheet);
-  Actors.registerSheet('joster', JosterActorSheet, {
+  Actors.registerSheet('edgefall', EdgefallActorSheet, {
     makeDefault: true,
-    label: 'JOSTER.SheetLabels.Actor',
+    label: 'EDGEFALL.SheetLabels.Actor',
   });
   Items.unregisterSheet('core', ItemSheet);
-  Items.registerSheet('joster', JosterItemSheet, {
+  Items.registerSheet('edgefall', EdgefallItemSheet, {
     makeDefault: true,
-    label: 'JOSTER.SheetLabels.Item',
+    label: 'EDGEFALL.SheetLabels.Item',
   });
 
   // Preload Handlebars templates.
@@ -114,7 +114,7 @@ async function createItemMacro(data, slot) {
   const item = await Item.fromDropData(data);
 
   // Create the macro command using the uuid.
-  const command = `game.joster.rollItemMacro("${data.uuid}");`;
+  const command = `game.edgefall.rollItemMacro("${data.uuid}");`;
   let macro = game.macros.find(
     (m) => m.name === item.name && m.command === command
   );
@@ -124,7 +124,7 @@ async function createItemMacro(data, slot) {
       type: 'script',
       img: item.img,
       command: command,
-      flags: { 'joster.itemMacro': true },
+      flags: { 'edgefall.itemMacro': true },
     });
   }
   game.user.assignHotbarMacro(macro, slot);

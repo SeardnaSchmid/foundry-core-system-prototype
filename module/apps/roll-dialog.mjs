@@ -1,4 +1,4 @@
-import { JOSTER_ADVANTAGE, JOSTER_ADVANTAGE_ABBR, rollJoster } from '../helpers/dice.mjs';
+import { EDGEFALL_ADVANTAGE, EDGEFALL_ADVANTAGE_ABBR, rollEdgefall } from '../helpers/dice.mjs';
 import { colorForValue } from '../helpers/heatmap.mjs';
 
 /** Bounds and step for the situational modification value. */
@@ -11,7 +11,7 @@ const FREE_SKILL_MIN = 0;
 const FREE_SKILL_MAX = 10;
 
 /**
- * A small dialog for building a Joster roll. In "skill" mode the skill rank
+ * A small dialog for building a Edgefall roll. In "skill" mode the skill rank
  * is a fixed threshold component (set by whatever opened the dialog) while
  * its suggested attribute is preselected but can be swapped via a chip
  * picker, since a skill is never bound to one fixed attribute; in "ability"
@@ -23,7 +23,7 @@ const FREE_SKILL_MAX = 10;
  * then rolls.
  * @extends {FormApplication}
  */
-export class JosterRollDialog extends FormApplication {
+export class EdgefallRollDialog extends FormApplication {
   /**
    * @param {Actor} actor              The rolling actor.
    * @param {object} [options]
@@ -43,20 +43,20 @@ export class JosterRollDialog extends FormApplication {
    * @param {string} [options.flavor]      Label shown as the roll's subject heading and chat flavor.
    */
   constructor(actor, { attributeA = '', skill = null, freeSkill = false, fixedValue = null, flavor = '' } = {}) {
-    super({ attributeA, attributeB: '', skillValue: 0, bonus: 0, advantage: JOSTER_ADVANTAGE.none, useIdea: false });
+    super({ attributeA, attributeB: '', skillValue: 0, bonus: 0, advantage: EDGEFALL_ADVANTAGE.none, useIdea: false });
     this.actor = actor;
     this.skill = skill;
     this.freeSkill = freeSkill;
     this.fixedValue = fixedValue;
-    this.flavor = flavor || game.i18n.localize('JOSTER.Roll.DialogTitle');
+    this.flavor = flavor || game.i18n.localize('EDGEFALL.Roll.DialogTitle');
   }
 
   /** @override */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      id: 'joster-roll-dialog',
-      classes: ['joster', 'sheet'],
-      template: 'systems/joster/templates/apps/roll-dialog.hbs',
+      id: 'edgefall-roll-dialog',
+      classes: ['edgefall', 'sheet'],
+      template: 'systems/edgefall/templates/apps/roll-dialog.hbs',
       width: 320,
       closeOnSubmit: true,
     });
@@ -64,20 +64,21 @@ export class JosterRollDialog extends FormApplication {
 
   /** @override */
   get title() {
-    return game.i18n.localize('JOSTER.Roll.DialogTitle');
+    return game.i18n.localize('EDGEFALL.Roll.DialogTitle');
   }
 
   /** @override */
   getData() {
     const abilities = {};
-    for (const [key, labelKey] of Object.entries(CONFIG.JOSTER.abilities)) {
+    for (const [key, labelKey] of Object.entries(CONFIG.EDGEFALL.abilities)) {
       abilities[key] = game.i18n.localize(labelKey);
     }
 
-    const advantageOptions = Object.entries(JOSTER_ADVANTAGE).map(([key, value]) => ({
+    const advantageOptions = Object.entries(EDGEFALL_ADVANTAGE).map(([key, value]) => ({
       value,
-      label: game.i18n.localize(`JOSTER.Advantage.${key.charAt(0).toUpperCase()}${key.slice(1)}`),
-      abbr: JOSTER_ADVANTAGE_ABBR[value],
+      label: game.i18n.localize(`EDGEFALL.Advantage.${key.charAt(0).toUpperCase()}${key.slice(1)}`),
+      abbr: EDGEFALL_ADVANTAGE_ABBR[value],
+      isDefault: value === EDGEFALL_ADVANTAGE.none,
     }));
 
     const data = {
@@ -88,7 +89,7 @@ export class JosterRollDialog extends FormApplication {
       isFreeMode: this.freeSkill,
       isFixedMode: !!this.fixedValue,
       threshold: this._computeThreshold(this.object),
-      subject: game.i18n.format('JOSTER.Roll.Subject', { name: this.flavor }),
+      subject: game.i18n.format('EDGEFALL.Roll.Subject', { name: this.flavor }),
       // "Idee haben" is a pre-edge: only offered here, in the roll dialog,
       // before the dice are cast. There is deliberately no way to apply it
       // retroactively to a roll already made (see problem-solving-prd.md).
@@ -102,9 +103,9 @@ export class JosterRollDialog extends FormApplication {
       // Same 3-column (physical/social/mental) x 4-row grid and heatmap
       // color grading as the character sheet's attribute table, minus its
       // headers and base/temp stepper controls — here it's a pure picker.
-      data.attributeGrid = CONFIG.JOSTER.attributeRows.map((row) =>
+      data.attributeGrid = CONFIG.EDGEFALL.attributeRows.map((row) =>
         row.map((key) => {
-          const labelKey = CONFIG.JOSTER.abilities[key];
+          const labelKey = CONFIG.EDGEFALL.abilities[key];
           const value = actorAbilities[key]?.value ?? 0;
           const dc = colorForValue(value);
           return {
@@ -180,64 +181,64 @@ export class JosterRollDialog extends FormApplication {
 
     html.on('change', 'select[name="attributeA"], select[name="attributeB"]', (ev) => {
       const data = new FormDataExtended(ev.currentTarget.form).object;
-      html.find('.joster-threshold-value').text(this._computeThreshold(data));
+      html.find('.edgefall-threshold-value').text(this._computeThreshold(data));
     });
 
     // Skill mode: the suggested attribute is picked from a chip grid instead
     // of a select, so the player sees every attribute's value at once and
     // can freely swap to any other one.
-    html.on('click', '.joster-attribute-chip', (ev) => {
+    html.on('click', '.edgefall-attribute-chip', (ev) => {
       ev.preventDefault();
       const chip = ev.currentTarget;
       const key = chip.dataset.key;
-      const group = $(chip).closest('.joster-attribute-chip-grid');
-      group.find('.joster-attribute-chip').removeClass('active');
+      const group = $(chip).closest('.edgefall-attribute-chip-grid');
+      group.find('.edgefall-attribute-chip').removeClass('active');
       $(chip).addClass('active');
 
       const form = $(chip).closest('form')[0];
       form.querySelector('input[name="attributeA"]').value = key;
       const data = new FormDataExtended(form).object;
-      html.find('.joster-threshold-value').text(this._computeThreshold(data));
+      html.find('.edgefall-threshold-value').text(this._computeThreshold(data));
     });
 
     // Free mode: recompute the threshold as the skill value is typed.
     html.on('change input', 'input[name="skillValue"]', (ev) => {
       const data = new FormDataExtended(ev.currentTarget.form).object;
-      html.find('.joster-threshold-value').text(this._computeThreshold(data));
+      html.find('.edgefall-threshold-value').text(this._computeThreshold(data));
     });
 
-    html.on('click', '.joster-bonus-stepper', (ev) => {
+    html.on('click', '.edgefall-bonus-stepper', (ev) => {
       ev.preventDefault();
       const form = $(ev.currentTarget).closest('form')[0];
       const input = form.querySelector('input[name="bonus"]');
       const delta = ev.currentTarget.dataset.action === 'increment' ? BONUS_STEP : -BONUS_STEP;
       const next = Math.clamp(Number(input.value) + delta, BONUS_MIN, BONUS_MAX);
       input.value = next;
-      form.querySelector('.joster-bonus-value').textContent = next;
+      form.querySelector('.edgefall-bonus-value').textContent = next;
       const data = new FormDataExtended(form).object;
       data.bonus = next;
-      form.querySelector('.joster-threshold-value').textContent = this._computeThreshold(data);
+      form.querySelector('.edgefall-threshold-value').textContent = this._computeThreshold(data);
     });
 
-    html.on('click', '.joster-advantage-option', (ev) => {
+    html.on('click', '.edgefall-advantage-option', (ev) => {
       const value = ev.currentTarget.dataset.value;
       html.find('input[name="advantage"]').val(value);
-      html.find('.joster-advantage-option').removeClass('active');
-      html.find(`.joster-advantage-option[data-value="${value}"]`).addClass('active');
+      html.find('.edgefall-advantage-option').removeClass('active');
+      html.find(`.edgefall-advantage-option[data-value="${value}"]`).addClass('active');
     });
 
     // "Idee haben" toggle: recompute the threshold preview live, same as
     // any other component.
     html.on('change', 'input[name="useIdea"]', (ev) => {
       const data = new FormDataExtended(ev.currentTarget.form).object;
-      html.find('.joster-threshold-value').text(this._computeThreshold(data));
+      html.find('.edgefall-threshold-value').text(this._computeThreshold(data));
     });
   }
 
   /** @override */
   async _updateObject(event, formData) {
     const abilities = this.actor.system.abilities ?? {};
-    const abilityLabel = (key) => (key && CONFIG.JOSTER.abilities[key] ? game.i18n.localize(CONFIG.JOSTER.abilities[key]) : '');
+    const abilityLabel = (key) => (key && CONFIG.EDGEFALL.abilities[key] ? game.i18n.localize(CONFIG.EDGEFALL.abilities[key]) : '');
 
     const components = [];
     if (this.fixedValue) {
@@ -249,7 +250,7 @@ export class JosterRollDialog extends FormApplication {
       if (this.skill) {
         components.push({ label: this.skill.label, value: this.skill.value });
       } else if (this.freeSkill) {
-        components.push({ label: game.i18n.localize('JOSTER.Roll.FreeSkillValue'), value: this._freeSkillValue(formData) });
+        components.push({ label: game.i18n.localize('EDGEFALL.Roll.FreeSkillValue'), value: this._freeSkillValue(formData) });
       } else if (formData.attributeB) {
         components.push({ label: abilityLabel(formData.attributeB), value: abilities[formData.attributeB]?.value ?? 0 });
       }
@@ -266,9 +267,9 @@ export class JosterRollDialog extends FormApplication {
     if (ideaBonus !== 0) {
       const spent = this.actor.system.problemSolving?.spent ?? 0;
       await this.actor.update({ 'system.problemSolving.spent': spent + 1 });
-      components.push({ label: game.i18n.localize('JOSTER.Roll.IdeaComponent'), value: ideaBonus });
+      components.push({ label: game.i18n.localize('EDGEFALL.Roll.IdeaComponent'), value: ideaBonus });
     } else if (formData.useIdea) {
-      ui.notifications.warn(game.i18n.localize('JOSTER.Notify.NoReserve'));
+      ui.notifications.warn(game.i18n.localize('EDGEFALL.Notify.NoReserve'));
     }
 
     // Remember the attribute this skill was rolled against, per actor, so
@@ -278,7 +279,7 @@ export class JosterRollDialog extends FormApplication {
       await this.actor.update({ [`system.skills.${this.skill.key}.lastAttribute`]: formData.attributeA });
     }
 
-    await rollJoster({
+    await rollEdgefall({
       threshold,
       advantage: Number(formData.advantage),
       flavor: this.flavor,

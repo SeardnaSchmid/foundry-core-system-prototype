@@ -3,11 +3,11 @@ import {
   prepareActiveEffectCategories,
 } from '../helpers/effects.mjs';
 import { colorForValue, colorForCritical } from '../helpers/heatmap.mjs';
-import { JosterRollDialog } from '../apps/roll-dialog.mjs';
-import { JosterAdvanceDialog } from '../apps/advance-dialog.mjs';
-import { JosterHeatmapLab } from '../apps/heatmap-lab.mjs';
-import { JosterCustomSkillDialog } from '../apps/custom-skill-dialog.mjs';
-import { JOSTER_ADVANTAGE, rollJoster } from '../helpers/dice.mjs';
+import { EdgefallRollDialog } from '../apps/roll-dialog.mjs';
+import { EdgefallAdvanceDialog } from '../apps/advance-dialog.mjs';
+import { EdgefallHeatmapLab } from '../apps/heatmap-lab.mjs';
+import { EdgefallCustomSkillDialog } from '../apps/custom-skill-dialog.mjs';
+import { EDGEFALL_ADVANTAGE, rollEdgefall } from '../helpers/dice.mjs';
 import { getSkillDefinitions, getSkillDefinition } from '../helpers/skills.mjs';
 
 // Value ranges from the "Attribut-Heatmap" spec: Basiswert (base) is the
@@ -63,11 +63,11 @@ function attributeRankXpCost(rank) {
  * Extend the basic ActorSheet with some very simple modifications
  * @extends {ActorSheet}
  */
-export class JosterActorSheet extends ActorSheet {
+export class EdgefallActorSheet extends ActorSheet {
   /** @override */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ['joster', 'sheet', 'actor'],
+      classes: ['edgefall', 'sheet', 'actor'],
       width: 600,
       height: 600,
       tabs: [
@@ -82,7 +82,7 @@ export class JosterActorSheet extends ActorSheet {
 
   /** @override */
   get template() {
-    return `systems/joster/templates/actor/actor-${this.actor.type}-sheet.hbs`;
+    return `systems/edgefall/templates/actor/actor-${this.actor.type}-sheet.hbs`;
   }
 
   /* -------------------------------------------- */
@@ -102,8 +102,8 @@ export class JosterActorSheet extends ActorSheet {
     context.system = actorData.system;
     context.flags = actorData.flags;
 
-    // Adding a pointer to CONFIG.JOSTER
-    context.config = CONFIG.JOSTER;
+    // Adding a pointer to CONFIG.EDGEFALL
+    context.config = CONFIG.EDGEFALL;
 
     // Prepare character data and items.
     if (actorData.type == 'character') {
@@ -132,24 +132,24 @@ export class JosterActorSheet extends ActorSheet {
    * @param {object} context The context object to mutate
    */
   _prepareCharacterData(context) {
-    // Build the primary attribute grid (one row per CONFIG.JOSTER.attributeRows
+    // Build the primary attribute grid (one row per CONFIG.EDGEFALL.attributeRows
     // entry, one column per physical/social/mental category), mirroring the
     // layout of the "Attribute" table in the rulebook. Cells and row/column
     // sum badges are all color-graded using the "Attribut-Heatmap" prototype's
     // logic: each is graded against its own fixed absolute 1-10-per-attribute
     // scale, independently of every other cell/badge on the sheet.
     const abilities = context.system.abilities;
-    const rows = CONFIG.JOSTER.attributeRows;
-    const categoryKeys = Object.keys(CONFIG.JOSTER.attributeCategories);
+    const rows = CONFIG.EDGEFALL.attributeRows;
+    const categoryKeys = Object.keys(CONFIG.EDGEFALL.attributeCategories);
 
     context.attributeGrid = {
       colHeaders: categoryKeys.map((catKey) => ({
-        label: game.i18n.localize(CONFIG.JOSTER.attributeCategories[catKey]),
+        label: game.i18n.localize(CONFIG.EDGEFALL.attributeCategories[catKey]),
       })),
       rows: rows.map((row, ri) => ({
-        label: game.i18n.localize(CONFIG.JOSTER.attributeRowLabels[ri]),
+        label: game.i18n.localize(CONFIG.EDGEFALL.attributeRowLabels[ri]),
         cells: row.map((key) => {
-          const labelKey = CONFIG.JOSTER.abilities[key];
+          const labelKey = CONFIG.EDGEFALL.abilities[key];
           const ability = abilities[key];
           const baseValue = ability?.base ?? 0;
           const tempValue = ability?.value ?? 0;
@@ -172,7 +172,7 @@ export class JosterActorSheet extends ActorSheet {
           // instead of the generic ability description.
           const abilitySuffix = labelKey.split('.')[2];
           const abbr = game.i18n.localize(labelKey.replace('.long', '.abbr')).toUpperCase();
-          const zeroConsequence = game.i18n.localize(`JOSTER.AttributeZero.${abilitySuffix}`);
+          const zeroConsequence = game.i18n.localize(`EDGEFALL.AttributeZero.${abilitySuffix}`);
           const zeroHint = `${abbr} 0: ${zeroConsequence}`;
 
           return {
@@ -191,8 +191,8 @@ export class JosterActorSheet extends ActorSheet {
             // critical (temp = 0) red state.
             xpBarTrack: isCritical ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)',
             xpBarFill: isCritical ? 'rgba(255,217,220,0.6)' : 'rgba(51,45,34,0.45)',
-            tempHint: game.i18n.localize('JOSTER.AttributeCurrent'),
-            baseHint: game.i18n.localize('JOSTER.AttributeBase'),
+            tempHint: game.i18n.localize('EDGEFALL.AttributeCurrent'),
+            baseHint: game.i18n.localize('EDGEFALL.AttributeBase'),
             cellBg: isCritical ? cc.bg : dc.bg,
             textColor: isCritical ? cc.textColor : dc.textColor,
             critBorder: isCritical ? 'rgba(255,90,100,0.7)' : 'transparent',
@@ -228,13 +228,13 @@ export class JosterActorSheet extends ActorSheet {
     this._skillSearch ??= '';
     context.skillSearch = this._skillSearch;
 
-    // Build the skill list, grouped by category, in JOSTER.skillCategories order.
+    // Build the skill list, grouped by category, in EDGEFALL.skillCategories order.
     // Categories without any skills yet (WIP groups) still render, empty.
     // Custom, actor-defined skills are merged in alongside the built-ins by
     // getSkillDefinitions() and behave identically from here on.
     const skills = context.system.skills ?? {};
     const definitions = getSkillDefinitions(this.actor);
-    context.skillGroups = Object.entries(CONFIG.JOSTER.skillCategories).map(([catKey, catLabelKey]) => {
+    context.skillGroups = Object.entries(CONFIG.EDGEFALL.skillCategories).map(([catKey, catLabelKey]) => {
       const groupSkills = Object.entries(definitions)
         .filter(([, skill]) => skill.category === catKey)
         .map(([key, skill]) => {
@@ -243,12 +243,17 @@ export class JosterActorSheet extends ActorSheet {
           // XP progress toward the next rank: advancing to rank N costs 3*N XP;
           // "ready" flags the advance arrow green once the step is affordable.
           const xpCost = 3 * (rank + 1);
+          // Untrained skills (rank 0) stay in the neutral default badge
+          // color rather than the heatmap's lowest tone, so a group full of
+          // untrained skills doesn't drown out the ones actually worth
+          // reading at a glance.
+          const dc = rank > 0 ? colorForValue(rank) : null;
           return {
             key,
             label: skill.label,
             // Kept only to preselect the roll dialog's attribute; a skill is
             // never bound to one fixed attribute, so it's no longer shown in
-            // the row itself (see JosterRollDialog's attribute chips).
+            // the row itself (see EdgefallRollDialog's attribute chips).
             // Prefers whatever attribute this actor last rolled this skill
             // against, falling back to the skill's suggested attribute until
             // it's ever been rolled.
@@ -259,6 +264,8 @@ export class JosterActorSheet extends ActorSheet {
             xpReady: rank < 10 && xp >= xpCost,
             starter: skill.starter ?? false,
             custom: skill.custom,
+            levelBg: dc?.bg ?? null,
+            levelColor: dc?.textColor ?? null,
           };
         });
       return {
@@ -351,7 +358,7 @@ export class JosterActorSheet extends ActorSheet {
     // sheets too.
     html.on('click', '.heatmap-lab-btn', (ev) => {
       ev.preventDefault();
-      new JosterHeatmapLab().render(true);
+      new EdgefallHeatmapLab().render(true);
     });
 
     // Skill list filter: toggles which rows are shown, purely client-side
@@ -394,7 +401,7 @@ export class JosterActorSheet extends ActorSheet {
       ev.preventDefault();
       const key = ev.currentTarget.dataset.skill;
       const skill = this.actor.system.skills?.[key] ?? {};
-      new JosterAdvanceDialog(this.actor, {
+      new EdgefallAdvanceDialog(this.actor, {
         type: 'skill',
         key,
         label: getSkillDefinition(this.actor, key)?.label ?? key,
@@ -406,7 +413,7 @@ export class JosterActorSheet extends ActorSheet {
     // Add a new custom skill to the group whose "+" was clicked.
     html.on('click', '.skill-create-button', (ev) => {
       ev.preventDefault();
-      new JosterCustomSkillDialog(this.actor, { category: ev.currentTarget.dataset.category }).render(true);
+      new EdgefallCustomSkillDialog(this.actor, { category: ev.currentTarget.dataset.category }).render(true);
     });
 
     // Open the attribute advancement dialog from the heatmap cell's XP badge.
@@ -415,10 +422,10 @@ export class JosterActorSheet extends ActorSheet {
       ev.stopPropagation();
       const key = ev.currentTarget.dataset.key;
       const ability = this.actor.system.abilities?.[key] ?? {};
-      new JosterAdvanceDialog(this.actor, {
+      new EdgefallAdvanceDialog(this.actor, {
         type: 'attribute',
         key,
-        label: game.i18n.localize(CONFIG.JOSTER.abilities[key] ?? key),
+        label: game.i18n.localize(CONFIG.EDGEFALL.abilities[key] ?? key),
         rank: ability.base ?? 0,
         xp: ability.xp ?? 0,
       }).render(true);
@@ -440,7 +447,7 @@ export class JosterActorSheet extends ActorSheet {
       if (value < current) {
         ChatMessage.create({
           speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-          content: game.i18n.format('JOSTER.Chat.SolveReserveSpent', {
+          content: game.i18n.format('EDGEFALL.Chat.SolveReserveSpent', {
             name: this.actor.name,
             count: current - value,
             current: value,
@@ -474,7 +481,7 @@ export class JosterActorSheet extends ActorSheet {
     // Rollable abilities. "Fehler Analysieren" goes through this handler
     // via its data-roll-type. The other three problem-solving actions
     // don't: "Idee haben" is a pre-edge, offered as a toggle inside the
-    // roll dialog itself (see JosterRollDialog); "Fehler finden" and
+    // roll dialog itself (see EdgefallRollDialog); "Fehler finden" and
     // "Neuer Versuch" are post-edges, triggered from a failed roll's own
     // chat card (see chat.mjs), not from the sheet.
     html.on('click', '.rollable', this._onRoll.bind(this));
@@ -610,9 +617,9 @@ export class JosterActorSheet extends ActorSheet {
         if (item) return item.roll();
       }
 
-      // Open the Joster dice mechanic dialog, preselecting the clicked ability.
+      // Open the Edgefall dice mechanic dialog, preselecting the clicked ability.
       if (dataset.rollType == 'ability') {
-        return new JosterRollDialog(this.actor, {
+        return new EdgefallRollDialog(this.actor, {
           attributeA: dataset.ability,
           flavor: dataset.label,
         }).render(true);
@@ -621,9 +628,9 @@ export class JosterActorSheet extends ActorSheet {
       // Open the roll dialog in free mode: the player picks any attribute
       // and types in a free skill value not tied to a defined skill.
       if (dataset.rollType == 'free') {
-        return new JosterRollDialog(this.actor, {
+        return new EdgefallRollDialog(this.actor, {
           freeSkill: true,
-          flavor: game.i18n.localize('JOSTER.Roll.FreeTitle'),
+          flavor: game.i18n.localize('EDGEFALL.Roll.FreeTitle'),
         }).render(true);
       }
 
@@ -638,10 +645,10 @@ export class JosterActorSheet extends ActorSheet {
       // the same width regardless of whether it's custom).
       if (dataset.rollType == 'skill') {
         if (event.shiftKey && this.actor.system.skills?.[dataset.skill]?.custom) {
-          return new JosterCustomSkillDialog(this.actor, { key: dataset.skill }).render(true);
+          return new EdgefallCustomSkillDialog(this.actor, { key: dataset.skill }).render(true);
         }
         const rank = this.actor.system.skills?.[dataset.skill]?.value ?? 0;
-        return new JosterRollDialog(this.actor, {
+        return new EdgefallRollDialog(this.actor, {
           attributeA: dataset.ability,
           skill: { key: dataset.skill, label: dataset.label, value: rank },
           flavor: dataset.label,
@@ -653,9 +660,9 @@ export class JosterActorSheet extends ActorSheet {
       // and no "Idee haben" pre-edge, since it's an instinctive reaction
       // rather than a deliberate check.
       if (dataset.rollType == 'sixthSense') {
-        return rollJoster({
+        return rollEdgefall({
           threshold: this.actor.system.derived?.sixthSense ?? 0,
-          advantage: JOSTER_ADVANTAGE.none,
+          advantage: EDGEFALL_ADVANTAGE.none,
           flavor: dataset.label,
           actor: this.actor,
           // Not a skill+attribute check, so the "Problem lösen" edge pool
@@ -672,24 +679,24 @@ export class JosterActorSheet extends ActorSheet {
         const reserve = this.actor.system.derived?.solveReserve ?? 0;
         const reserveMax = this.actor.system.derived?.solveReserveMax ?? 0;
         if (reserve >= reserveMax) {
-          ui.notifications.warn(game.i18n.localize('JOSTER.Notify.ReserveFull'));
+          ui.notifications.warn(game.i18n.localize('EDGEFALL.Notify.ReserveFull'));
           return;
         }
 
         const confirmedAnalyze = await foundry.applications.api.DialogV2.confirm({
-          window: { title: game.i18n.localize('JOSTER.Dialog.SolveAnalyzeFlawTitle') },
-          content: game.i18n.localize('JOSTER.Dialog.SolveAnalyzeFlawContent'),
+          window: { title: game.i18n.localize('EDGEFALL.Dialog.SolveAnalyzeFlawTitle') },
+          content: game.i18n.localize('EDGEFALL.Dialog.SolveAnalyzeFlawContent'),
         });
         if (!confirmedAnalyze) return;
 
         ChatMessage.create({
           speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-          content: game.i18n.format('JOSTER.Chat.SolveAnalyzeFlawAttempt', { name: this.actor.name }),
+          content: game.i18n.format('EDGEFALL.Chat.SolveAnalyzeFlawAttempt', { name: this.actor.name }),
         });
 
-        const { success } = await rollJoster({
+        const { success } = await rollEdgefall({
           threshold: this.actor.system.derived?.solveAnalyzeFlaw ?? 0,
-          advantage: JOSTER_ADVANTAGE.none,
+          advantage: EDGEFALL_ADVANTAGE.none,
           flavor: dataset.label,
           actor: this.actor,
           // A failed "Fehler Analysieren" roll must not itself be offered the
@@ -705,7 +712,7 @@ export class JosterActorSheet extends ActorSheet {
             const current = this.actor.system.derived?.solveReserve ?? 0;
             ChatMessage.create({
               speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-              content: game.i18n.format('JOSTER.Chat.SolveAnalyzeFlawSuccess', { name: this.actor.name, current, max }),
+              content: game.i18n.format('EDGEFALL.Chat.SolveAnalyzeFlawSuccess', { name: this.actor.name, current, max }),
             });
           }
         }

@@ -8,34 +8,34 @@
       <div class="resources flexrow">
 
         {{!-- Initiative wird gewürfelt mit Initiativegrundwert+1d10. --}}
-        <a class="resource-group initiative-group rollable" data-roll="1d10 + @derived.initiative" data-label="{{localize 'JOSTER.Derived.Initiative'}}" title="{{localize 'JOSTER.DerivedHint.Initiative'}}">
+        <a class="resource-group initiative-group rollable" data-roll="1d10 + @derived.initiative" data-label="{{localize 'EDGEFALL.Derived.Initiative'}}" title="{{localize 'EDGEFALL.DerivedHint.Initiative'}}">
           <span class="initiative-value">{{system.derived.initiative}}<small>+1d10</small></span>
-          <span class="initiative-label">{{localize "JOSTER.DerivedShort.Initiative"}}</span>
+          <span class="initiative-label">{{localize "EDGEFALL.DerivedShort.Initiative"}}</span>
         </a>
 
         {{!-- Sechster Sinn wird mit dem regulären 3d20-Wurf gegen den Wert selbst gewürfelt, ohne Mods/Advantage. --}}
-        <a class="resource-group sixth-sense-group rollable" data-roll-type="sixthSense" data-label="{{localize 'JOSTER.Derived.SixthSense'}}" title="{{localize 'JOSTER.Derived.SixthSense'}}: {{localize 'JOSTER.DerivedHint.SixthSense'}}">
+        <a class="resource-group sixth-sense-group rollable" data-roll-type="sixthSense" data-label="{{localize 'EDGEFALL.Derived.SixthSense'}}" title="{{localize 'EDGEFALL.Derived.SixthSense'}}: {{localize 'EDGEFALL.DerivedHint.SixthSense'}}">
           <span class="sixth-sense-value">{{system.derived.sixthSense}}</span>
-          <label class="sixth-sense-label">{{localize "JOSTER.DerivedShort.SixthSense"}}</label>
+          <label class="sixth-sense-label">{{localize "EDGEFALL.DerivedShort.SixthSense"}}</label>
         </a>
 
         {{!-- Bewegungsreichweiten sind reine Anzeigewerte, kein Wurf. --}}
         <div class="resource-group movement-group">
-          <div class="movement-tile" title="{{localize 'JOSTER.Derived.MovementCrawl'}}: {{localize 'JOSTER.DerivedHint.MovementCrawl'}}">
+          <div class="movement-tile" title="{{localize 'EDGEFALL.Derived.MovementCrawl'}}: {{localize 'EDGEFALL.DerivedHint.MovementCrawl'}}">
             <span class="movement-value">{{system.derived.movementCrawl}}</span>
-            <label class="movement-label">{{localize "JOSTER.DerivedShort.MovementCrawl"}}</label>
+            <label class="movement-label">{{localize "EDGEFALL.DerivedShort.MovementCrawl"}}</label>
           </div>
-          <div class="movement-tile" title="{{localize 'JOSTER.Derived.MovementWalk'}}: {{localize 'JOSTER.DerivedHint.MovementWalk'}}">
+          <div class="movement-tile" title="{{localize 'EDGEFALL.Derived.MovementWalk'}}: {{localize 'EDGEFALL.DerivedHint.MovementWalk'}}">
             <span class="movement-value">{{system.derived.movementWalk}}</span>
-            <label class="movement-label">{{localize "JOSTER.DerivedShort.MovementWalk"}}</label>
+            <label class="movement-label">{{localize "EDGEFALL.DerivedShort.MovementWalk"}}</label>
           </div>
-          <div class="movement-tile" title="{{localize 'JOSTER.Derived.MovementSprint'}}: {{localize 'JOSTER.DerivedHint.MovementSprint'}}">
+          <div class="movement-tile" title="{{localize 'EDGEFALL.Derived.MovementSprint'}}: {{localize 'EDGEFALL.DerivedHint.MovementSprint'}}">
             <span class="movement-value">{{system.derived.movementSprint}}</span>
-            <label class="movement-label">{{localize "JOSTER.DerivedShort.MovementSprint"}}</label>
+            <label class="movement-label">{{localize "EDGEFALL.DerivedShort.MovementSprint"}}</label>
           </div>
-          <div class="movement-tile carry-slots-tile" title="{{localize 'JOSTER.Derived.CarrySlots'}}: {{localize 'JOSTER.DerivedHint.CarrySlots'}}">
+          <div class="movement-tile carry-slots-tile" title="{{localize 'EDGEFALL.Derived.CarrySlots'}}: {{localize 'EDGEFALL.DerivedHint.CarrySlots'}}">
             <span class="movement-value">{{system.derived.carrySlotsUsed}}/{{system.derived.carrySlots}}</span>
-            <label class="movement-label">{{localize "JOSTER.DerivedShort.CarrySlots"}}</label>
+            <label class="movement-label">{{localize "EDGEFALL.DerivedShort.CarrySlots"}}</label>
           </div>
         </div>
 
@@ -47,39 +47,39 @@
         regulärer 3d20-Wurf gegen den Wert; bei Erfolg wird ein Vorrat-Punkt
         zurückgewonnen) und steht direkt neben dem Vorrat, als einziges
         klickbares Tile hier. "Idee haben" ist ein Pre-Edge und lebt als
-        Toggle im Würfel-Dialog selbst (JosterRollDialog); "Fehler finden"
+        Toggle im Würfel-Dialog selbst (EdgefallRollDialog); "Fehler finden"
         ist ein Post-Edge und lebt auf der Wurf-Karte einer fehlgeschlagenen
         Probe im Chat (siehe chat.mjs) — beide nur zur Übersicht hier
         gezeigt, ohne eigenen Klick-Effekt. "Neuer Versuch" wird hier
         bewusst nicht gezeigt: ohne attributabhängigen Schwellenwert (fixer
         Punktkosten-Edge) bringt ein Anzeigewert dafür nichts. --}}
         <div class="resource-group problem-solving-group">
-          <div class="reserve-pool" title="{{localize 'JOSTER.Derived.SolveReserve'}}: {{localize 'JOSTER.DerivedHint.SolveReserve'}}">
+          <div class="reserve-pool" title="{{localize 'EDGEFALL.Derived.SolveReserve'}}: {{localize 'EDGEFALL.DerivedHint.SolveReserve'}}">
             <span class="reserve-value">
               <input type="number" class="reserve-value-input" value="{{system.derived.solveReserve}}" min="0" max="{{system.derived.solveReserveMax}}"/>/{{system.derived.solveReserveMax}}
             </span>
-            <label class="reserve-label">{{localize "JOSTER.DerivedShort.SolveReserve"}}</label>
+            <label class="reserve-label">{{localize "EDGEFALL.DerivedShort.SolveReserve"}}</label>
           </div>
-          <a class="solve-tile solve-analyze-flaw rollable {{#if analyzeFlawDisabled}}solve-tile-disabled{{/if}}" data-roll-type="analyzeFlaw" data-label="{{localize 'JOSTER.Derived.SolveAnalyzeFlaw'}}" title="{{#if analyzeFlawDisabled}}{{localize 'JOSTER.Notify.ReserveFull'}}{{else}}{{localize 'JOSTER.Derived.SolveAnalyzeFlaw'}}: {{localize 'JOSTER.DerivedHint.SolveAnalyzeFlaw'}}{{/if}}">
+          <a class="solve-tile solve-analyze-flaw rollable {{#if analyzeFlawDisabled}}solve-tile-disabled{{/if}}" data-roll-type="analyzeFlaw" data-label="{{localize 'EDGEFALL.Derived.SolveAnalyzeFlaw'}}" title="{{#if analyzeFlawDisabled}}{{localize 'EDGEFALL.Notify.ReserveFull'}}{{else}}{{localize 'EDGEFALL.Derived.SolveAnalyzeFlaw'}}: {{localize 'EDGEFALL.DerivedHint.SolveAnalyzeFlaw'}}{{/if}}">
             <span class="solve-tile-value">{{system.derived.solveAnalyzeFlaw}}</span>
-            <label class="solve-tile-label">{{localize "JOSTER.DerivedShort.SolveAnalyzeFlaw"}}</label>
+            <label class="solve-tile-label">{{localize "EDGEFALL.DerivedShort.SolveAnalyzeFlaw"}}</label>
           </a>
-          <div class="solve-tile" title="{{localize 'JOSTER.Derived.SolveIdea'}}: {{localize 'JOSTER.DerivedHint.SolveIdea'}}">
+          <div class="solve-tile" title="{{localize 'EDGEFALL.Derived.SolveIdea'}}: {{localize 'EDGEFALL.DerivedHint.SolveIdea'}}">
             <span class="solve-tile-value">{{system.derived.solveIdea}}</span>
-            <label class="solve-tile-label">{{localize "JOSTER.DerivedShort.SolveIdea"}}</label>
+            <label class="solve-tile-label">{{localize "EDGEFALL.DerivedShort.SolveIdea"}}</label>
           </div>
-          <div class="solve-tile" title="{{localize 'JOSTER.Derived.SolveFindFlaw'}}: {{localize 'JOSTER.DerivedHint.SolveFindFlaw'}}">
+          <div class="solve-tile" title="{{localize 'EDGEFALL.Derived.SolveFindFlaw'}}: {{localize 'EDGEFALL.DerivedHint.SolveFindFlaw'}}">
             <span class="solve-tile-value">{{system.derived.solveFindFlaw}}</span>
-            <label class="solve-tile-label">{{localize "JOSTER.DerivedShort.SolveFindFlaw"}}</label>
+            <label class="solve-tile-label">{{localize "EDGEFALL.DerivedShort.SolveFindFlaw"}}</label>
           </div>
         </div>
 
         {{!-- Gesamt-XP, die bislang in Attribute und Fertigkeiten investiert
         wurden (Summe der kumulierten Stufenkosten beider Bereiche). --}}
         <div class="resource-group xp-total-group">
-          <div class="xp-tile" title="{{localize 'JOSTER.XpTotalAllHint'}}">
+          <div class="xp-tile" title="{{localize 'EDGEFALL.XpTotalAllHint'}}">
             <span class="xp-tile-value">{{totalXpSpent}}xp</span>
-            <label class="xp-tile-label">{{localize "JOSTER.XpTotalAll"}}</label>
+            <label class="xp-tile-label">{{localize "EDGEFALL.XpTotalAll"}}</label>
           </div>
         </div>
 
@@ -108,8 +108,8 @@
         backgrounds are color-graded relative to the character's own values,
         ported from the "Attribut-Heatmap" prototype. --}}
         <div class="attributes-header flexrow">
-          <h3 class="attributes-title">{{localize "JOSTER.AttributesTitle"}} <span class="xp-badge" title="{{localize 'JOSTER.XpTotalAttributesHint'}}">{{attributeGrid.totalValue}}pt | {{attributeGrid.totalXp}}xp</span></h3>
-          <a class="heatmap-lab-btn" title="{{localize 'JOSTER.Settings.HeatmapPreset.Name'}}"><i class="fa-solid fa-palette"></i></a>
+          <h3 class="attributes-title">{{localize "EDGEFALL.AttributesTitle"}} <span class="xp-badge" title="{{localize 'EDGEFALL.XpTotalAttributesHint'}}">{{attributeGrid.totalValue}}pt | {{attributeGrid.totalXp}}xp</span></h3>
+          <a class="heatmap-lab-btn" title="{{localize 'EDGEFALL.Settings.HeatmapPreset.Name'}}"><i class="fa-solid fa-palette"></i></a>
         </div>
         <table class="attribute-table heatmap">
           <thead>
@@ -132,19 +132,19 @@
               <td class="heatmap-cell{{#if cell.isPeak}} heatmap-peak{{/if}}{{#if cell.isCritical}} heatmap-critical{{/if}}" style="background:{{cell.cellBg}}; color:{{cell.textColor}}; border-color:{{cell.critBorder}};" title="{{cell.hint}}">
                 <div class="heatmap-cell-top">
                   {{#if cell.hasDelta}}
-                  <a class="heatmap-delta" data-key="{{cell.key}}" title="{{#if cell.isCritical}}{{localize 'JOSTER.AttributeCritical'}} — {{/if}}{{localize 'JOSTER.ResetTemp'}}" style="background:{{cell.deltaBg}}; color:{{cell.deltaText}};">{{#if cell.isCritical}}⚠ {{/if}}{{cell.deltaLabel}}</a>
+                  <a class="heatmap-delta" data-key="{{cell.key}}" title="{{#if cell.isCritical}}{{localize 'EDGEFALL.AttributeCritical'}} — {{/if}}{{localize 'EDGEFALL.ResetTemp'}}" style="background:{{cell.deltaBg}}; color:{{cell.deltaText}};">{{#if cell.isCritical}}⚠ {{/if}}{{cell.deltaLabel}}</a>
                   {{else if cell.isCritical}}
-                  <span class="heatmap-warn-badge" title="{{localize 'JOSTER.AttributeCritical'}}">⚠</span>
+                  <span class="heatmap-warn-badge" title="{{localize 'EDGEFALL.AttributeCritical'}}">⚠</span>
                   {{/if}}
                   <span class="heatmap-cell-name">{{cell.label}}</span>
-                  <a class="heatmap-xp-badge{{#if cell.xpReady}} ready{{/if}}" data-key="{{cell.key}}" title="{{cell.xp}}/{{cell.xpCost}} xp — {{localize 'JOSTER.AttributeAdvanceHint'}}">{{#if cell.xpAtMax}}{{localize "JOSTER.XpMaxBadge"}}{{else}}{{cell.xp}}/{{cell.xpCost}}{{/if}}</a>
+                  <a class="heatmap-xp-badge{{#if cell.xpReady}} ready{{/if}}" data-key="{{cell.key}}" title="{{cell.xp}}/{{cell.xpCost}} xp — {{localize 'EDGEFALL.AttributeAdvanceHint'}}">{{#if cell.xpAtMax}}{{localize "EDGEFALL.XpMaxBadge"}}{{else}}{{cell.xp}}/{{cell.xpCost}}{{/if}}</a>
                 </div>
                 <div class="heatmap-cell-values flexrow flex-center">
-                  <a class="heatmap-stepper" data-key="{{cell.key}}" data-action="decrement" title="{{localize 'JOSTER.AttributeDecrease'}}" style="background:{{cell.stepperBg}}; border-color:{{cell.stepperBorder}}; color:{{cell.stepperColor}};">−</a>
+                  <a class="heatmap-stepper" data-key="{{cell.key}}" data-action="decrement" title="{{localize 'EDGEFALL.AttributeDecrease'}}" style="background:{{cell.stepperBg}}; border-color:{{cell.stepperBorder}}; color:{{cell.stepperColor}};">−</a>
                   <span class="heatmap-value-pair">
                     <span class="heatmap-temp active" title="{{cell.tempHint}}">{{cell.tempValue}}</span>{{#if cell.hasDelta}}<span class="heatmap-slash">/</span><span class="heatmap-base inactive" title="{{cell.baseHint}}">{{cell.baseValue}}</span>{{/if}}
                   </span>
-                  <a class="heatmap-stepper" data-key="{{cell.key}}" data-action="increment" title="{{localize 'JOSTER.AttributeIncrease'}}" style="background:{{cell.stepperBg}}; border-color:{{cell.stepperBorder}}; color:{{cell.stepperColor}};">+</a>
+                  <a class="heatmap-stepper" data-key="{{cell.key}}" data-action="increment" title="{{localize 'EDGEFALL.AttributeIncrease'}}" style="background:{{cell.stepperBg}}; border-color:{{cell.stepperBorder}}; color:{{cell.stepperColor}};">+</a>
                 </div>
                 <div class="heatmap-xp-bar{{#if cell.xpReady}} ready{{/if}}" style="background:{{cell.xpBarTrack}};">
                   <span class="heatmap-xp-bar-fill" style="width:{{cell.xpPercent}}%; background:{{cell.xpBarFill}};"></span>
@@ -159,12 +159,12 @@
         {{!-- Skills, grouped by category. Each skill rolls with its linked
         attribute; the rank is added as the roll dialog's starting bonus. --}}
         <div class="skills-header flexrow">
-          <h3 class="skills-title">{{localize "JOSTER.SkillsTitle"}} <span class="xp-badge" title="{{localize 'JOSTER.XpTotalSkillsHint'}}">{{skillRankTotal}}pt | {{skillXpTotal}}xp</span></h3>
-          <input type="text" class="skill-search-input" value="{{skillSearch}}" placeholder="{{localize 'JOSTER.SkillSearchPlaceholder'}}" title="{{localize 'JOSTER.SkillSearchHint'}}" />
+          <h3 class="skills-title">{{localize "EDGEFALL.SkillsTitle"}} <span class="xp-badge" title="{{localize 'EDGEFALL.XpTotalSkillsHint'}}">{{skillRankTotal}}pt | {{skillXpTotal}}xp</span></h3>
+          <input type="text" class="skill-search-input" value="{{skillSearch}}" placeholder="{{localize 'EDGEFALL.SkillSearchPlaceholder'}}" title="{{localize 'EDGEFALL.SkillSearchHint'}}" />
           <div class="skill-filter-group">
-            <a class="skill-filter-btn {{#ifEquals skillFilter 'trained'}}active{{/ifEquals}}" data-filter="trained" title="{{localize 'JOSTER.SkillFilterTrainedHint'}}">{{localize "JOSTER.SkillFilterTrained"}}</a>
-            <a class="skill-filter-btn {{#ifEquals skillFilter 'starter'}}active{{/ifEquals}}" data-filter="starter" title="{{localize 'JOSTER.SkillFilterStarterHint'}}">{{localize "JOSTER.SkillFilterStarter"}}</a>
-            <a class="skill-filter-btn {{#ifEquals skillFilter 'all'}}active{{/ifEquals}}" data-filter="all" title="{{localize 'JOSTER.SkillFilterAllHint'}}">{{localize "JOSTER.SkillFilterAll"}}</a>
+            <a class="skill-filter-btn {{#ifEquals skillFilter 'trained'}}active{{/ifEquals}}" data-filter="trained" title="{{localize 'EDGEFALL.SkillFilterTrainedHint'}}">{{localize "EDGEFALL.SkillFilterTrained"}}</a>
+            <a class="skill-filter-btn {{#ifEquals skillFilter 'starter'}}active{{/ifEquals}}" data-filter="starter" title="{{localize 'EDGEFALL.SkillFilterStarterHint'}}">{{localize "EDGEFALL.SkillFilterStarter"}}</a>
+            <a class="skill-filter-btn {{#ifEquals skillFilter 'all'}}active{{/ifEquals}}" data-filter="all" title="{{localize 'EDGEFALL.SkillFilterAllHint'}}">{{localize "EDGEFALL.SkillFilterAll"}}</a>
           </div>
         </div>
         <div class="skill-groups">
@@ -174,7 +174,7 @@
               <span class="skill-group-name">{{group.label}}</span>
               <span class="xp-badge">{{group.totalRank}}pt | {{group.totalXp}}xp</span>
               {{#if @root.editable}}
-              <a class="skill-create-button" data-category="{{group.key}}" title="{{localize 'JOSTER.CustomSkill.Add'}}">
+              <a class="skill-create-button" data-category="{{group.key}}" title="{{localize 'EDGEFALL.CustomSkill.Add'}}">
                 <i class="fas fa-plus"></i>
               </a>
               {{/if}}
@@ -183,24 +183,24 @@
             <ul class="skill-list">
               {{#each group.skills as |skill|}}
               <li class="skill-row" data-rank="{{skill.rank}}" data-xp="{{skill.xp}}" data-starter="{{skill.starter}}" data-custom="{{skill.custom}}">
-                <span class="skill-info rollable" data-roll-type="skill" data-skill="{{skill.key}}" data-ability="{{skill.attribute}}" data-label="{{skill.label}}" title="{{#if skill.custom}}{{localize 'JOSTER.CustomSkill.ShiftClickHint'}}{{else}}{{localize 'JOSTER.RollSkill'}}: {{skill.label}}{{/if}}">
+                <span class="skill-info rollable" data-roll-type="skill" data-skill="{{skill.key}}" data-ability="{{skill.attribute}}" data-label="{{skill.label}}" title="{{#if skill.custom}}{{localize 'EDGEFALL.CustomSkill.ShiftClickHint'}}{{else}}{{localize 'EDGEFALL.RollSkill'}}: {{skill.label}}{{/if}}">
                   <span class="skill-name">
                     <span class="skill-name-text">{{skill.label}}</span>
                     {{#if skill.custom}}
-                    <span class="skill-custom-badge" title="{{localize 'JOSTER.CustomSkill.BadgeHint'}}">{{localize "JOSTER.CustomSkill.Badge"}}</span>
+                    <span class="skill-custom-badge" title="{{localize 'EDGEFALL.CustomSkill.BadgeHint'}}">{{localize "EDGEFALL.CustomSkill.Badge"}}</span>
                     {{/if}}
                   </span>
-                  <span class="skill-level">{{skill.rank}}</span>
+                  <span class="skill-level"{{#if skill.levelBg}} style="background:{{skill.levelBg}}; color:{{skill.levelColor}};"{{/if}}>{{skill.rank}}</span>
                   <span class="skill-xp{{#if skill.xpReady}} ready{{/if}}">{{skill.xp}}/{{skill.xpCost}}</span>
                 </span>
-                <a class="skill-advance-button{{#if skill.xpReady}} ready{{/if}}" data-skill="{{skill.key}}" title="{{localize 'JOSTER.SkillAdvance'}}">
+                <a class="skill-advance-button{{#if skill.xpReady}} ready{{/if}}" data-skill="{{skill.key}}" title="{{localize 'EDGEFALL.SkillAdvance'}}">
                   <i class="fas fa-arrow-up"></i>
                 </a>
               </li>
               {{/each}}
             </ul>
             {{else}}
-            <p class="skill-group-empty">{{localize "JOSTER.SkillCategoryEmptyHint"}}</p>
+            <p class="skill-group-empty">{{localize "EDGEFALL.SkillCategoryEmptyHint"}}</p>
             {{/if}}
           </div>
           {{/each}}
@@ -219,7 +219,7 @@
 
     {{!-- Owned Items Tab --}}
     <div class="tab items" data-group="primary" data-tab="items">
-       {{> "systems/joster/templates/actor/parts/actor-items.hbs"}}
+       {{> "systems/edgefall/templates/actor/parts/actor-items.hbs"}}
     </div>
 
   </section>

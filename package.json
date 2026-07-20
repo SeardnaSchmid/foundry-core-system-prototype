@@ -1,10 +1,10 @@
 {
-  "name": "joster",
+  "name": "edgefall",
   "version": "0.17.0",
-  "description": "SCSS compiler for the Joster Foundry VTT system",
+  "description": "SCSS compiler for the Edgefall Foundry VTT system",
   "scripts": {
-    "build": "sass src/scss/joster.scss css/joster.css --style=expanded --no-source-map",
-    "watch": "sass src/scss/joster.scss css/joster.css --style=expanded --source-map --watch",
+    "build": "sass src/scss/edgefall.scss css/edgefall.css --style=expanded --no-source-map",
+    "watch": "sass src/scss/edgefall.scss css/edgefall.css --style=expanded --source-map --watch",
     "release": "release-it",
     "test": "vitest",
     "test:ui": "vitest --ui",

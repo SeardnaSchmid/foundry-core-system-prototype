@@ -1,6 +1,6 @@
-import JosterItemBase from "./base-item.mjs";
+import EdgefallItemBase from "./base-item.mjs";
 
-export default class JosterSpell extends JosterItemBase {
+export default class EdgefallSpell extends EdgefallItemBase {
 
   static defineSchema() {
     const fields = foundry.data.fields;

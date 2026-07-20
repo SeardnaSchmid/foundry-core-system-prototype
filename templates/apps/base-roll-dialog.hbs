@@ -1,19 +1,19 @@
-<form class="joster-roll-dialog flexcol">
-  <div class="joster-roll-subject">
-    <h2 class="joster-roll-subject-name">{{subject}}</h2>
+<form class="edgefall-roll-dialog flexcol">
+  <div class="edgefall-roll-subject">
+    <h2 class="edgefall-roll-subject-name">{{subject}}</h2>
   </div>
 
-  <div class="form-group joster-advantage-field">
-    <label>{{localize "JOSTER.Roll.Advantage"}}</label>
-    <div class="joster-advantage-group flexrow flex-center">
+  <div class="form-group edgefall-advantage-field">
+    <label>{{localize "EDGEFALL.Roll.Advantage"}}</label>
+    <div class="edgefall-advantage-group flexrow flex-center">
       {{#each advantageOptions as |option|}}
-      <a class="joster-advantage-option {{#ifEquals option.value ../advantage}}active{{/ifEquals}}" data-value="{{option.value}}" title="{{option.label}}">{{option.abbr}}</a>
+      <a class="edgefall-advantage-option {{#ifEquals option.value ../advantage}}active{{/ifEquals}}" data-value="{{option.value}}" title="{{#if option.isDefault}}{{localize 'EDGEFALL.Roll.AdvantageDefaultHint' label=option.label}}{{else}}{{option.label}}{{/if}}">{{option.abbr}}</a>
       {{/each}}
     </div>
     <input type="hidden" name="advantage" value="{{advantage}}"/>
   </div>
 
   <footer class="sheet-footer flexrow">
-    <button type="submit"><i class="fas fa-dice-d20"></i> {{localize "JOSTER.Roll.Submit"}}</button>
+    <button type="submit"><i class="fas fa-dice-d20"></i> {{localize "EDGEFALL.Roll.Submit"}}</button>
   </footer>
 </form>

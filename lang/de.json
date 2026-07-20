@@ -1,5 +1,5 @@
 {
-  "JOSTER": {
+  "EDGEFALL": {
     "AttributeCategory": {
       "Physical": "Körperlich",
       "Social": "Sozial",
@@ -243,8 +243,8 @@
       "Refresh": "Aktualisieren"
     },
     "Migration": {
-      "Started": "Joster-Systemdaten werden auf v{version} migriert…",
-      "Completed": "Migration der Joster-Systemdaten abgeschlossen."
+      "Started": "Systemdaten werden auf v{version} migriert…",
+      "Completed": "Migration der Systemdaten abgeschlossen."
     },
     "Derived": {
       "Initiative": "Initiativegrundwert",
@@ -307,8 +307,8 @@
       "SolveReserveSpent": "{name} gibt {count} Punkt(e) Problem lösen aus ({current}/{max})."
     },
     "SheetLabels": {
-      "Actor": "Joster Charakterbogen",
-      "Item": "Joster Gegenstandsbogen"
+      "Actor": "Charakterbogen",
+      "Item": "Gegenstandsbogen"
     },
     "Item": {
       "Spell": {
@@ -323,6 +323,7 @@
       "AttributeB": "Attribut/Fähigkeit 2",
       "Bonus": "Modifikation",
       "Advantage": "Wurftyp",
+      "AdvantageDefaultHint": "{label} (Standard)",
       "Threshold": "Schwelle",
       "Submit": "Würfeln",
       "ChooseAttribute": "Attribut",

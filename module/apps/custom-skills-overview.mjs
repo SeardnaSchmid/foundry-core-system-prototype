@@ -12,7 +12,7 @@ import { getSkillDefinition } from '../helpers/skills.mjs';
  * submits a form of its own — `_updateObject` is a no-op.
  * @extends {FormApplication}
  */
-export class JosterCustomSkillsOverview extends FormApplication {
+export class EdgefallCustomSkillsOverview extends FormApplication {
   constructor() {
     super({});
   }
@@ -20,9 +20,9 @@ export class JosterCustomSkillsOverview extends FormApplication {
   /** @override */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      id: 'joster-custom-skills-overview',
-      classes: ['joster', 'sheet', 'joster-custom-skills-overview'],
-      template: 'systems/joster/templates/apps/custom-skills-overview.hbs',
+      id: 'edgefall-custom-skills-overview',
+      classes: ['edgefall', 'sheet', 'edgefall-custom-skills-overview'],
+      template: 'systems/edgefall/templates/apps/custom-skills-overview.hbs',
       width: 480,
       height: 'auto',
       closeOnSubmit: false,
@@ -31,7 +31,7 @@ export class JosterCustomSkillsOverview extends FormApplication {
 
   /** @override */
   get title() {
-    return game.i18n.localize('JOSTER.Settings.CustomSkillsOverview.Name');
+    return game.i18n.localize('EDGEFALL.Settings.CustomSkillsOverview.Name');
   }
 
   /** @override */
@@ -46,8 +46,8 @@ export class JosterCustomSkillsOverview extends FormApplication {
           actorId: actor.id,
           actorName: actor.name,
           label: def?.label ?? entry.custom.label ?? key,
-          category: game.i18n.localize(CONFIG.JOSTER.skillCategories[def?.category] ?? def?.category ?? ''),
-          attribute: game.i18n.localize(CONFIG.JOSTER.abilities[def?.attribute] ?? def?.attribute ?? ''),
+          category: game.i18n.localize(CONFIG.EDGEFALL.skillCategories[def?.category] ?? def?.category ?? ''),
+          attribute: game.i18n.localize(CONFIG.EDGEFALL.abilities[def?.attribute] ?? def?.attribute ?? ''),
           rank: entry.value ?? 0,
           xp: entry.xp ?? 0,
         });

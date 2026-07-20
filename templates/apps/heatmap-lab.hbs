@@ -1,4 +1,4 @@
-<form class="joster-heatmap-lab flexcol">
+<form class="edgefall-heatmap-lab flexcol">
 
   {{!-- Quick starting points — load a preset's stops/midpoint into the
   fields below, then keep tweaking from there. --}}
@@ -12,15 +12,15 @@
   value. Interpolated as two linear segments (low->mid, mid->high). --}}
   <div class="heatmap-lab-stops flexrow">
     <div class="form-group">
-      <label>{{localize "JOSTER.HeatmapLab.Low"}}</label>
+      <label>{{localize "EDGEFALL.HeatmapLab.Low"}}</label>
       <input type="color" name="low" value="{{low}}"/>
     </div>
     <div class="form-group">
-      <label>{{localize "JOSTER.HeatmapLab.Mid"}}</label>
+      <label>{{localize "EDGEFALL.HeatmapLab.Mid"}}</label>
       <input type="color" name="mid" value="{{mid}}"/>
     </div>
     <div class="form-group">
-      <label>{{localize "JOSTER.HeatmapLab.High"}}</label>
+      <label>{{localize "EDGEFALL.HeatmapLab.High"}}</label>
       <input type="color" name="high" value="{{high}}"/>
     </div>
   </div>
@@ -30,7 +30,7 @@
   widens mid->high (more room for a gradual ramp toward "high" at the top);
   moving it up does the opposite. --}}
   <div class="form-group heatmap-lab-midpoint">
-    <label>{{localize "JOSTER.HeatmapLab.MidValue"}} <span class="heatmap-lab-midpoint-value">{{midValue}}</span></label>
+    <label>{{localize "EDGEFALL.HeatmapLab.MidValue"}} <span class="heatmap-lab-midpoint-value">{{midValue}}</span></label>
     <input type="range" name="midValue" min="{{midValueMin}}" max="{{midValueMax}}" step="0.5" value="{{midValue}}"/>
   </div>
 
@@ -40,11 +40,11 @@
   contrast the other way. --}}
   <div class="heatmap-lab-curves flexrow">
     <div class="form-group heatmap-lab-curve">
-      <label>{{localize "JOSTER.HeatmapLab.LowCurve"}} <span class="heatmap-lab-lowcurve-value">{{lowCurve}}</span></label>
+      <label>{{localize "EDGEFALL.HeatmapLab.LowCurve"}} <span class="heatmap-lab-lowcurve-value">{{lowCurve}}</span></label>
       <input type="range" name="lowCurve" min="{{curveMin}}" max="{{curveMax}}" step="0.1" value="{{lowCurve}}"/>
     </div>
     <div class="form-group heatmap-lab-curve">
-      <label>{{localize "JOSTER.HeatmapLab.HighCurve"}} <span class="heatmap-lab-highcurve-value">{{highCurve}}</span></label>
+      <label>{{localize "EDGEFALL.HeatmapLab.HighCurve"}} <span class="heatmap-lab-highcurve-value">{{highCurve}}</span></label>
       <input type="range" name="highCurve" min="{{curveMin}}" max="{{curveMax}}" step="0.1" value="{{highCurve}}"/>
     </div>
   </div>
@@ -61,12 +61,12 @@
   rock bottom) state — outside the 1-10 gradient entirely, since it
   represents a distinct in-fiction consequence rather than a low roll. --}}
   <div class="form-group heatmap-lab-critical">
-    <label>{{localize "JOSTER.HeatmapLab.Critical"}}</label>
+    <label>{{localize "EDGEFALL.HeatmapLab.Critical"}}</label>
     <div class="heatmap-lab-critical-row flexrow">
       <input type="color" name="critical" value="{{critical}}"/>
       <span class="heatmap-lab-critical-swatch" style="background:{{criticalPreview.bg}}; color:{{criticalPreview.textColor}};">0</span>
     </div>
   </div>
 
-  <p class="heatmap-lab-hint">{{localize "JOSTER.HeatmapLab.Hint"}}</p>
+  <p class="heatmap-lab-hint">{{localize "EDGEFALL.HeatmapLab.Hint"}}</p>
 </form>

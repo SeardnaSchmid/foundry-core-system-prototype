@@ -6,21 +6,21 @@
 export const preloadHandlebarsTemplates = async function () {
   return loadTemplates([
     // Actor partials.
-    'systems/joster/templates/actor/parts/actor-features.hbs',
-    'systems/joster/templates/actor/parts/actor-items.hbs',
-    'systems/joster/templates/actor/parts/actor-spells.hbs',
-    'systems/joster/templates/actor/parts/actor-effects.hbs',
+    'systems/edgefall/templates/actor/parts/actor-features.hbs',
+    'systems/edgefall/templates/actor/parts/actor-items.hbs',
+    'systems/edgefall/templates/actor/parts/actor-spells.hbs',
+    'systems/edgefall/templates/actor/parts/actor-effects.hbs',
     // Item partials
-    'systems/joster/templates/item/parts/item-effects.hbs',
+    'systems/edgefall/templates/item/parts/item-effects.hbs',
     // Apps
-    'systems/joster/templates/apps/roll-dialog.hbs',
-    'systems/joster/templates/apps/advance-dialog.hbs',
-    'systems/joster/templates/apps/base-roll-dialog.hbs',
-    'systems/joster/templates/apps/heatmap-lab.hbs',
-    'systems/joster/templates/apps/custom-skill-dialog.hbs',
-    'systems/joster/templates/apps/custom-skills-overview.hbs',
+    'systems/edgefall/templates/apps/roll-dialog.hbs',
+    'systems/edgefall/templates/apps/advance-dialog.hbs',
+    'systems/edgefall/templates/apps/base-roll-dialog.hbs',
+    'systems/edgefall/templates/apps/heatmap-lab.hbs',
+    'systems/edgefall/templates/apps/custom-skill-dialog.hbs',
+    'systems/edgefall/templates/apps/custom-skills-overview.hbs',
     // Chat
-    'systems/joster/templates/chat/roll-card.hbs',
-    'systems/joster/templates/chat/find-flaw-tracker.hbs',
+    'systems/edgefall/templates/chat/roll-card.hbs',
+    'systems/edgefall/templates/chat/find-flaw-tracker.hbs',
   ]);
 };

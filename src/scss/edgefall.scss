@@ -12,8 +12,8 @@
 @import 'global/grid';
 @import 'global/flex';
 
-/* Styles limited to joster sheets */
-.joster {
+/* Styles limited to edgefall sheets */
+.edgefall {
   @import 'components/forms';
   @import 'components/resource';
   @import 'components/items';
@@ -21,6 +21,6 @@
   @import 'components/dice-dialog';
 }
 
-/* Chat message styles, rendered outside of any joster-classed sheet */
+/* Chat message styles, rendered outside of any edgefall-classed sheet */
 @import 'components/dice-card';
 @import 'components/base-roll-button';

@@ -1,8 +1,8 @@
 // "Basiswürfel" quick-roll button injected into the chat log's controls
-// (see injectBaseRollButton in joster.mjs) — rendered outside any
-// joster-classed sheet, so it can't rely on the .joster scope's variables
+// (see injectBaseRollButton in edgefall.mjs) — rendered outside any
+// edgefall-classed sheet, so it can't rely on the .edgefall scope's variables
 // beyond what's imported here.
-.joster-base-roll-button {
+.edgefall-base-roll-button {
   color: $c-tan;
 
   &:hover {

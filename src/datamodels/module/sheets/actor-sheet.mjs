@@ -7,11 +7,11 @@ import {
  * Extend the basic ActorSheet with some very simple modifications
  * @extends {ActorSheet}
  */
-export class JosterActorSheet extends ActorSheet {
+export class EdgefallActorSheet extends ActorSheet {
   /** @override */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ['joster', 'sheet', 'actor'],
+      classes: ['edgefall', 'sheet', 'actor'],
       width: 600,
       height: 600,
       tabs: [
@@ -26,7 +26,7 @@ export class JosterActorSheet extends ActorSheet {
 
   /** @override */
   get template() {
-    return `systems/joster/templates/actor/actor-${this.actor.type}-sheet.hbs`;
+    return `systems/edgefall/templates/actor/actor-${this.actor.type}-sheet.hbs`;
   }
 
   /* -------------------------------------------- */
@@ -46,8 +46,8 @@ export class JosterActorSheet extends ActorSheet {
     context.system = actorData.system;
     context.flags = actorData.flags;
 
-    // Adding a pointer to CONFIG.JOSTER
-    context.config = CONFIG.JOSTER;
+    // Adding a pointer to CONFIG.EDGEFALL
+    context.config = CONFIG.EDGEFALL;
 
     // Prepare character data and items.
     if (actorData.type == 'character') {

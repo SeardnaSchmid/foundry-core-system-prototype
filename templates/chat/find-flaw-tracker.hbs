@@ -1,30 +1,30 @@
-<div class="joster-find-flaw-tracker">
-  <div class="joster-find-flaw-header">
-    <span class="joster-find-flaw-label"><i class="fa-solid fa-magnifying-glass"></i> {{localize "JOSTER.Derived.SolveFindFlaw"}}</span>
-    <div class="joster-find-flaw-pips">
+<div class="edgefall-find-flaw-tracker">
+  <div class="edgefall-find-flaw-header">
+    <span class="edgefall-find-flaw-label"><i class="fa-solid fa-magnifying-glass"></i> {{localize "EDGEFALL.Derived.SolveFindFlaw"}}</span>
+    <div class="edgefall-find-flaw-pips">
       {{#each pips as |pip|}}
-      <span class="joster-find-flaw-pip{{#if pip.filled}} filled{{/if}}{{#if pip.success}} success{{/if}}"></span>
+      <span class="edgefall-find-flaw-pip{{#if pip.filled}} filled{{/if}}{{#if pip.success}} success{{/if}}"></span>
       {{/each}}
     </div>
   </div>
 
   {{#each attempts as |attempt|}}
-  <div class="joster-find-flaw-attempt {{attempt.outcome}}">
-    <span class="joster-find-flaw-attempt-index">#{{attempt.index}}</span>
-    <span class="joster-find-flaw-attempt-dice">
+  <div class="edgefall-find-flaw-attempt {{attempt.outcome}}">
+    <span class="edgefall-find-flaw-attempt-index">#{{attempt.index}}</span>
+    <span class="edgefall-find-flaw-attempt-dice">
       {{#each attempt.dice as |die|}}
-      <span class="joster-find-flaw-die{{#if die.isCounted}} counted{{/if}}">{{die.value}}</span>
+      <span class="edgefall-find-flaw-die{{#if die.isCounted}} counted{{/if}}">{{die.value}}</span>
       {{/each}}
     </span>
-    <span class="joster-find-flaw-attempt-outcome">{{attempt.outcomeLabel}}</span>
+    <span class="edgefall-find-flaw-attempt-outcome">{{attempt.outcomeLabel}}</span>
   </div>
   {{/each}}
 
   {{#if active}}
-  <a class="joster-find-flaw-reroll">
+  <a class="edgefall-find-flaw-reroll">
     <i class="fa-solid fa-arrow-rotate-right"></i> {{rerollLabel}}
   </a>
   {{else}}
-  <div class="joster-find-flaw-done {{#if succeeded}}success{{else}}failure{{/if}}">{{doneLabel}}</div>
+  <div class="edgefall-find-flaw-done {{#if succeeded}}success{{else}}failure{{/if}}">{{doneLabel}}</div>
   {{/if}}
 </div>

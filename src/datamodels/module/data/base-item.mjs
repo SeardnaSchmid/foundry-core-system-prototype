@@ -1,6 +1,6 @@
-import JosterDataModel from "./base-model.mjs";
+import EdgefallDataModel from "./base-model.mjs";
 
-export default class JosterItemBase extends JosterDataModel {
+export default class EdgefallItemBase extends EdgefallDataModel {
 
   static defineSchema() {
     const fields = foundry.data.fields;

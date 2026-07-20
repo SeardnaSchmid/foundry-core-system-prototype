@@ -18,7 +18,7 @@ const RANK_MAX = 10;
  *
  * @extends {FormApplication}
  */
-export class JosterAdvanceDialog extends FormApplication {
+export class EdgefallAdvanceDialog extends FormApplication {
   /**
    * @param {Actor} actor         The actor being advanced.
    * @param {object} options
@@ -39,9 +39,9 @@ export class JosterAdvanceDialog extends FormApplication {
   /** @override */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      id: 'joster-advance-dialog',
-      classes: ['joster', 'sheet'],
-      template: 'systems/joster/templates/apps/advance-dialog.hbs',
+      id: 'edgefall-advance-dialog',
+      classes: ['edgefall', 'sheet'],
+      template: 'systems/edgefall/templates/apps/advance-dialog.hbs',
       width: 300,
       closeOnSubmit: true,
     });
@@ -49,7 +49,7 @@ export class JosterAdvanceDialog extends FormApplication {
 
   /** @override */
   get title() {
-    return game.i18n.format('JOSTER.SkillAdvanceDialogTitle', { name: this.label });
+    return game.i18n.format('EDGEFALL.SkillAdvanceDialogTitle', { name: this.label });
   }
 
   /** Lowest allowed rank for this type (skills can hit 0, attributes floor at 1). */
