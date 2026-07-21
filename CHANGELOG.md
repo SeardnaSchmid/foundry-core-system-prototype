@@ -1,5 +1,13 @@
 # Changelog
 
+# [0.21.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.20.0...v0.21.0) (2026-07-21)
+
+
+### Features
+
+* add angled-corner metal frame to character sheet portrait ([d147e5b](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/d147e5b0773094792f029c547352d77c03d47683))
+* replace attribute xp badge with a thicker clickable xp bar ([ce6ff08](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/ce6ff081b4438c6c8948027ae54bf1e8c3e03b0f))
+
 # [0.20.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.19.0...v0.20.0) (2026-07-21)
 
 
