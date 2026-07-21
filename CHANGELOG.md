@@ -1,5 +1,14 @@
 # Changelog
 
+# [0.19.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.18.0...v0.19.0) (2026-07-21)
+
+
+### Features
+
+* add skill subgroup badges and refine attributes card styling ([6172131](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/617213152a1ece5b0cc24df4567cc7ae6ae3750f))
+* align problem-solving tile values and improve tooltips ([18a45ad](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/18a45adc7aa0a8d7236f501d33fe3a4c3adb0e5a))
+* polish actor sheet layout, a11y, and heatmap defaults ([e8291a3](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/e8291a34d81d09de87663fbb6bddf7d8886558a8))
+
 # [0.18.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.17.0...v0.18.0) (2026-07-20)
 
 
