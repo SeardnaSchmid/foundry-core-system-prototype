@@ -175,7 +175,10 @@ button:focus-visible {
     .heatmap-cell {
       position: relative;
       text-align: center;
-      padding: 4px 6px;
+      // Bottom padding is taller than the top so the name/value stack keeps
+      // clear breathing room above the (now thicker) xp bar pinned to the
+      // cell's bottom edge instead of visually touching it.
+      padding: 4px 6px 10px;
       border-radius: 4px;
       border: 1.5px solid transparent;
       // The XP bar is pinned to the bottom edge as an absolute strip (below);
@@ -218,21 +221,36 @@ button:focus-visible {
 
       // XP-toward-next-rank bar, pinned as an absolute strip flush with the
       // cell's bottom edge so it costs zero layout height (the cell clips it
-      // via overflow:hidden above). Purely a visual progress indicator — the
-      // XP badge above is the click target. The fill turns to the advance
-      // accent once the next rank is affordable; track/fill colors come from
-      // the cell data (mirroring the stepper chips' light/dark adaptation) so
-      // the bar stays legible on every heatmap tone.
+      // via overflow:hidden above). Doubles as the click target for the
+      // attribute advancement dialog (the numeric xp/cost badge that used to
+      // sit in the cell's top-right corner was removed as visual clutter —
+      // the bar's fill/color already communicates progress, and the exact
+      // numbers are still available via tooltip). The fill turns to the
+      // advance accent once the next rank is affordable; track/fill colors
+      // come from the cell data (mirroring the stepper chips' light/dark
+      // adaptation) so the bar stays legible on every heatmap tone.
       .heatmap-xp-bar {
         position: absolute;
         left: 0;
         right: 0;
         bottom: 0;
-        height: 3px;
+        height: 6px;
         overflow: hidden;
+        cursor: pointer;
+
+        // Widen the clickable strip well past its visible height so the
+        // advance action stays easy to hit without inflating the bar itself.
+        &::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          height: 12px;
+        }
 
         &.ready {
-          height: 4px;
+          height: 8px;
         }
 
         &.ready .heatmap-xp-bar-fill {
@@ -256,30 +274,6 @@ button:focus-visible {
         top: 0;
         left: 0;
         cursor: pointer;
-      }
-
-      // Persistent XP-toward-next-rank badge, pinned to the cell's top-right
-      // corner. Click opens the attribute advancement dialog; it turns green
-      // once the next rank is affordable.
-      .heatmap-xp-badge {
-        @extend %stat-chip;
-        position: absolute;
-        top: 0;
-        right: 0;
-        color: inherit;
-        background: rgba($c-black, 0.14);
-        opacity: 0.75;
-        cursor: pointer;
-
-        &:hover {
-          opacity: 1;
-        }
-
-        &.ready {
-          background: $c-advance;
-          color: #fff8e6;
-          opacity: 1;
-        }
       }
 
       // Foundry's .flexrow would let the value pair (flex: 1) expand and
@@ -421,11 +415,11 @@ button:focus-visible {
   }
 
   // At phone-ish widths each cell is down to ~120px and the crowded row is
-  // the top one, where the absolute corner chips (delta left, XP badge
-  // right) close in on the centred attribute name. Shed the column header
-  // row — like the row headers at 600px, the cell tooltips already carry the
-  // row · column axis (see actor-sheet.mjs) — and shrink the corner chips so
-  // the name keeps clear room between them.
+  // the top one, where the absolute delta chip (top-left) closes in on the
+  // centred attribute name. Shed the column header row — like the row
+  // headers at 600px, the cell tooltips already carry the row · column axis
+  // (see actor-sheet.mjs) — and shrink the delta chip so the name keeps clear
+  // room next to it.
   @container (max-width: 400px) {
     &.heatmap {
       thead {
@@ -433,15 +427,14 @@ button:focus-visible {
       }
 
       .heatmap-cell {
-        .heatmap-xp-badge,
         .heatmap-delta {
           font-size: var(--font-size-9, 9px);
           padding: 1px 3px;
         }
 
-        // At ~120px and below the corner chips and the centred name can no
+        // At ~120px and below the delta chip and the centred name can no
         // longer share one row without colliding; drop the name below the
-        // chips instead, and let the longest names ("Investigation")
+        // chip instead, and let the longest names ("Investigation")
         // ellipsize rather than spill into the neighbouring cell. The full
         // name stays available in the cell tooltip.
         .heatmap-cell-top {
@@ -776,7 +769,7 @@ button:focus-visible {
   color: $c-tan;
 
   // Lit up once the skill has banked enough XP to buy its next rank,
-  // matching the .heatmap-xp-badge/.skill-advance-button "ready" advance gold.
+  // matching the .heatmap-xp-bar/.skill-advance-button "ready" advance gold.
   &.ready {
     color: $c-advance;
     font-weight: bold;

@@ -156,7 +156,6 @@
                   <span class="heatmap-warn-badge" title="{{localize 'TNO.AttributeCritical'}}">⚠</span>
                   {{/if}}
                   <span class="heatmap-cell-name">{{cell.label}}</span>
-                  <a class="heatmap-xp-badge{{#if cell.xpReady}} ready{{/if}}" data-key="{{cell.key}}" title="{{cell.xp}}/{{cell.xpCost}} xp — {{localize 'TNO.AttributeAdvanceHint'}}">{{#if cell.xpAtMax}}{{localize "TNO.XpMaxBadge"}}{{else}}{{cell.xp}}/{{cell.xpCost}}{{/if}}</a>
                 </div>
                 <div class="heatmap-cell-values flexrow flex-center">
                   <a class="heatmap-stepper" data-key="{{cell.key}}" data-action="decrement" title="{{localize 'TNO.AttributeDecrease'}}" style="background:{{cell.stepperBg}}; border-color:{{cell.stepperBorder}}; color:{{cell.stepperColor}};">−</a>
@@ -170,9 +169,9 @@
                   </span>
                   <a class="heatmap-stepper" data-key="{{cell.key}}" data-action="increment" title="{{localize 'TNO.AttributeIncrease'}}" style="background:{{cell.stepperBg}}; border-color:{{cell.stepperBorder}}; color:{{cell.stepperColor}};">+</a>
                 </div>
-                <div class="heatmap-xp-bar{{#if cell.xpReady}} ready{{/if}}" style="background:{{cell.xpBarTrack}};">
+                <a class="heatmap-xp-bar{{#if cell.xpReady}} ready{{/if}}" data-key="{{cell.key}}" style="background:{{cell.xpBarTrack}};" title="{{#if cell.xpAtMax}}{{localize 'TNO.XpMaxBadge'}}{{else}}{{cell.xp}}/{{cell.xpCost}} xp{{/if}} — {{localize 'TNO.AttributeAdvanceHint'}}">
                   <span class="heatmap-xp-bar-fill" style="width:{{cell.xpPercent}}%; background:{{cell.xpBarFill}};"></span>
-                </div>
+                </a>
               </td>
               {{/each}}
             </tr>

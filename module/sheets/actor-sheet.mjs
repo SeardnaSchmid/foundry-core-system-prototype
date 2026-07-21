@@ -481,8 +481,8 @@ export class TnoActorSheet extends ActorSheet {
       new TnoCustomSkillDialog(this.actor, { category: ev.currentTarget.dataset.category }).render(true);
     });
 
-    // Open the attribute advancement dialog from the heatmap cell's XP badge.
-    html.on('click', '.heatmap-xp-badge', (ev) => {
+    // Open the attribute advancement dialog from the heatmap cell's XP bar.
+    html.on('click', '.heatmap-xp-bar', (ev) => {
       ev.preventDefault();
       ev.stopPropagation();
       const key = ev.currentTarget.dataset.key;

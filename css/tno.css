@@ -876,7 +876,7 @@
   outline: 2px solid #444;
   outline-offset: 1px;
 }
-.tno .skill-level, .tno .attribute-table.heatmap .heatmap-cell .heatmap-xp-badge, .tno .attribute-table.heatmap .heatmap-cell .heatmap-delta, .tno .xp-badge {
+.tno .skill-level, .tno .attribute-table.heatmap .heatmap-cell .heatmap-delta, .tno .xp-badge {
   font-size: var(--font-size-11, 11px);
   font-weight: bold;
   line-height: 1;
@@ -976,7 +976,7 @@
 .tno .attribute-table.heatmap .heatmap-cell {
   position: relative;
   text-align: center;
-  padding: 4px 6px;
+  padding: 4px 6px 10px;
   border-radius: 4px;
   border: 1.5px solid transparent;
   overflow: hidden;
@@ -1010,11 +1010,20 @@
   left: 0;
   right: 0;
   bottom: 0;
-  height: 3px;
+  height: 6px;
   overflow: hidden;
+  cursor: pointer;
+}
+.tno .attribute-table.heatmap .heatmap-cell .heatmap-xp-bar::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 12px;
 }
 .tno .attribute-table.heatmap .heatmap-cell .heatmap-xp-bar.ready {
-  height: 4px;
+  height: 8px;
 }
 .tno .attribute-table.heatmap .heatmap-cell .heatmap-xp-bar.ready .heatmap-xp-bar-fill {
   background: #b8860b !important;
@@ -1029,23 +1038,6 @@
   top: 0;
   left: 0;
   cursor: pointer;
-}
-.tno .attribute-table.heatmap .heatmap-cell .heatmap-xp-badge {
-  position: absolute;
-  top: 0;
-  right: 0;
-  color: inherit;
-  background: rgba(0, 0, 0, 0.14);
-  opacity: 0.75;
-  cursor: pointer;
-}
-.tno .attribute-table.heatmap .heatmap-cell .heatmap-xp-badge:hover {
-  opacity: 1;
-}
-.tno .attribute-table.heatmap .heatmap-cell .heatmap-xp-badge.ready {
-  background: #b8860b;
-  color: #fff8e6;
-  opacity: 1;
 }
 .tno .attribute-table.heatmap .heatmap-cell .heatmap-cell-values {
   gap: 8px;
@@ -1145,7 +1137,6 @@
   .tno .attribute-table.heatmap thead {
     display: none;
   }
-  .tno .attribute-table.heatmap .heatmap-cell .heatmap-xp-badge,
   .tno .attribute-table.heatmap .heatmap-cell .heatmap-delta {
     font-size: var(--font-size-9, 9px);
     padding: 1px 3px;
