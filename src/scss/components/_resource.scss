@@ -66,54 +66,46 @@ button:focus-visible {
   // when the skill list below scrolls.
   flex: 0 0 auto;
   margin: 0 0 10px;
-  // The compact matrix sits flush against its left edge (see
-  // .attribute-table's margin) rather than centred or stretched edge to
-  // edge. The matrix is a fixed compact size, so below the width that fits
-  // the row-header column (see the @container rule on .attribute-table)
-  // that column is dropped instead of forcing horizontal scroll — the
-  // per-cell tooltip still carries the row · column axis as a
-  // belt-and-braces fallback (see actor-sheet.mjs).
+  // Mobile-first: .attribute-table's base rules are the narrowest layout
+  // (fluid columns, row-header column and column-header row both dropped).
+  // Ascending @container (min-width) tiers below add richness back in as
+  // the container grows — thead, then fixed 150px columns, then finally the
+  // row-header column once there's room for all of it (see the exact
+  // footprint math on .attribute-table below). overflow-x is a defensive
+  // fallback only: it's inert while columns are fluid and only matters if
+  // the fixed-width tiers ever get squeezed by something unforeseen (zoom,
+  // a future column-count change) — the per-cell tooltip carries the row ·
+  // column axis as a further belt-and-braces fallback (see actor-sheet.mjs).
   container-type: inline-size;
   overflow-x: auto;
 }
 
 .attribute-table {
-  // Fixed layout with explicit column widths: the cells carry only a name +
-  // single digit, so they don't need to grow with the sheet. This is what
-  // keeps the matrix compact (~560px) instead of stretching to fill 870px.
-  // Left-aligned within the full-width card (no auto centring margin).
+  // Mobile-first base: the narrowest end state. Fluid columns (table-layout
+  // is still fixed, but width: 100% + auto column widths lets the 3 data
+  // columns split whatever the container gives, so there's no fixed
+  // footprint to overflow at any width down to very narrow containers).
+  // Row-header column and thead are both dropped here — see the ascending
+  // tiers below for where each returns as space allows.
   table-layout: fixed;
-  width: max-content;
-  min-width: 500px;
+  width: 100%;
+  min-width: 0;
   border-collapse: separate;
-  border-spacing: 4px;
+  border-spacing: 3px;
   margin: 6px 0 0;
 
-  // Row-header (category) column stays narrow; the three data columns are
-  // sized to comfortably hold the widest attribute name plus the − value +
-  // cluster without the slack the old full-width layout carried.
   .attribute-corner,
   .heatmap-row-header {
-    width: 84px;
+    display: none;
+  }
+
+  thead {
+    display: none;
   }
 
   thead th,
   td.heatmap-cell {
-    width: 150px;
-  }
-
-  // Below the width needed to fit the row-header column alongside the three
-  // data columns (84 + 3×150 + border-spacing gaps), drop that column rather
-  // than forcing the card into horizontal scroll. The row labels aren't
-  // shown elsewhere, but each cell's tooltip carries its row · column axis
-  // as a fallback (see actor-sheet.mjs), so the matrix stays readable.
-  @container (max-width: 600px) {
-    &.heatmap {
-      .attribute-corner,
-      .heatmap-row-header {
-        display: none;
-      }
-    }
+    width: auto;
   }
 
   // Coloured attribute cells float as rounded tiles in a small gutter grid:
@@ -175,10 +167,12 @@ button:focus-visible {
     .heatmap-cell {
       position: relative;
       text-align: center;
-      // Bottom padding is taller than the top so the name/value stack keeps
-      // clear breathing room above the (now thicker) xp bar pinned to the
-      // cell's bottom edge instead of visually touching it.
-      padding: 4px 6px 10px;
+      // Mobile-first base: the compact chrome for the narrowest containers,
+      // where each fluid column is down to ~120-130px and the top row is
+      // crowded — the absolute delta chip (top-left) would otherwise close
+      // in on the centred attribute name. padding-top on .heatmap-cell-top
+      // below drops the name below the chip instead of sharing its row.
+      padding: 3px 4px;
       border-radius: 4px;
       border: 1.5px solid transparent;
       // The XP bar is pinned to the bottom edge as an absolute strip (below);
@@ -202,6 +196,10 @@ button:focus-visible {
         justify-content: center;
         margin-bottom: 3px;
         min-height: 16px;
+        // Base (narrowest): the name can no longer share the delta chip's
+        // row, so it drops below instead — see the min-width: 401px tier
+        // below for where the two are given room to sit side by side again.
+        padding-top: 12px;
       }
 
       // Standalone warning badge (top-left), only shown for the rare case of
@@ -216,7 +214,15 @@ button:focus-visible {
 
       .heatmap-cell-name {
         font-weight: 600;
-        font-size: var(--font-size-12, 12px);
+        // Base (narrowest): let the longest names ("Investigation")
+        // ellipsize rather than spill into the neighbouring cell — the full
+        // name stays available in the cell tooltip. min-width: 401px below
+        // gives back enough room that this no longer needs to truncate.
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: var(--font-size-10, 10px);
       }
 
       // XP-toward-next-rank bar, pinned as an absolute strip flush with the
@@ -274,6 +280,10 @@ button:focus-visible {
         top: 0;
         left: 0;
         cursor: pointer;
+        // Base (narrowest): shrink below %stat-chip's default size so the
+        // name (dropped below it above) has clear room next to it.
+        font-size: var(--font-size-9, 9px);
+        padding: 1px 3px;
       }
 
       // Foundry's .flexrow would let the value pair (flex: 1) expand and
@@ -281,7 +291,7 @@ button:focus-visible {
       // leaving them looking orphaned. Centre the whole "− value +" trio as
       // one tight cluster instead.
       .heatmap-cell-values {
-        gap: 8px;
+        gap: 4px;
         justify-content: center;
       }
 
@@ -299,8 +309,8 @@ button:focus-visible {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 22px;
-        height: 22px;
+        width: 18px;
+        height: 18px;
         flex: none;
         border-radius: 50%;
         border: 1.5px solid;
@@ -330,7 +340,7 @@ button:focus-visible {
         display: inline-flex;
         align-items: baseline;
         gap: 1px;
-        min-width: 40px;
+        min-width: 30px;
         justify-content: center;
       }
 
@@ -340,7 +350,7 @@ button:focus-visible {
         transition: font-size 0.15s ease, opacity 0.15s ease;
 
         &.active {
-          font-size: var(--font-size-20, 20px);
+          font-size: var(--font-size-16, 16px);
           opacity: 1;
         }
 
@@ -359,95 +369,103 @@ button:focus-visible {
     }
   }
 
-  // With the row headers gone (600px tier above) the matrix still needs
-  // 3×150px + gaps ≈ 466px; below that the card would fall back to
-  // horizontal scroll. Just above that footprint (466px + a small cushion),
-  // switch the table from fixed-width to fluid — table-layout: fixed is
-  // already set, so width: 100% turns the 150px column widths into equal
-  // ratios and the three columns simply split whatever the container gives —
-  // and compact the cell chrome so the narrower cells stay comfortable: the
-  // value shrinks but keeps top billing, the steppers and their gutter
-  // tighten around it. (These tiers sit after the base heatmap rules because
-  // they override them at equal specificity.)
-  @container (max-width: 480px) {
+  // Mobile-first: base above is the narrowest end state (fluid columns, no
+  // thead, no row header, compact chrome). Each tier below adds richness
+  // back as the container grows, in the reverse order the old desktop-first
+  // tiers stripped it away. A max-width: Npx tier covers [0, N], so its
+  // ascending complement here is min-width: (N+1)px — using min-width: Npx
+  // would double-fire both rules at the exact boundary pixel.
+  //
+  // At ~120-130px per column and below, the delta chip and centred name can
+  // no longer share one row, so the base above drops the name below the
+  // chip and shrinks it. Past that, give the column-header row and the
+  // full-size delta chip/name back their room.
+  @container (min-width: 401px) {
     &.heatmap {
-      width: 100%;
-      min-width: 0;
-      border-spacing: 3px;
-
-      // Fixed table layout never lets the table shrink below the sum of its
-      // specified column widths, so width: 100% alone still leaves the
-      // 3×150px columns overflowing. Release the explicit widths and fixed
-      // layout splits the 100% equally between the three auto columns.
-      thead th,
-      td.heatmap-cell {
-        width: auto;
+      thead {
+        display: table-header-group;
       }
 
       .heatmap-cell {
-        padding: 3px 4px;
+        .heatmap-delta {
+          font-size: var(--font-size-11, 11px);
+          padding: 1px 5px;
+        }
+
+        .heatmap-cell-top {
+          padding-top: 0;
+        }
 
         .heatmap-cell-name {
+          max-width: none;
+          overflow: visible;
+          text-overflow: clip;
+          white-space: normal;
           font-size: var(--font-size-11, 11px);
+        }
+      }
+    }
+  }
+
+  // Once there's room for the matrix's fixed footprint without the row
+  // header — 3×150px data columns + 4×4px border-spacing gaps (columns+1
+  // gaps under border-collapse: separate) = 466px, plus a cushion — switch
+  // from fluid columns back to the fixed 150px layout and restore full-size
+  // cell chrome.
+  @container (min-width: 481px) {
+    &.heatmap {
+      table-layout: fixed;
+      width: max-content;
+      min-width: 500px;
+      border-spacing: 4px;
+
+      thead th,
+      td.heatmap-cell {
+        width: 150px;
+      }
+
+      .heatmap-cell {
+        padding: 4px 6px 10px;
+
+        .heatmap-cell-name {
+          font-size: var(--font-size-12, 12px);
         }
 
         .heatmap-cell-values {
-          gap: 4px;
+          gap: 8px;
         }
 
         .heatmap-value-pair {
-          min-width: 30px;
+          min-width: 40px;
         }
 
         .heatmap-stepper {
-          width: 18px;
-          height: 18px;
+          width: 22px;
+          height: 22px;
         }
 
         .heatmap-temp,
         .heatmap-base {
           &.active {
-            font-size: var(--font-size-16, 16px);
+            font-size: var(--font-size-20, 20px);
           }
         }
       }
     }
   }
 
-  // At phone-ish widths each cell is down to ~120px and the crowded row is
-  // the top one, where the absolute delta chip (top-left) closes in on the
-  // centred attribute name. Shed the column header row — like the row
-  // headers at 600px, the cell tooltips already carry the row · column axis
-  // (see actor-sheet.mjs) — and shrink the delta chip so the name keeps clear
-  // room next to it.
-  @container (max-width: 400px) {
+  // Once there's room for the matrix's full footprint including the
+  // row-header column — 84px + 3×150px data columns + 5×4px border-spacing
+  // gaps = 554px, plus a small cushion for sub-pixel container-size jitter
+  // — restore the row-header (category) column. The row labels aren't shown
+  // below this width, but each cell's tooltip carries its row · column axis
+  // as a fallback (see actor-sheet.mjs), so the matrix stays readable.
+  @container (min-width: 559px) {
     &.heatmap {
-      thead {
-        display: none;
-      }
-
-      .heatmap-cell {
-        .heatmap-delta {
-          font-size: var(--font-size-9, 9px);
-          padding: 1px 3px;
-        }
-
-        // At ~120px and below the delta chip and the centred name can no
-        // longer share one row without colliding; drop the name below the
-        // chip instead, and let the longest names ("Investigation")
-        // ellipsize rather than spill into the neighbouring cell. The full
-        // name stays available in the cell tooltip.
-        .heatmap-cell-top {
-          padding-top: 12px;
-        }
-
-        .heatmap-cell-name {
-          max-width: 100%;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-          font-size: var(--font-size-10, 10px);
-        }
+      .attribute-corner,
+      .heatmap-row-header {
+        display: table-cell;
+        width: 84px;
       }
     }
   }

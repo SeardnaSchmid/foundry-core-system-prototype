@@ -919,25 +919,22 @@
 }
 .tno .attribute-table {
   table-layout: fixed;
-  width: max-content;
-  min-width: 500px;
+  width: 100%;
+  min-width: 0;
   border-collapse: separate;
-  border-spacing: 4px;
+  border-spacing: 3px;
   margin: 6px 0 0;
 }
 .tno .attribute-table .attribute-corner,
 .tno .attribute-table .heatmap-row-header {
-  width: 84px;
+  display: none;
+}
+.tno .attribute-table thead {
+  display: none;
 }
 .tno .attribute-table thead th,
 .tno .attribute-table td.heatmap-cell {
-  width: 150px;
-}
-@container (max-width: 600px) {
-  .tno .attribute-table.heatmap .attribute-corner,
-  .tno .attribute-table.heatmap .heatmap-row-header {
-    display: none;
-  }
+  width: auto;
 }
 .tno .attribute-table th,
 .tno .attribute-table td {
@@ -976,7 +973,7 @@
 .tno .attribute-table.heatmap .heatmap-cell {
   position: relative;
   text-align: center;
-  padding: 4px 6px 10px;
+  padding: 3px 4px;
   border-radius: 4px;
   border: 1.5px solid transparent;
   overflow: hidden;
@@ -994,6 +991,7 @@
   justify-content: center;
   margin-bottom: 3px;
   min-height: 16px;
+  padding-top: 12px;
 }
 .tno .attribute-table.heatmap .heatmap-cell .heatmap-warn-badge {
   position: absolute;
@@ -1003,7 +1001,11 @@
 }
 .tno .attribute-table.heatmap .heatmap-cell .heatmap-cell-name {
   font-weight: 600;
-  font-size: var(--font-size-12, 12px);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-10, 10px);
 }
 .tno .attribute-table.heatmap .heatmap-cell .heatmap-xp-bar {
   position: absolute;
@@ -1038,9 +1040,11 @@
   top: 0;
   left: 0;
   cursor: pointer;
+  font-size: var(--font-size-9, 9px);
+  padding: 1px 3px;
 }
 .tno .attribute-table.heatmap .heatmap-cell .heatmap-cell-values {
-  gap: 8px;
+  gap: 4px;
   justify-content: center;
 }
 .tno .attribute-table.heatmap .heatmap-cell .heatmap-value-pair {
@@ -1050,8 +1054,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   flex: none;
   border-radius: 50%;
   border: 1.5px solid;
@@ -1078,7 +1082,7 @@
   display: inline-flex;
   align-items: baseline;
   gap: 1px;
-  min-width: 40px;
+  min-width: 30px;
   justify-content: center;
 }
 .tno .attribute-table.heatmap .heatmap-cell .heatmap-temp,
@@ -1088,7 +1092,7 @@
 }
 .tno .attribute-table.heatmap .heatmap-cell .heatmap-temp.active,
 .tno .attribute-table.heatmap .heatmap-cell .heatmap-base.active {
-  font-size: var(--font-size-20, 20px);
+  font-size: var(--font-size-16, 16px);
   opacity: 1;
 }
 .tno .attribute-table.heatmap .heatmap-cell .heatmap-temp.inactive,
@@ -1102,54 +1106,62 @@
   font-size: var(--font-size-11, 11px);
   opacity: 0.55;
 }
-@container (max-width: 480px) {
+@container (min-width: 401px) {
+  .tno .attribute-table.heatmap thead {
+    display: table-header-group;
+  }
+  .tno .attribute-table.heatmap .heatmap-cell .heatmap-delta {
+    font-size: var(--font-size-11, 11px);
+    padding: 1px 5px;
+  }
+  .tno .attribute-table.heatmap .heatmap-cell .heatmap-cell-top {
+    padding-top: 0;
+  }
+  .tno .attribute-table.heatmap .heatmap-cell .heatmap-cell-name {
+    max-width: none;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    font-size: var(--font-size-11, 11px);
+  }
+}
+@container (min-width: 481px) {
   .tno .attribute-table.heatmap {
-    width: 100%;
-    min-width: 0;
-    border-spacing: 3px;
+    table-layout: fixed;
+    width: max-content;
+    min-width: 500px;
+    border-spacing: 4px;
   }
   .tno .attribute-table.heatmap thead th,
   .tno .attribute-table.heatmap td.heatmap-cell {
-    width: auto;
+    width: 150px;
   }
   .tno .attribute-table.heatmap .heatmap-cell {
-    padding: 3px 4px;
+    padding: 4px 6px 10px;
   }
   .tno .attribute-table.heatmap .heatmap-cell .heatmap-cell-name {
-    font-size: var(--font-size-11, 11px);
+    font-size: var(--font-size-12, 12px);
   }
   .tno .attribute-table.heatmap .heatmap-cell .heatmap-cell-values {
-    gap: 4px;
+    gap: 8px;
   }
   .tno .attribute-table.heatmap .heatmap-cell .heatmap-value-pair {
-    min-width: 30px;
+    min-width: 40px;
   }
   .tno .attribute-table.heatmap .heatmap-cell .heatmap-stepper {
-    width: 18px;
-    height: 18px;
+    width: 22px;
+    height: 22px;
   }
   .tno .attribute-table.heatmap .heatmap-cell .heatmap-temp.active,
   .tno .attribute-table.heatmap .heatmap-cell .heatmap-base.active {
-    font-size: var(--font-size-16, 16px);
+    font-size: var(--font-size-20, 20px);
   }
 }
-@container (max-width: 400px) {
-  .tno .attribute-table.heatmap thead {
-    display: none;
-  }
-  .tno .attribute-table.heatmap .heatmap-cell .heatmap-delta {
-    font-size: var(--font-size-9, 9px);
-    padding: 1px 3px;
-  }
-  .tno .attribute-table.heatmap .heatmap-cell .heatmap-cell-top {
-    padding-top: 12px;
-  }
-  .tno .attribute-table.heatmap .heatmap-cell .heatmap-cell-name {
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: var(--font-size-10, 10px);
+@container (min-width: 559px) {
+  .tno .attribute-table.heatmap .attribute-corner,
+  .tno .attribute-table.heatmap .heatmap-row-header {
+    display: table-cell;
+    width: 84px;
   }
 }
 .tno .attributes-header,
