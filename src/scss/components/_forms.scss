@@ -104,12 +104,41 @@
 // Positioning context for the roll lozenges overlaid on the portrait's
 // bottom edge (see .portrait-overlay). flex: 0 0 360px keeps it the same
 // fixed height the bare portrait used to occupy.
+//
+// Also doubles as the portrait's angled-corner metal frame: a gradient
+// background clipped to a hex/shield polygon, padded so it shows through as
+// a border ring around the image (which is clipped to a matching, slightly
+// smaller polygon below). Bottom corners stay square so the existing
+// lozenges overlay still reads against a flat edge.
+$portrait-frame-cut: 14% 0%, 86% 0%, 100% 9%, 100% 100%, 0% 100%, 0% 9%;
 .portrait-wrap {
   position: relative;
   flex: 0 0 360px;
+  padding: 4px;
+  background: linear-gradient(135deg, #8b8d8f 0%, #4a4c4e 45%, #2b2c2d 70%, $c-advance 100%);
+  clip-path: polygon(#{$portrait-frame-cut});
+  box-shadow: 0 1px 3px rgba($c-black, 0.5), inset 0 0 0 1px rgba($c-white, 0.15);
 
   .profile-img {
     flex: none;
+    clip-path: polygon(#{$portrait-frame-cut});
+  }
+
+  // Corner rivets: small metallic dots painted at each cut-corner vertex of
+  // the frame polygon above, via background gradients rather than extra
+  // markup. pointer-events: none (and no clip-path of its own) keeps this
+  // layer from ever blocking clicks on the image (data-edit="img") or the
+  // lozenges overlay beneath it.
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(circle at 14% 3%, #e8d9a0 0 2px, rgba($c-black, 0.6) 3px, transparent 4px),
+      radial-gradient(circle at 86% 3%, #e8d9a0 0 2px, rgba($c-black, 0.6) 3px, transparent 4px),
+      radial-gradient(circle at 2% 9%, #e8d9a0 0 2px, rgba($c-black, 0.6) 3px, transparent 4px),
+      radial-gradient(circle at 98% 9%, #e8d9a0 0 2px, rgba($c-black, 0.6) 3px, transparent 4px);
   }
 }
 
