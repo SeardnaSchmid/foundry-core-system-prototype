@@ -118,13 +118,13 @@
         mirroring the "Attribute" table in the rulebook. Cell and sum-badge
         backgrounds are color-graded relative to the character's own values,
         ported from the "Attribut-Heatmap" prototype. --}}
-        <div class="card attributes-card">
         <div class="attributes-header flexrow">
           <h3 class="attributes-title">{{localize "TNO.AttributesTitle"}} <span class="xp-badge" title="{{localize 'TNO.XpTotalAttributesHint'}}">{{attributeGrid.totalValue}} {{localize "TNO.UnitPoints"}} · {{attributeGrid.totalXp}} {{localize "TNO.UnitXp"}}</span></h3>
           {{#if isGM}}
           <a class="heatmap-lab-btn" title="{{localize 'TNO.Settings.HeatmapPreset.BtnHint'}}"><i class="fa-solid fa-palette"></i></a>
           {{/if}}
         </div>
+        <div class="attributes-card">
         <table class="attribute-table heatmap">
           <thead>
             <tr>
@@ -215,6 +215,9 @@
                     when the outer .skill-info title is the shift-click hint
                     (custom skills) rather than the roll hint. --}}
                     <span class="skill-name-text" title="{{skill.label}}">{{skill.label}}</span>
+                    {{#if skill.subgroupBadge}}
+                    <span class="skill-subgroup-badge" title="{{skill.subgroupLabel}}">{{skill.subgroupBadge}}</span>
+                    {{/if}}
                     {{#if skill.custom}}
                     <span class="skill-custom-badge" title="{{localize 'TNO.CustomSkill.BadgeHint'}}">{{localize "TNO.CustomSkill.Badge"}}</span>
                     {{/if}}

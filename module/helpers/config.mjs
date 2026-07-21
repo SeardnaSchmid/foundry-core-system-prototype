@@ -88,10 +88,28 @@ TNO.skillCategories = {
 };
 
 /**
+ * Sub-groupings shown as a small badge next to a skill's name when its
+ * category bundles more than one distinct domain (e.g. "Technology" holds
+ * Tech/Medicine/Pilot skills side by side). Skills in a category's dominant
+ * domain (plain "Tech" within `technology`) go unbadged; only the domains
+ * that would otherwise be ambiguous get one. Biomes and Milieus are each a
+ * single domain already named by their category, so neither needs badges.
+ * @type {Object}
+ */
+TNO.skillSubgroups = {
+  med: { label: 'TNO.SkillSubgroup.Med.Name', badge: 'TNO.SkillSubgroup.Med.Badge' },
+  pilot: { label: 'TNO.SkillSubgroup.Pilot.Name', badge: 'TNO.SkillSubgroup.Pilot.Badge' },
+  sci: { label: 'TNO.SkillSubgroup.Sci.Name', badge: 'TNO.SkillSubgroup.Sci.Badge' },
+  hum: { label: 'TNO.SkillSubgroup.Hum.Name', badge: 'TNO.SkillSubgroup.Hum.Badge' },
+  cult: { label: 'TNO.SkillSubgroup.Cult.Name', badge: 'TNO.SkillSubgroup.Cult.Badge' },
+};
+
+/**
  * The set of Skills used within the system. `attribute` is only the
  * suggested pairing preselected when rolling this skill — any attribute can
  * be swapped in via the roll dialog's chip picker, since a skill is never
  * bound to one fixed attribute. `category` groups it under TNO.skillCategories.
+ * `subgroup`, where present, keys into TNO.skillSubgroups for a badge.
  * @type {Object}
  */
 TNO.skills = {
@@ -168,28 +186,28 @@ TNO.skills = {
   techTissue: { label: 'TNO.Skill.TechTissue', category: 'technology', attribute: 'int', starter: true },
   techSymbio: { label: 'TNO.Skill.TechSymbio', category: 'technology', attribute: 'int' },
   techExplosives: { label: 'TNO.Skill.TechExplosives', category: 'technology', attribute: 'int', starter: true },
-  medFirstAid: { label: 'TNO.Skill.MedFirstAid', category: 'technology', attribute: 'fin', starter: true },
-  medSurgery: { label: 'TNO.Skill.MedSurgery', category: 'technology', attribute: 'fin', starter: true },
-  medPoisons: { label: 'TNO.Skill.MedPoisons', category: 'technology', attribute: 'int', starter: true },
-  medDiseases: { label: 'TNO.Skill.MedDiseases', category: 'technology', attribute: 'int', starter: true },
-  pilotInterorbital: { label: 'TNO.Skill.PilotInterorbital', category: 'technology', attribute: 'fin', starter: true },
-  pilotTransorbital: { label: 'TNO.Skill.PilotTransorbital', category: 'technology', attribute: 'fin' },
-  pilotGroundVehicles: { label: 'TNO.Skill.PilotGroundVehicles', category: 'technology', attribute: 'fin', starter: true },
-  pilotWalkers: { label: 'TNO.Skill.PilotWalkers', category: 'technology', attribute: 'fin' },
+  medFirstAid: { label: 'TNO.Skill.MedFirstAid', category: 'technology', subgroup: 'med', attribute: 'fin', starter: true },
+  medSurgery: { label: 'TNO.Skill.MedSurgery', category: 'technology', subgroup: 'med', attribute: 'fin', starter: true },
+  medPoisons: { label: 'TNO.Skill.MedPoisons', category: 'technology', subgroup: 'med', attribute: 'int', starter: true },
+  medDiseases: { label: 'TNO.Skill.MedDiseases', category: 'technology', subgroup: 'med', attribute: 'int', starter: true },
+  pilotInterorbital: { label: 'TNO.Skill.PilotInterorbital', category: 'technology', subgroup: 'pilot', attribute: 'fin', starter: true },
+  pilotTransorbital: { label: 'TNO.Skill.PilotTransorbital', category: 'technology', subgroup: 'pilot', attribute: 'fin' },
+  pilotGroundVehicles: { label: 'TNO.Skill.PilotGroundVehicles', category: 'technology', subgroup: 'pilot', attribute: 'fin', starter: true },
+  pilotWalkers: { label: 'TNO.Skill.PilotWalkers', category: 'technology', subgroup: 'pilot', attribute: 'fin' },
 
-  sciAstronomy: { label: 'TNO.Skill.SciAstronomy', category: 'knowledge', attribute: 'wis', starter: true },
-  sciPhysics: { label: 'TNO.Skill.SciPhysics', category: 'knowledge', attribute: 'wis', starter: true },
-  sciChemistry: { label: 'TNO.Skill.SciChemistry', category: 'knowledge', attribute: 'wis', starter: true },
-  sciBiology: { label: 'TNO.Skill.SciBiology', category: 'knowledge', attribute: 'wis', starter: true },
-  humPoliticalScience: { label: 'TNO.Skill.HumPoliticalScience', category: 'knowledge', attribute: 'wis', starter: true },
-  humEconomics: { label: 'TNO.Skill.HumEconomics', category: 'knowledge', attribute: 'wis', starter: true },
-  humLaw: { label: 'TNO.Skill.HumLaw', category: 'knowledge', attribute: 'wis', starter: true },
-  humStrategy: { label: 'TNO.Skill.HumStrategy', category: 'knowledge', attribute: 'wis', starter: true },
-  humPsychology: { label: 'TNO.Skill.HumPsychology', category: 'knowledge', attribute: 'wis', starter: true },
-  cultArtMusic: { label: 'TNO.Skill.CultArtMusic', category: 'knowledge', attribute: 'wis', starter: true },
-  cultWriting: { label: 'TNO.Skill.CultWriting', category: 'knowledge', attribute: 'wis', starter: true },
-  cultCooking: { label: 'TNO.Skill.CultCooking', category: 'knowledge', attribute: 'wis', starter: true },
-  cultGamesSports: { label: 'TNO.Skill.CultGamesSports', category: 'knowledge', attribute: 'wis', starter: true },
-  cultReligion: { label: 'TNO.Skill.CultReligion', category: 'knowledge', attribute: 'wis', starter: true },
-  cultHistory: { label: 'TNO.Skill.CultHistory', category: 'knowledge', attribute: 'wis', starter: true },
+  sciAstronomy: { label: 'TNO.Skill.SciAstronomy', category: 'knowledge', subgroup: 'sci', attribute: 'wis', starter: true },
+  sciPhysics: { label: 'TNO.Skill.SciPhysics', category: 'knowledge', subgroup: 'sci', attribute: 'wis', starter: true },
+  sciChemistry: { label: 'TNO.Skill.SciChemistry', category: 'knowledge', subgroup: 'sci', attribute: 'wis', starter: true },
+  sciBiology: { label: 'TNO.Skill.SciBiology', category: 'knowledge', subgroup: 'sci', attribute: 'wis', starter: true },
+  humPoliticalScience: { label: 'TNO.Skill.HumPoliticalScience', category: 'knowledge', subgroup: 'hum', attribute: 'wis', starter: true },
+  humEconomics: { label: 'TNO.Skill.HumEconomics', category: 'knowledge', subgroup: 'hum', attribute: 'wis', starter: true },
+  humLaw: { label: 'TNO.Skill.HumLaw', category: 'knowledge', subgroup: 'hum', attribute: 'wis', starter: true },
+  humStrategy: { label: 'TNO.Skill.HumStrategy', category: 'knowledge', subgroup: 'hum', attribute: 'wis', starter: true },
+  humPsychology: { label: 'TNO.Skill.HumPsychology', category: 'knowledge', subgroup: 'hum', attribute: 'wis', starter: true },
+  cultArtMusic: { label: 'TNO.Skill.CultArtMusic', category: 'knowledge', subgroup: 'cult', attribute: 'wis', starter: true },
+  cultWriting: { label: 'TNO.Skill.CultWriting', category: 'knowledge', subgroup: 'cult', attribute: 'wis', starter: true },
+  cultCooking: { label: 'TNO.Skill.CultCooking', category: 'knowledge', subgroup: 'cult', attribute: 'wis', starter: true },
+  cultGamesSports: { label: 'TNO.Skill.CultGamesSports', category: 'knowledge', subgroup: 'cult', attribute: 'wis', starter: true },
+  cultReligion: { label: 'TNO.Skill.CultReligion', category: 'knowledge', subgroup: 'cult', attribute: 'wis', starter: true },
+  cultHistory: { label: 'TNO.Skill.CultHistory', category: 'knowledge', subgroup: 'cult', attribute: 'wis', starter: true },
 };

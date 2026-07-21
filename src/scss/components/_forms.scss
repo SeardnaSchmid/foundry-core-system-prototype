@@ -283,7 +283,10 @@
     background: transparent;
     text-align: right;
     font-weight: bold;
-    font-size: var(--font-size-14, 14px);
+    // Matches the surrounding "/5" text and the movement/solve tiles'
+    // 16px value size — this input previously sat a size smaller, so the
+    // editable "3" looked shrunk next to its own "/5" suffix.
+    font-size: var(--font-size-16, 16px);
     line-height: 1;
     color: inherit;
 

@@ -57,21 +57,22 @@ button:focus-visible {
   50% { box-shadow: 0 0 0 2px rgba(255, 90, 100, 0.5), 0 0 4px 1px rgba(255, 90, 100, 0.2); }
 }
 
-// Wraps the attributes header + heatmap table in one boxed section, the
-// same "card" treatment given to each skill category below it.
+// Holds the heatmap table only — no card border/background of its own. The
+// SKILLS section has no single box enclosing its header + all categories,
+// just borders on each individual category card below; ATTRIBUTES now
+// matches that: the header sits unboxed above, same as .skills-header.
 .attributes-card {
   // Fixed block at the top of the basics tab's flex column — never shrinks
   // when the skill list below scrolls.
   flex: 0 0 auto;
-  padding: 6px 8px 8px;
   margin: 0 0 10px;
-  // Full-width parchment panel (consistent with the skill cards below); the
-  // compact matrix sits flush against its left edge (see .attribute-table's
-  // margin) rather than centred or stretched edge to edge. The matrix is a
-  // fixed compact size, so below the width that fits the row-header column
-  // (see the @container rule on .attribute-table) that column is dropped
-  // instead of forcing horizontal scroll — the per-cell tooltip still carries
-  // the row · column axis as a belt-and-braces fallback (see actor-sheet.mjs).
+  // The compact matrix sits flush against its left edge (see
+  // .attribute-table's margin) rather than centred or stretched edge to
+  // edge. The matrix is a fixed compact size, so below the width that fits
+  // the row-header column (see the @container rule on .attribute-table)
+  // that column is dropped instead of forcing horizontal scroll — the
+  // per-cell tooltip still carries the row · column axis as a
+  // belt-and-braces fallback (see actor-sheet.mjs).
   container-type: inline-size;
   overflow-x: auto;
 }
@@ -397,10 +398,22 @@ button:focus-visible {
   line-height: 1;
   text-transform: uppercase;
 
+  // Same quiet-at-rest, full-strength-on-hover treatment as the per-group
+  // badges below (.skill-group-title): the section title already reads as
+  // "Attributes"/"Skills" without shouting its pt|xp totals at full
+  // strength all the time.
   .xp-badge {
     margin-left: 6px;
     text-transform: none;
     vertical-align: middle;
+    border-color: transparent;
+    opacity: 0.55;
+    transition: opacity 0.1s ease;
+  }
+
+  &:hover .xp-badge {
+    opacity: 1;
+    border-color: $c-tan;
   }
 }
 
@@ -612,6 +625,26 @@ button:focus-visible {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+// Names the sub-domain of a skill whose category bundles several distinct
+// domains (e.g. Medicine/Pilot within Technology) — muted so it doesn't
+// compete with the name, but readable enough to tell domains apart at a
+// glance without repeating that domain in every label.
+.skill-subgroup-badge {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  border-radius: 3px;
+  font-size: var(--font-size-9, 9px);
+  font-weight: bold;
+  letter-spacing: 0.02em;
+  color: $c-tan;
+  background: rgba($c-black, 0.15);
 }
 
 // Marks a skill as actor-defined rather than one of the system's own, right

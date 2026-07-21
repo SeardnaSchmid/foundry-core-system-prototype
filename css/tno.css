@@ -414,7 +414,7 @@
   background: transparent;
   text-align: right;
   font-weight: bold;
-  font-size: var(--font-size-14, 14px);
+  font-size: var(--font-size-16, 16px);
   line-height: 1;
   color: inherit;
 }
@@ -884,7 +884,6 @@
 }
 .tno .attributes-card {
   flex: 0 0 auto;
-  padding: 6px 8px 8px;
   margin: 0 0 10px;
   container-type: inline-size;
   overflow-x: auto;
@@ -1107,6 +1106,14 @@
   margin-left: 6px;
   text-transform: none;
   vertical-align: middle;
+  border-color: transparent;
+  opacity: 0.55;
+  transition: opacity 0.1s ease;
+}
+.tno .attributes-title:hover .xp-badge,
+.tno .skills-title:hover .xp-badge {
+  opacity: 1;
+  border-color: #444;
 }
 .tno .heatmap-lab-btn,
 .tno .skills-header .skill-search-input,
@@ -1268,6 +1275,21 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.tno .skill-subgroup-badge {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  border-radius: 3px;
+  font-size: var(--font-size-9, 9px);
+  font-weight: bold;
+  letter-spacing: 0.02em;
+  color: #444;
+  background: rgba(0, 0, 0, 0.15);
 }
 .tno .skill-custom-badge {
   flex: none;

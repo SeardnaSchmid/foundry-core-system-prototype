@@ -266,9 +266,16 @@ export class TnoActorSheet extends ActorSheet {
           // untrained skills doesn't drown out the ones actually worth
           // reading at a glance.
           const dc = rank > 0 ? colorForValue(rank) : null;
+          // Some categories (Technology, Knowledge) bundle sibling domains
+          // that used to be spelled out in the label itself ("Medicine -
+          // First Aid"); that's now a compact badge instead, keyed by the
+          // skill's subgroup (see TNO.skillSubgroups).
+          const subgroup = skill.subgroup ? CONFIG.TNO.skillSubgroups[skill.subgroup] : null;
           return {
             key,
             label: skill.label,
+            subgroupBadge: subgroup ? game.i18n.localize(subgroup.badge) : null,
+            subgroupLabel: subgroup ? game.i18n.localize(subgroup.label) : null,
             // Kept only to preselect the roll dialog's attribute; a skill is
             // never bound to one fixed attribute, so it's no longer shown in
             // the row itself (see TnoRollDialog's attribute chips).

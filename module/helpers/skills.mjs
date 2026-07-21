@@ -48,7 +48,7 @@ export function generateCustomSkillKey(existingKeys, name) {
  * definitions through this helper rather than CONFIG.TNO.skills
  * directly, so custom skills behave identically to built-in ones.
  * @param {Actor} actor
- * @returns {Object<string, {label: string, category: string, attribute: string, starter: boolean, custom: boolean}>}
+ * @returns {Object<string, {label: string, category: string, subgroup: string|undefined, attribute: string, starter: boolean, custom: boolean}>}
  */
 export function getSkillDefinitions(actor) {
   const definitions = {};
@@ -57,6 +57,7 @@ export function getSkillDefinitions(actor) {
     definitions[key] = {
       label: game.i18n.localize(skill.label),
       category: skill.category,
+      subgroup: skill.subgroup,
       attribute: skill.attribute,
       starter: skill.starter ?? false,
       custom: false,
@@ -84,7 +85,7 @@ export function getSkillDefinitions(actor) {
  * built-in nor a custom skill on this actor.
  * @param {Actor} actor
  * @param {string} key
- * @returns {{label: string, category: string, attribute: string, starter: boolean, custom: boolean}|undefined}
+ * @returns {{label: string, category: string, subgroup: string|undefined, attribute: string, starter: boolean, custom: boolean}|undefined}
  */
 export function getSkillDefinition(actor, key) {
   return getSkillDefinitions(actor)[key];
