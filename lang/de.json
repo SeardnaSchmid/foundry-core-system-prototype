@@ -51,6 +51,7 @@
     "XpTotalAllHint": "Insgesamt investierte XP in Attribute und Fertigkeiten (Summe der kumulierten Stufenkosten beider Bereiche).",
     "UnitPoints": "Pkt",
     "UnitXp": "XP",
+    "UnitRep": "×",
     "XpTotalAttributesHint": "pt = Summe aller Attributwerte. xp = insgesamt in Attribute investierte Erfahrungspunkte.\n423 xp → Startcharakter",
     "XpTotalSkillsHint": "pt = Summe aller Fertigkeitsränge. xp = insgesamt in Fertigkeiten investierte Erfahrungspunkte.\n120 xp → Startcharakter",
     "SkillsTitle": "Fertigkeiten",
@@ -298,7 +299,7 @@
       "SolveIdea": "Gib 1 Punkt Vorrat aus, um diesen Wert zu deinem Wurfergebnis zu addieren. Wert: (Intelligenz+Wissen)/2, aufgerundet.",
       "SolveFindFlaw": "Gib 1 Punkt Vorrat aus, um bis zu so viele neue Versuche wie diesen Wert zu bekommen (nur ohne Zeitdruck). Wert: (Intelligenz+Willenskraft)/2, aufgerundet.",
       "SolveReserve": "Punkte, die du für Problemlösen-Effekte ausgibst (Idee haben, Fehler finden, Neuer Versuch) — jeder Effekt kostet 1 Punkt. Wert: (Willenskraft+Wissen)/2, aufgerundet.",
-      "SolveAnalyzeFlaw": "Nach einem Fehlschlag: Ein erfolgreicher Wurf gegen diesen Wert füllt 1 Punkt Vorrat wieder auf — kostet dafür den Erfahrungspunkt, den der Fehlschlag gebracht hätte. Wert: 2×Untersuchen.",
+      "SolveAnalyzeFlaw": "Nach einem Fehlschlag füllt ein erfolgreicher Wurf gegen diesen Wert 1 Punkt Vorrat wieder auf — kostet dafür den Erfahrungspunkt, den der Fehlschlag gebracht hätte. Wert: 2×Untersuchen.",
       "SolveNewAttempt": "1 Punkt + Verzicht auf den XP, zweiter Versuch zählt"
     },
     "Notify": {

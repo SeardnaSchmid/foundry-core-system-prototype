@@ -67,26 +67,31 @@
         bewusst nicht gezeigt: ohne attributabhängigen Schwellenwert (fixer
         Punktkosten-Edge) bringt ein Anzeigewert dafür nichts. --}}
         <div class="resource-group card problem-solving-group">
-          <div class="reserve-pool{{#if analyzeFlawDisabled}} reserve-full{{/if}}" title="{{localize 'TNO.Derived.SolveReserve'}}: {{localize 'TNO.DerivedHint.SolveReserve'}}">
+          {{!-- Tooltips read "Short Label — mechanic", not the old "Long
+          Title: mechanic" (which doubled up on punctuation once the hint
+          itself used a colon). The short label already matches the tile's
+          on-screen caption, so hovering confirms what you're looking at
+          before explaining how it works. --}}
+          <div class="reserve-pool{{#if analyzeFlawDisabled}} reserve-full{{/if}}" title="{{localize 'TNO.DerivedShort.SolveReserve'}} — {{localize 'TNO.DerivedHint.SolveReserve'}}">
             <span class="reserve-value">
               <input type="number" class="reserve-value-input" value="{{system.derived.solveReserve}}" min="0" max="{{system.derived.solveReserveMax}}"/>/{{system.derived.solveReserveMax}}
             </span>
             <label class="reserve-label">{{localize "TNO.DerivedShort.SolveReserve"}}</label>
           </div>
-          <a class="solve-tile solve-analyze-flaw rollable {{#if analyzeFlawDisabled}}solve-tile-disabled{{/if}}" data-roll-type="analyzeFlaw" data-label="{{localize 'TNO.Derived.SolveAnalyzeFlaw'}}" title="{{#if analyzeFlawDisabled}}{{localize 'TNO.Notify.ReserveFull'}}{{else}}{{localize 'TNO.Derived.SolveAnalyzeFlaw'}}: {{localize 'TNO.DerivedHint.SolveAnalyzeFlaw'}}{{/if}}">
+          <a class="solve-tile solve-analyze-flaw rollable {{#if analyzeFlawDisabled}}solve-tile-disabled{{/if}}" data-roll-type="analyzeFlaw" data-label="{{localize 'TNO.Derived.SolveAnalyzeFlaw'}}" title="{{#if analyzeFlawDisabled}}{{localize 'TNO.DerivedShort.SolveAnalyzeFlaw'}} — {{localize 'TNO.Notify.ReserveFull'}}{{else}}{{localize 'TNO.DerivedShort.SolveAnalyzeFlaw'}} — {{localize 'TNO.DerivedHint.SolveAnalyzeFlaw'}}{{/if}}">
             {{!-- d20 marks this tile as the one you can actually click/roll,
             distinguishing it at rest from the display-only Idea Bonus / Find
             Flaw tiles beside it (hidden while the tile is inert/full). --}}
             <i class="fa-solid fa-dice-d20 solve-roll-mark"></i>
-            <span class="solve-tile-value">{{system.derived.solveAnalyzeFlaw}}</span>
+            <span class="solve-tile-value"><span class="solve-tile-affix">&le;</span><span class="solve-tile-number">{{system.derived.solveAnalyzeFlaw}}</span></span>
             <label class="solve-tile-label">{{localize "TNO.DerivedShort.SolveAnalyzeFlaw"}}</label>
           </a>
-          <div class="solve-tile" title="{{localize 'TNO.Derived.SolveIdea'}}: {{localize 'TNO.DerivedHint.SolveIdea'}}">
-            <span class="solve-tile-value">{{system.derived.solveIdea}}</span>
+          <div class="solve-tile" title="{{localize 'TNO.DerivedShort.SolveIdea'}} — {{localize 'TNO.DerivedHint.SolveIdea'}}">
+            <span class="solve-tile-value"><span class="solve-tile-affix">+</span><span class="solve-tile-number">{{system.derived.solveIdea}}</span></span>
             <label class="solve-tile-label">{{localize "TNO.DerivedShort.SolveIdea"}}</label>
           </div>
-          <div class="solve-tile" title="{{localize 'TNO.Derived.SolveFindFlaw'}}: {{localize 'TNO.DerivedHint.SolveFindFlaw'}}">
-            <span class="solve-tile-value">{{system.derived.solveFindFlaw}}</span>
+          <div class="solve-tile" title="{{localize 'TNO.DerivedShort.SolveFindFlaw'}} — {{localize 'TNO.DerivedHint.SolveFindFlaw'}}">
+            <span class="solve-tile-value"><span class="solve-tile-number">{{system.derived.solveFindFlaw}}</span><span class="solve-tile-affix solve-tile-suffix">{{localize "TNO.UnitRep"}}</span></span>
             <label class="solve-tile-label">{{localize "TNO.DerivedShort.SolveFindFlaw"}}</label>
           </div>
         </div>

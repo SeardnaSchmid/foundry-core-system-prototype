@@ -51,6 +51,7 @@
     "XpTotalAllHint": "Total XP invested in attributes and skills (sum of both areas' cumulative rank costs).",
     "UnitPoints": "pts",
     "UnitXp": "XP",
+    "UnitRep": "x",
     "XpTotalAttributesHint": "pt = sum of all attribute values. xp = total experience invested in attributes.",
     "XpTotalSkillsHint": "pt = sum of all skill ranks. xp = total experience invested in skills.",
     "SkillsTitle": "Skills",
@@ -298,7 +299,7 @@
       "SolveIdea": "Spend 1 reserve point to add this value to your roll result. Value: (Intelligence+Knowledge)/2, rounded up.",
       "SolveFindFlaw": "Spend 1 reserve point for up to this many new attempts (only without time pressure). Value: (Intelligence+Willpower)/2, rounded up.",
       "SolveReserve": "Points you spend on problem-solving edges (Get an Idea, Find a Flaw, New Attempt) — each edge costs 1 point. Value: (Willpower+Knowledge)/2, rounded up.",
-      "SolveAnalyzeFlaw": "After a failed roll: succeeding against this value refills 1 reserve point — costs the XP that failed roll would've earned. Value: 2×Investigation.",
+      "SolveAnalyzeFlaw": "After a failed roll, succeeding against this value refills 1 reserve point — but costs the XP that failed roll would've earned. Value: 2×Investigation.",
       "SolveNewAttempt": "1 point + forfeit the XP, second attempt counts"
     },
     "Notify": {
