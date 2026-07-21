@@ -4,7 +4,7 @@
     {
       "name": "foundry-redirect",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["/tmp/claude-1000/-home-schmida-dev-git-foundry-joster-system/d9cf7064-d996-4322-9a4b-3f95e51e95ec/scratchpad/redirect-server.mjs"],
+      "runtimeArgs": ["/home/schmida/dev/git/foundry-joster-system/.claude/redirect-server.mjs"],
       "port": 4173
     }
   ]
