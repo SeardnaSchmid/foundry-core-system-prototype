@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.20.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.19.0...v0.20.0) (2026-07-21)
+
+
+### Features
+
+* shrink attribute matrix fluidly at narrow sheet widths ([3fc4f04](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/3fc4f04cbc58fce4991fd4550ed920713e88a72c))
+
 # [0.19.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.18.0...v0.19.0) (2026-07-21)
 
 
