@@ -1110,6 +1110,57 @@
   font-size: var(--font-size-11, 11px);
   opacity: 0.55;
 }
+@container (max-width: 480px) {
+  .tno .attribute-table.heatmap {
+    width: 100%;
+    min-width: 0;
+    border-spacing: 3px;
+  }
+  .tno .attribute-table.heatmap thead th,
+  .tno .attribute-table.heatmap td.heatmap-cell {
+    width: auto;
+  }
+  .tno .attribute-table.heatmap .heatmap-cell {
+    padding: 3px 4px;
+  }
+  .tno .attribute-table.heatmap .heatmap-cell .heatmap-cell-name {
+    font-size: var(--font-size-11, 11px);
+  }
+  .tno .attribute-table.heatmap .heatmap-cell .heatmap-cell-values {
+    gap: 4px;
+  }
+  .tno .attribute-table.heatmap .heatmap-cell .heatmap-value-pair {
+    min-width: 30px;
+  }
+  .tno .attribute-table.heatmap .heatmap-cell .heatmap-stepper {
+    width: 18px;
+    height: 18px;
+  }
+  .tno .attribute-table.heatmap .heatmap-cell .heatmap-temp.active,
+  .tno .attribute-table.heatmap .heatmap-cell .heatmap-base.active {
+    font-size: var(--font-size-16, 16px);
+  }
+}
+@container (max-width: 400px) {
+  .tno .attribute-table.heatmap thead {
+    display: none;
+  }
+  .tno .attribute-table.heatmap .heatmap-cell .heatmap-xp-badge,
+  .tno .attribute-table.heatmap .heatmap-cell .heatmap-delta {
+    font-size: var(--font-size-9, 9px);
+    padding: 1px 3px;
+  }
+  .tno .attribute-table.heatmap .heatmap-cell .heatmap-cell-top {
+    padding-top: 12px;
+  }
+  .tno .attribute-table.heatmap .heatmap-cell .heatmap-cell-name {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--font-size-10, 10px);
+  }
+}
 .tno .attributes-header,
 .tno .skills-header {
   position: relative;

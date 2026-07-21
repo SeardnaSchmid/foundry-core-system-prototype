@@ -364,6 +364,100 @@ button:focus-visible {
       }
     }
   }
+
+  // With the row headers gone (600px tier above) the matrix still needs
+  // 3×150px + gaps ≈ 466px; below that the card would fall back to
+  // horizontal scroll. Just above that footprint (466px + a small cushion),
+  // switch the table from fixed-width to fluid — table-layout: fixed is
+  // already set, so width: 100% turns the 150px column widths into equal
+  // ratios and the three columns simply split whatever the container gives —
+  // and compact the cell chrome so the narrower cells stay comfortable: the
+  // value shrinks but keeps top billing, the steppers and their gutter
+  // tighten around it. (These tiers sit after the base heatmap rules because
+  // they override them at equal specificity.)
+  @container (max-width: 480px) {
+    &.heatmap {
+      width: 100%;
+      min-width: 0;
+      border-spacing: 3px;
+
+      // Fixed table layout never lets the table shrink below the sum of its
+      // specified column widths, so width: 100% alone still leaves the
+      // 3×150px columns overflowing. Release the explicit widths and fixed
+      // layout splits the 100% equally between the three auto columns.
+      thead th,
+      td.heatmap-cell {
+        width: auto;
+      }
+
+      .heatmap-cell {
+        padding: 3px 4px;
+
+        .heatmap-cell-name {
+          font-size: var(--font-size-11, 11px);
+        }
+
+        .heatmap-cell-values {
+          gap: 4px;
+        }
+
+        .heatmap-value-pair {
+          min-width: 30px;
+        }
+
+        .heatmap-stepper {
+          width: 18px;
+          height: 18px;
+        }
+
+        .heatmap-temp,
+        .heatmap-base {
+          &.active {
+            font-size: var(--font-size-16, 16px);
+          }
+        }
+      }
+    }
+  }
+
+  // At phone-ish widths each cell is down to ~120px and the crowded row is
+  // the top one, where the absolute corner chips (delta left, XP badge
+  // right) close in on the centred attribute name. Shed the column header
+  // row — like the row headers at 600px, the cell tooltips already carry the
+  // row · column axis (see actor-sheet.mjs) — and shrink the corner chips so
+  // the name keeps clear room between them.
+  @container (max-width: 400px) {
+    &.heatmap {
+      thead {
+        display: none;
+      }
+
+      .heatmap-cell {
+        .heatmap-xp-badge,
+        .heatmap-delta {
+          font-size: var(--font-size-9, 9px);
+          padding: 1px 3px;
+        }
+
+        // At ~120px and below the corner chips and the centred name can no
+        // longer share one row without colliding; drop the name below the
+        // chips instead, and let the longest names ("Investigation")
+        // ellipsize rather than spill into the neighbouring cell. The full
+        // name stays available in the cell tooltip.
+        .heatmap-cell-top {
+          padding-top: 12px;
+        }
+
+        .heatmap-cell-name {
+          max-width: 100%;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          font-size: var(--font-size-10, 10px);
+        }
+      }
+    }
+  }
 }
 
 // Section headers for the attribute grid and the skill list share one look:
