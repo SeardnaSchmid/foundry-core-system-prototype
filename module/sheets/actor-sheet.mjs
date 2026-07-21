@@ -68,8 +68,10 @@ export class TnoActorSheet extends ActorSheet {
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
       classes: ['tno', 'sheet', 'actor'],
-      width: 600,
-      height: 600,
+      // The slimmed attribute matrix no longer forces a 1200px sheet; 1000px
+      // fits the compact matrix plus the three skill columns comfortably.
+      width: 1000,
+      height: 640,
       tabs: [
         {
           navSelector: '.sheet-tabs',
@@ -104,6 +106,11 @@ export class TnoActorSheet extends ActorSheet {
 
     // Adding a pointer to CONFIG.TNO
     context.config = CONFIG.TNO;
+
+    // The heatmap gradient editor is a GM-facing tuning tool, so its launch
+    // button is only rendered for GMs (see the template) rather than sitting
+    // in every player's sheet chrome.
+    context.isGM = game.user.isGM;
 
     // Prepare character data and items.
     if (actorData.type == 'character') {
@@ -146,10 +153,20 @@ export class TnoActorSheet extends ActorSheet {
       colHeaders: categoryKeys.map((catKey) => ({
         label: game.i18n.localize(CONFIG.TNO.attributeCategories[catKey]),
       })),
-      rows: rows.map((row, ri) => ({
-        label: game.i18n.localize(CONFIG.TNO.attributeRowLabels[ri]),
-        cells: row.map((key) => {
+      rows: rows.map((row, ri) => {
+        const rowLabel = game.i18n.localize(CONFIG.TNO.attributeRowLabels[ri]);
+        return {
+        label: rowLabel,
+        cells: row.map((key, ci) => {
           const labelKey = CONFIG.TNO.abilities[key];
+          // The row verb (Assert/Adapt/…) and column category (Physical/…)
+          // are prefixed onto every cell tooltip so the grid's two semantic
+          // axes survive even when the header labels are compacted away on a
+          // narrow sheet (see the container query in _resource.scss).
+          const colLabel = game.i18n.localize(
+            CONFIG.TNO.attributeCategories[categoryKeys[ci]]
+          );
+          const axisPrefix = `${rowLabel} · ${colLabel} — `;
           const ability = abilities[key];
           const baseValue = ability?.base ?? 0;
           const tempValue = ability?.value ?? 0;
@@ -178,7 +195,7 @@ export class TnoActorSheet extends ActorSheet {
           return {
             key,
             label: game.i18n.localize(labelKey),
-            hint: isCritical ? zeroHint : game.i18n.localize(labelKey.replace('.long', '.hint')),
+            hint: axisPrefix + (isCritical ? zeroHint : game.i18n.localize(labelKey.replace('.long', '.hint'))),
             tempValue,
             baseValue,
             xp,
@@ -208,7 +225,8 @@ export class TnoActorSheet extends ActorSheet {
             stepperColor: isCritical ? '#FFD9DC' : '#332D22',
           };
         }),
-      })),
+        };
+      }),
     };
     context.attributeGrid.totalXp = rows
       .flat()
@@ -352,11 +370,38 @@ export class TnoActorSheet extends ActorSheet {
     if (nav.length && !nav.parent().is(this.element)) this.element.append(nav);
   }
 
+  /**
+   * The sheet is full of custom clickable chips (anchors without `href`,
+   * plus `.skill-info`) that read fine visually but are invisible to
+   * keyboard/screen-reader users: browsers only put `<a href>`, `<button>`,
+   * and native form controls in the tab order. This promotes every such
+   * element to a real keyboard target — `tabindex="0"` and `role="button"`
+   * so it's reachable and announced, plus an Enter/Space handler that
+   * forwards to the same `click` listeners already bound elsewhere — without
+   * having to touch every template or click handler individually.
+   * @param {JQuery} html
+   * @private
+   */
+  _makeKeyboardAccessible(html) {
+    const targets = html[0].querySelectorAll('a:not([href]), .skill-info');
+    for (const el of targets) {
+      if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
+      if (!el.hasAttribute('role')) el.setAttribute('role', 'button');
+    }
+
+    html.on('keydown', 'a:not([href]), .skill-info', (ev) => {
+      if (ev.key !== 'Enter' && ev.key !== ' ') return;
+      ev.preventDefault();
+      ev.currentTarget.click();
+    });
+  }
+
   /** @override */
   activateListeners(html) {
     super.activateListeners(html);
 
     this._dockTabsRail();
+    this._makeKeyboardAccessible(html);
 
     // Render the item sheet for viewing/editing prior to the editable check.
     html.on('click', '.item-edit', (ev) => {

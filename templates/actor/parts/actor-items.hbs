@@ -1,7 +1,12 @@
 <ol class='items-list'>
   <li class='item flexrow items-header'>
+    {{!-- Column captions only make sense once there are rows to label; while
+    the inventory is empty just the create control shows, above the
+    empty-state hint below. --}}
+    {{#if gear.length}}
     <div class='item-name'>{{localize 'Name'}}</div>
     <div class='item-formula'>{{localize 'Roll Formula'}}</div>
+    {{/if}}
     <div class='item-controls'>
       <a
         class='item-control item-create'
@@ -13,6 +18,9 @@
       </a>
     </div>
   </li>
+  {{#unless gear.length}}
+  <li class='items-empty'>{{localize 'TNO.ItemsEmptyHint'}}</li>
+  {{/unless}}
   {{#each gear as |item id|}}
     <li class='item flexrow' data-item-id='{{item._id}}'>
       <div class='item-name'>

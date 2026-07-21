@@ -38,14 +38,21 @@
   holds close to its start color before swinging hard near the pivot/end
   (a sharp banded cutoff instead of a smooth gradient); below 1 spreads the
   contrast the other way. --}}
+  <span class="heatmap-lab-curves-title">{{localize "TNO.HeatmapLab.CurveSection"}}</span>
   <div class="heatmap-lab-curves flexrow">
     <div class="form-group heatmap-lab-curve">
-      <label>{{localize "TNO.HeatmapLab.LowCurve"}} <span class="heatmap-lab-lowcurve-value">{{lowCurve}}</span></label>
-      <input type="range" name="lowCurve" min="{{curveMin}}" max="{{curveMax}}" step="0.1" value="{{lowCurve}}"/>
+      <label>{{localize "TNO.HeatmapLab.LowCurve"}}</label>
+      <div class="heatmap-lab-curve-value-row">
+        <span class="heatmap-lab-lowcurve-value">{{lowCurve}}</span>
+        <input type="range" name="lowCurve" min="{{curveMin}}" max="{{curveMax}}" step="0.1" value="{{lowCurve}}"/>
+      </div>
     </div>
     <div class="form-group heatmap-lab-curve">
-      <label>{{localize "TNO.HeatmapLab.HighCurve"}} <span class="heatmap-lab-highcurve-value">{{highCurve}}</span></label>
-      <input type="range" name="highCurve" min="{{curveMin}}" max="{{curveMax}}" step="0.1" value="{{highCurve}}"/>
+      <label>{{localize "TNO.HeatmapLab.HighCurve"}}</label>
+      <div class="heatmap-lab-curve-value-row">
+        <span class="heatmap-lab-highcurve-value">{{highCurve}}</span>
+        <input type="range" name="highCurve" min="{{curveMin}}" max="{{curveMax}}" step="0.1" value="{{highCurve}}"/>
+      </div>
     </div>
   </div>
 

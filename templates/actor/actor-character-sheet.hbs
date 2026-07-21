@@ -1,28 +1,39 @@
-<form class="{{cssClass}} {{actor.type}} flexrow" autocomplete="off">
+<form class="{{cssClass}} {{actor.type}} flexcol" autocomplete="off">
 
-  <div class="sheet-main flexcol">
+  <div class="sheet-columns flexrow">
 
-  {{!-- Sheet Header --}}
-  <header class="sheet-header">
-    <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" height="160" width="120"/>
-    <div class="header-fields">
-      <h1 class="charname"><input name="name" type="text" value="{{actor.name}}" placeholder="Name"/></h1>
-      <div class="resources flexrow">
+    {{!-- Sidebar: portrait plus all derived meta stats, docked to the left
+    and visible across every tab, mirroring the reference dnd5e sheet's
+    layout. --}}
+    <aside class="sidebar flexcol">
+      {{!-- Initiative and Sixth Sense are the sidebar's two "roll" stats, so
+      they sit as pill/lozenge chips overlaid on the portrait's bottom edge
+      (mirroring the reference dnd5e sheet's Initiative/Speed/Proficiency
+      lozenges) — this reclaims the vertical space a separate row above the
+      meta cards used to take. The lozenges are opaque, so they stay legible
+      on any uploaded portrait. --}}
+      <div class="portrait-wrap">
+        <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" height="360" width="300"/>
 
-        {{!-- Initiative wird gewürfelt mit Initiativegrundwert+1d10. --}}
-        <a class="resource-group initiative-group rollable" data-roll="1d10 + @derived.initiative" data-label="{{localize 'TNO.Derived.Initiative'}}" title="{{localize 'TNO.DerivedHint.Initiative'}}">
-          <span class="initiative-value">{{system.derived.initiative}}<small>+1d10</small></span>
-          <span class="initiative-label">{{localize "TNO.DerivedShort.Initiative"}}</span>
-        </a>
+        <div class="lozenges flexrow portrait-overlay">
+          {{!-- Initiative wird gewürfelt mit Initiativegrundwert+1d10. --}}
+          <a class="lozenge rollable" data-roll="1d10 + @derived.initiative" data-label="{{localize 'TNO.Derived.Initiative'}}" title="{{localize 'TNO.DerivedHint.Initiative'}}">
+            <span class="lozenge-value">{{system.derived.initiative}}<small>+1d10</small></span>
+            <span class="lozenge-label">{{localize "TNO.DerivedShort.Initiative"}}</span>
+          </a>
 
-        {{!-- Sechster Sinn wird mit dem regulären 3d20-Wurf gegen den Wert selbst gewürfelt, ohne Mods/Advantage. --}}
-        <a class="resource-group sixth-sense-group rollable" data-roll-type="sixthSense" data-label="{{localize 'TNO.Derived.SixthSense'}}" title="{{localize 'TNO.Derived.SixthSense'}}: {{localize 'TNO.DerivedHint.SixthSense'}}">
-          <span class="sixth-sense-value">{{system.derived.sixthSense}}</span>
-          <label class="sixth-sense-label">{{localize "TNO.DerivedShort.SixthSense"}}</label>
-        </a>
+          {{!-- Sechster Sinn wird mit dem regulären 3d20-Wurf gegen den Wert selbst gewürfelt, ohne Mods/Advantage. --}}
+          <a class="lozenge rollable" data-roll-type="sixthSense" data-label="{{localize 'TNO.Derived.SixthSense'}}" title="{{localize 'TNO.Derived.SixthSense'}}: {{localize 'TNO.DerivedHint.SixthSense'}}">
+            <span class="lozenge-value">{{system.derived.sixthSense}}</span>
+            <span class="lozenge-label">{{localize "TNO.DerivedShort.SixthSense"}}</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="sidebar-stats flexcol">
 
         {{!-- Bewegungsreichweiten sind reine Anzeigewerte, kein Wurf. --}}
-        <div class="resource-group movement-group">
+        <div class="resource-group card movement-group">
           <div class="movement-tile" title="{{localize 'TNO.Derived.MovementCrawl'}}: {{localize 'TNO.DerivedHint.MovementCrawl'}}">
             <span class="movement-value">{{system.derived.movementCrawl}}</span>
             <label class="movement-label">{{localize "TNO.DerivedShort.MovementCrawl"}}</label>
@@ -55,14 +66,18 @@
         gezeigt, ohne eigenen Klick-Effekt. "Neuer Versuch" wird hier
         bewusst nicht gezeigt: ohne attributabhängigen Schwellenwert (fixer
         Punktkosten-Edge) bringt ein Anzeigewert dafür nichts. --}}
-        <div class="resource-group problem-solving-group">
-          <div class="reserve-pool" title="{{localize 'TNO.Derived.SolveReserve'}}: {{localize 'TNO.DerivedHint.SolveReserve'}}">
+        <div class="resource-group card problem-solving-group">
+          <div class="reserve-pool{{#if analyzeFlawDisabled}} reserve-full{{/if}}" title="{{localize 'TNO.Derived.SolveReserve'}}: {{localize 'TNO.DerivedHint.SolveReserve'}}">
             <span class="reserve-value">
               <input type="number" class="reserve-value-input" value="{{system.derived.solveReserve}}" min="0" max="{{system.derived.solveReserveMax}}"/>/{{system.derived.solveReserveMax}}
             </span>
             <label class="reserve-label">{{localize "TNO.DerivedShort.SolveReserve"}}</label>
           </div>
           <a class="solve-tile solve-analyze-flaw rollable {{#if analyzeFlawDisabled}}solve-tile-disabled{{/if}}" data-roll-type="analyzeFlaw" data-label="{{localize 'TNO.Derived.SolveAnalyzeFlaw'}}" title="{{#if analyzeFlawDisabled}}{{localize 'TNO.Notify.ReserveFull'}}{{else}}{{localize 'TNO.Derived.SolveAnalyzeFlaw'}}: {{localize 'TNO.DerivedHint.SolveAnalyzeFlaw'}}{{/if}}">
+            {{!-- d20 marks this tile as the one you can actually click/roll,
+            distinguishing it at rest from the display-only Idea Bonus / Find
+            Flaw tiles beside it (hidden while the tile is inert/full). --}}
+            <i class="fa-solid fa-dice-d20 solve-roll-mark"></i>
             <span class="solve-tile-value">{{system.derived.solveAnalyzeFlaw}}</span>
             <label class="solve-tile-label">{{localize "TNO.DerivedShort.SolveAnalyzeFlaw"}}</label>
           </a>
@@ -76,17 +91,19 @@
           </div>
         </div>
 
-        {{!-- Gesamt-XP, die bislang in Attribute und Fertigkeiten investiert
-        wurden (Summe der kumulierten Stufenkosten beider Bereiche). --}}
-        <div class="resource-group xp-total-group">
-          <div class="xp-tile" title="{{localize 'TNO.XpTotalAllHint'}}">
-            <span class="xp-tile-value">{{totalXpSpent}}xp</span>
-            <label class="xp-tile-label">{{localize "TNO.XpTotalAll"}}</label>
-          </div>
-        </div>
-
       </div>
-    </div>
+    </aside>
+
+    <div class="sheet-main flexcol">
+
+  {{!-- Sheet Header: name band spanning only the main columns (2-4/4),
+  not the sidebar. The total XP spent across attributes + skills rides at the
+  band's right edge as a badge — this is the value's home (it used to hang as
+  an orphaned footer line under the sidebar) and it fills what was otherwise a
+  near-empty row holding a single-word name. --}}
+  <header class="sheet-header">
+    <h1 class="charname"><input name="name" type="text" value="{{actor.name}}" placeholder="Name"/></h1>
+    <span class="xp-badge xp-badge-total" title="{{localize 'TNO.XpTotalAllHint'}}">{{totalXpSpent}} XP</span>
   </header>
 
   {{!-- Sheet Body --}}
@@ -101,9 +118,12 @@
         mirroring the "Attribute" table in the rulebook. Cell and sum-badge
         backgrounds are color-graded relative to the character's own values,
         ported from the "Attribut-Heatmap" prototype. --}}
+        <div class="card attributes-card">
         <div class="attributes-header flexrow">
-          <h3 class="attributes-title">{{localize "TNO.AttributesTitle"}} <span class="xp-badge" title="{{localize 'TNO.XpTotalAttributesHint'}}">{{attributeGrid.totalValue}}pt | {{attributeGrid.totalXp}}xp</span></h3>
-          <a class="heatmap-lab-btn" title="{{localize 'TNO.Settings.HeatmapPreset.Name'}}"><i class="fa-solid fa-palette"></i></a>
+          <h3 class="attributes-title">{{localize "TNO.AttributesTitle"}} <span class="xp-badge" title="{{localize 'TNO.XpTotalAttributesHint'}}">{{attributeGrid.totalValue}} {{localize "TNO.UnitPoints"}} · {{attributeGrid.totalXp}} {{localize "TNO.UnitXp"}}</span></h3>
+          {{#if isGM}}
+          <a class="heatmap-lab-btn" title="{{localize 'TNO.Settings.HeatmapPreset.BtnHint'}}"><i class="fa-solid fa-palette"></i></a>
+          {{/if}}
         </div>
         <table class="attribute-table heatmap">
           <thead>
@@ -135,8 +155,13 @@
                 </div>
                 <div class="heatmap-cell-values flexrow flex-center">
                   <a class="heatmap-stepper" data-key="{{cell.key}}" data-action="decrement" title="{{localize 'TNO.AttributeDecrease'}}" style="background:{{cell.stepperBg}}; border-color:{{cell.stepperBorder}}; color:{{cell.stepperColor}};">−</a>
+                  {{!-- Modified attributes read as "base → effective" (e.g.
+                  6→4) so the direction of the change is explicit and never
+                  gets misread as an x/y progress ratio like the sidebar's
+                  reserve/carry tiles. The effective (temp) value stays the
+                  emphasised one on the right. --}}
                   <span class="heatmap-value-pair">
-                    <span class="heatmap-temp active" title="{{cell.tempHint}}">{{cell.tempValue}}</span>{{#if cell.hasDelta}}<span class="heatmap-slash">/</span><span class="heatmap-base inactive" title="{{cell.baseHint}}">{{cell.baseValue}}</span>{{/if}}
+                    {{#if cell.hasDelta}}<span class="heatmap-base inactive" title="{{cell.baseHint}}">{{cell.baseValue}}</span><span class="heatmap-arrow">→</span>{{/if}}<span class="heatmap-temp active" title="{{cell.tempHint}}">{{cell.tempValue}}</span>
                   </span>
                   <a class="heatmap-stepper" data-key="{{cell.key}}" data-action="increment" title="{{localize 'TNO.AttributeIncrease'}}" style="background:{{cell.stepperBg}}; border-color:{{cell.stepperBorder}}; color:{{cell.stepperColor}};">+</a>
                 </div>
@@ -149,11 +174,12 @@
             {{/each}}
           </tbody>
         </table>
+        </div>
 
         {{!-- Skills, grouped by category. Each skill rolls with its linked
         attribute; the rank is added as the roll dialog's starting bonus. --}}
         <div class="skills-header flexrow">
-          <h3 class="skills-title">{{localize "TNO.SkillsTitle"}} <span class="xp-badge" title="{{localize 'TNO.XpTotalSkillsHint'}}">{{skillRankTotal}}pt | {{skillXpTotal}}xp</span></h3>
+          <h3 class="skills-title">{{localize "TNO.SkillsTitle"}} <span class="xp-badge" title="{{localize 'TNO.XpTotalSkillsHint'}}">{{skillRankTotal}} {{localize "TNO.UnitPoints"}} · {{skillXpTotal}} {{localize "TNO.UnitXp"}}</span></h3>
           <input type="text" class="skill-search-input" value="{{skillSearch}}" placeholder="{{localize 'TNO.SkillSearchPlaceholder'}}" title="{{localize 'TNO.SkillSearchHint'}}" />
           <div class="skill-filter-group">
             <a class="skill-filter-btn {{#ifEquals skillFilter 'trained'}}active{{/ifEquals}}" data-filter="trained" title="{{localize 'TNO.SkillFilterTrainedHint'}}">{{localize "TNO.SkillFilterTrained"}}</a>
@@ -161,9 +187,15 @@
             <a class="skill-filter-btn {{#ifEquals skillFilter 'all'}}active{{/ifEquals}}" data-filter="all" title="{{localize 'TNO.SkillFilterAllHint'}}">{{localize "TNO.SkillFilterAll"}}</a>
           </div>
         </div>
+        {{!-- Scroll wrapper owns the vertical overflow (fixed height from the
+        flex column); the inner .skill-groups is a balanced CSS multi-column
+        flow whose height is content-driven, so long skill lists (the ALL
+        filter) fill all three columns evenly and scroll here rather than
+        scrolling the whole sheet. --}}
+        <div class="skill-groups-scroll">
         <div class="skill-groups">
           {{#each skillGroups as |group|}}
-          <div class="skill-group">
+          <div class="card skill-group">
             <h4 class="skill-group-title">
               <span class="skill-group-name">{{group.label}}</span>
               <span class="xp-badge">{{group.totalRank}}pt | {{group.totalXp}}xp</span>
@@ -179,7 +211,10 @@
               <li class="skill-row" data-rank="{{skill.rank}}" data-xp="{{skill.xp}}" data-starter="{{skill.starter}}" data-custom="{{skill.custom}}">
                 <span class="skill-info rollable" data-roll-type="skill" data-skill="{{skill.key}}" data-ability="{{skill.attribute}}" data-label="{{skill.label}}" title="{{#if skill.custom}}{{localize 'TNO.CustomSkill.ShiftClickHint'}}{{else}}{{localize 'TNO.RollSkill'}}: {{skill.label}}{{/if}}">
                   <span class="skill-name">
-                    <span class="skill-name-text">{{skill.label}}</span>
+                    {{!-- Own title so the full name still shows on hover even
+                    when the outer .skill-info title is the shift-click hint
+                    (custom skills) rather than the roll hint. --}}
+                    <span class="skill-name-text" title="{{skill.label}}">{{skill.label}}</span>
                     {{#if skill.custom}}
                     <span class="skill-custom-badge" title="{{localize 'TNO.CustomSkill.BadgeHint'}}">{{localize "TNO.CustomSkill.Badge"}}</span>
                     {{/if}}
@@ -199,6 +234,7 @@
           </div>
           {{/each}}
         </div>
+        </div>
 
       </section>
     </div>
@@ -208,7 +244,7 @@
       {{!-- Plain textarea instead of the ProseMirror editor helper: the
       editor requires an explicit click into an edit mode before typing,
       which is unnecessary friction for a simple freetext notes field. --}}
-      <textarea name="system.biography" class="biography-textarea">{{system.biography}}</textarea>
+      <textarea name="system.biography" class="biography-textarea" placeholder="{{localize 'TNO.BiographyPlaceholder'}}">{{system.biography}}</textarea>
     </div>
 
     {{!-- Owned Items Tab --}}
@@ -218,14 +254,19 @@
 
   </section>
 
+    </div>
+
   </div>
 
   {{!-- Sheet Tab Navigation, docked as a vertical icon rail along the right
-  edge, mirroring the reference dnd5e sheet's tab layout. --}}
+  edge, mirroring the reference dnd5e sheet's tab layout. Each item also
+  carries a text label, hidden by default and revealed on hover/focus (see
+  _forms.scss), so the rail's purpose as tab navigation is discoverable
+  without waiting on the native tooltip's delay. --}}
   <nav class="sheet-tabs tabs tabs-right" data-group="primary">
     {{!-- Default tab is specified in actor-sheet.mjs --}}
-    <a class="item" data-tab="basics" data-tooltip="{{localize 'TNO.TabBasics'}}"><i class="fa-solid fa-chart-simple"></i></a>
-    <a class="item" data-tab="description" data-tooltip="{{localize 'TNO.TabDescription'}}"><i class="fa-solid fa-feather"></i></a>
-    <a class="item" data-tab="items" data-tooltip="{{localize 'TNO.TabItems'}}"><i class="fa-solid fa-suitcase"></i></a>
+    <a class="item" data-tab="basics" data-tooltip="{{localize 'TNO.TabBasics'}}"><i class="fa-solid fa-chart-simple"></i><span class="tab-label">{{localize 'TNO.TabBasics'}}</span></a>
+    <a class="item" data-tab="description" data-tooltip="{{localize 'TNO.TabDescription'}}"><i class="fa-solid fa-feather"></i><span class="tab-label">{{localize 'TNO.TabDescription'}}</span></a>
+    <a class="item" data-tab="items" data-tooltip="{{localize 'TNO.TabItems'}}"><i class="fa-solid fa-suitcase"></i><span class="tab-label">{{localize 'TNO.TabItems'}}</span></a>
   </nav>
 </form>

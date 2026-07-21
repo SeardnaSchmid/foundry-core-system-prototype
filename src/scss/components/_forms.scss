@@ -2,6 +2,9 @@
   font-family: $font-primary;
 }
 
+// Shared by item sheets and the NPC sheet, which still lay the portrait out
+// inline next to the name (unlike the character sheet, which moves the
+// portrait into .sidebar below and only puts the name in here).
 .sheet-header {
   flex: 0 auto;
   overflow: hidden;
@@ -26,257 +29,401 @@
   }
 
   h1.charname {
-    height: 50px;
+    flex: 1;
+    height: 40px;
     padding: 0px;
     margin: 5px 0;
     border-bottom: 0;
+
+    // Read as a title, not a form field: no box at rest, an underline hint on
+    // hover, and a stronger underline while focused (i.e. while editing).
     input {
       width: 100%;
       height: 100%;
       margin: 0;
-    }
-  }
-
-  .resources {
-    align-items: stretch;
-    gap: 8px;
-  }
-
-  .resource-group {
-    display: flex;
-    flex: 0 0 auto;
-    align-items: center;
-    gap: 6px;
-    border: 1px solid $c-beige;
-    border-radius: 6px;
-    padding: 4px 8px;
-    background: $c-faint;
-  }
-
-  .initiative-group {
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    min-width: 44px;
-    cursor: pointer;
-    text-decoration: none;
-    color: inherit;
-    transition: background 0.15s ease;
-
-    &:hover {
-      background: $c-tan;
-    }
-
-    .initiative-label {
-      font-size: var(--font-size-10, 10px);
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      color: $c-tan;
-    }
-
-    .initiative-value {
-      font-size: var(--font-size-14, 14px);
-      font-weight: bold;
-      line-height: 1;
-
-      small {
-        margin-left: 3px;
-        font-size: var(--font-size-11, 11px);
-        font-weight: normal;
-        color: $c-tan;
-      }
-    }
-  }
-
-  .sixth-sense-group {
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    min-width: 44px;
-    cursor: pointer;
-    text-decoration: none;
-    color: inherit;
-    transition: background 0.15s ease;
-
-    &:hover {
-      background: $c-tan;
-    }
-
-    .sixth-sense-value {
-      font-size: var(--font-size-14, 14px);
-      font-weight: bold;
-      line-height: 1;
-    }
-
-    .sixth-sense-label {
-      font-size: var(--font-size-10, 10px);
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      color: $c-tan;
-    }
-  }
-
-  .xp-total-group {
-    gap: 10px;
-
-    .xp-tile {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-width: 44px;
-      padding-right: 8px;
-      border-right: 1px solid $c-beige;
-
-      &:last-child {
-        padding-right: 0;
-        border-right: none;
-      }
-    }
-
-    .xp-tile-value {
-      font-size: var(--font-size-14, 14px);
-      font-weight: bold;
-      line-height: 1;
-    }
-
-    .xp-tile-label {
-      font-size: var(--font-size-10, 10px);
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      color: $c-tan;
-    }
-  }
-
-  .movement-group {
-    gap: 10px;
-
-    .movement-tile {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-width: 44px;
-    }
-
-    .movement-value {
-      font-weight: bold;
-      font-size: var(--font-size-14, 14px);
-      line-height: 1;
-    }
-
-    .movement-label {
-      font-size: var(--font-size-10, 10px);
-      text-transform: uppercase;
-      color: $c-tan;
-    }
-  }
-
-  .problem-solving-group {
-    gap: 10px;
-    flex: 0 1 auto;
-
-    .reserve-pool {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-width: 44px;
-      padding-right: 8px;
-      border-right: 1px solid $c-beige;
-    }
-
-    .reserve-value {
-      font-weight: bold;
-      font-size: var(--font-size-14, 14px);
-      line-height: 1;
-    }
-
-    .reserve-value-input {
-      width: 22px;
-      padding: 0;
+      padding: 0 2px;
       border: none;
       background: transparent;
-      text-align: right;
+      font-family: $font-primary;
       font-weight: bold;
-      font-size: var(--font-size-14, 14px);
-      line-height: 1;
-      color: inherit;
-
-      &::-webkit-inner-spin-button,
-      &::-webkit-outer-spin-button {
-        margin: 0;
-      }
-    }
-
-    .reserve-label {
-      font-size: var(--font-size-10, 10px);
-      text-transform: uppercase;
-      color: $c-tan;
-    }
-
-    .solve-tile {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-width: 44px;
-      padding: 3px 6px;
-      border-radius: 4px;
-      text-decoration: none;
-      color: inherit;
-    }
-
-    .solve-tile-value {
-      font-weight: bold;
-      font-size: var(--font-size-14, 14px);
-      line-height: 1;
-    }
-
-    .solve-tile-label {
-      font-size: var(--font-size-10, 10px);
-      text-transform: uppercase;
-      color: $c-tan;
-    }
-
-    .solve-analyze-flaw {
-      cursor: pointer;
-      transition: background 0.15s ease;
+      transition: box-shadow 0.15s ease;
 
       &:hover {
-        background: $c-tan;
+        box-shadow: inset 0 -1px 0 $c-beige;
+      }
 
-        // The label's rest color is the same $c-tan as this hover
-        // background, so without an override it visually vanishes into
-        // the fill instead of reading as part of the highlighted tile.
-        .solve-tile-value,
-        .solve-tile-label {
-          color: $c-white;
-        }
+      &:focus {
+        box-shadow: inset 0 -2px 0 $c-tan;
+        outline: none;
       }
     }
+  }
 
-    .solve-tile-disabled {
-      cursor: not-allowed;
-      opacity: 0.5;
-    }
+  // Total-XP badge riding at the right edge of the character sheet's name
+  // band. Scoped to this variant (via align-self, not a shared align-items)
+  // so the item/NPC sheets that also use .sheet-header are untouched. The
+  // charname's flex:1 already pushes it to the right; margin-left:auto keeps
+  // that true even if the name is empty.
+  .xp-badge-total {
+    align-self: center;
+    margin-left: auto;
+    padding: 3px 8px;
+    font-size: var(--font-size-13, 13px);
+    white-space: nowrap;
   }
 }
 
-// The form's own flex direction is switched to row (see the actor sheet
-// templates) so the tab rail can dock along the right edge, full height;
-// .sheet-main carries the header+body column that used to be the form's
-// entire content.
+// Below the name header, the sheet splits into a fixed-width left sidebar
+// (portrait + derived meta stats) and the tab content on the right,
+// mirroring the reference dnd5e sheet's layout. The sidebar stays outside
+// .sheet-body so it remains visible across tabs.
+.sheet-columns {
+  flex: 1;
+  min-height: 0;
+  gap: 12px;
+}
+
+.sidebar {
+  flex: 0 0 300px;
+  width: 300px;
+  gap: 8px;
+  align-items: stretch;
+
+  .profile-img {
+    flex: 0 0 360px;
+    width: 100%;
+    height: 360px;
+    min-height: 360px;
+    max-height: 360px;
+    object-fit: cover;
+    object-position: top center;
+    border-radius: 4px;
+  }
+}
+
+// Positioning context for the roll lozenges overlaid on the portrait's
+// bottom edge (see .portrait-overlay). flex: 0 0 360px keeps it the same
+// fixed height the bare portrait used to occupy.
+.portrait-wrap {
+  position: relative;
+  flex: 0 0 360px;
+
+  .profile-img {
+    flex: none;
+  }
+}
+
+.portrait-overlay {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 6px;
+}
+
+.sidebar-stats {
+  gap: 8px;
+}
+
+// Shared bordered "box" treatment for grouped sections — the sidebar's meta
+// stat groups, the attribute table, and each skill category — echoing the
+// reference dnd5e sheet's boxed layout (minus its ornate SVG filigree
+// corners, which would be a lot of extra markup for very little payoff
+// here).
+.card {
+  border: 1px solid $c-beige;
+  border-radius: 8px;
+  background: $c-faint;
+  box-shadow: 0 1px 2px rgba($c-dark, 0.15);
+}
+
+.resource-group {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+}
+
+// Pill-shaped stat badges, used for the sidebar's "roll" stats (Initiative,
+// Sixth Sense) — mirroring the reference dnd5e sheet's Initiative/Speed/
+// Proficiency lozenge row.
+.lozenges {
+  flex: 0 0 auto;
+  gap: 6px;
+}
+
+.lozenge {
+  flex: 1;
+  // Label and value sit side-by-side on one line so the pill is only as tall
+  // as the text (~22px) instead of stacking into a chunky two-line badge —
+  // these carry a single number each and don't need the height.
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  padding: 4px 10px;
+  border: 1px solid $c-beige;
+  border-radius: 999px;
+  background: $c-faint;
+  box-shadow: 0 1px 2px rgba($c-dark, 0.15);
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: $c-tan;
+
+    .lozenge-value,
+    .lozenge-label {
+      color: $c-white;
+    }
+  }
+
+  .lozenge-value {
+    font-size: var(--font-size-14, 14px);
+    font-weight: bold;
+    line-height: 1;
+
+    small {
+      margin-left: 2px;
+      font-size: var(--font-size-10, 10px);
+      font-weight: normal;
+      opacity: 0.75;
+    }
+  }
+
+  .lozenge-label {
+    font-size: var(--font-size-9, 9px);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: $c-tan;
+  }
+}
+
+.movement-group {
+  gap: 10px;
+  // Flex-wrap on .resource-group with no grow on the tiles left them packed
+  // to the left with dead space trailing in the card. Each tile now claims
+  // an even share of the row instead.
+  flex-wrap: nowrap;
+
+  .movement-tile {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    align-items: center;
+    min-width: 44px;
+    padding: 3px 4px;
+    border-radius: 4px;
+  }
+
+  // Carry capacity is a different metric from the three movement speeds
+  // beside it (distance vs. inventory slots); a hairline separator — the
+  // same treatment .reserve-pool uses against its solve-tiles — keeps that
+  // distinction readable now that all four tiles are equal width.
+  .carry-slots-tile {
+    margin-left: 2px;
+    padding-left: 10px;
+    border-left: 1px solid $c-beige;
+  }
+
+  .movement-value {
+    font-weight: bold;
+    font-size: var(--font-size-16, 16px);
+    line-height: 1;
+  }
+
+  .movement-label {
+    font-size: var(--font-size-10, 10px);
+    text-transform: uppercase;
+    color: $c-tan;
+  }
+}
+
+.problem-solving-group {
+  gap: 10px;
+  flex-wrap: nowrap;
+
+  // Reserve and both solve-tiles now share the row evenly (see
+  // .movement-group above for the same fix) rather than sitting left-packed
+  // with the card's remaining width left empty.
+  .reserve-pool {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    align-items: center;
+    min-width: 44px;
+    padding-right: 8px;
+    border-right: 1px solid $c-beige;
+  }
+
+  .reserve-value {
+    font-weight: bold;
+    font-size: var(--font-size-16, 16px);
+    line-height: 1;
+  }
+
+  // Topped-up state lives on the resource itself (the reserve), not on the
+  // Analyze Flaw action: when the pool is at its max the value turns green to
+  // say "full — nothing to recover", which is why Analyze Flaw is inert. The
+  // green stays a passive success cue and never appears on a clickable tile.
+  .reserve-pool.reserve-full .reserve-value,
+  .reserve-pool.reserve-full .reserve-value-input {
+    color: $c-ready;
+  }
+
+  .reserve-value-input {
+    width: 22px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    text-align: right;
+    font-weight: bold;
+    font-size: var(--font-size-14, 14px);
+    line-height: 1;
+    color: inherit;
+
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+      margin: 0;
+    }
+  }
+
+  .reserve-label {
+    font-size: var(--font-size-10, 10px);
+    text-transform: uppercase;
+    color: $c-tan;
+  }
+
+  .solve-tile {
+    position: relative;
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    padding: 3px 6px;
+    border-radius: 4px;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  // Small "this rolls" affordance in the corner of the clickable Analyze Flaw
+  // tile — quiet at rest, brighter on hover — so it reads as interactive next
+  // to its display-only siblings without shouting. Hidden while the tile is
+  // inert (reserve full), when there's nothing to roll.
+  .solve-roll-mark {
+    position: absolute;
+    top: 2px;
+    right: 3px;
+    font-size: var(--font-size-9, 9px);
+    color: $c-tan;
+    opacity: 0.45;
+    transition: opacity 0.15s ease;
+    pointer-events: none;
+  }
+
+  .solve-analyze-flaw:hover .solve-roll-mark {
+    opacity: 0.9;
+    color: $c-white;
+  }
+
+  .solve-tile-disabled .solve-roll-mark {
+    display: none;
+  }
+
+  .solve-tile-value {
+    font-weight: bold;
+    font-size: var(--font-size-16, 16px);
+    line-height: 1;
+  }
+
+  .solve-tile-label {
+    font-size: var(--font-size-10, 10px);
+    text-transform: uppercase;
+    color: $c-tan;
+  }
+
+  .solve-analyze-flaw {
+    cursor: pointer;
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: $c-tan;
+
+      // The label's rest color is the same $c-tan as this hover
+      // background, so without an override it visually vanishes into
+      // the fill instead of reading as part of the highlighted tile.
+      .solve-tile-value,
+      .solve-tile-label {
+        color: $c-white;
+      }
+    }
+  }
+
+  // "Disabled" here means the reserve is already full — nothing to recover.
+  // The tile simply reads as inert (dim, default cursor, no hover) so it
+  // doesn't look actionable; the "you're topped up" success cue lives on the
+  // reserve value turning green instead (see .reserve-full above), rather
+  // than a green check on this action tile, which misread as "available".
+  // The tooltip still carries the full reason.
+  .solve-tile-disabled {
+    cursor: default;
+    opacity: 0.65;
+  }
+}
+
+// .sheet-main is the tab-content column inside .sheet-columns, next to
+// .sidebar.
 .sheet-main {
   flex: 1;
   min-width: 0;
+  // Establish a bounded height so the tab body below can own its own scroll
+  // instead of letting content push the whole window past its edge.
+  min-height: 0;
 }
 
 .sheet-tabs {
   flex: 0;
 }
 
-.sheet-body,
+// The tab body fills the remaining height under the name band and clips its
+// overflow, so a long tab (e.g. the full skill list) scrolls inside its own
+// region rather than scrolling the entire sheet (portrait + matrix included).
+.sheet-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+// Non-basics tabs (biography, items) keep filling the body as before. The
+// basics tab opts into a flex column instead (below) so its skill list can be
+// the lone scroll container.
 .sheet-body .tab,
 .sheet-body .tab .editor {
   height: 100%;
+}
+
+// Active basics tab: grows to fill the body (flex:1) and lays its content out
+// as a flex column. The attribute matrix and skills header stay fixed; only
+// .skill-groups-scroll flexes and scrolls.
+.sheet-body .tab.basics.active {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+
+  > section {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
 }
 
 // Vertical icon-only tab rail docked outside the sheet's right edge, styled
@@ -307,16 +454,45 @@
     border-radius: 4px;
     color: $c-faint;
     font-size: 15px;
-    transition: background-color 0.1s ease, color 0.1s ease;
+    overflow: hidden;
+    transition: background-color 0.1s ease, color 0.1s ease, width 0.15s ease;
 
-    &:hover {
+    &:hover,
+    &:focus-visible {
       color: $c-white;
       background: rgba($c-white, 0.12);
+      justify-content: flex-start;
+      width: auto;
+      padding: 0 10px;
     }
 
     &.active {
       color: $c-white;
       background: rgba($c-white, 0.2);
+    }
+
+    i {
+      flex: none;
+    }
+
+    // Hidden by default (zero width, clipped) and expanded on hover/focus of
+    // this specific item, so the rail reads as tab navigation on first
+    // contact, rather than relying on the native tooltip's hover delay to
+    // explain what the icons mean.
+    .tab-label {
+      max-width: 0;
+      margin-left: 0;
+      font-size: 11px;
+      font-weight: bold;
+      white-space: nowrap;
+      overflow: hidden;
+      transition: max-width 0.15s ease, margin-left 0.15s ease;
+    }
+
+    &:hover .tab-label,
+    &:focus-visible .tab-label {
+      max-width: 120px;
+      margin-left: 6px;
     }
   }
 }
@@ -324,11 +500,30 @@
 .biography-textarea {
   width: 100%;
   height: 100%;
-  padding: 8px;
-  border: 1px solid $c-beige;
-  background: $c-white;
+  padding: 10px 12px;
+  border: 1px solid rgba($c-dark, 0.15);
+  border-radius: 4px;
+  // Sits on the sheet's parchment rather than a stark white panel: a barely
+  // tinted, near-transparent fill matching the card treatment used elsewhere,
+  // with a soft inset so the writing area reads as recessed notes paper.
+  background: rgba($c-black, 0.02);
+  box-shadow: inset 0 1px 2px rgba($c-dark, 0.06);
   font-family: $font-primary;
+  font-size: var(--font-size-13, 13px);
+  line-height: 1.4;
+  color: $c-dark;
   resize: none;
+
+  &:focus {
+    outline: none;
+    border-color: $c-tan;
+    box-shadow: inset 0 1px 3px rgba($c-dark, 0.1);
+  }
+
+  &::placeholder {
+    color: rgba($c-dark, 0.4);
+    font-style: italic;
+  }
 }
 
 .tox {
@@ -517,16 +712,67 @@
     }
   }
 
+  // Shared section label sitting above both curve sliders — replaces a
+  // "Curve: " prefix repeated in each slider's own (narrow, two-up) label,
+  // which used to overflow its ~150px column and overlap the neighbouring
+  // slider's text.
+  .heatmap-lab-curves-title {
+    display: block;
+    margin-bottom: 2px;
+    font-size: var(--font-size-10, 10px);
+    color: $c-tan;
+  }
+
   .heatmap-lab-curves {
     gap: 8px;
 
     .heatmap-lab-curve {
       flex: 1;
+      // Without this, the flex item's min-content width is measured from
+      // its inline label content alone, which can shrink it far narrower
+      // than the ~150px flex:1 would otherwise give it (the label then
+      // wraps into a tall, cramped column instead of using the space).
+      min-width: 0;
       margin: 0;
     }
   }
 
-  .heatmap-lab-curve,
+  .heatmap-lab-curve {
+    margin: 0;
+
+    // Label full-width on its own row (matches .heatmap-lab-stops /
+    // .heatmap-lab-critical below), value directly beneath it beside the
+    // slider — rather than the space-between row the shared midpoint
+    // slider uses, which needs more width than these two-up ~150px
+    // columns have without label and value overlapping.
+    label {
+      display: block;
+      margin-bottom: 3px;
+      font-size: var(--font-size-10, 10px);
+      color: $c-tan;
+      white-space: nowrap;
+    }
+
+    .heatmap-lab-curve-value-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    span {
+      flex: none;
+      font-variant-numeric: tabular-nums;
+      color: $c-dark;
+      font-size: var(--font-size-10, 10px);
+    }
+
+    input[type='range'] {
+      flex: 1;
+      width: 100%;
+      margin: 0;
+    }
+  }
+
   .heatmap-lab-midpoint {
     margin: 0;
 

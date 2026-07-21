@@ -150,7 +150,7 @@ export const HEATMAP_QUICK_PRESETS = {
     low: '#ebece9',
     mid: '#67c44f',
     high: '#054224',
-    midValue: 4.5,
+    midValue: 6.5,
     lowCurve: 2.2,
     highCurve: 0.8,
     critical: '#3d1418',
@@ -158,13 +158,13 @@ export const HEATMAP_QUICK_PRESETS = {
 };
 
 export const DEFAULT_HEATMAP_CONFIG = {
-  low: HEATMAP_QUICK_PRESETS.viridis.low,
-  mid: HEATMAP_QUICK_PRESETS.viridis.mid,
-  high: HEATMAP_QUICK_PRESETS.viridis.high,
-  midValue: HEATMAP_QUICK_PRESETS.viridis.midValue,
-  lowCurve: HEATMAP_QUICK_PRESETS.viridis.lowCurve,
-  highCurve: HEATMAP_QUICK_PRESETS.viridis.highCurve,
-  critical: HEATMAP_QUICK_PRESETS.viridis.critical,
+  low: HEATMAP_QUICK_PRESETS.banded.low,
+  mid: HEATMAP_QUICK_PRESETS.banded.mid,
+  high: HEATMAP_QUICK_PRESETS.banded.high,
+  midValue: HEATMAP_QUICK_PRESETS.banded.midValue,
+  lowCurve: HEATMAP_QUICK_PRESETS.banded.lowCurve,
+  highCurve: HEATMAP_QUICK_PRESETS.banded.highCurve,
+  critical: HEATMAP_QUICK_PRESETS.banded.critical,
 };
 
 let activeConfig = { ...DEFAULT_HEATMAP_CONFIG };

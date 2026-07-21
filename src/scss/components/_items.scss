@@ -20,6 +20,18 @@
   }
 }
 
+// Empty-state hint shown while the inventory has no items — a quiet centred
+// caption on the parchment rather than an empty grid that reads as unfinished.
+.items-empty {
+  margin: 12px 6px;
+  padding: 20px 12px;
+  border: 1px dashed rgba($c-dark, 0.2);
+  border-radius: 4px;
+  color: $c-tan;
+  font-style: italic;
+  text-align: center;
+}
+
 // -----------------------------------------
 // Items Lists
 // -----------------------------------------

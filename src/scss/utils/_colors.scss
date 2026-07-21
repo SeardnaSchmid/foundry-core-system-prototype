@@ -5,3 +5,13 @@ $c-dark: #191813;
 $c-faint: #c9c7b8;
 $c-beige: #b5b3a4;
 $c-tan: #444;
+
+// The "affordable / ready to buy" green, reserved for the problem-solving
+// reserve being topped up (a passive success state on the resource itself).
+$c-ready: #1f6b3a;
+
+// The "actionable / ready to buy the next rank" accent, shared by the
+// attribute heatmap XP badges + bar, the skill XP text, and the skill advance
+// arrow. Deliberately a warm gold rather than green so it reads as "level up!"
+// and never collides with the heatmap's green = high-magnitude colouring.
+$c-advance: #b8860b;
