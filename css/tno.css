@@ -408,7 +408,7 @@
   align-items: center;
   justify-content: flex-start;
   min-width: 44px;
-  padding: 4px 8px 3px 0;
+  padding: 3px 8px 3px 0;
   border-right: 1px solid #b5b3a4;
 }
 .tno .problem-solving-group .reserve-value {
@@ -422,6 +422,7 @@
 }
 .tno .problem-solving-group .reserve-value-input {
   width: 22px;
+  height: var(--font-size-16, 16px);
   padding: 0;
   border: none;
   background: transparent;
@@ -436,7 +437,6 @@
 }
 .tno .problem-solving-group .reserve-label {
   min-height: calc(var(--font-size-10, 10px) * 1.2 * 2);
-  margin-top: 2px;
   font-size: var(--font-size-10, 10px);
   line-height: 1.2;
   text-transform: uppercase;
@@ -450,7 +450,7 @@
   align-items: center;
   justify-content: flex-start;
   min-width: 44px;
-  padding: 4px 6px 3px;
+  padding: 3px 6px;
   border-radius: 4px;
   text-decoration: none;
   color: inherit;
@@ -500,7 +500,6 @@
 }
 .tno .problem-solving-group .solve-tile-label {
   min-height: calc(var(--font-size-10, 10px) * 1.2 * 2);
-  margin-top: 2px;
   text-align: center;
   font-size: var(--font-size-10, 10px);
   line-height: 1.2;

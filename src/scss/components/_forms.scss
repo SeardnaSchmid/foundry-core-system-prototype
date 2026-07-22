@@ -289,7 +289,9 @@ $portrait-frame-cut: 14% 0%, 86% 0%, 100% 9%, 100% 100%, 0% 100%, 0% 9%;
     // value sits on the same row as the tiles beside it.
     justify-content: flex-start;
     min-width: 44px;
-    padding: 4px 8px 3px 0;
+    // Top/bottom padding matches .movement-tile's 3px so the two rows'
+    // tiles start from the same baseline.
+    padding: 3px 8px 3px 0;
     border-right: 1px solid $c-beige;
   }
 
@@ -310,6 +312,11 @@ $portrait-frame-cut: 14% 0%, 86% 0%, 100% 9%, 100% 100%, 0% 100%, 0% 9%;
 
   .reserve-value-input {
     width: 22px;
+    // Browser UA styling gives number inputs extra intrinsic height beyond
+    // their line-height (26px rendered vs. the 16px .solve-tile-value sits
+    // at) — pin it explicitly so the reserve tile isn't taller than its
+    // siblings for no visual reason.
+    height: var(--font-size-16, 16px);
     padding: 0;
     border: none;
     background: transparent;
@@ -332,7 +339,6 @@ $portrait-frame-cut: 14% 0%, 86% 0%, 100% 9%, 100% 100%, 0% 100%, 0% 9%;
     // Matches .solve-tile-label's fixed 2-line height so "RESERVE" lines up
     // with the (sometimes 2-line) tile labels beside it.
     min-height: calc(var(--font-size-10, 10px) * 1.2 * 2);
-    margin-top: 2px;
     font-size: var(--font-size-10, 10px);
     line-height: 1.2;
     text-transform: uppercase;
@@ -351,7 +357,9 @@ $portrait-frame-cut: 14% 0%, 86% 0%, 100% 9%, 100% 100%, 0% 100%, 0% 9%;
     // .solve-tile-label's matching min-height.
     justify-content: flex-start;
     min-width: 44px;
-    padding: 4px 6px 3px;
+    // Top/bottom padding matches .movement-tile's 3px so the two rows'
+    // tiles start from the same baseline.
+    padding: 3px 6px;
     border-radius: 4px;
     text-decoration: none;
     color: inherit;
@@ -432,7 +440,6 @@ $portrait-frame-cut: 14% 0%, 86% 0%, 100% 9%, 100% 100%, 0% 100%, 0% 9%;
     // words — e.g. "IDEA" under "BONUS" — centers under the longer one
     // instead of sitting flush against the box's left edge.
     min-height: calc(var(--font-size-10, 10px) * 1.2 * 2);
-    margin-top: 2px;
     text-align: center;
     font-size: var(--font-size-10, 10px);
     line-height: 1.2;
