@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.22.1](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.22.0...v0.22.1) (2026-07-22)
+
+
+### Bug Fixes
+
+* tighten edge-features tile spacing to match movement row height ([8daa1f0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/8daa1f09d06ad65d3f7387b6ebc142b911395cfa))
+
 # [0.22.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v1...v0.22.0) (2026-07-22)
 
 ## [0.21.1](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.21.0...v0.21.1) (2026-07-21)
