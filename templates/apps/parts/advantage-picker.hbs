@@ -1,0 +1,28 @@
+{{!--
+  Roll-type (advantage/disadvantage) picker, shared by the full roll dialog
+  and the bare base-dice dialog. Rendered as an accessible radiogroup; wired
+  up by bindAdvantagePicker in roll-dialog-shared.mjs.
+--}}
+<div class="form-group tno-advantage-field">
+  <div class="tno-advantage-field-head">
+    <label>{{localize "TNO.Roll.Advantage"}}</label>
+    {{!-- Adjacent to the label (not tucked below the buttons) so the dice
+          consequence of the current selection is seen at the same glance,
+          and updates live as the picker changes. --}}
+    <span class="tno-advantage-effect">{{advantageConsequence}}</span>
+  </div>
+  <div class="tno-advantage-group flexrow flex-center" role="radiogroup" aria-label="{{localize 'TNO.Roll.Advantage'}}">
+    {{#each advantageOptions as |option|}}
+    <button type="button" class="tno-advantage-option {{#ifEquals option.value ../advantage}}active{{/ifEquals}}"
+      role="radio"
+      aria-checked="{{#ifEquals option.value ../advantage}}true{{else}}false{{/ifEquals}}"
+      tabindex="{{#ifEquals option.value ../advantage}}0{{else}}-1{{/ifEquals}}"
+      data-value="{{option.value}}"
+      title="{{#if option.isDefault}}{{localize 'TNO.Roll.AdvantageDefaultHint' label=option.label}}{{else}}{{option.label}}{{/if}}">
+      <span class="tno-advantage-glyph" aria-hidden="true">{{option.glyph}}</span>
+      <span class="tno-advantage-name">{{option.label}}</span>
+    </button>
+    {{/each}}
+  </div>
+  <input type="hidden" name="advantage" value="{{advantage}}"/>
+</div>

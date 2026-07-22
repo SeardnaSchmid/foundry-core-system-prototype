@@ -14,6 +14,7 @@ export const preloadHandlebarsTemplates = async function () {
     'systems/tno/templates/item/parts/item-effects.hbs',
     // Apps
     'systems/tno/templates/apps/roll-dialog.hbs',
+    'systems/tno/templates/apps/parts/advantage-picker.hbs',
     'systems/tno/templates/apps/advance-dialog.hbs',
     'systems/tno/templates/apps/base-roll-dialog.hbs',
     'systems/tno/templates/apps/heatmap-lab.hbs',

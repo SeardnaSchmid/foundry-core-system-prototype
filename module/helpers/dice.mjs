@@ -24,6 +24,34 @@ export const TNO_ADVANTAGE_ABBR = {
 };
 
 /**
+ * Language-neutral glyphs for each advantage level, used by the roll dialog's
+ * picker so the roll type reads at a glance without leaking English codes
+ * into a localized UI (unlike TNO_ADVANTAGE_ABBR, which the chat badge keeps).
+ * @type {Object<number, string>}
+ */
+export const TNO_ADVANTAGE_GLYPH = {
+  [TNO_ADVANTAGE.strongDisadvantage]: '−−',
+  [TNO_ADVANTAGE.disadvantage]: '−',
+  [TNO_ADVANTAGE.none]: '●',
+  [TNO_ADVANTAGE.advantage]: '+',
+  [TNO_ADVANTAGE.strongAdvantage]: '++',
+};
+
+/**
+ * A short, localized description of what an advantage level actually rolls
+ * (die count and which die counts), for the roll dialog's live "roll type"
+ * consequence line. Mirrors the rules encoded in {@link dieCountFor} and
+ * {@link pickCountingDie}.
+ * @param {number} advantage  One of the TNO_ADVANTAGE values.
+ * @returns {string}
+ */
+export function describeAdvantage(advantage) {
+  const key = Object.keys(TNO_ADVANTAGE).find((k) => TNO_ADVANTAGE[k] === advantage) ?? 'none';
+  const cap = `${key.charAt(0).toUpperCase()}${key.slice(1)}`;
+  return game.i18n.localize(`TNO.Roll.AdvantageEffect.${cap}`);
+}
+
+/**
  * How many d20 are rolled for a given advantage level. Simple advantage/
  * disadvantage only ever look at 2 dice; everything else rolls the full 3d20.
  * @param {number} advantage  One of the TNO_ADVANTAGE values.

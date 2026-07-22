@@ -3,17 +3,11 @@
     <h2 class="tno-roll-subject-name">{{subject}}</h2>
   </div>
 
-  <div class="form-group tno-advantage-field">
-    <label>{{localize "TNO.Roll.Advantage"}}</label>
-    <div class="tno-advantage-group flexrow flex-center">
-      {{#each advantageOptions as |option|}}
-      <a class="tno-advantage-option {{#ifEquals option.value ../advantage}}active{{/ifEquals}}" data-value="{{option.value}}" title="{{#if option.isDefault}}{{localize 'TNO.Roll.AdvantageDefaultHint' label=option.label}}{{else}}{{option.label}}{{/if}}">{{option.abbr}}</a>
-      {{/each}}
-    </div>
-    <input type="hidden" name="advantage" value="{{advantage}}"/>
-  </div>
+  {{> "systems/tno/templates/apps/parts/advantage-picker.hbs"}}
 
   <footer class="sheet-footer flexrow">
-    <button type="submit"><i class="fas fa-dice-d20"></i> {{localize "TNO.Roll.Submit"}}</button>
+    <button type="submit" class="tno-roll-submit">
+      <span class="tno-roll-submit-main"><i class="fas fa-dice-d20"></i> {{localize "TNO.Roll.Submit"}}</span>
+    </button>
   </footer>
 </form>

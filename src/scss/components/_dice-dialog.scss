@@ -1,3 +1,8 @@
+// Outcome colours, shared with the chat roll card (_dice-card.scss) so a
+// positive/negative modifier reads the same everywhere.
+$c-roll-positive: #2e7d32;
+$c-roll-negative: #c62828;
+
 .tno-roll-dialog {
   padding: $padding-md;
 
@@ -13,7 +18,7 @@
 
   .tno-roll-subject {
     text-align: center;
-    margin-bottom: $padding-sm;
+    margin-bottom: $padding-md;
   }
 
   .tno-roll-subject-name {
@@ -21,12 +26,29 @@
     border-bottom: none;
   }
 
-  .tno-roll-stats {
-    margin-bottom: $padding-sm;
+  // Grouped sections (base / modifiers) — a light frame plus a small caption
+  // so the parts that feed the threshold read as one block each.
+  .tno-roll-section {
+    margin-bottom: $padding-md;
+    padding: $padding-sm;
+    border: 1px solid $c-beige;
+    border-radius: 4px;
 
-    .form-group {
-      margin-bottom: $padding-sm;
+    > .form-group:last-child,
+    > .tno-roll-detail:last-child {
+      margin-bottom: 0;
     }
+  }
+
+  .tno-roll-section-caption {
+    display: block;
+    margin-bottom: $padding-sm;
+    font-size: var(--font-size-10, 10px);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: $c-tan;
+    opacity: 0.7;
   }
 
   .tno-roll-detail {
@@ -44,9 +66,8 @@
     display: none !important;
   }
 
-  // Same fix as .tno-advantage-field below: Core's .form-group lays
-  // label/content out as a flex row, which squeezes the chip grid. Stack
-  // this one so the label sits on its own line above the full-width grid.
+  // Core's .form-group lays label/content out as a flex row, which squeezes
+  // the chip grid. Stack this one so the label sits above the full-width grid.
   .tno-attribute-field {
     flex-direction: column;
     align-items: stretch;
@@ -57,21 +78,39 @@
     }
   }
 
-  // 3 columns (physical/social/mental) x 4 rows, same grid shape as the
-  // character sheet's attribute table but without its header row/column.
+  // 3 columns (physical / social / mental) x 4 rows, same grid shape as the
+  // character sheet's attribute table. The first grid row is the column
+  // headers naming each category.
   .tno-attribute-chip-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 4px;
   }
 
+  .tno-attribute-col-head {
+    text-align: center;
+    font-size: var(--font-size-10, 10px);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: $c-tan;
+    opacity: 0.75;
+  }
+
   .tno-attribute-chip {
-    cursor: pointer;
+    margin: 0;
     padding: 3px 0;
     border: 1px solid transparent;
     border-radius: 3px;
     text-align: center;
     line-height: 1.3;
+    font: inherit;
+    cursor: pointer;
+    // The selected chip pops; the rest recede, so selection is legible on top
+    // of the heatmap colours the chips already carry.
+    opacity: 0.5;
+    filter: saturate(0.7);
+    transition: opacity 0.12s ease, transform 0.12s ease;
 
     .tno-attribute-chip-abbr {
       display: block;
@@ -85,20 +124,63 @@
       font-size: var(--font-size-12, 12px);
     }
 
-    // The background/text color is the heatmap grade (inline style, set
-    // per-cell in getData); selection can't repaint it, so it's marked with
-    // a ring instead — white-then-dark so it reads on any heat color.
+    &:hover {
+      opacity: 0.85;
+    }
+
+    // The heatmap grade is an inline background/text colour that selection
+    // can't repaint, so the active chip is marked with a ring (white-then-dark
+    // so it reads on any heat colour) plus full colour and a slight scale-up.
     &.active {
+      opacity: 1;
+      filter: none;
+      transform: scale(1.06);
       box-shadow:
         0 0 0 2px #fff,
         0 0 0 3px rgba(0, 0, 0, 0.6);
     }
+
+    &:focus-visible {
+      outline: 2px solid $c-tan;
+      outline-offset: 1px;
+    }
   }
 
-  .tno-roll-divider {
-    border: none;
-    border-top: 1px solid $c-beige;
-    margin: $padding-md 0;
+  .tno-attribute-selected {
+    margin-top: 2px;
+    text-align: center;
+    font-size: var(--font-size-11, 11px);
+    color: $c-tan;
+    min-height: 1.2em;
+  }
+
+  // The skill is a fixed part of the base (rank never changes here), so it's
+  // presented as a labelled row with its rank in a heatmap-graded badge that
+  // matches the attribute chips — reading as "attribute + skill = base".
+  .tno-skill-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $padding-sm;
+    margin-top: $padding-sm;
+    padding: 4px 6px;
+    border-radius: 3px;
+    background: rgba($c-tan, 0.05);
+
+    .tno-skill-name {
+      font-weight: bold;
+      font-size: var(--font-size-13, 13px);
+    }
+
+    .tno-skill-value {
+      min-width: 26px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      text-align: center;
+      font-weight: bold;
+      font-size: var(--font-size-13, 13px);
+      line-height: 1.2;
+    }
   }
 
   .tno-bonus-stepper-group {
@@ -106,26 +188,261 @@
     justify-content: center;
 
     .tno-bonus-stepper {
-      cursor: pointer;
+      width: 34px;
+      line-height: 26px;
+      padding: 0;
+      margin: 0;
+      font: inherit;
       font-weight: bold;
-      width: 28px;
-      line-height: 22px;
       text-align: center;
+      cursor: pointer;
+      background: $c-white;
       border: 1px solid $c-beige;
       border-radius: 3px;
+      transition: background 0.12s ease, border-color 0.12s ease;
+
+      &:hover:not(:disabled) {
+        background: $c-faint;
+        border-color: $c-tan;
+      }
+
+      &:disabled {
+        opacity: 0.35;
+        cursor: default;
+      }
+
+      &:focus-visible {
+        outline: 2px solid $c-tan;
+        outline-offset: 1px;
+      }
     }
 
     .tno-bonus-value {
-      min-width: 32px;
+      min-width: 44px;
       text-align: center;
       font-weight: bold;
+      font-size: var(--font-size-16, 16px);
+      cursor: pointer;
+      border-radius: 3px;
+
+      &.tno-bonus-positive {
+        color: $c-roll-positive;
+      }
+
+      &.tno-bonus-negative {
+        color: $c-roll-negative;
+      }
+
+      &:focus-visible {
+        outline: 2px solid $c-tan;
+        outline-offset: 1px;
+      }
     }
   }
 
-  // Core's .form-group lays label/content out as a flex row (label flex: 2,
-  // content flex: 3); that squeezes the 5-button advantage picker against a
-  // long label. Stack this one field instead so the label sits on its own
-  // line above the full-width button row.
+  .tno-idea-field {
+    margin-bottom: 0;
+  }
+
+  // "Idee haben" is an optional, situational pre-edge, not a primary control,
+  // so it's kept deliberately quiet — no card frame, small type, transparent
+  // by default — and only picks up the $c-primary blue accent (checkbox,
+  // icon, value) when armed, so it doesn't compete with the bonus stepper or
+  // threshold box for attention.
+  //
+  // Selector is "label.tno-idea-toggle" (not just ".tno-idea-toggle") to
+  // match the specificity of ".form-group > label" above, which otherwise
+  // wins the cascade and forces display:block/font-weight:bold back on —
+  // breaking the flex alignment of the checkbox/icon/text row.
+  label.tno-idea-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 5px;
+    cursor: pointer;
+    font-weight: normal;
+    font-size: var(--font-size-11, 11px);
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: transparent;
+    transition: background 0.12s ease, border-color 0.12s ease;
+
+    // The native checkbox drives real form/focus state but is visually
+    // replaced by .tno-idea-checkbox below.
+    input[type='checkbox'] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      border: 0;
+      clip: rect(0 0 0 0);
+      overflow: hidden;
+    }
+
+    .tno-idea-checkbox {
+      flex: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 12px;
+      height: 12px;
+      border: 1px solid $c-beige;
+      border-radius: 3px;
+      background: $c-white;
+      transition: background 0.12s ease, border-color 0.12s ease;
+
+      i {
+        font-size: 8px;
+        color: $c-white;
+        opacity: 0;
+        transition: opacity 0.12s ease;
+      }
+    }
+
+    .tno-idea-icon {
+      font-size: var(--font-size-11, 11px);
+      color: $c-beige;
+      transition: color 0.12s ease;
+    }
+
+    .tno-idea-value {
+      color: $c-tan;
+      opacity: 0.85;
+    }
+
+    .tno-idea-reserve {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+      margin-left: auto;
+    }
+
+    .tno-idea-pips {
+      display: flex;
+      gap: 2px;
+    }
+
+    .tno-idea-pip {
+      width: 6px;
+      height: 8px;
+      border-radius: 1px;
+      background: rgba($c-tan, 0.15);
+      border: 1px solid rgba($c-tan, 0.3);
+
+      &.filled {
+        background: $c-idea-hover;
+        border-color: $c-idea-hover;
+      }
+    }
+
+    .tno-idea-reserve-text {
+      font-size: var(--font-size-10, 10px);
+      color: $c-tan;
+      opacity: 0.8;
+      white-space: nowrap;
+    }
+
+    &:hover {
+      background: rgba($c-tan, 0.06);
+    }
+
+    input:focus-visible ~ .tno-idea-checkbox {
+      outline: 2px solid $c-tan;
+      outline-offset: 2px;
+    }
+
+    // Armed: checkbox fills solid gold with a checkmark, the bulb and value
+    // pick up the gold accent, and a faint tint marks the row — noticeable
+    // without the full bordered-chip treatment used on/off. Gold (not blue)
+    // so this optional resource doesn't compete with the Roll CTA.
+    &.active {
+      background: rgba($c-idea-hover, 0.15);
+
+      .tno-idea-checkbox {
+        background: $c-idea-hover;
+        border-color: $c-idea-hover;
+
+        i {
+          opacity: 1;
+          color: $c-idea-text;
+        }
+      }
+
+      .tno-idea-icon {
+        color: $c-idea-hover;
+      }
+
+      .tno-idea-value {
+        color: $c-idea-text;
+        opacity: 1;
+      }
+    }
+  }
+
+  .tno-idea-disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+
+    &:hover {
+      background: transparent;
+    }
+  }
+
+  // The threshold result — the hero of the dialog. Big number, with a live
+  // breakdown of the parts that produced it.
+  .tno-roll-result {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    margin-bottom: $padding-md;
+    padding: $padding-sm $padding-md;
+    border: 1px solid $c-tan;
+    border-radius: 4px;
+    background: rgba($c-tan, 0.06);
+    text-align: center;
+  }
+
+  .tno-roll-result-label {
+    font-size: var(--font-size-10, 10px);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: $c-tan;
+  }
+
+  .tno-roll-result-value {
+    font-size: var(--font-size-28, 28px);
+    font-weight: bold;
+    line-height: 1.1;
+  }
+
+  .tno-roll-breakdown {
+    font-size: var(--font-size-11, 11px);
+    color: $c-tan;
+    opacity: 0.85;
+    min-height: 1.1em;
+  }
+
+  // Lighter than $c-primary itself so the flash still reads clearly against
+  // the button's own blue rather than blending into it.
+  @keyframes tno-threshold-flash {
+    0% {
+      box-shadow: 0 0 0 2px rgba(lighten($c-primary, 15%), 0.9);
+    }
+    100% {
+      box-shadow: 0 0 0 2px rgba(lighten($c-primary, 15%), 0);
+    }
+  }
+
+  .tno-threshold-flash {
+    animation: tno-threshold-flash 0.35s ease-out;
+  }
+
+  // Core's .form-group lays label/content out as a flex row; that squeezes the
+  // 5-button advantage picker against a long label. Stack this one instead.
   .tno-advantage-field {
     flex-direction: column;
     align-items: stretch;
@@ -136,57 +453,151 @@
     }
   }
 
-  .tno-advantage-group {
-    flex-wrap: nowrap;
-    gap: 4px;
-
-    .tno-advantage-option {
-      flex: 1;
-      cursor: pointer;
-      padding: 4px 0;
-      border: 1px solid $c-beige;
-      border-radius: 3px;
-      font-size: var(--font-size-10, 10px);
-      font-weight: bold;
-      text-align: center;
-      white-space: nowrap;
-
-      &.active {
-        background: $c-tan;
-        color: #fff;
-        border-color: $c-tan;
-      }
-    }
-  }
-
-  .tno-idea-field {
-    margin-bottom: $padding-sm;
-  }
-
-  .tno-idea-label {
+  .tno-advantage-field-head {
     display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    font-weight: normal;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: $padding-sm;
+    margin-bottom: $padding-sm;
 
-    input[type='checkbox'] {
+    > label {
       margin: 0;
     }
   }
 
-  .tno-idea-disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
+  // The dice-mechanic consequence of the current roll-type selection, right
+  // next to its label instead of a small italic line easy to miss below the
+  // button row. Updates live as the picker changes.
+  .tno-advantage-effect {
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: rgba($c-tan, 0.1);
+    font-size: var(--font-size-10, 10px);
+    font-weight: bold;
+    color: $c-tan;
+    white-space: nowrap;
   }
 
-  .tno-roll-threshold-preview {
-    margin: $padding-sm 0;
-    font-weight: bold;
-    text-align: center;
+  .tno-advantage-group {
+    flex-wrap: nowrap;
+    gap: 4px;
+    // Core sets flex:3 / min-width:auto on the form-group's content, which
+    // otherwise refuses to shrink below the buttons' long labels and overflows
+    // the dialog. Let it shrink so the five buttons share the width evenly.
+    min-width: 0;
 
-    .tno-threshold-value {
-      font-size: var(--font-size-16, 16px);
+    .tno-advantage-option {
+      display: flex;
+      flex: 1 1 0;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 1px;
+      min-width: 0;
+      padding: 4px 2px;
+      margin: 0;
+      font: inherit;
+      cursor: pointer;
+      background: $c-white;
+      border: 1px solid $c-beige;
+      border-radius: 3px;
+      transition: background 0.12s ease, border-color 0.12s ease;
+
+      .tno-advantage-glyph {
+        font-size: var(--font-size-13, 13px);
+        font-weight: bold;
+        line-height: 1;
+        letter-spacing: -0.03em;
+      }
+
+      .tno-advantage-name {
+        font-size: 8px;
+        line-height: 1.1;
+        text-align: center;
+        overflow-wrap: anywhere;
+        opacity: 0.85;
+      }
+
+      &:hover {
+        border-color: $c-tan;
+      }
+
+      &.active {
+        background: $c-tan;
+        color: $c-white;
+        border-color: $c-tan;
+
+        .tno-advantage-name {
+          opacity: 1;
+        }
+      }
+
+      &:focus-visible {
+        outline: 2px solid $c-tan;
+        outline-offset: 1px;
+      }
+    }
+  }
+
+  .sheet-footer {
+    margin-top: $padding-sm;
+  }
+
+  // The primary action: $c-primary blue so it visually pops off the dialog
+  // instead of blending into the dark background behind the modal, plus a
+  // bigger die icon, so it reads as the one thing left to do once every
+  // option above is set. The redundant "≤ N" was dropped from its label in
+  // favour of a target subtitle, since the number is already the hero of the
+  // result box above.
+  .tno-roll-submit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    width: 100%;
+    min-height: 40px;
+    padding: 6px;
+    background: $c-primary;
+    color: $c-white;
+    border: 1px solid $c-primary;
+    border-radius: 4px;
+    transition: background 0.12s ease;
+
+    &:hover {
+      background: $c-primary-hover;
+      border-color: $c-primary-hover;
+    }
+
+    &:active {
+      background: $c-primary-active;
+      border-color: $c-primary-active;
+    }
+
+    // Overrides Foundry's default focus ring (a warm gold) so the CTA's own
+    // blue identity carries through into its focus state instead of clashing
+    // with it.
+    &:focus-visible {
+      outline: 2px solid lighten($c-primary, 20%);
+      outline-offset: 2px;
+    }
+
+    .tno-roll-submit-main {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: var(--font-size-14, 14px);
+      font-weight: bold;
+
+      i {
+        font-size: var(--font-size-16, 16px);
+      }
+    }
+
+    .tno-roll-submit-echo {
+      font-size: var(--font-size-11, 11px);
+      font-weight: normal;
+      color: rgba($c-white, 0.75);
     }
   }
 }

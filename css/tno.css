@@ -1686,17 +1686,31 @@
 }
 .tno .tno-roll-dialog .tno-roll-subject {
   text-align: center;
-  margin-bottom: 5px;
+  margin-bottom: 10px;
 }
 .tno .tno-roll-dialog .tno-roll-subject-name {
   margin: 0;
   border-bottom: none;
 }
-.tno .tno-roll-dialog .tno-roll-stats {
-  margin-bottom: 5px;
+.tno .tno-roll-dialog .tno-roll-section {
+  margin-bottom: 10px;
+  padding: 5px;
+  border: 1px solid #b5b3a4;
+  border-radius: 4px;
 }
-.tno .tno-roll-dialog .tno-roll-stats .form-group {
+.tno .tno-roll-dialog .tno-roll-section > .form-group:last-child,
+.tno .tno-roll-dialog .tno-roll-section > .tno-roll-detail:last-child {
+  margin-bottom: 0;
+}
+.tno .tno-roll-dialog .tno-roll-section-caption {
+  display: block;
   margin-bottom: 5px;
+  font-size: var(--font-size-10, 10px);
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #444;
+  opacity: 0.7;
 }
 .tno .tno-roll-dialog .tno-roll-detail {
   display: flex;
@@ -1723,13 +1737,27 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 4px;
 }
+.tno .tno-roll-dialog .tno-attribute-col-head {
+  text-align: center;
+  font-size: var(--font-size-10, 10px);
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #444;
+  opacity: 0.75;
+}
 .tno .tno-roll-dialog .tno-attribute-chip {
-  cursor: pointer;
+  margin: 0;
   padding: 3px 0;
   border: 1px solid transparent;
   border-radius: 3px;
   text-align: center;
   line-height: 1.3;
+  font: inherit;
+  cursor: pointer;
+  opacity: 0.5;
+  filter: saturate(0.7);
+  transition: opacity 0.12s ease, transform 0.12s ease;
 }
 .tno .tno-roll-dialog .tno-attribute-chip .tno-attribute-chip-abbr {
   display: block;
@@ -1741,31 +1769,250 @@
   display: block;
   font-size: var(--font-size-12, 12px);
 }
+.tno .tno-roll-dialog .tno-attribute-chip:hover {
+  opacity: 0.85;
+}
 .tno .tno-roll-dialog .tno-attribute-chip.active {
+  opacity: 1;
+  filter: none;
+  transform: scale(1.06);
   box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(0, 0, 0, 0.6);
 }
-.tno .tno-roll-dialog .tno-roll-divider {
-  border: none;
-  border-top: 1px solid #b5b3a4;
-  margin: 10px 0;
+.tno .tno-roll-dialog .tno-attribute-chip:focus-visible {
+  outline: 2px solid #444;
+  outline-offset: 1px;
+}
+.tno .tno-roll-dialog .tno-attribute-selected {
+  margin-top: 2px;
+  text-align: center;
+  font-size: var(--font-size-11, 11px);
+  color: #444;
+  min-height: 1.2em;
+}
+.tno .tno-roll-dialog .tno-skill-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  margin-top: 5px;
+  padding: 4px 6px;
+  border-radius: 3px;
+  background: rgba(68, 68, 68, 0.05);
+}
+.tno .tno-roll-dialog .tno-skill-row .tno-skill-name {
+  font-weight: bold;
+  font-size: var(--font-size-13, 13px);
+}
+.tno .tno-roll-dialog .tno-skill-row .tno-skill-value {
+  min-width: 26px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  text-align: center;
+  font-weight: bold;
+  font-size: var(--font-size-13, 13px);
+  line-height: 1.2;
 }
 .tno .tno-roll-dialog .tno-bonus-stepper-group {
   gap: 10px;
   justify-content: center;
 }
 .tno .tno-roll-dialog .tno-bonus-stepper-group .tno-bonus-stepper {
-  cursor: pointer;
+  width: 34px;
+  line-height: 26px;
+  padding: 0;
+  margin: 0;
+  font: inherit;
   font-weight: bold;
-  width: 28px;
-  line-height: 22px;
   text-align: center;
+  cursor: pointer;
+  background: #fff;
   border: 1px solid #b5b3a4;
   border-radius: 3px;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+.tno .tno-roll-dialog .tno-bonus-stepper-group .tno-bonus-stepper:hover:not(:disabled) {
+  background: #c9c7b8;
+  border-color: #444;
+}
+.tno .tno-roll-dialog .tno-bonus-stepper-group .tno-bonus-stepper:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.tno .tno-roll-dialog .tno-bonus-stepper-group .tno-bonus-stepper:focus-visible {
+  outline: 2px solid #444;
+  outline-offset: 1px;
 }
 .tno .tno-roll-dialog .tno-bonus-stepper-group .tno-bonus-value {
-  min-width: 32px;
+  min-width: 44px;
   text-align: center;
   font-weight: bold;
+  font-size: var(--font-size-16, 16px);
+  cursor: pointer;
+  border-radius: 3px;
+}
+.tno .tno-roll-dialog .tno-bonus-stepper-group .tno-bonus-value.tno-bonus-positive {
+  color: #2e7d32;
+}
+.tno .tno-roll-dialog .tno-bonus-stepper-group .tno-bonus-value.tno-bonus-negative {
+  color: #c62828;
+}
+.tno .tno-roll-dialog .tno-bonus-stepper-group .tno-bonus-value:focus-visible {
+  outline: 2px solid #444;
+  outline-offset: 1px;
+}
+.tno .tno-roll-dialog .tno-idea-field {
+  margin-bottom: 0;
+}
+.tno .tno-roll-dialog label.tno-idea-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 5px;
+  cursor: pointer;
+  font-weight: normal;
+  font-size: var(--font-size-11, 11px);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+.tno .tno-roll-dialog label.tno-idea-toggle input[type=checkbox] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  clip: rect(0 0 0 0);
+  overflow: hidden;
+}
+.tno .tno-roll-dialog label.tno-idea-toggle .tno-idea-checkbox {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  border: 1px solid #b5b3a4;
+  border-radius: 3px;
+  background: #fff;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+.tno .tno-roll-dialog label.tno-idea-toggle .tno-idea-checkbox i {
+  font-size: 8px;
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.tno .tno-roll-dialog label.tno-idea-toggle .tno-idea-icon {
+  font-size: var(--font-size-11, 11px);
+  color: #b5b3a4;
+  transition: color 0.12s ease;
+}
+.tno .tno-roll-dialog label.tno-idea-toggle .tno-idea-value {
+  color: #444;
+  opacity: 0.85;
+}
+.tno .tno-roll-dialog label.tno-idea-toggle .tno-idea-reserve {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  margin-left: auto;
+}
+.tno .tno-roll-dialog label.tno-idea-toggle .tno-idea-pips {
+  display: flex;
+  gap: 2px;
+}
+.tno .tno-roll-dialog label.tno-idea-toggle .tno-idea-pip {
+  width: 6px;
+  height: 8px;
+  border-radius: 1px;
+  background: rgba(68, 68, 68, 0.15);
+  border: 1px solid rgba(68, 68, 68, 0.3);
+}
+.tno .tno-roll-dialog label.tno-idea-toggle .tno-idea-pip.filled {
+  background: #d9b85a;
+  border-color: #d9b85a;
+}
+.tno .tno-roll-dialog label.tno-idea-toggle .tno-idea-reserve-text {
+  font-size: var(--font-size-10, 10px);
+  color: #444;
+  opacity: 0.8;
+  white-space: nowrap;
+}
+.tno .tno-roll-dialog label.tno-idea-toggle:hover {
+  background: rgba(68, 68, 68, 0.06);
+}
+.tno .tno-roll-dialog label.tno-idea-toggle input:focus-visible ~ .tno-idea-checkbox {
+  outline: 2px solid #444;
+  outline-offset: 2px;
+}
+.tno .tno-roll-dialog label.tno-idea-toggle.active {
+  background: rgba(217, 184, 90, 0.15);
+}
+.tno .tno-roll-dialog label.tno-idea-toggle.active .tno-idea-checkbox {
+  background: #d9b85a;
+  border-color: #d9b85a;
+}
+.tno .tno-roll-dialog label.tno-idea-toggle.active .tno-idea-checkbox i {
+  opacity: 1;
+  color: #2e2413;
+}
+.tno .tno-roll-dialog label.tno-idea-toggle.active .tno-idea-icon {
+  color: #d9b85a;
+}
+.tno .tno-roll-dialog label.tno-idea-toggle.active .tno-idea-value {
+  color: #2e2413;
+  opacity: 1;
+}
+.tno .tno-roll-dialog .tno-idea-disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.tno .tno-roll-dialog .tno-idea-disabled:hover {
+  background: transparent;
+}
+.tno .tno-roll-dialog .tno-roll-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 10px;
+  padding: 5px 10px;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: rgba(68, 68, 68, 0.06);
+  text-align: center;
+}
+.tno .tno-roll-dialog .tno-roll-result-label {
+  font-size: var(--font-size-10, 10px);
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #444;
+}
+.tno .tno-roll-dialog .tno-roll-result-value {
+  font-size: var(--font-size-28, 28px);
+  font-weight: bold;
+  line-height: 1.1;
+}
+.tno .tno-roll-dialog .tno-roll-breakdown {
+  font-size: var(--font-size-11, 11px);
+  color: #444;
+  opacity: 0.85;
+  min-height: 1.1em;
+}
+@keyframes tno-threshold-flash {
+  0% {
+    box-shadow: 0 0 0 2px rgba(123.5, 161.4326923077, 255, 0.9);
+  }
+  100% {
+    box-shadow: 0 0 0 2px rgba(123.5, 161.4326923077, 255, 0);
+  }
+}
+.tno .tno-roll-dialog .tno-threshold-flash {
+  animation: tno-threshold-flash 0.35s ease-out;
 }
 .tno .tno-roll-dialog .tno-advantage-field {
   flex-direction: column;
@@ -1775,50 +2022,119 @@
 .tno .tno-roll-dialog .tno-advantage-field > label {
   flex: none;
 }
+.tno .tno-roll-dialog .tno-advantage-field-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 5px;
+  margin-bottom: 5px;
+}
+.tno .tno-roll-dialog .tno-advantage-field-head > label {
+  margin: 0;
+}
+.tno .tno-roll-dialog .tno-advantage-effect {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(68, 68, 68, 0.1);
+  font-size: var(--font-size-10, 10px);
+  font-weight: bold;
+  color: #444;
+  white-space: nowrap;
+}
 .tno .tno-roll-dialog .tno-advantage-group {
   flex-wrap: nowrap;
   gap: 4px;
+  min-width: 0;
 }
 .tno .tno-roll-dialog .tno-advantage-group .tno-advantage-option {
-  flex: 1;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1px;
+  min-width: 0;
+  padding: 4px 2px;
+  margin: 0;
+  font: inherit;
   cursor: pointer;
-  padding: 4px 0;
+  background: #fff;
   border: 1px solid #b5b3a4;
   border-radius: 3px;
-  font-size: var(--font-size-10, 10px);
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+.tno .tno-roll-dialog .tno-advantage-group .tno-advantage-option .tno-advantage-glyph {
+  font-size: var(--font-size-13, 13px);
   font-weight: bold;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.tno .tno-roll-dialog .tno-advantage-group .tno-advantage-option .tno-advantage-name {
+  font-size: 8px;
+  line-height: 1.1;
   text-align: center;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  opacity: 0.85;
+}
+.tno .tno-roll-dialog .tno-advantage-group .tno-advantage-option:hover {
+  border-color: #444;
 }
 .tno .tno-roll-dialog .tno-advantage-group .tno-advantage-option.active {
   background: #444;
   color: #fff;
   border-color: #444;
 }
-.tno .tno-roll-dialog .tno-idea-field {
-  margin-bottom: 5px;
+.tno .tno-roll-dialog .tno-advantage-group .tno-advantage-option.active .tno-advantage-name {
+  opacity: 1;
 }
-.tno .tno-roll-dialog .tno-idea-label {
+.tno .tno-roll-dialog .tno-advantage-group .tno-advantage-option:focus-visible {
+  outline: 2px solid #444;
+  outline-offset: 1px;
+}
+.tno .tno-roll-dialog .sheet-footer {
+  margin-top: 5px;
+}
+.tno .tno-roll-dialog .tno-roll-submit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+  min-height: 40px;
+  padding: 6px;
+  background: #2f6bff;
+  color: #fff;
+  border: 1px solid #2f6bff;
+  border-radius: 4px;
+  transition: background 0.12s ease;
+}
+.tno .tno-roll-dialog .tno-roll-submit:hover {
+  background: #255ae6;
+  border-color: #255ae6;
+}
+.tno .tno-roll-dialog .tno-roll-submit:active {
+  background: #1947c8;
+  border-color: #1947c8;
+}
+.tno .tno-roll-dialog .tno-roll-submit:focus-visible {
+  outline: 2px solid rgb(149, 179.5769230769, 255);
+  outline-offset: 2px;
+}
+.tno .tno-roll-dialog .tno-roll-submit .tno-roll-submit-main {
   display: flex;
   align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  font-weight: normal;
-}
-.tno .tno-roll-dialog .tno-idea-label input[type=checkbox] {
-  margin: 0;
-}
-.tno .tno-roll-dialog .tno-idea-disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-.tno .tno-roll-dialog .tno-roll-threshold-preview {
-  margin: 5px 0;
+  gap: 7px;
+  font-size: var(--font-size-14, 14px);
   font-weight: bold;
-  text-align: center;
 }
-.tno .tno-roll-dialog .tno-roll-threshold-preview .tno-threshold-value {
+.tno .tno-roll-dialog .tno-roll-submit .tno-roll-submit-main i {
   font-size: var(--font-size-16, 16px);
+}
+.tno .tno-roll-dialog .tno-roll-submit .tno-roll-submit-echo {
+  font-size: var(--font-size-11, 11px);
+  font-weight: normal;
+  color: rgba(255, 255, 255, 0.75);
 }
 
 /* Chat message styles, rendered outside of any tno-classed sheet */

@@ -3,25 +3,35 @@
     <h2 class="tno-roll-subject-name">{{subject}}</h2>
   </div>
 
-  <div class="tno-roll-stats">
+  {{!-- ① Base: the attribute (+ skill / free value / second attribute) that
+        sums into the threshold. In fixed mode it's a single derived value. --}}
+  <section class="tno-roll-section tno-roll-base">
+    <span class="tno-roll-section-caption">{{localize "TNO.Roll.BaseCaption"}}</span>
+
     {{#if isSkillMode}}
     <div class="form-group tno-attribute-field">
       <label>{{localize "TNO.Roll.ChooseAttribute"}}</label>
-      <div class="tno-attribute-chip-grid">
+      <div class="tno-attribute-chip-grid" role="group" aria-label="{{localize 'TNO.Roll.ChooseAttribute'}}">
+        <span class="tno-attribute-col-head" aria-hidden="true">{{localize "TNO.AttributeCategory.Physical"}}</span>
+        <span class="tno-attribute-col-head" aria-hidden="true">{{localize "TNO.AttributeCategory.Social"}}</span>
+        <span class="tno-attribute-col-head" aria-hidden="true">{{localize "TNO.AttributeCategory.Mental"}}</span>
         {{#each attributeGrid as |row|}}
         {{#each row as |chip|}}
-        <a class="tno-attribute-chip {{#if chip.active}}active{{/if}}" data-key="{{chip.key}}" title="{{chip.label}}" style="background:{{chip.cellBg}}; color:{{chip.textColor}};">
+        <button type="button" class="tno-attribute-chip {{#if chip.active}}active{{/if}}" data-key="{{chip.key}}"
+          aria-pressed="{{#if chip.active}}true{{else}}false{{/if}}"
+          title="{{chip.label}}" style="background:{{chip.cellBg}}; color:{{chip.textColor}};">
           <span class="tno-attribute-chip-abbr">{{chip.abbr}}</span>
           <span class="tno-attribute-chip-value">{{chip.value}}</span>
-        </a>
+        </button>
         {{/each}}
         {{/each}}
       </div>
       <input type="hidden" name="attributeA" value="{{attributeA}}"/>
+      <div class="tno-attribute-selected"><span class="tno-attribute-selected-name">{{selectedAttributeLabel}}</span></div>
     </div>
-    <div class="tno-roll-detail">
-      <span class="tno-roll-detail-label">{{skillLabel}}</span>
-      <span class="tno-roll-detail-value">{{skillValue}}</span>
+    <div class="tno-skill-row">
+      <span class="tno-skill-name">{{skillLabel}}</span>
+      <span class="tno-skill-value" style="background:{{skillCellBg}}; color:{{skillTextColor}};">{{skillValue}}</span>
     </div>
     {{else if isFixedMode}}
     <div class="tno-roll-detail">
@@ -56,51 +66,74 @@
     </div>
     {{/if}}
     {{/if}}
+  </section>
+
+  {{!-- ② Modifiers: everything that adjusts the threshold on top of the base
+        (situational bonus/malus, and the "Idee haben" pre-edge). --}}
+  {{#if hasModifiers}}
+  <section class="tno-roll-section tno-roll-modifiers">
+    <span class="tno-roll-section-caption">{{localize "TNO.Roll.ModifiersCaption"}}</span>
+
+    {{#unless isFixedMode}}
+    <div class="form-group tno-bonus-field">
+      <label>{{localize "TNO.Roll.Bonus"}}</label>
+      <div class="tno-bonus-stepper-group flexrow flex-center">
+        <button type="button" class="tno-bonus-stepper" data-action="decrement" aria-label="-3" {{#if bonusAtMin}}disabled{{/if}}>−3</button>
+        <span class="tno-bonus-value {{bonusSignClass}}" role="button" tabindex="0" title="{{localize 'TNO.Roll.BonusReset'}}" aria-label="{{localize 'TNO.Roll.Bonus'}}">{{bonusDisplay}}</span>
+        <button type="button" class="tno-bonus-stepper" data-action="increment" aria-label="+3" {{#if bonusAtMax}}disabled{{/if}}>+3</button>
+      </div>
+      <input type="hidden" name="bonus" value="{{bonus}}"/>
+    </div>
+    {{/unless}}
+
+    {{#if hasIdeaOption}}
+    <div class="form-group tno-idea-field">
+      <label class="tno-idea-toggle {{#if useIdea}}active{{/if}} {{#if ideaDisabled}}tno-idea-disabled{{/if}}" title="{{#if ideaDisabled}}{{localize 'TNO.Notify.NoReserve'}}{{else}}{{localize 'TNO.DerivedHint.SolveIdea'}} — {{localize 'TNO.Notify.ProblemSolvingGate'}}{{/if}}">
+        <input type="checkbox" name="useIdea" {{#if useIdea}}checked{{/if}} {{#if ideaDisabled}}disabled{{/if}}/>
+        {{!-- Redundant on/off cue #1: a literal checkbox square with a
+              checkmark, since the border/icon-colour shift alone read as too
+              subtle to notice at a glance. --}}
+        <span class="tno-idea-checkbox" aria-hidden="true"><i class="fas fa-check"></i></span>
+        <i class="fas fa-lightbulb tno-idea-icon" aria-hidden="true"></i>
+        <span class="tno-idea-text">{{localize "TNO.Roll.IdeaToggle"}}</span>
+        <span class="tno-idea-value">+{{solveIdeaValue}}</span>
+        <span class="tno-idea-reserve" title="{{localize 'TNO.Roll.IdeaReserve'}} {{solveReserve}}/{{solveReserveMax}}">
+          {{#if hasIdeaPips}}
+          <span class="tno-idea-pips" aria-hidden="true">
+            {{#each ideaPips}}<span class="tno-idea-pip {{#if this.filled}}filled{{/if}}"></span>{{/each}}
+          </span>
+          {{else}}
+          <span class="tno-idea-reserve-text">{{localize "TNO.Roll.IdeaReserve"}} {{solveReserve}}/{{solveReserveMax}}</span>
+          {{/if}}
+        </span>
+      </label>
+    </div>
+    {{/if}}
+  </section>
+  {{/if}}
+
+  {{!-- ③ Result: the threshold the counting die must land at or under, with a
+        live breakdown of the parts that produced it. The hero of the dialog. --}}
+  <div class="tno-roll-result tno-threshold-box">
+    <span class="tno-roll-result-label">{{localize "TNO.Roll.Threshold"}}</span>
+    <span class="tno-roll-result-value">≤ <span class="tno-threshold-value">{{threshold}}</span></span>
+    <span class="tno-roll-breakdown">{{breakdown}}</span>
   </div>
 
+  {{!-- ④ Roll type: changes which dice are rolled, not the threshold. --}}
   {{#unless isFixedMode}}
-  <hr class="tno-roll-divider"/>
-
-  <div class="form-group">
-    <label>{{localize "TNO.Roll.Bonus"}}</label>
-    <div class="tno-bonus-stepper-group flexrow flex-center">
-      <a class="tno-bonus-stepper" data-action="decrement">−</a>
-      <span class="tno-bonus-value">{{bonus}}</span>
-      <a class="tno-bonus-stepper" data-action="increment">+</a>
-    </div>
-    <input type="hidden" name="bonus" value="{{bonus}}"/>
-  </div>
-
-  <div class="form-group tno-advantage-field">
-    <label>{{localize "TNO.Roll.Advantage"}}</label>
-    <div class="tno-advantage-group flexrow flex-center">
-      {{#each advantageOptions as |option|}}
-      <a class="tno-advantage-option {{#ifEquals option.value ../advantage}}active{{/ifEquals}}" data-value="{{option.value}}" title="{{#if option.isDefault}}{{localize 'TNO.Roll.AdvantageDefaultHint' label=option.label}}{{else}}{{option.label}}{{/if}}">{{option.abbr}}</a>
-      {{/each}}
-    </div>
-    <input type="hidden" name="advantage" value="{{advantage}}"/>
-  </div>
+  {{> "systems/tno/templates/apps/parts/advantage-picker.hbs"}}
   {{else}}
   <input type="hidden" name="bonus" value="{{bonus}}"/>
   <input type="hidden" name="advantage" value="{{advantage}}"/>
   {{/unless}}
 
-  {{#if hasIdeaOption}}
-  <div class="form-group tno-idea-field">
-    <label class="tno-idea-label {{#if ideaDisabled}}tno-idea-disabled{{/if}}" title="{{#if ideaDisabled}}{{localize 'TNO.Notify.NoReserve'}}{{else}}{{localize 'TNO.DerivedHint.SolveIdea'}} — {{localize 'TNO.Notify.ProblemSolvingGate'}}{{/if}}">
-      <input type="checkbox" name="useIdea" {{#if useIdea}}checked{{/if}} {{#if ideaDisabled}}disabled{{/if}}/>
-      {{localize "TNO.Roll.IdeaToggle"}} (+{{solveIdeaValue}})
-    </label>
-  </div>
-  {{/if}}
-
-  <hr class="tno-roll-divider"/>
-
-  <div class="tno-roll-threshold-preview">
-    {{localize "TNO.Roll.Threshold"}}: &lt;= <span class="tno-threshold-value">{{threshold}}</span>
-  </div>
-
+  {{!-- ⑤ Commit — the dialog's primary action, styled to stand out from
+        every secondary control above it. --}}
   <footer class="sheet-footer flexrow">
-    <button type="submit"><i class="fas fa-dice-d20"></i> {{localize "TNO.Roll.Submit"}}</button>
+    <button type="submit" class="tno-roll-submit">
+      <span class="tno-roll-submit-main"><i class="fas fa-dice-d20"></i> {{localize "TNO.Roll.Submit"}}</span>
+      <span class="tno-roll-submit-echo">{{targetLabel}} ≤ {{threshold}}</span>
+    </button>
   </footer>
 </form>

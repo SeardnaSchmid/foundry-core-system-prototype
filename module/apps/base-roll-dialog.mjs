@@ -1,4 +1,5 @@
-import { TNO_ADVANTAGE, TNO_ADVANTAGE_ABBR, rollTnoBase } from '../helpers/dice.mjs';
+import { TNO_ADVANTAGE, describeAdvantage, rollTnoBase } from '../helpers/dice.mjs';
+import { advantageOptions, bindAdvantagePicker } from './roll-dialog-shared.mjs';
 
 /**
  * A minimal dialog for rolling the bare Tno dice mechanic ("Basiswürfel")
@@ -19,7 +20,7 @@ export class TnoBaseRollDialog extends FormApplication {
       id: 'tno-base-roll-dialog',
       classes: ['tno', 'sheet'],
       template: 'systems/tno/templates/apps/base-roll-dialog.hbs',
-      width: 280,
+      width: 320,
       closeOnSubmit: true,
     });
   }
@@ -31,16 +32,10 @@ export class TnoBaseRollDialog extends FormApplication {
 
   /** @override */
   getData() {
-    const advantageOptions = Object.entries(TNO_ADVANTAGE).map(([key, value]) => ({
-      value,
-      label: game.i18n.localize(`TNO.Advantage.${key.charAt(0).toUpperCase()}${key.slice(1)}`),
-      abbr: TNO_ADVANTAGE_ABBR[value],
-      isDefault: value === TNO_ADVANTAGE.none,
-    }));
-
     return {
       ...this.object,
-      advantageOptions,
+      advantageOptions: advantageOptions(),
+      advantageConsequence: describeAdvantage(this.object.advantage),
       subject: game.i18n.localize('TNO.Roll.BaseDiceTitle'),
     };
   }
@@ -48,13 +43,7 @@ export class TnoBaseRollDialog extends FormApplication {
   /** @override */
   activateListeners(html) {
     super.activateListeners(html);
-
-    html.on('click', '.tno-advantage-option', (ev) => {
-      const value = ev.currentTarget.dataset.value;
-      html.find('input[name="advantage"]').val(value);
-      html.find('.tno-advantage-option').removeClass('active');
-      html.find(`.tno-advantage-option[data-value="${value}"]`).addClass('active');
-    });
+    bindAdvantagePicker(html);
   }
 
   /** @override */

@@ -15,3 +15,19 @@ $c-ready: #1f6b3a;
 // arrow. Deliberately a warm gold rather than green so it reads as "level up!"
 // and never collides with the heatmap's green = high-magnitude colouring.
 $c-advance: #b8860b;
+
+// The interactive "commit to this action" accent — the roll dialog's main
+// CTA button only. A clear blue, distinct from both $c-advance's "level up"
+// gold and $c-ready's "affordable" green, so rolling the dice reads as the
+// one primary action and doesn't blend into stat/progression colours.
+$c-primary: #2f6bff;
+$c-primary-hover: #255ae6;
+$c-primary-active: #1947c8;
+
+// The "spend an optional resource" accent — the "Idee haben" toggle once
+// armed. Warm gold like $c-advance (both read as "bonus"), but a lighter/
+// softer tint so it doesn't compete with the primary blue CTA or get
+// mistaken for the attribute-advance colour.
+$c-idea: #e8c76a;
+$c-idea-hover: #d9b85a;
+$c-idea-text: #2e2413;
