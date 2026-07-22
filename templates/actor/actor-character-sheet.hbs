@@ -227,7 +227,13 @@
                     {{/if}}
                   </span>
                   <span class="skill-level"{{#if skill.levelBg}} style="background:{{skill.levelBg}}; color:{{skill.levelColor}};"{{/if}}>{{skill.rank}}</span>
-                  <span class="skill-xp{{#if skill.xpReady}} ready{{/if}}">{{skill.xp}}/{{skill.xpCost}}</span>
+                  {{!-- XP-toward-next-rank bar, mirroring the attribute heatmap's
+                  xp bar: fill/color communicate progress at a glance, exact
+                  figures live in the tooltip, and clicking it opens the same
+                  advance dialog as the arrow button beside it. --}}
+                  <a class="skill-xp-bar{{#if skill.xpReady}} ready{{/if}}" data-skill="{{skill.key}}" title="{{#if skill.xpAtMax}}{{localize 'TNO.XpMaxBadge'}}{{else}}{{skill.xp}}/{{skill.xpCost}} xp{{/if}} — {{localize 'TNO.SkillAdvance'}}">
+                    <span class="skill-xp-bar-fill" style="width:{{skill.xpPercent}}%;"></span>
+                  </a>
                 </span>
                 <a class="skill-advance-button{{#if skill.xpReady}} ready{{/if}}" data-skill="{{skill.key}}" title="{{localize 'TNO.SkillAdvance'}}">
                   <i class="fas fa-arrow-up"></i>

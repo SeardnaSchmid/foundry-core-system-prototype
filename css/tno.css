@@ -1407,17 +1407,32 @@
   color: #191813;
   background: rgba(181, 179, 164, 0.35);
 }
-.tno .skill-xp {
+.tno .skill-xp-bar {
   flex: none;
-  min-width: 2ch;
-  font-size: var(--font-size-11, 11px);
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  color: #444;
+  position: relative;
+  width: 32px;
+  height: 5px;
+  border-radius: 3px;
+  overflow: hidden;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.12);
 }
-.tno .skill-xp.ready {
-  color: #b8860b;
-  font-weight: bold;
+.tno .skill-xp-bar::before {
+  content: "";
+  position: absolute;
+  inset: -4px 0;
+}
+.tno .skill-xp-bar.ready {
+  height: 6px;
+}
+.tno .skill-xp-bar.ready .skill-xp-bar-fill {
+  background: #b8860b;
+}
+.tno .skill-xp-bar-fill {
+  display: block;
+  height: 100%;
+  background: rgba(68, 68, 68, 0.6);
+  transition: width 0.15s ease;
 }
 .tno .skill-advance-button {
   flex: none;

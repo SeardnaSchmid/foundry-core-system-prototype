@@ -260,7 +260,11 @@ export class TnoActorSheet extends ActorSheet {
           const xp = skills[key]?.xp ?? 0;
           // XP progress toward the next rank: advancing to rank N costs 3*N XP;
           // "ready" flags the advance arrow green once the step is affordable.
+          // Mirrors the attribute heatmap's XP bar (same rank cap, same
+          // ready/at-max semantics) so both grids read the same way.
           const xpCost = 3 * (rank + 1);
+          const xpAtMax = rank >= 10;
+          const xpPercent = xpAtMax ? 100 : Math.min(100, Math.round((xp / xpCost) * 100));
           // Untrained skills (rank 0) stay in the neutral default badge
           // color rather than the heatmap's lowest tone, so a group full of
           // untrained skills doesn't drown out the ones actually worth
@@ -287,6 +291,8 @@ export class TnoActorSheet extends ActorSheet {
             xp,
             xpCost,
             xpReady: rank < 10 && xp >= xpCost,
+            xpAtMax,
+            xpPercent,
             starter: skill.starter ?? false,
             custom: skill.custom,
             levelBg: dc?.bg ?? null,
@@ -461,8 +467,10 @@ export class TnoActorSheet extends ActorSheet {
       this._resetTemp(ev.currentTarget.dataset.key);
     });
 
-    // Open the skill advancement dialog.
-    html.on('click', '.skill-advance-button', (ev) => {
+    // Open the skill advancement dialog, either from the dedicated arrow
+    // button or by clicking the skill's XP bar directly (mirroring the
+    // attribute heatmap, where the XP bar itself is the advance click target).
+    html.on('click', '.skill-advance-button, .skill-xp-bar', (ev) => {
       ev.preventDefault();
       const key = ev.currentTarget.dataset.skill;
       const skill = this.actor.system.skills?.[key] ?? {};

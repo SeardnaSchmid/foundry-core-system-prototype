@@ -778,20 +778,43 @@ button:focus-visible {
   background: rgba($c-beige, 0.35);
 }
 
-.skill-xp {
+// XP-toward-next-rank bar, the skill-list counterpart to the attribute
+// heatmap's .heatmap-xp-bar: fill communicates progress at a glance instead
+// of a bare "12/18" fraction, and the bar itself is a click target for the
+// advance dialog (see .skill-advance-button, still kept alongside it as a
+// second, more precise target).
+.skill-xp-bar {
   flex: none;
-  min-width: 2ch;
-  font-size: var(--font-size-11, 11px);
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  color: $c-tan;
+  position: relative;
+  width: 32px;
+  height: 5px;
+  border-radius: 3px;
+  overflow: hidden;
+  cursor: pointer;
+  background: rgba($c-black, 0.12);
 
-  // Lit up once the skill has banked enough XP to buy its next rank,
-  // matching the .heatmap-xp-bar/.skill-advance-button "ready" advance gold.
-  &.ready {
-    color: $c-advance;
-    font-weight: bold;
+  // Widen the clickable strip past its visible height, same trick as
+  // .heatmap-xp-bar, so the advance action stays easy to hit on a thin bar.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -4px 0;
   }
+
+  &.ready {
+    height: 6px;
+  }
+
+  &.ready .skill-xp-bar-fill {
+    background: $c-advance;
+  }
+}
+
+.skill-xp-bar-fill {
+  display: block;
+  height: 100%;
+  background: rgba($c-tan, 0.6);
+  transition: width 0.15s ease;
 }
 
 .skill-advance-button {
