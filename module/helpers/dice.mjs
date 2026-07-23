@@ -16,7 +16,7 @@ export const TNO_ADVANTAGE = {
  * @type {Object<number, string>}
  */
 export const TNO_ADVANTAGE_ABBR = {
-  [TNO_ADVANTAGE.strongDisadvantage]: 'DIS+',
+  [TNO_ADVANTAGE.strongDisadvantage]: 'DIS-',
   [TNO_ADVANTAGE.disadvantage]: 'DIS',
   [TNO_ADVANTAGE.none]: 'STD',
   [TNO_ADVANTAGE.advantage]: 'ADV',
