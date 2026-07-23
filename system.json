@@ -20,7 +20,7 @@
       "flags": {}
     }
   ],
-  "version": "0.22.2",
+  "version": "0.22.3",
   "compatibility": {
     "minimum": "12",
     "verified": "14"
@@ -48,7 +48,7 @@
     }
   ],
   "manifest": "https://github.com/SeardnaSchmid/foundry-core-system-prototype/releases/latest/download/system.json",
-  "download": "https://github.com/SeardnaSchmid/foundry-core-system-prototype/releases/download/v0.22.2/system.zip",
+  "download": "https://github.com/SeardnaSchmid/foundry-core-system-prototype/releases/download/v0.22.3/system.zip",
   "background": "systems/tno/assets/anvil-impact.png",
   "gridDistance": 5,
   "gridUnits": "ft",
