@@ -2117,6 +2117,9 @@
   background: #1947c8;
   border-color: #1947c8;
 }
+.tno .tno-roll-dialog .tno-roll-submit:focus {
+  box-shadow: none;
+}
 .tno .tno-roll-dialog .tno-roll-submit:focus-visible {
   outline: 2px solid rgb(149, 179.5769230769, 255);
   outline-offset: 2px;

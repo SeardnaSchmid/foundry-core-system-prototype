@@ -574,6 +574,15 @@ $c-roll-negative: #c62828;
       border-color: $c-primary-active;
     }
 
+    // Foundry glows buttons with a warm-gold box-shadow on :focus, which fires
+    // as soon as the dialog auto-focuses this CTA on open — showing an unwanted
+    // gold ring before the user has done anything. Kill that shadow so the
+    // button stays clean at rest; keyboard focus still gets a blue outline via
+    // :focus-visible below.
+    &:focus {
+      box-shadow: none;
+    }
+
     // Overrides Foundry's default focus ring (a warm gold) so the CTA's own
     // blue identity carries through into its focus state instead of clashing
     // with it.
