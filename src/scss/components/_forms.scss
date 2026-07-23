@@ -535,9 +535,15 @@ $portrait-frame-cut: 14% 0%, 86% 0%, 100% 9%, 100% 100%, 0% 100%, 0% 9%;
   width: 40px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  // flex-start (not center) pins each item's left edge flush against the
+  // sheet's edge, so hover growth below only extends rightward instead of
+  // also spilling left back over the sheet.
+  align-items: flex-start;
   gap: 6px;
-  padding: 10px 0;
+  // Left padding keeps the resting icon at the same 5px inset it had under
+  // the old center alignment; no right padding since hover growth below is
+  // meant to spill past the rail's right edge.
+  padding: 10px 0 10px 5px;
   border: 1px solid $c-beige;
   border-left: none;
   border-radius: 0 6px 6px 0;
