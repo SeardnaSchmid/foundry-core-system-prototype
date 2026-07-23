@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.22.4](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.22.3...v0.22.4) (2026-07-23)
+
 ## [0.22.3](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.22.2...v0.22.3) (2026-07-23)
 
 

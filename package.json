@@ -1,6 +1,6 @@
 {
   "name": "tno",
-  "version": "0.22.3",
+  "version": "0.22.4",
   "description": "SCSS compiler for the Trans-Neptunian Objects Foundry VTT system",
   "scripts": {
     "build": "sass src/scss/tno.scss css/tno.css --style=expanded --no-source-map",
