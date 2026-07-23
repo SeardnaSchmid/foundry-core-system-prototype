@@ -24,6 +24,20 @@ export const TNO_ADVANTAGE_ABBR = {
 };
 
 /**
+ * Language-neutral symbols for each advantage level, shown as the prominent
+ * glyph on the roll dialog's picker buttons above the label, so the roll type
+ * reads at a glance.
+ * @type {Object<number, string>}
+ */
+export const TNO_ADVANTAGE_GLYPH = {
+  [TNO_ADVANTAGE.strongDisadvantage]: '−−',
+  [TNO_ADVANTAGE.disadvantage]: '−',
+  [TNO_ADVANTAGE.none]: '●',
+  [TNO_ADVANTAGE.advantage]: '+',
+  [TNO_ADVANTAGE.strongAdvantage]: '++',
+};
+
+/**
  * A short, localized description of what an advantage level actually rolls
  * (die count and which die counts), for the roll dialog's live "roll type"
  * consequence line. Mirrors the rules encoded in {@link dieCountFor} and

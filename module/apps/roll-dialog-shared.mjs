@@ -1,16 +1,16 @@
-import { TNO_ADVANTAGE, TNO_ADVANTAGE_ABBR, describeAdvantage } from '../helpers/dice.mjs';
+import { TNO_ADVANTAGE, TNO_ADVANTAGE_GLYPH, describeAdvantage } from '../helpers/dice.mjs';
 
 /**
  * Build the advantage/disadvantage option list for the roll-type picker,
  * shared by both the full roll dialog and the bare base-dice dialog so the
  * two never drift apart.
- * @returns {Array<{value: number, label: string, abbr: string, isDefault: boolean}>}
+ * @returns {Array<{value: number, label: string, glyph: string, isDefault: boolean}>}
  */
 export function advantageOptions() {
   return Object.entries(TNO_ADVANTAGE).map(([key, value]) => ({
     value,
     label: game.i18n.localize(`TNO.Advantage.${key.charAt(0).toUpperCase()}${key.slice(1)}`),
-    abbr: TNO_ADVANTAGE_ABBR[value],
+    glyph: TNO_ADVANTAGE_GLYPH[value],
     isDefault: value === TNO_ADVANTAGE.none,
   }));
 }

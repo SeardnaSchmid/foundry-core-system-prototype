@@ -697,18 +697,29 @@
   background: rgba(31, 107, 58, 0.12);
 }
 .tno .tno-advance-dialog .advance-actions .advance-buy:disabled {
-  opacity: 0.5;
+  opacity: 0.75;
+  border-color: rgba(181, 179, 164, 0.6);
+}
+.tno .tno-advance-dialog .advance-hint {
+  margin: -2px 0 0;
+  font-size: var(--font-size-10, 10px);
+  color: #444;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 .tno .tno-advance-dialog .advance-correction {
   padding-top: 8px;
   border-top: 1px solid rgba(181, 179, 164, 0.5);
 }
-.tno .tno-advance-dialog .advance-correction-label {
-  margin: 0 0 5px;
+.tno .tno-advance-dialog .advance-correction > summary {
+  cursor: pointer;
   font-size: var(--font-size-10, 10px);
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: #444;
+}
+.tno .tno-advance-dialog .advance-correction[open] > summary {
+  margin-bottom: 5px;
 }
 .tno .tno-advance-dialog .advance-correction .flexrow {
   gap: 8px;
@@ -1755,8 +1766,8 @@
   line-height: 1.3;
   font: inherit;
   cursor: pointer;
-  opacity: 0.5;
-  filter: saturate(0.7);
+  opacity: 0.45;
+  filter: saturate(0.65);
   transition: opacity 0.12s ease, transform 0.12s ease;
 }
 .tno .tno-roll-dialog .tno-attribute-chip .tno-attribute-chip-abbr {
@@ -1775,8 +1786,8 @@
 .tno .tno-roll-dialog .tno-attribute-chip.active {
   opacity: 1;
   filter: none;
-  transform: scale(1.06);
-  box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(0, 0, 0, 0.6);
+  transform: scale(1.1);
+  box-shadow: 0 0 0 2px #fff, 0 0 0 5px rgba(0, 0, 0, 0.85), 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 .tno .tno-roll-dialog .tno-attribute-chip:focus-visible {
   outline: 2px solid #444;
@@ -2063,12 +2074,11 @@
   border-radius: 3px;
   transition: background 0.12s ease, border-color 0.12s ease;
 }
-.tno .tno-roll-dialog .tno-advantage-group .tno-advantage-option .tno-advantage-abbr {
-  font-size: var(--font-size-12, 12px);
+.tno .tno-roll-dialog .tno-advantage-group .tno-advantage-option .tno-advantage-glyph {
+  font-size: var(--font-size-13, 13px);
   font-weight: bold;
   line-height: 1;
   letter-spacing: -0.03em;
-  white-space: nowrap;
 }
 .tno .tno-roll-dialog .tno-advantage-group .tno-advantage-option .tno-advantage-name {
   font-size: 8px;
@@ -2084,9 +2094,14 @@
   background: #444;
   color: #fff;
   border-color: #444;
+  outline: none;
+  box-shadow: none;
 }
 .tno .tno-roll-dialog .tno-advantage-group .tno-advantage-option.active .tno-advantage-name {
   opacity: 1;
+}
+.tno .tno-roll-dialog .tno-advantage-group .tno-advantage-option:focus {
+  box-shadow: none;
 }
 .tno .tno-roll-dialog .tno-advantage-group .tno-advantage-option:focus-visible {
   outline: 2px solid #444;

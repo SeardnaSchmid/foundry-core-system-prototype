@@ -80,6 +80,9 @@ export class TnoAdvanceDialog extends FormApplication {
       nextRank: rank + 1,
       atMax,
       canBuy: !atMax && xp >= cost,
+      canDecXp: xp > 0,
+      remaining: Math.max(0, cost - xp),
+      rankMin: this._rankMin,
       percent: atMax ? 100 : Math.min(100, Math.round((xp / cost) * 100)),
     };
   }
@@ -88,17 +91,18 @@ export class TnoAdvanceDialog extends FormApplication {
   activateListeners(html) {
     super.activateListeners(html);
 
-    html.find('[data-action]').on('click', (ev) => {
+    html.find('[data-action]').on('click', async (ev) => {
       ev.preventDefault();
       // Fold any manual edits to the rank/XP fields back into working state
       // first, so guided actions build on what the user just typed.
       this._syncFromForm(html);
       const action = ev.currentTarget.dataset.action;
+      const step = ev.shiftKey ? 5 : 1;
 
       if (action === 'xp-inc') {
-        this.object.xp += 1;
+        this.object.xp += step;
       } else if (action === 'xp-dec') {
-        this.object.xp = Math.max(0, this.object.xp - 1);
+        this.object.xp = Math.max(0, this.object.xp - step);
       } else if (action === 'buy') {
         const cost = this._nextRankCost(this.object.rank);
         if (this.object.rank < RANK_MAX && this.object.xp >= cost) {
@@ -108,8 +112,30 @@ export class TnoAdvanceDialog extends FormApplication {
           this.object.xp -= cost;
         }
       }
+      // Guided actions apply immediately — persist before re-rendering so
+      // closing the dialog never silently drops them.
+      await this._persist();
       this.render();
     });
+
+    // Native <details> grows the content but not the Foundry window frame, so
+    // recompute the auto height when the correction block opens/closes.
+    html.find('.advance-correction').on('toggle', () => this.setPosition({ height: 'auto' }));
+
+    // Surface native min/max validation on the correction fields instead of
+    // silently clamping on save (see _updateObject).
+    const form = html[0];
+    form?.addEventListener(
+      'submit',
+      (ev) => {
+        if (!form.checkValidity()) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          form.reportValidity();
+        }
+      },
+      true,
+    );
   }
 
   /**
@@ -121,15 +147,17 @@ export class TnoAdvanceDialog extends FormApplication {
   _syncFromForm(html) {
     const rankEl = html.find('[name="rank"]')[0];
     const xpEl = html.find('[name="xp"]')[0];
-    if (rankEl) this.object.rank = Math.clamp(Number(rankEl.value) || 0, this._rankMin, RANK_MAX);
-    if (xpEl) this.object.xp = Math.max(0, Number(xpEl.value) || 0);
+    if (rankEl) this.object.rank = Math.clamp(Math.round(Number(rankEl.value) || 0), this._rankMin, RANK_MAX);
+    if (xpEl) this.object.xp = Math.max(0, Math.round(Number(xpEl.value) || 0));
   }
 
-  /** @override */
-  async _updateObject(event, formData) {
-    const rank = Math.clamp(Number(formData.rank) || 0, this._rankMin, RANK_MAX);
-    const xp = Math.max(0, Number(formData.xp) || 0);
-
+  /**
+   * Write the working rank/XP to the actor. Shared by the immediate guided
+   * actions and the manual-correction save.
+   * @private
+   */
+  async _persist() {
+    const { rank, xp } = this.object;
     if (this.type === 'attribute') {
       // Advancement raises the trained base value; the current (temp) value is
       // refreshed to match, mirroring the base stepper on the sheet.
@@ -144,5 +172,12 @@ export class TnoAdvanceDialog extends FormApplication {
         [`system.skills.${this.key}.xp`]: xp,
       });
     }
+  }
+
+  /** @override */
+  async _updateObject(event, formData) {
+    this.object.rank = Math.clamp(Math.round(Number(formData.rank) || 0), this._rankMin, RANK_MAX);
+    this.object.xp = Math.max(0, Math.round(Number(formData.xp) || 0));
+    await this._persist();
   }
 }

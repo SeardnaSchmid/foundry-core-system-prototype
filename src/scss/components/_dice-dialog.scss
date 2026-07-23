@@ -108,8 +108,8 @@ $c-roll-negative: #c62828;
     cursor: pointer;
     // The selected chip pops; the rest recede, so selection is legible on top
     // of the heatmap colours the chips already carry.
-    opacity: 0.5;
-    filter: saturate(0.7);
+    opacity: 0.45;
+    filter: saturate(0.65);
     transition: opacity 0.12s ease, transform 0.12s ease;
 
     .tno-attribute-chip-abbr {
@@ -134,10 +134,11 @@ $c-roll-negative: #c62828;
     &.active {
       opacity: 1;
       filter: none;
-      transform: scale(1.06);
+      transform: scale(1.1);
       box-shadow:
         0 0 0 2px #fff,
-        0 0 0 3px rgba(0, 0, 0, 0.6);
+        0 0 0 5px rgba(0, 0, 0, 0.85),
+        0 2px 6px rgba(0, 0, 0, 0.4);
     }
 
     &:focus-visible {
@@ -503,12 +504,11 @@ $c-roll-negative: #c62828;
       border-radius: 3px;
       transition: background 0.12s ease, border-color 0.12s ease;
 
-      .tno-advantage-abbr {
-        font-size: var(--font-size-12, 12px);
+      .tno-advantage-glyph {
+        font-size: var(--font-size-13, 13px);
         font-weight: bold;
         line-height: 1;
         letter-spacing: -0.03em;
-        white-space: nowrap;
       }
 
       .tno-advantage-name {
@@ -527,10 +527,22 @@ $c-roll-negative: #c62828;
         background: $c-tan;
         color: $c-white;
         border-color: $c-tan;
+        // Foundry's core button.active rule adds a permanent warm-gold
+        // outline + box-shadow to any .active button, independent of focus.
+        // Kill it so the selected roll-type button reads via its own tan
+        // fill, not a gold ring.
+        outline: none;
+        box-shadow: none;
 
         .tno-advantage-name {
           opacity: 1;
         }
+      }
+
+      // Kill Foundry's default warm-gold focus box-shadow (see .tno-roll-submit
+      // below); keyboard focus still gets an outline via :focus-visible.
+      &:focus {
+        box-shadow: none;
       }
 
       &:focus-visible {

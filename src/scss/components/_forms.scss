@@ -711,23 +711,42 @@ $portrait-frame-cut: 14% 0%, 86% 0%, 100% 9%, 100% 100%, 0% 100%, 0% 9%;
         background: rgba(#1f6b3a, 0.12);
       }
 
+      // Keep the cost text legible while disabled — it's the information the
+      // user needs precisely when they can't yet buy. Mute the chrome, not the
+      // label.
       &:disabled {
-        opacity: 0.5;
+        opacity: 0.75;
+        border-color: rgba($c-beige, 0.6);
       }
     }
+  }
+
+  // One-line status under the actions: how much XP is still needed to buy, or
+  // a ready/carry-over reminder once it's affordable.
+  .advance-hint {
+    margin: -2px 0 0;
+    font-size: var(--font-size-10, 10px);
+    color: $c-tan;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
   }
 
   .advance-correction {
     padding-top: 8px;
     border-top: 1px solid rgba($c-beige, 0.5);
-  }
 
-  .advance-correction-label {
-    margin: 0 0 5px;
-    font-size: var(--font-size-10, 10px);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: $c-tan;
+    // Collapsed by default; the summary is the disclosure toggle.
+    > summary {
+      cursor: pointer;
+      font-size: var(--font-size-10, 10px);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: $c-tan;
+    }
+
+    &[open] > summary {
+      margin-bottom: 5px;
+    }
   }
 
   .advance-correction .flexrow {
