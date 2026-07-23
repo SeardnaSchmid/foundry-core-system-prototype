@@ -503,11 +503,12 @@ $c-roll-negative: #c62828;
       border-radius: 3px;
       transition: background 0.12s ease, border-color 0.12s ease;
 
-      .tno-advantage-glyph {
-        font-size: var(--font-size-13, 13px);
+      .tno-advantage-abbr {
+        font-size: var(--font-size-12, 12px);
         font-weight: bold;
         line-height: 1;
         letter-spacing: -0.03em;
+        white-space: nowrap;
       }
 
       .tno-advantage-name {

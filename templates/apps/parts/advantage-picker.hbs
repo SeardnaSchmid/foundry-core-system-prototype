@@ -19,7 +19,7 @@
       tabindex="{{#ifEquals option.value ../advantage}}0{{else}}-1{{/ifEquals}}"
       data-value="{{option.value}}"
       title="{{#if option.isDefault}}{{localize 'TNO.Roll.AdvantageDefaultHint' label=option.label}}{{else}}{{option.label}}{{/if}}">
-      <span class="tno-advantage-glyph" aria-hidden="true">{{option.glyph}}</span>
+      <span class="tno-advantage-abbr" aria-hidden="true">{{option.abbr}}</span>
       <span class="tno-advantage-name">{{option.label}}</span>
     </button>
     {{/each}}
