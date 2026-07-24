@@ -1,25 +1,124 @@
-<a class="tno-solve-toggle">
-  <i class="fa-solid fa-lightbulb"></i> {{triggerLabel}}
-  <i class="fa-solid fa-chevron-down tno-solve-chevron"></i>
-</a>
+{{#if showViews}}
+<div class="tno-edge-views">
+  <div class="tno-edge-view-main">
+    {{#if xpOptions.length}}
+    <div class="tno-xp-claim-row">
+      <span class="tno-xp-claim-caption">{{xpCaption}}</span>
+      <div class="tno-xp-claim-buttons">
+        {{#each xpOptions}}
+        <button type="button" class="tno-xp-claim-button" data-edge-action="{{this.action}}">
+          <i class="fa-solid fa-star"></i> {{this.label}}
+        </button>
+        {{/each}}
+      </div>
+    </div>
+    {{/if}}
+    {{#unless committed}}
+    {{#if hasEdgeActions}}
+    <a class="tno-edge-toggle">
+      <i class="fa-solid fa-screwdriver-wrench"></i> {{triggerLabel}}
+      <i class="fa-solid fa-chevron-right tno-edge-chevron"></i>
+    </a>
+    {{/if}}
+    {{/unless}}
+  </div>
 
-<div class="tno-solve-panel">
-  <div class="tno-solve-panel-inner">
-    <div class="tno-solve-option" data-solve-action="newAttempt">
-      <i class="fa-solid fa-arrow-rotate-right tno-solve-option-icon"></i>
-      <div class="tno-solve-option-text">
-        <span class="tno-solve-option-title">{{localize "TNO.Dialog.SolveOptionNewAttempt"}}</span>
-        <span class="tno-solve-option-hint">{{newAttemptHint}}</span>
+  <div class="tno-edge-view-troubleshoot">
+    {{#if tracker}}
+    <div class="tno-find-flaw-tracker">
+      <div class="tno-find-flaw-header">
+        <span class="tno-find-flaw-icon"><i class="fa-solid fa-clock"></i></span>
+        <div class="tno-find-flaw-heading">
+          <span class="tno-find-flaw-label">{{localize "TNO.Derived.TrialError"}}</span>
+          <span class="tno-find-flaw-status">{{#if tracker.active}}{{tracker.statusLabel}}{{else}}{{tracker.doneLabel}}{{/if}}</span>
+        </div>
       </div>
-      <i class="fa-solid fa-play tno-solve-option-run" title="{{localize 'TNO.Dialog.SolveOptionNewAttempt'}}"></i>
-    </div>
-    <div class="tno-solve-option" data-solve-action="findFlaw">
-      <i class="fa-solid fa-magnifying-glass tno-solve-option-icon"></i>
-      <div class="tno-solve-option-text">
-        <span class="tno-solve-option-title">{{localize "TNO.Dialog.SolveOptionFindFlaw"}}</span>
-        <span class="tno-solve-option-hint"><i class="fa-solid fa-clock"></i> {{findFlawHint}}</span>
+      <div class="tno-find-flaw-pips">
+        {{#each tracker.pips as |pip|}}
+        <span class="tno-find-flaw-pip{{#if pip.filled}} filled{{/if}}{{#if pip.success}} success{{/if}}"></span>
+        {{/each}}
       </div>
-      <i class="fa-solid fa-play tno-solve-option-run" title="{{localize 'TNO.Dialog.SolveOptionFindFlaw'}}"></i>
+      {{#each tracker.attempts as |attempt|}}
+      <div class="tno-find-flaw-attempt {{attempt.outcome}}">
+        <span class="tno-find-flaw-attempt-index">#{{attempt.index}}</span>
+        <span class="tno-find-flaw-attempt-dice">
+          {{#each attempt.dice as |die|}}
+          <span class="tno-find-flaw-die{{#if die.isCounted}} counted{{/if}}">{{die.value}}</span>
+          {{/each}}
+        </span>
+        <span class="tno-find-flaw-attempt-outcome">{{attempt.outcomeLabel}}</span>
+      </div>
+      {{/each}}
+      {{#if tracker.active}}
+      <div class="tno-find-flaw-reroll-row">
+        {{#if tracker.hasIdea}}
+        <label class="tno-find-flaw-idea{{#if tracker.ideaDisabled}} disabled{{/if}}" title="{{#if tracker.ideaDisabled}}{{localize 'TNO.Notify.NoReserve'}}{{else}}{{localize 'TNO.DerivedHint.Insight'}}{{/if}}">
+          <input type="checkbox" class="tno-find-flaw-idea-toggle" {{#if tracker.ideaDisabled}}disabled{{/if}}/>
+          {{tracker.ideaLabel}}
+        </label>
+        {{/if}}
+        <a class="tno-find-flaw-reroll"><i class="fa-solid fa-dice-d20"></i> {{tracker.rerollLabel}}</a>
+      </div>
+      {{/if}}
     </div>
+    {{/if}}
+
+    {{#each groups}}
+    <div class="tno-edge-group{{#if this.chooser}} tno-edge-chooser{{/if}}">
+      {{#if this.label}}<span class="{{#if this.section}}tno-edge-section-label{{else}}tno-edge-group-label{{/if}}">{{this.label}}</span>{{/if}}
+      {{#each this.options}}
+      {{#if this.big}}
+      <div class="tno-edge-big{{#if this.disabled}} disabled{{/if}}" data-edge-action="{{this.action}}">
+        <span class="tno-edge-big-title"><i class="fa-solid {{this.icon}}"></i> {{this.title}}</span>
+        <span class="tno-edge-big-hint">{{this.hint}}</span>
+      </div>
+      {{else}}
+      <div class="tno-edge-option{{#if this.disabled}} disabled{{/if}}" data-edge-action="{{this.action}}">
+        <span class="tno-edge-option-icon"><i class="fa-solid {{this.icon}}"></i></span>
+        <div class="tno-edge-option-text">
+          <span class="tno-edge-option-title">{{this.title}}</span>
+          <span class="tno-edge-option-hint">{{this.hint}}</span>
+        </div>
+        <i class="fa-solid fa-chevron-right tno-edge-option-run"></i>
+      </div>
+      {{/if}}
+      {{/each}}
+    </div>
+    {{/each}}
+
+    {{#if armedRetry}}
+    <div class="tno-edge-retry-armed">
+      <div class="tno-edge-retry-head">
+        <span class="tno-edge-option-icon"><i class="fa-solid fa-arrow-rotate-right"></i></span>
+        <div class="tno-edge-option-text">
+          <span class="tno-edge-option-title">{{armedRetry.title}}</span>
+          <span class="tno-edge-option-hint">{{armedRetry.hint}}</span>
+        </div>
+      </div>
+      <div class="tno-edge-retry-controls">
+        {{#if armedRetry.hasIdea}}
+        <label class="tno-find-flaw-idea{{#if armedRetry.ideaDisabled}} disabled{{/if}}" title="{{#if armedRetry.ideaDisabled}}{{localize 'TNO.Notify.NoReserve'}}{{else}}{{localize 'TNO.DerivedHint.Insight'}}{{/if}}">
+          <input type="checkbox" class="tno-edge-retry-idea" {{#if armedRetry.ideaDisabled}}disabled{{/if}}/>
+          {{armedRetry.ideaLabel}}
+        </label>
+        {{/if}}
+        <div class="tno-edge-retry-buttons">
+          <a class="tno-edge-retry-cancel">{{armedRetry.cancelLabel}}</a>
+          <a class="tno-edge-retry-run"><i class="fa-solid fa-dice-d20"></i> {{armedRetry.runLabel}}</a>
+        </div>
+      </div>
+    </div>
+    {{/if}}
+
+    {{#unless committed}}
+    <a class="tno-edge-back"><i class="fa-solid fa-chevron-left"></i> {{backLabel}}</a>
+    {{/unless}}
   </div>
 </div>
+{{/if}}
+
+{{#if summary.length}}
+<div class="tno-edge-summary">
+  {{#each summary}}<span class="tno-edge-summary-line">{{this}}</span>{{/each}}
+</div>
+{{/if}}

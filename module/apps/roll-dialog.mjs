@@ -101,17 +101,17 @@ export class TnoRollDialog extends FormApplication {
       // before the dice are cast. There is deliberately no way to apply it
       // retroactively to a roll already made (see problem-solving-prd.md).
       hasIdeaOption,
-      solveIdeaValue: this.actor.system.derived?.solveIdea ?? 0,
-      solveReserve: this.actor.system.derived?.solveReserve ?? 0,
-      solveReserveMax: this.actor.system.derived?.solveReserveMax ?? 0,
-      ideaDisabled: (this.actor.system.derived?.solveReserve ?? 0) <= 0,
+      insightValue: this.actor.system.derived?.insight ?? 0,
+      edgePool: this.actor.system.derived?.edgePool ?? 0,
+      edgePoolMax: this.actor.system.derived?.edgePoolMax ?? 0,
+      ideaDisabled: (this.actor.system.derived?.edgePool ?? 0) <= 0,
     };
 
     if (hasIdeaOption) {
-      // A row of filled/empty pips makes the reserve read as "N charges
+      // A row of filled/empty pips makes the edge pool read as "N charges
       // left" at a glance instead of a bare fraction the player has to parse.
-      data.hasIdeaPips = data.solveReserveMax > 0;
-      data.ideaPips = Array.from({ length: data.solveReserveMax }, (_, i) => ({ filled: i < data.solveReserve }));
+      data.hasIdeaPips = data.edgePoolMax > 0;
+      data.ideaPips = Array.from({ length: data.edgePoolMax }, (_, i) => ({ filled: i < data.edgePool }));
     }
 
     if (this.skill) {
@@ -167,8 +167,8 @@ export class TnoRollDialog extends FormApplication {
    */
   _ideaBonus(data) {
     if (this.actor.type !== 'character' || !data.useIdea) return 0;
-    if ((this.actor.system.derived?.solveReserve ?? 0) <= 0) return 0;
-    return this.actor.system.derived?.solveIdea ?? 0;
+    if ((this.actor.system.derived?.edgePool ?? 0) <= 0) return 0;
+    return this.actor.system.derived?.insight ?? 0;
   }
 
   /**
@@ -364,11 +364,11 @@ export class TnoRollDialog extends FormApplication {
   async _updateObject(event, formData) {
     const components = this._baseComponents(formData);
 
-    // "Idee haben" (pre-edge): compute the threshold and bonus off the
+    // "Insight" (pre-edge): compute the threshold and bonus off the
     // actor's state *before* spending the point — spending updates
-    // system.derived.solveReserve, and re-deriving after that point would
+    // system.derived.edgePool, and re-deriving after that point would
     // make the just-spent point look unavailable again. There is no
-    // post-roll path to apply this; if the reserve ran out before this
+    // post-roll path to apply this; if the edge pool ran out before this
     // dialog was submitted, the roll proceeds without the bonus.
     const threshold = this._computeThreshold(formData);
     const ideaBonus = this._ideaBonus(formData);
@@ -397,7 +397,19 @@ export class TnoRollDialog extends FormApplication {
       // The "Problem lösen" edge pool may only be spent on a regular
       // skill+attribute check — not on a bare attribute roll, a free-typed
       // skill value, or a fixed-value roll (see problem-solving-prd.md).
-      extraFlags: { edgeExempt: !this.skill },
+      // Skill/attribute identity is only meaningful (and only stored) in
+      // that same skill mode — it's what the post-failure XP claim credits.
+      extraFlags: {
+        edgeExempt: !this.skill,
+        ...(this.skill
+          ? {
+              skillKey: this.skill.key,
+              skillLabel: this.skill.label,
+              attributeKey: formData.attributeA,
+              attributeLabel: game.i18n.localize(CONFIG.TNO.abilities[formData.attributeA]),
+            }
+          : {}),
+      },
     });
   }
 }

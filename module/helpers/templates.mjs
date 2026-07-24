@@ -22,6 +22,6 @@ export const preloadHandlebarsTemplates = async function () {
     'systems/tno/templates/apps/custom-skills-overview.hbs',
     // Chat
     'systems/tno/templates/chat/roll-card.hbs',
-    'systems/tno/templates/chat/find-flaw-tracker.hbs',
+    'systems/tno/templates/chat/edge-panel.hbs',
   ]);
 };

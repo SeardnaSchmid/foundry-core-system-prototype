@@ -416,10 +416,6 @@
   font-size: var(--font-size-16, 16px);
   line-height: 1;
 }
-.tno .problem-solving-group .reserve-pool.reserve-full .reserve-value,
-.tno .problem-solving-group .reserve-pool.reserve-full .reserve-value-input {
-  color: #1f6b3a;
-}
 .tno .problem-solving-group .reserve-value-input {
   width: 22px;
   height: var(--font-size-16, 16px);
@@ -455,23 +451,6 @@
   text-decoration: none;
   color: inherit;
 }
-.tno .problem-solving-group .solve-roll-mark {
-  position: absolute;
-  top: 1px;
-  right: 3px;
-  font-size: var(--font-size-9, 9px);
-  color: #444;
-  opacity: 0.45;
-  transition: opacity 0.15s ease;
-  pointer-events: none;
-}
-.tno .problem-solving-group .solve-analyze-flaw:hover .solve-roll-mark {
-  opacity: 0.9;
-  color: #fff;
-}
-.tno .problem-solving-group .solve-tile-disabled .solve-roll-mark {
-  display: none;
-}
 .tno .problem-solving-group .solve-tile-value {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
@@ -505,21 +484,6 @@
   line-height: 1.2;
   text-transform: uppercase;
   color: #444;
-}
-.tno .problem-solving-group .solve-analyze-flaw {
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-.tno .problem-solving-group .solve-analyze-flaw:hover {
-  background: #444;
-}
-.tno .problem-solving-group .solve-analyze-flaw:hover .solve-tile-value,
-.tno .problem-solving-group .solve-analyze-flaw:hover .solve-tile-label {
-  color: #fff;
-}
-.tno .problem-solving-group .solve-tile-disabled {
-  cursor: default;
-  opacity: 0.65;
 }
 .tno .sheet-main {
   flex: 1;
@@ -2258,7 +2222,102 @@
   margin-top: 4px;
   cursor: default;
 }
-.tno-roll-card .tno-solve-toggle {
+.tno-roll-card .tno-xp-claim-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.tno-roll-card .tno-xp-claim-caption {
+  text-align: center;
+  font-size: var(--font-size-10, 10px);
+  color: #444;
+}
+.tno-roll-card .tno-xp-claim-buttons {
+  display: flex;
+  gap: 4px;
+}
+.tno-roll-card .tno-xp-claim-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid #b8860b;
+  border-radius: 6px;
+  padding: 4px 8px;
+  background: #fff;
+  color: #b8860b;
+  font-size: var(--font-size-11, 11px);
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.tno-roll-card .tno-xp-claim-button:hover {
+  background: #b8860b;
+  color: #fff;
+}
+.tno-roll-card .tno-edge-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 4px;
+}
+.tno-roll-card .tno-edge-summary-line {
+  font-size: var(--font-size-10, 10px);
+  color: #444;
+}
+.tno-roll-card .tno-edge-summary-line i {
+  margin-right: 4px;
+  opacity: 0.7;
+}
+.tno-roll-card .tno-edge-result {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  border: 1px solid #b5b3a4;
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin-top: 4px;
+}
+.tno-roll-card .tno-edge-result.success .tno-edge-result-outcome {
+  color: #1f6b3a;
+}
+.tno-roll-card .tno-edge-result-caption {
+  flex-basis: 100%;
+  font-size: var(--font-size-10, 10px);
+  font-weight: bold;
+  color: #444;
+}
+.tno-roll-card .tno-edge-result-dice {
+  display: inline-flex;
+  gap: 4px;
+}
+.tno-roll-card .tno-edge-result-outcome {
+  font-size: var(--font-size-11, 11px);
+  font-weight: bold;
+}
+.tno-roll-card .tno-edge-view-troubleshoot {
+  display: none;
+}
+.tno-roll-card .tno-edge-actions.troubleshoot .tno-edge-view-troubleshoot {
+  display: block;
+}
+.tno-roll-card .tno-edge-actions.troubleshoot .tno-edge-view-main {
+  display: none;
+}
+.tno-roll-card .tno-edge-retry-armed {
+  display: none;
+}
+.tno-roll-card .tno-edge-actions.retry-armed .tno-edge-retry-armed {
+  display: block;
+}
+.tno-roll-card .tno-edge-actions.retry-armed .tno-edge-group {
+  display: none;
+}
+.tno-roll-card .tno-edge-toggle,
+.tno-roll-card .tno-edge-back {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2271,32 +2330,42 @@
   text-decoration: none;
   font-size: var(--font-size-11, 11px);
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
-.tno-roll-card .tno-solve-toggle:hover {
+.tno-roll-card .tno-edge-toggle:hover,
+.tno-roll-card .tno-edge-back:hover {
   background: #444;
   border-color: #444;
+  color: #fff;
 }
-.tno-roll-card .tno-solve-chevron {
+.tno-roll-card .tno-edge-back {
+  margin-top: 4px;
+}
+.tno-roll-card .tno-edge-chevron {
   font-size: var(--font-size-10, 10px);
-  transition: transform 0.15s ease;
 }
-.tno-roll-card .tno-edge-actions.expanded .tno-solve-chevron {
-  transform: rotate(180deg);
+.tno-roll-card .tno-find-flaw-reroll-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
 }
-.tno-roll-card .tno-solve-panel {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 0.2s ease;
+.tno-roll-card .tno-find-flaw-reroll-row .tno-find-flaw-idea,
+.tno-roll-card .tno-find-flaw-reroll-row .tno-find-flaw-reroll {
+  margin-top: 0;
 }
-.tno-roll-card .tno-edge-actions.expanded .tno-solve-panel {
-  grid-template-rows: 1fr;
+.tno-roll-card .tno-find-flaw-reroll-row .tno-find-flaw-reroll {
+  flex: 1;
 }
-.tno-roll-card .tno-solve-panel-inner {
-  overflow: hidden;
-  min-height: 0;
+.tno-roll-card .tno-edge-group-label {
+  display: block;
+  margin-top: 6px;
+  font-size: var(--font-size-10, 10px);
+  font-weight: bold;
+  text-align: center;
+  color: #444;
 }
-.tno-roll-card .tno-solve-option {
+.tno-roll-card .tno-edge-option {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -2306,66 +2375,50 @@
   margin-top: 4px;
   text-align: left;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
-.tno-roll-card .tno-solve-option:hover {
+.tno-roll-card .tno-edge-option:hover {
   background: #444;
   border-color: #444;
+  color: #fff;
 }
-.tno-roll-card .tno-solve-option-icon {
+.tno-roll-card .tno-edge-option:hover .tno-edge-option-hint,
+.tno-roll-card .tno-edge-option:hover .tno-edge-option-run {
+  color: #c9c7b8;
+}
+.tno-roll-card .tno-edge-option.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.tno-roll-card .tno-edge-option-icon {
   font-size: var(--font-size-12, 12px);
   width: 14px;
   text-align: center;
 }
-.tno-roll-card .tno-solve-option-text {
+.tno-roll-card .tno-edge-option-text {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
-.tno-roll-card .tno-solve-option-title {
+.tno-roll-card .tno-edge-option-title {
   font-size: var(--font-size-11, 11px);
   font-weight: bold;
 }
-.tno-roll-card .tno-solve-option-hint {
+.tno-roll-card .tno-edge-option-hint {
   font-size: var(--font-size-10, 10px);
   color: #444;
 }
-.tno-roll-card .tno-solve-option-run {
+.tno-roll-card .tno-edge-option-run {
   font-size: var(--font-size-10, 10px);
   color: #444;
-}
-.tno-roll-card.tno-replaced {
-  opacity: 0.55;
-}
-.tno-roll-card .tno-new-attempt-banner {
-  order: -1;
-  width: 100%;
-  text-align: center;
-  font-size: var(--font-size-11, 11px);
-  font-weight: bold;
-  text-transform: uppercase;
-  color: #444;
-  padding-bottom: 4px;
-  margin-bottom: 4px;
-  border-bottom: 1px solid #b5b3a4;
-  cursor: pointer;
-}
-.tno-roll-card .tno-new-attempt-banner:hover {
-  color: #191813;
 }
 .tno-roll-card .tno-new-attempt-stamp {
   text-align: center;
   font-size: var(--font-size-11, 11px);
   font-weight: bold;
   color: #444;
-}
-.tno-roll-card .tno-new-attempt-stamp.tno-clickable {
-  cursor: pointer;
-  text-decoration: underline;
-}
-.tno-roll-card .tno-new-attempt-stamp.tno-clickable:hover {
-  color: #191813;
 }
 .tno-roll-card .tno-find-flaw-tracker {
   border: 1px solid #b5b3a4;
@@ -2445,6 +2498,25 @@
   border-width: 2px;
   border-color: #191813;
 }
+.tno-roll-card .tno-find-flaw-idea {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: var(--font-size-11, 11px);
+  color: #444;
+  cursor: pointer;
+}
+.tno-roll-card .tno-find-flaw-idea.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.tno-roll-card .tno-find-flaw-idea.disabled input {
+  pointer-events: none;
+}
+.tno-roll-card .tno-find-flaw-idea-value {
+  font-weight: bold;
+}
 .tno-roll-card .tno-find-flaw-reroll {
   display: flex;
   align-items: center;
@@ -2459,11 +2531,12 @@
   font-weight: bold;
   color: inherit;
   text-decoration: none;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 .tno-roll-card .tno-find-flaw-reroll:hover {
   background: #444;
   border-color: #444;
+  color: #fff;
 }
 .tno-roll-card .tno-find-flaw-done {
   margin-top: 4px;
@@ -2477,6 +2550,449 @@
 }
 .tno-roll-card .tno-find-flaw-done.failure {
   color: #c62828;
+}
+
+.tno-roll-card:has(.tno-roll-outcome.failure),
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) {
+  background: linear-gradient(160deg, #f1e9d4 0%, #e6dabd 55%, #ddcfa8 100%);
+  border: 1px solid rgba(58, 45, 20, 0.25);
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  color: #2b2620;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-roll-title,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-roll-title {
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-roll-flavor,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-roll-flavor {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 700;
+  font-size: 26px;
+  color: #2b2620;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-roll-advantage-badge,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-roll-advantage-badge {
+  border: 1.5px solid #2b2620;
+  border-radius: 6px;
+  padding: 2px 8px;
+  color: #2b2620;
+  font-size: var(--font-size-11, 11px);
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-roll-dice,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-roll-dice {
+  gap: 20px;
+  margin: 8px 0 4px;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-die,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-die {
+  width: auto;
+  height: auto;
+  border: none;
+  border-radius: 0;
+  opacity: 1;
+  padding: 0;
+  font-size: 22px;
+  color: rgba(43, 38, 32, 0.35);
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-die.counted,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-die.counted {
+  border: 2px solid #2b2620;
+  border-radius: 8px;
+  padding: 2px 12px;
+  color: #2b2620;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-roll-threshold,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-roll-threshold {
+  border-left: none;
+  height: auto;
+  margin-left: 6px;
+  padding-left: 0;
+  font-weight: normal;
+  color: rgba(43, 38, 32, 0.45);
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-roll-outcome,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-roll-outcome {
+  margin-top: 8px;
+  letter-spacing: 0.04em;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-roll-outcome.failure, .tno-roll-card:has(.tno-roll-outcome.failure) .tno-roll-outcome.criticalFailure,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-roll-outcome.failure,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-roll-outcome.criticalFailure {
+  color: #a23328;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-actions,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-actions {
+  border-top: 1px solid rgba(43, 38, 32, 0.14);
+  margin-top: 14px;
+  padding-top: 14px;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-xp-claim-caption,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-xp-claim-caption {
+  color: rgba(43, 38, 32, 0.55);
+  font-size: var(--font-size-12, 12px);
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-xp-claim-button,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-xp-claim-button {
+  border: 1.5px solid #a9782c;
+  border-radius: 999px;
+  padding: 9px 8px;
+  background: rgba(169, 120, 44, 0.06);
+  color: #8a6421;
+  font-size: var(--font-size-13, 13px);
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-xp-claim-button:hover,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-xp-claim-button:hover {
+  background: rgba(169, 120, 44, 0.16);
+  color: #8a6421;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-summary,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-summary {
+  margin-top: 12px;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-summary-line,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-summary-line {
+  text-align: center;
+  font-size: var(--font-size-10, 10px);
+  color: rgba(43, 38, 32, 0.4);
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-toggle,
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-back,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-toggle,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-back {
+  border: 1px solid rgba(43, 38, 32, 0.2);
+  border-radius: 999px;
+  padding: 11px 16px;
+  background: rgba(255, 255, 255, 0.4);
+  color: #2b2620;
+  font-weight: 700;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-toggle:hover,
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-back:hover,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-toggle:hover,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-back:hover {
+  background: rgba(255, 255, 255, 0.62);
+  border-color: rgba(43, 38, 32, 0.32);
+  color: #2b2620;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-group-label,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-group-label {
+  color: rgba(43, 38, 32, 0.55);
+  font-weight: 400;
+  font-size: var(--font-size-12, 12px);
+  margin: 4px 0 8px;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-section-label,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-section-label {
+  display: block;
+  margin: 14px 0 8px;
+  text-align: center;
+  font-size: var(--font-size-10, 10px);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(43, 38, 32, 0.4);
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-big,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-big {
+  display: block;
+  text-align: left;
+  border: 1px solid rgba(43, 38, 32, 0.2);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-top: 10px;
+  background: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-big:hover,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-big:hover {
+  background: rgba(255, 255, 255, 0.55);
+  border-color: rgba(43, 38, 32, 0.28);
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-big.disabled,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-big.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-big-title,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-big-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: var(--font-size-14, 14px);
+  color: #2b2620;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-big-hint,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-big-hint {
+  display: block;
+  margin-top: 3px;
+  font-size: var(--font-size-12, 12px);
+  color: rgba(43, 38, 32, 0.55);
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-option,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-option {
+  gap: 12px;
+  border: 1px solid rgba(43, 38, 32, 0.16);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.35);
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-option:hover,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-option:hover {
+  background: rgba(255, 255, 255, 0.55);
+  border-color: rgba(43, 38, 32, 0.28);
+  color: #2b2620;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-option:hover .tno-edge-option-hint,
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-option:hover .tno-edge-option-run,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-option:hover .tno-edge-option-hint,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-option:hover .tno-edge-option-run {
+  color: rgba(43, 38, 32, 0.55);
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-option-icon,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-option-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: rgba(43, 38, 32, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: var(--font-size-13, 13px);
+  color: #2b2620;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-option-title,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-option-title {
+  font-size: var(--font-size-13, 13px);
+  color: #2b2620;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-option-hint,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-option-hint {
+  font-size: var(--font-size-12, 12px);
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-option-hint,
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-option-run,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-option-hint,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-option-run {
+  color: rgba(43, 38, 32, 0.55);
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-find-flaw-tracker,
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-result,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-find-flaw-tracker,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-result {
+  border: 1px solid rgba(43, 38, 32, 0.16);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.35);
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-find-flaw-header,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-find-flaw-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  color: #2b2620;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-find-flaw-icon,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-find-flaw-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: rgba(43, 38, 32, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: var(--font-size-13, 13px);
+  color: #2b2620;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-find-flaw-heading,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-find-flaw-heading {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-find-flaw-status,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-find-flaw-status {
+  font-weight: 400;
+  font-size: var(--font-size-11, 11px);
+  color: rgba(43, 38, 32, 0.55);
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-find-flaw-pips,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-find-flaw-pips {
+  gap: 6px;
+  margin: 10px 0 0;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-find-flaw-pip,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-find-flaw-pip {
+  width: 10px;
+  height: 10px;
+  border-color: rgba(43, 38, 32, 0.4);
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-find-flaw-pip.filled,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-find-flaw-pip.filled {
+  background: rgba(43, 38, 32, 0.45);
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-find-flaw-pip.success,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-find-flaw-pip.success {
+  background: #5f7a52;
+  border-color: #5f7a52;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-find-flaw-attempt,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-find-flaw-attempt {
+  color: rgba(43, 38, 32, 0.55);
+  border-top-color: rgba(43, 38, 32, 0.14);
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-find-flaw-attempt.success, .tno-roll-card:has(.tno-roll-outcome.failure) .tno-find-flaw-attempt.criticalSuccess,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-find-flaw-attempt.success,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-find-flaw-attempt.criticalSuccess {
+  color: #4d6642;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-find-flaw-attempt.failure, .tno-roll-card:has(.tno-roll-outcome.failure) .tno-find-flaw-attempt.criticalFailure,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-find-flaw-attempt.failure,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-find-flaw-attempt.criticalFailure {
+  color: rgba(43, 38, 32, 0.5);
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-find-flaw-die,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-find-flaw-die {
+  border-color: rgba(43, 38, 32, 0.25);
+  color: #2b2620;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-find-flaw-die.counted,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-find-flaw-die.counted {
+  border-color: #2b2620;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-find-flaw-idea,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-find-flaw-idea {
+  color: rgba(43, 38, 32, 0.65);
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-find-flaw-idea input,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-find-flaw-idea input {
+  accent-color: #a9782c;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-find-flaw-reroll-row,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-find-flaw-reroll-row {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(43, 38, 32, 0.18);
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-find-flaw-reroll,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-find-flaw-reroll {
+  flex: none;
+  border: 1px solid #2b2620;
+  border-radius: 999px;
+  padding: 9px 14px;
+  background: #2b2620;
+  color: #f1e9d4;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-find-flaw-reroll:hover,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-find-flaw-reroll:hover {
+  background: #000;
+  border-color: #000;
+  color: #f1e9d4;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-retry-armed,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-retry-armed {
+  border: 1px solid rgba(43, 38, 32, 0.16);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-top: 10px;
+  background: rgba(255, 255, 255, 0.35);
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-retry-head,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-retry-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-retry-controls,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-retry-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(43, 38, 32, 0.18);
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-retry-buttons,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-retry-buttons {
+  display: flex;
+  gap: 8px;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-retry-cancel,
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-retry-run,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-retry-cancel,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-retry-run {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: var(--font-size-12, 12px);
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-retry-cancel,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-retry-cancel {
+  border: 1px solid rgba(43, 38, 32, 0.25);
+  background: none;
+  color: #2b2620;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-retry-cancel:hover,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-retry-cancel:hover {
+  border-color: rgba(43, 38, 32, 0.4);
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-retry-run,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-retry-run {
+  border: 1px solid #2b2620;
+  background: #2b2620;
+  color: #f1e9d4;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-retry-run:hover,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-retry-run:hover {
+  background: #000;
+  border-color: #000;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-result-caption,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-result-caption {
+  color: rgba(43, 38, 32, 0.7);
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-result-outcome,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-result-outcome {
+  color: #a23328;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-edge-result.success .tno-edge-result-outcome,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-edge-result.success .tno-edge-result-outcome {
+  color: #4d6642;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-new-attempt-stamp,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-new-attempt-stamp {
+  border: 1px solid rgba(169, 120, 44, 0.35);
+  border-radius: 10px;
+  padding: 12px;
+  background: rgba(169, 120, 44, 0.12);
+  color: #8a6421;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-find-flaw-done.success,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-find-flaw-done.success {
+  color: #4d6642;
+}
+.tno-roll-card:has(.tno-roll-outcome.failure) .tno-find-flaw-done.failure,
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-find-flaw-done.failure {
+  color: #a23328;
 }
 
 .tno-base-roll-button {

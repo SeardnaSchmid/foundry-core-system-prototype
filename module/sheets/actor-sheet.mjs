@@ -298,7 +298,8 @@ export class TnoActorSheet extends ActorSheet {
             levelBg: dc?.bg ?? null,
             levelColor: dc?.textColor ?? null,
           };
-        });
+        })
+        .sort((a, b) => a.label.localeCompare(b.label, game.i18n.lang));
       return {
         key: catKey,
         label: game.i18n.localize(catLabelKey),
@@ -315,12 +316,6 @@ export class TnoActorSheet extends ActorSheet {
     context.skillXpTotal = context.skillGroups.reduce((sum, group) => sum + group.totalXp, 0);
     context.skillRankTotal = context.skillGroups.reduce((sum, group) => sum + group.totalRank, 0);
     context.totalXpSpent = context.attributeGrid.totalXp + context.skillXpTotal;
-
-    // "Fehler Analysieren" only makes sense to attempt while the reserve
-    // has room to regain a point; a full pool has nothing to refill.
-    const reserve = context.system.derived?.solveReserve ?? 0;
-    const reserveMax = context.system.derived?.solveReserveMax ?? 0;
-    context.analyzeFlawDisabled = reserve >= reserveMax;
   }
 
   /**
@@ -504,15 +499,15 @@ export class TnoActorSheet extends ActorSheet {
       }).render(true);
     });
 
-    // Problem-solving reserve pool: editable directly, clamped to
+    // Edge pool: editable directly, clamped to
     // 0..max. Stored as "spent" (max minus the edited value) since the
     // pool itself is derived, recomputed from problemSolving.spent. A
     // manual decrease is a point spent outside the dedicated actions
-    // (Idee haben, Fehler Analysieren), so it's announced in chat too.
+    // (Insight, Post-mortem), so it's announced in chat too.
     html.on('change', '.reserve-value-input', (ev) => {
       const input = ev.currentTarget;
-      const max = this.actor.system.derived?.solveReserveMax ?? 0;
-      const current = this.actor.system.derived?.solveReserve ?? 0;
+      const max = this.actor.system.derived?.edgePoolMax ?? 0;
+      const current = this.actor.system.derived?.edgePool ?? 0;
       const value = Math.clamp(Number(input.value) || 0, 0, max);
       input.value = value;
       this.actor.update({ 'system.problemSolving.spent': max - value });
@@ -520,7 +515,7 @@ export class TnoActorSheet extends ActorSheet {
       if (value < current) {
         ChatMessage.create({
           speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-          content: game.i18n.format('TNO.Chat.SolveReserveSpent', {
+          content: game.i18n.format('TNO.Chat.EdgeSpent', {
             name: this.actor.name,
             count: current - value,
             current: value,
@@ -551,12 +546,12 @@ export class TnoActorSheet extends ActorSheet {
       onManageActiveEffect(ev, document);
     });
 
-    // Rollable abilities. "Fehler Analysieren" goes through this handler
-    // via its data-roll-type. The other three problem-solving actions
-    // don't: "Idee haben" is a pre-edge, offered as a toggle inside the
-    // roll dialog itself (see TnoRollDialog); "Fehler finden" and
-    // "Neuer Versuch" are post-edges, triggered from a failed roll's own
-    // chat card (see chat.mjs), not from the sheet.
+    // Rollable abilities. None of the four problem-solving actions go
+    // through this handler anymore: "Idee haben" is a pre-edge, offered as
+    // a toggle inside the roll dialog itself (see TnoRollDialog); "Fehler
+    // finden", "Neuer Versuch" and "Fehler Analysieren" are post-edges,
+    // triggered from a failed roll's own chat card (see chat.mjs), not
+    // from the sheet.
     html.on('click', '.rollable', this._onRoll.bind(this));
 
     // Drag events for macros.
@@ -742,54 +737,6 @@ export class TnoActorSheet extends ActorSheet {
           // can't be spent on it (see problem-solving-prd.md).
           extraFlags: { edgeExempt: true },
         });
-      }
-
-      // Fehler Analysieren: a standard 3d20 roll against the derived value,
-      // same as any other check, after a confirmation dialog and a short
-      // chat message announcing the attempt. On success, regains one
-      // reserve point (up to the pool's max).
-      if (dataset.rollType == 'analyzeFlaw') {
-        const reserve = this.actor.system.derived?.solveReserve ?? 0;
-        const reserveMax = this.actor.system.derived?.solveReserveMax ?? 0;
-        if (reserve >= reserveMax) {
-          ui.notifications.warn(game.i18n.localize('TNO.Notify.ReserveFull'));
-          return;
-        }
-
-        const confirmedAnalyze = await foundry.applications.api.DialogV2.confirm({
-          window: { title: game.i18n.localize('TNO.Dialog.SolveAnalyzeFlawTitle') },
-          content: game.i18n.localize('TNO.Dialog.SolveAnalyzeFlawContent'),
-        });
-        if (!confirmedAnalyze) return;
-
-        ChatMessage.create({
-          speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-          content: game.i18n.format('TNO.Chat.SolveAnalyzeFlawAttempt', { name: this.actor.name }),
-        });
-
-        const { success } = await rollTno({
-          threshold: this.actor.system.derived?.solveAnalyzeFlaw ?? 0,
-          advantage: TNO_ADVANTAGE.none,
-          flavor: dataset.label,
-          actor: this.actor,
-          // A failed "Fehler Analysieren" roll must not itself be offered the
-          // "Problem lösen" edge panel: spending reserve to reroll the very
-          // roll that refills that reserve would be circular.
-          extraFlags: { edgeExempt: true },
-        });
-        if (success) {
-          const spent = this.actor.system.problemSolving?.spent ?? 0;
-          if (spent > 0) {
-            await this.actor.update({ 'system.problemSolving.spent': spent - 1 });
-            const max = this.actor.system.derived?.solveReserveMax ?? 0;
-            const current = this.actor.system.derived?.solveReserve ?? 0;
-            ChatMessage.create({
-              speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-              content: game.i18n.format('TNO.Chat.SolveAnalyzeFlawSuccess', { name: this.actor.name, current, max }),
-            });
-          }
-        }
-        return;
       }
     }
 

@@ -125,10 +125,140 @@
     cursor: default;
   }
 
-  // Inline "Problem lösen" picker: a single toggle row that expands, in
-  // place on the card, into the two post-edge options — no modal. See
-  // renderSolvePanel in chat.mjs.
-  .tno-solve-toggle {
+  // Inline "Lesson learned" XP claim: the ~80% golden path, so it sits
+  // directly on the card (no expander) as two prominent buttons in the
+  // "level up" gold, each pre-labeled with its skill/attribute target — one
+  // labeled click banks the XP. See buildXpOptions in chat.mjs.
+  .tno-xp-claim-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 4px;
+  }
+
+  .tno-xp-claim-caption {
+    text-align: center;
+    font-size: var(--font-size-10, 10px);
+    color: $c-tan;
+  }
+
+  .tno-xp-claim-buttons {
+    display: flex;
+    gap: 4px;
+  }
+
+  .tno-xp-claim-button {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid $c-advance;
+    border-radius: 6px;
+    padding: 4px 8px;
+    background: $c-white;
+    color: $c-advance;
+    font-size: var(--font-size-11, 11px);
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+
+    &:hover {
+      background: $c-advance;
+      color: $c-white;
+    }
+  }
+
+  // Dimmed activity summary: the edge-economy events that happened to this
+  // roll (spent points, XP forfeited, refund, no-time-pressure claim),
+  // derived from flags — see buildSummary in chat.mjs.
+  .tno-edge-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 4px;
+  }
+
+  .tno-edge-summary-line {
+    font-size: var(--font-size-10, 10px);
+    color: $c-tan;
+
+    i {
+      margin-right: 4px;
+      opacity: 0.7;
+    }
+  }
+
+  // Inline result block for a Retry / Post-mortem roll made in place (no
+  // separate chat card) — its dice and outcome, shown to every viewer.
+  .tno-edge-result {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    border: 1px solid $c-beige;
+    border-radius: 6px;
+    padding: 4px 8px;
+    margin-top: 4px;
+
+    &.success .tno-edge-result-outcome {
+      color: $c-ready;
+    }
+  }
+
+  .tno-edge-result-caption {
+    flex-basis: 100%;
+    font-size: var(--font-size-10, 10px);
+    font-weight: bold;
+    color: $c-tan;
+  }
+
+  .tno-edge-result-dice {
+    display: inline-flex;
+    gap: 4px;
+  }
+
+  .tno-edge-result-outcome {
+    font-size: var(--font-size-11, 11px);
+    font-weight: bold;
+  }
+
+  // Inline "Troubleshoot" picker: the main view shows the XP buttons + a
+  // Troubleshoot button; clicking it reveals the troubleshoot view (edge
+  // actions + Back). Pure show/hide via the .troubleshoot class — see
+  // renderOwnerPanel in chat.mjs.
+  .tno-edge-view-troubleshoot {
+    display: none;
+  }
+
+  .tno-edge-actions.troubleshoot .tno-edge-view-troubleshoot {
+    display: block;
+  }
+
+  .tno-edge-actions.troubleshoot .tno-edge-view-main {
+    display: none;
+  }
+
+  // Armed-retry confirm step: a third sub-view within troubleshoot. Clicking
+  // the "Retry" choice arms it (swaps the try-again chooser for the confirm
+  // card); Cancel/Roll clear it — pure show/hide via the .retry-armed class.
+  .tno-edge-retry-armed {
+    display: none;
+  }
+
+  .tno-edge-actions.retry-armed .tno-edge-retry-armed {
+    display: block;
+  }
+
+  // While confirming a Retry, hide every other action group — the chooser it
+  // replaces AND Post-mortem: committing to a reroll takes Post-mortem off the
+  // table, so it shouldn't sit there mid-confirm (Cancel brings both back).
+  .tno-edge-actions.retry-armed .tno-edge-group {
+    display: none;
+  }
+
+  .tno-edge-toggle,
+  .tno-edge-back {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -141,41 +271,50 @@
     text-decoration: none;
     font-size: var(--font-size-11, 11px);
     cursor: pointer;
-    transition: background 0.15s ease, border-color 0.15s ease;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 
     &:hover {
       background: $c-tan;
       border-color: $c-tan;
+      color: $c-white;
     }
   }
 
-  .tno-solve-chevron {
+  .tno-edge-back {
+    margin-top: 4px;
+  }
+
+  .tno-edge-chevron {
     font-size: var(--font-size-10, 10px);
-    transition: transform 0.15s ease;
   }
 
-  .tno-edge-actions.expanded .tno-solve-chevron {
-    transform: rotate(180deg);
+  .tno-find-flaw-reroll-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+
+    .tno-find-flaw-idea,
+    .tno-find-flaw-reroll {
+      margin-top: 0;
+    }
+
+    .tno-find-flaw-reroll {
+      flex: 1;
+    }
   }
 
-  // Grid-rows expand trick (0fr -> 1fr), same mechanism as the roll card's
-  // own tooltip — see the .tno-roll-tooltip comment above.
-  .tno-solve-panel {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition: grid-template-rows 0.2s ease;
+  // The guided "Try again — got time?" question header above its option pair.
+  .tno-edge-group-label {
+    display: block;
+    margin-top: 6px;
+    font-size: var(--font-size-10, 10px);
+    font-weight: bold;
+    text-align: center;
+    color: $c-tan;
   }
 
-  .tno-edge-actions.expanded .tno-solve-panel {
-    grid-template-rows: 1fr;
-  }
-
-  .tno-solve-panel-inner {
-    overflow: hidden;
-    min-height: 0;
-  }
-
-  .tno-solve-option {
+  .tno-edge-option {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -185,82 +324,62 @@
     margin-top: 4px;
     text-align: left;
     cursor: pointer;
-    transition: background 0.15s ease, border-color 0.15s ease;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 
+    // Hover flips to the dark $c-tan fill, so every bit of text/icon inside
+    // has to go light or it disappears against it.
     &:hover {
       background: $c-tan;
       border-color: $c-tan;
+      color: $c-white;
+
+      .tno-edge-option-hint,
+      .tno-edge-option-run {
+        color: $c-faint;
+      }
+    }
+
+    &.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
     }
   }
 
-  .tno-solve-option-icon {
+  .tno-edge-option-icon {
     font-size: var(--font-size-12, 12px);
     width: 14px;
     text-align: center;
   }
 
-  .tno-solve-option-text {
+  .tno-edge-option-text {
     flex: 1;
     display: flex;
     flex-direction: column;
     min-width: 0;
   }
 
-  .tno-solve-option-title {
+  .tno-edge-option-title {
     font-size: var(--font-size-11, 11px);
     font-weight: bold;
   }
 
-  .tno-solve-option-hint {
+  .tno-edge-option-hint {
     font-size: var(--font-size-10, 10px);
     color: $c-tan;
   }
 
-  .tno-solve-option-run {
+  .tno-edge-option-run {
     font-size: var(--font-size-10, 10px);
     color: $c-tan;
   }
 
-  // "Neuer Versuch" visually replaces its original: the failed roll gets
-  // dimmed and stamped (injected client-side, see chat.mjs), the reroll
-  // gets a banner declaring it the result that counts. Both are clickable,
-  // jumping between the two messages.
-  &.tno-replaced {
-    opacity: 0.55;
-  }
-
-  .tno-new-attempt-banner {
-    order: -1;
-    width: 100%;
-    text-align: center;
-    font-size: var(--font-size-11, 11px);
-    font-weight: bold;
-    text-transform: uppercase;
-    color: $c-tan;
-    padding-bottom: 4px;
-    margin-bottom: 4px;
-    border-bottom: 1px solid $c-beige;
-    cursor: pointer;
-
-    &:hover {
-      color: $c-dark;
-    }
-  }
-
+  // Terminal "Lesson learned" stamp shown once the XP claim is used.
   .tno-new-attempt-stamp {
     text-align: center;
     font-size: var(--font-size-11, 11px);
     font-weight: bold;
     color: $c-tan;
-
-    &.tno-clickable {
-      cursor: pointer;
-      text-decoration: underline;
-
-      &:hover {
-        color: $c-dark;
-      }
-    }
   }
 
   .tno-find-flaw-tracker {
@@ -357,6 +476,29 @@
     }
   }
 
+  .tno-find-flaw-idea {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+    font-size: var(--font-size-11, 11px);
+    color: $c-tan;
+    cursor: pointer;
+
+    &.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+
+      input {
+        pointer-events: none;
+      }
+    }
+  }
+
+  .tno-find-flaw-idea-value {
+    font-weight: bold;
+  }
+
   .tno-find-flaw-reroll {
     display: flex;
     align-items: center;
@@ -371,11 +513,12 @@
     font-weight: bold;
     color: inherit;
     text-decoration: none;
-    transition: background 0.15s ease, border-color 0.15s ease;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 
     &:hover {
       background: $c-tan;
       border-color: $c-tan;
+      color: $c-white;
     }
   }
 
@@ -392,6 +535,487 @@
 
     &.failure {
       color: #c62828;
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Parchment "Edge Pool" treatment for failed roll cards.
+//
+// Implements the "Edge Pool Chat Card" design: a self-contained cream card
+// with a serif skill title, boxed counting die, red MISSERFOLG, and rounded
+// pill controls. Scoped via :has() to the failure outcome only — successes
+// and base rolls keep the flat inline look. Markup/logic are unchanged; this
+// is purely the visual skin over the existing structure.
+// ---------------------------------------------------------------------------
+$parch-bg: linear-gradient(160deg, #f1e9d4 0%, #e6dabd 55%, #ddcfa8 100%);
+$parch-ink: #2b2620;
+$parch-mute: rgba(43, 38, 32, 0.55);
+$parch-line: rgba(43, 38, 32, 0.16);
+$parch-fail: #a23328;
+$parch-gold: #a9782c;
+$parch-gold-ink: #8a6421;
+$parch-pass: #4d6642;
+$parch-panel: rgba(255, 255, 255, 0.35);
+
+.tno-roll-card:has(.tno-roll-outcome.failure),
+.tno-roll-card:has(.tno-roll-outcome.criticalFailure) {
+  background: $parch-bg;
+  border: 1px solid rgba(58, 45, 20, 0.25);
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  color: $parch-ink;
+
+  .tno-roll-title {
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .tno-roll-flavor {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-weight: 700;
+    font-size: 26px;
+    color: $parch-ink;
+  }
+
+  .tno-roll-advantage-badge {
+    border: 1.5px solid $parch-ink;
+    border-radius: 6px;
+    padding: 2px 8px;
+    color: $parch-ink;
+    font-size: var(--font-size-11, 11px);
+  }
+
+  // Outer dice read as plain faded numbers; only the counting die is boxed.
+  .tno-roll-dice {
+    gap: 20px;
+    margin: 8px 0 4px;
+  }
+
+  .tno-die {
+    width: auto;
+    height: auto;
+    border: none;
+    border-radius: 0;
+    opacity: 1;
+    padding: 0;
+    font-size: 22px;
+    color: rgba(43, 38, 32, 0.35);
+
+    &.counted {
+      border: 2px solid $parch-ink;
+      border-radius: 8px;
+      padding: 2px 12px;
+      color: $parch-ink;
+    }
+  }
+
+  .tno-roll-threshold {
+    border-left: none;
+    height: auto;
+    margin-left: 6px;
+    padding-left: 0;
+    font-weight: normal;
+    color: rgba(43, 38, 32, 0.45);
+  }
+
+  .tno-roll-outcome {
+    margin-top: 8px;
+    letter-spacing: 0.04em;
+
+    &.failure,
+    &.criticalFailure {
+      color: $parch-fail;
+    }
+  }
+
+  // Divider above each appended section (result blocks, owner panel), matching
+  // the design's hairline under the outcome row.
+  .tno-edge-actions {
+    border-top: 1px solid rgba(43, 38, 32, 0.14);
+    margin-top: 14px;
+    padding-top: 14px;
+  }
+
+  // Golden-path XP claim: rounded gold pills.
+  .tno-xp-claim-caption {
+    color: $parch-mute;
+    font-size: var(--font-size-12, 12px);
+  }
+
+  .tno-xp-claim-button {
+    border: 1.5px solid $parch-gold;
+    border-radius: 999px;
+    padding: 9px 8px;
+    background: rgba(169, 120, 44, 0.06);
+    color: $parch-gold-ink;
+    font-size: var(--font-size-13, 13px);
+
+    &:hover {
+      background: rgba(169, 120, 44, 0.16);
+      color: $parch-gold-ink;
+    }
+  }
+
+  // Activity log: quiet, centered lines that close out the card.
+  .tno-edge-summary {
+    margin-top: 12px;
+  }
+
+  .tno-edge-summary-line {
+    text-align: center;
+    font-size: var(--font-size-10, 10px);
+    color: rgba(43, 38, 32, 0.4);
+  }
+
+  // Troubleshoot enter/back: light parchment pills.
+  .tno-edge-toggle,
+  .tno-edge-back {
+    border: 1px solid rgba(43, 38, 32, 0.2);
+    border-radius: 999px;
+    padding: 11px 16px;
+    background: rgba(255, 255, 255, 0.4);
+    color: $parch-ink;
+    font-weight: 700;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.62);
+      border-color: rgba(43, 38, 32, 0.32);
+      color: $parch-ink;
+    }
+  }
+
+  // The "got time?" question sits above the two big choice cards: quiet,
+  // regular weight, centered.
+  .tno-edge-group-label {
+    color: $parch-mute;
+    font-weight: 400;
+    font-size: var(--font-size-12, 12px);
+    margin: 4px 0 8px;
+  }
+
+  // "Refill the pool" divider label above the Post-mortem row: small uppercase.
+  .tno-edge-section-label {
+    display: block;
+    margin: 14px 0 8px;
+    text-align: center;
+    font-size: var(--font-size-10, 10px);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(43, 38, 32, 0.4);
+  }
+
+  // The two guided "Try again" choices: big block cards, icon inline with the
+  // bold decision title, mechanic hint below, no trailing affordance.
+  .tno-edge-big {
+    display: block;
+    text-align: left;
+    border: 1px solid rgba(43, 38, 32, 0.2);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-top: 10px;
+    background: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.55);
+      border-color: rgba(43, 38, 32, 0.28);
+    }
+
+    &.disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+  }
+
+  .tno-edge-big-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: var(--font-size-14, 14px);
+    color: $parch-ink;
+  }
+
+  .tno-edge-big-hint {
+    display: block;
+    margin-top: 3px;
+    font-size: var(--font-size-12, 12px);
+    color: $parch-mute;
+  }
+
+  // Post-mortem "refill" row: soft parchment card with a circled icon and a
+  // trailing chevron, no dark hover flip.
+  .tno-edge-option {
+    gap: 12px;
+    border: 1px solid $parch-line;
+    border-radius: 10px;
+    padding: 12px 14px;
+    background: $parch-panel;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.55);
+      border-color: rgba(43, 38, 32, 0.28);
+      color: $parch-ink;
+
+      .tno-edge-option-hint,
+      .tno-edge-option-run {
+        color: $parch-mute;
+      }
+    }
+  }
+
+  .tno-edge-option-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    background: rgba(43, 38, 32, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: var(--font-size-13, 13px);
+    color: $parch-ink;
+  }
+
+  .tno-edge-option-title {
+    font-size: var(--font-size-13, 13px);
+    color: $parch-ink;
+  }
+
+  .tno-edge-option-hint {
+    font-size: var(--font-size-12, 12px);
+  }
+
+  .tno-edge-option-hint,
+  .tno-edge-option-run {
+    color: $parch-mute;
+  }
+
+  // Trial-&-error tracker + inline result blocks: parchment sub-panels.
+  .tno-find-flaw-tracker,
+  .tno-edge-result {
+    border: 1px solid $parch-line;
+    border-radius: 10px;
+    padding: 12px 14px;
+    background: $parch-panel;
+  }
+
+  // Tracker header: circled clock icon + title over a muted status line.
+  .tno-find-flaw-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    color: $parch-ink;
+  }
+
+  .tno-find-flaw-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    background: rgba(43, 38, 32, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: var(--font-size-13, 13px);
+    color: $parch-ink;
+  }
+
+  .tno-find-flaw-heading {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .tno-find-flaw-status {
+    font-weight: 400;
+    font-size: var(--font-size-11, 11px);
+    color: $parch-mute;
+  }
+
+  // Pips sit under the header. No indent — the chat card is only ~270px wide.
+  .tno-find-flaw-pips {
+    gap: 6px;
+    margin: 10px 0 0;
+  }
+
+  .tno-find-flaw-pip {
+    width: 10px;
+    height: 10px;
+    border-color: rgba(43, 38, 32, 0.4);
+
+    &.filled {
+      background: rgba(43, 38, 32, 0.45);
+    }
+
+    &.success {
+      background: #5f7a52;
+      border-color: #5f7a52;
+    }
+  }
+
+  .tno-find-flaw-attempt {
+    color: $parch-mute;
+    border-top-color: rgba(43, 38, 32, 0.14);
+
+    &.success,
+    &.criticalSuccess {
+      color: $parch-pass;
+    }
+
+    &.failure,
+    &.criticalFailure {
+      color: rgba(43, 38, 32, 0.5);
+    }
+  }
+
+  .tno-find-flaw-die {
+    border-color: rgba(43, 38, 32, 0.25);
+    color: $parch-ink;
+
+    &.counted {
+      border-color: $parch-ink;
+    }
+  }
+
+  .tno-find-flaw-idea {
+    color: rgba(43, 38, 32, 0.65);
+
+    input {
+      accent-color: $parch-gold;
+    }
+  }
+
+  // Reroll control: an Insight toggle over a full-width dark reroll pill,
+  // split from the tracker body by a dashed rule and indented to match.
+  .tno-find-flaw-reroll-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    margin: 12px 0 0;
+    padding-top: 10px;
+    border-top: 1px dashed rgba(43, 38, 32, 0.18);
+  }
+
+  // Reroll: filled dark pill (the one strong CTA inside the tracker).
+  .tno-find-flaw-reroll {
+    flex: none;
+    border: 1px solid $parch-ink;
+    border-radius: 999px;
+    padding: 9px 14px;
+    background: $parch-ink;
+    color: #f1e9d4;
+
+    &:hover {
+      background: #000;
+      border-color: #000;
+      color: #f1e9d4;
+    }
+  }
+
+  // Armed-retry confirm card: the retry mechanic's head (circled icon + name +
+  // cost) over an Insight toggle and the Cancel / Roll button pair.
+  .tno-edge-retry-armed {
+    border: 1px solid $parch-line;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-top: 10px;
+    background: $parch-panel;
+  }
+
+  .tno-edge-retry-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  // Stack the toggle over the button pair — the ~270px chat card can't fit
+  // them side by side. Cancel / Roll split the full width.
+  .tno-edge-retry-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin: 12px 0 0;
+    padding-top: 10px;
+    border-top: 1px dashed rgba(43, 38, 32, 0.18);
+  }
+
+  .tno-edge-retry-buttons {
+    display: flex;
+    gap: 8px;
+  }
+
+  .tno-edge-retry-cancel,
+  .tno-edge-retry-run {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: var(--font-size-12, 12px);
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .tno-edge-retry-cancel {
+    border: 1px solid rgba(43, 38, 32, 0.25);
+    background: none;
+    color: $parch-ink;
+
+    &:hover {
+      border-color: rgba(43, 38, 32, 0.4);
+    }
+  }
+
+  .tno-edge-retry-run {
+    border: 1px solid $parch-ink;
+    background: $parch-ink;
+    color: #f1e9d4;
+
+    &:hover {
+      background: #000;
+      border-color: #000;
+    }
+  }
+
+  .tno-edge-result-caption {
+    color: rgba(43, 38, 32, 0.7);
+  }
+
+  .tno-edge-result-outcome {
+    color: $parch-fail;
+  }
+
+  .tno-edge-result.success .tno-edge-result-outcome {
+    color: $parch-pass;
+  }
+
+  // Terminal "Lesson learned" XP stamp: gold callout box.
+  .tno-new-attempt-stamp {
+    border: 1px solid rgba(169, 120, 44, 0.35);
+    border-radius: 10px;
+    padding: 12px;
+    background: rgba(169, 120, 44, 0.12);
+    color: $parch-gold-ink;
+  }
+
+  .tno-find-flaw-done {
+    &.success {
+      color: $parch-pass;
+    }
+
+    &.failure {
+      color: $parch-fail;
     }
   }
 }

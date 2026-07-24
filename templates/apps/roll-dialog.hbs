@@ -88,7 +88,7 @@
 
     {{#if hasIdeaOption}}
     <div class="form-group tno-idea-field">
-      <label class="tno-idea-toggle {{#if useIdea}}active{{/if}} {{#if ideaDisabled}}tno-idea-disabled{{/if}}" title="{{#if ideaDisabled}}{{localize 'TNO.Notify.NoReserve'}}{{else}}{{localize 'TNO.DerivedHint.SolveIdea'}} — {{localize 'TNO.Notify.ProblemSolvingGate'}}{{/if}}">
+      <label class="tno-idea-toggle {{#if useIdea}}active{{/if}} {{#if ideaDisabled}}tno-idea-disabled{{/if}}" title="{{#if ideaDisabled}}{{localize 'TNO.Notify.NoReserve'}}{{else}}{{localize 'TNO.DerivedHint.Insight'}} — {{localize 'TNO.Notify.ProblemSolvingGate'}}{{/if}}">
         <input type="checkbox" name="useIdea" {{#if useIdea}}checked{{/if}} {{#if ideaDisabled}}disabled{{/if}}/>
         {{!-- Redundant on/off cue #1: a literal checkbox square with a
               checkmark, since the border/icon-colour shift alone read as too
@@ -96,14 +96,14 @@
         <span class="tno-idea-checkbox" aria-hidden="true"><i class="fas fa-check"></i></span>
         <i class="fas fa-lightbulb tno-idea-icon" aria-hidden="true"></i>
         <span class="tno-idea-text">{{localize "TNO.Roll.IdeaToggle"}}</span>
-        <span class="tno-idea-value">+{{solveIdeaValue}}</span>
-        <span class="tno-idea-reserve" title="{{localize 'TNO.Roll.IdeaReserve'}} {{solveReserve}}/{{solveReserveMax}}">
+        <span class="tno-idea-value">+{{insightValue}}</span>
+        <span class="tno-idea-reserve" title="{{localize 'TNO.Roll.IdeaReserve'}} {{edgePool}}/{{edgePoolMax}}">
           {{#if hasIdeaPips}}
           <span class="tno-idea-pips" aria-hidden="true">
             {{#each ideaPips}}<span class="tno-idea-pip {{#if this.filled}}filled{{/if}}"></span>{{/each}}
           </span>
           {{else}}
-          <span class="tno-idea-reserve-text">{{localize "TNO.Roll.IdeaReserve"}} {{solveReserve}}/{{solveReserveMax}}</span>
+          <span class="tno-idea-reserve-text">{{localize "TNO.Roll.IdeaReserve"}} {{edgePool}}/{{edgePoolMax}}</span>
           {{/if}}
         </span>
       </label>

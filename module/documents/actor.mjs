@@ -59,11 +59,12 @@ export class TnoActor extends Actor {
     // gleich, auch mit temporären Attributen". `canSprint` is the one
     // deliberate exception: it compares value against base to detect
     // Beweglichkeit damage and block sprinting entirely.
-    // The reserve pool refills to its max (Willenskraft+Wissen)/2 whenever
-    // derived data is recomputed; `problemSolving.spent` tracks how many of
-    // those points have been used since the last refill/reset.
-    const solveReserveMax = Math.ceil((base('wil') + base('wis')) / 2);
-    const solveReserveSpent = Math.min(systemData.problemSolving?.spent ?? 0, solveReserveMax);
+    // The edge pool refills to its max (Willenskraft+Wissen)/2 whenever
+    // derived data is recomputed; `problemSolving.spent` (the persisted key,
+    // kept under its old name so existing actors need no migration) tracks how
+    // many of those points have been used since the last refill/reset.
+    const edgePoolMax = Math.ceil((base('wil') + base('wis')) / 2);
+    const edgePoolSpent = Math.min(systemData.problemSolving?.spent ?? 0, edgePoolMax);
 
     // Carried slots used so far: each carried item (type "item") occupies
     // its `weight` field times how many are carried.
@@ -80,11 +81,11 @@ export class TnoActor extends Actor {
       carrySlots: 2 * base('str') + base('dex'),
       carrySlotsUsed,
       sixthSense: Math.round((base('per') + base('emp') + base('inv')) / 3),
-      solveIdea: Math.ceil((base('int') + base('wis')) / 2),
-      solveFindFlaw: Math.ceil((base('int') + base('wil')) / 2),
-      solveReserveMax: solveReserveMax,
-      solveReserve: Math.max(0, solveReserveMax - solveReserveSpent),
-      solveAnalyzeFlaw: 2 * base('inv'),
+      insight: Math.ceil((base('int') + base('wis')) / 2),
+      trialErrorMax: Math.ceil((base('int') + base('wil')) / 2),
+      edgePoolMax: edgePoolMax,
+      edgePool: Math.max(0, edgePoolMax - edgePoolSpent),
+      postMortem: 2 * base('inv'),
     };
   }
 

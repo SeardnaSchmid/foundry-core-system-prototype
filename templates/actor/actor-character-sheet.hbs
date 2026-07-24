@@ -54,45 +54,40 @@
 
         {{!-- Problemlösen: Vorrat zeigt den aktuell verbleibenden Punktestand
         an (Maximalwert minus Verbrauch) und ist direkt editierbar, geclampt
-        auf 0..Maximalwert. Die Tiles daneben sind reine Anzeigewerte im
-        selben Stil wie die Bewegungsreichweiten (movement-tile), bis auf
-        "Analyse": "Fehler Analysieren" ist als Wurf umgesetzt (ein
-        regulärer 3d20-Wurf gegen den Wert; bei Erfolg wird ein Vorrat-Punkt
-        zurückgewonnen) und steht direkt neben dem Vorrat, als einziges
-        klickbares Tile hier. "Idee haben" ist ein Pre-Edge und lebt als
-        Toggle im Würfel-Dialog selbst (TnoRollDialog); "Fehler finden"
-        ist ein Post-Edge und lebt auf der Wurf-Karte einer fehlgeschlagenen
-        Probe im Chat (siehe chat.mjs) — beide nur zur Übersicht hier
-        gezeigt, ohne eigenen Klick-Effekt. "Neuer Versuch" wird hier
-        bewusst nicht gezeigt: ohne attributabhängigen Schwellenwert (fixer
-        Punktkosten-Edge) bringt ein Anzeigewert dafür nichts. --}}
+        auf 0..Maximalwert. Alle vier Tiles daneben sind reine Anzeigewerte
+        im selben Stil wie die Bewegungsreichweiten (movement-tile) — keins
+        davon ist mehr klickbar. "Idee haben" ist ein Pre-Edge und lebt als
+        Toggle im Würfel-Dialog selbst (TnoRollDialog); "Fehler finden",
+        "Neuer Versuch" und "Fehler Analysieren" sind Post-Edges und leben
+        auf der Wurf-Karte einer fehlgeschlagenen Probe im Chat (siehe
+        chat.mjs), da "Fehler Analysieren" seit v1.7 an den konkreten
+        Fehlschlag gekoppelt ist (sperrt dessen XP-Anspruch). "Neuer
+        Versuch" wird hier bewusst nicht gezeigt: ohne attributabhängigen
+        Schwellenwert (fixer Punktkosten-Edge) bringt ein Anzeigewert dafür
+        nichts. --}}
         <div class="resource-group card problem-solving-group">
           {{!-- Tooltips read "Short Label — mechanic", not the old "Long
           Title: mechanic" (which doubled up on punctuation once the hint
           itself used a colon). The short label already matches the tile's
           on-screen caption, so hovering confirms what you're looking at
           before explaining how it works. --}}
-          <div class="reserve-pool{{#if analyzeFlawDisabled}} reserve-full{{/if}}" title="{{localize 'TNO.DerivedShort.SolveReserve'}} — {{localize 'TNO.DerivedHint.SolveReserve'}}">
+          <div class="reserve-pool" title="{{localize 'TNO.DerivedShort.EdgePool'}} — {{localize 'TNO.DerivedHint.EdgePool'}}">
             <span class="reserve-value">
-              <input type="number" class="reserve-value-input" value="{{system.derived.solveReserve}}" min="0" max="{{system.derived.solveReserveMax}}"/>/{{system.derived.solveReserveMax}}
+              <input type="number" class="reserve-value-input" value="{{system.derived.edgePool}}" min="0" max="{{system.derived.edgePoolMax}}"/>/{{system.derived.edgePoolMax}}
             </span>
-            <label class="reserve-label">{{localize "TNO.DerivedShort.SolveReserve"}}</label>
+            <label class="reserve-label">{{localize "TNO.DerivedShort.EdgePool"}}</label>
           </div>
-          <a class="solve-tile solve-analyze-flaw rollable {{#if analyzeFlawDisabled}}solve-tile-disabled{{/if}}" data-roll-type="analyzeFlaw" data-label="{{localize 'TNO.Derived.SolveAnalyzeFlaw'}}" title="{{#if analyzeFlawDisabled}}{{localize 'TNO.DerivedShort.SolveAnalyzeFlaw'}} — {{localize 'TNO.Notify.ReserveFull'}}{{else}}{{localize 'TNO.DerivedShort.SolveAnalyzeFlaw'}} — {{localize 'TNO.DerivedHint.SolveAnalyzeFlaw'}}{{/if}}">
-            {{!-- d20 marks this tile as the one you can actually click/roll,
-            distinguishing it at rest from the display-only Idea Bonus / Find
-            Flaw tiles beside it (hidden while the tile is inert/full). --}}
-            <i class="fa-solid fa-dice-d20 solve-roll-mark"></i>
-            <span class="solve-tile-value"><span class="solve-tile-affix">&le;</span><span class="solve-tile-number">{{system.derived.solveAnalyzeFlaw}}</span></span>
-            <label class="solve-tile-label">{{localize "TNO.DerivedShort.SolveAnalyzeFlaw"}}</label>
-          </a>
-          <div class="solve-tile" title="{{localize 'TNO.DerivedShort.SolveIdea'}} — {{localize 'TNO.DerivedHint.SolveIdea'}}">
-            <span class="solve-tile-value"><span class="solve-tile-affix">+</span><span class="solve-tile-number">{{system.derived.solveIdea}}</span></span>
-            <label class="solve-tile-label">{{localize "TNO.DerivedShort.SolveIdea"}}</label>
+          <div class="solve-tile" title="{{localize 'TNO.DerivedShort.PostMortem'}} — {{localize 'TNO.DerivedHint.PostMortem'}}">
+            <span class="solve-tile-value"><span class="solve-tile-affix">&le;</span><span class="solve-tile-number">{{system.derived.postMortem}}</span></span>
+            <label class="solve-tile-label">{{localize "TNO.DerivedShort.PostMortem"}}</label>
           </div>
-          <div class="solve-tile" title="{{localize 'TNO.DerivedShort.SolveFindFlaw'}} — {{localize 'TNO.DerivedHint.SolveFindFlaw'}}">
-            <span class="solve-tile-value"><span class="solve-tile-number">{{system.derived.solveFindFlaw}}</span><span class="solve-tile-affix solve-tile-suffix">{{localize "TNO.UnitRep"}}</span></span>
-            <label class="solve-tile-label">{{localize "TNO.DerivedShort.SolveFindFlaw"}}</label>
+          <div class="solve-tile" title="{{localize 'TNO.DerivedShort.Insight'}} — {{localize 'TNO.DerivedHint.Insight'}}">
+            <span class="solve-tile-value"><span class="solve-tile-affix">+</span><span class="solve-tile-number">{{system.derived.insight}}</span></span>
+            <label class="solve-tile-label">{{localize "TNO.DerivedShort.Insight"}}</label>
+          </div>
+          <div class="solve-tile" title="{{localize 'TNO.DerivedShort.TrialError'}} — {{localize 'TNO.DerivedHint.TrialError'}}">
+            <span class="solve-tile-value"><span class="solve-tile-number">{{system.derived.trialErrorMax}}</span><span class="solve-tile-affix solve-tile-suffix">{{localize "TNO.UnitRep"}}</span></span>
+            <label class="solve-tile-label">{{localize "TNO.DerivedShort.TrialError"}}</label>
           </div>
         </div>
 

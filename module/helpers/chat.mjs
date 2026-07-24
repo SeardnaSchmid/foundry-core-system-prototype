@@ -1,27 +1,22 @@
-import { startFindFlaw, rerollFindFlaw, startNewAttempt } from './dice.mjs';
+import { startTrialError, rerollTrialError, retry, postMortem, claimXp } from './dice.mjs';
 
 /**
- * Wire up the post-edge actions on a failed roll's chat card ("Fehler
- * finden" and "Neuer Versuch") plus the "Neuer Versuch" replacement banner
- * on the reroll card it produces. Nothing here touches the persisted card
- * content — everything is driven off `flags.tno` and re-rendered per
- * viewer, so only the rolling actor's owner (or a GM) ever sees the
- * controls, and every reopen of the chat log reflects the current state.
+ * Wire up the post-edge ("Troubleshoot") actions on a failed roll's chat
+ * card. Nothing here touches the persisted card content — everything is
+ * driven off `flags.tno` and re-rendered per viewer, so every action's
+ * outcome (dice results, edge spent, XP forfeited) lives on the roll's own
+ * card instead of cluttering the chat log, and every reopen of the log
+ * reflects the current state. Read-only result blocks are shown to all
+ * viewers (they replace the standalone cards the reroll/analysis rolls used
+ * to spawn); the interactive controls are owner/GM-only.
  */
 export function registerChatListeners() {
-  Hooks.on('renderChatMessageHTML', (message, html) => {
-    renderReplacementBanner(message, html);
-    renderEdgeSection(message, html);
-  });
+  Hooks.on('renderChatMessageHTML', (message, html) => renderEdgeSection(message, html));
 
-  // A card's edge section is only ever computed at its first render, gated
-  // on the actor's reserve at that moment. If the reserve changes afterward
-  // (a "Fehler Analysieren" refund, or the point "Neuer Versuch"/"Fehler
-  // finden" themselves just spent), already-displayed cards would otherwise
-  // stay frozen in their earlier state — e.g. a card that first rendered
-  // with reserve 0 never regains its "Problem lösen" trigger once the
-  // reserve refills. Re-run the render for every currently-visible card
-  // belonging to this actor whenever it updates.
+  // A card's edge section is gated on the actor's edge pool at render time.
+  // If the pool changes afterward (a Post-mortem refund, or a point just
+  // spent), re-render every visible card belonging to this actor so its
+  // controls reflect the new pool.
   Hooks.on('updateActor', (actor) => refreshEdgeSectionsFor(actor));
 }
 
@@ -36,46 +31,35 @@ function refreshEdgeSectionsFor(actor) {
   }
 }
 
-/** Scroll a rendered chat message into view, if it's currently in the log. */
-function scrollToMessage(messageId) {
-  document.querySelector(`[data-message-id="${messageId}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-
 /**
- * If this message is itself a "Neuer Versuch" reroll of another failed
- * check (flags.tno.replaces), banner it as the result that counts, with
- * a link back to the check it replaced.
+ * After a card expands in place (troubleshoot view, armed retry), scroll it
+ * back into the chat log so the whole taller card is visible. Deferred a frame
+ * so the layout reflows to the new height first.
  *
- * @param {ChatMessage} message
- * @param {HTMLElement} html
+ * @param {HTMLElement} card
  */
-function renderReplacementBanner(message, html) {
-  const data = message.flags?.tno;
-  if (!data?.replaces) return;
+function scrollCardIntoView(card) {
+  requestAnimationFrame(() => card.scrollIntoView({ behavior: 'smooth', block: 'end' }));
+}
 
-  const card = html.querySelector('.tno-roll-card');
-  if (!card) return;
+/** Localized outcome label ("Success"/"Failure"/…) for a `flags.tno` outcome. */
+function outcomeLabel(outcome) {
+  return game.i18n.localize(`TNO.RollOutcome.${outcome.charAt(0).toUpperCase()}${outcome.slice(1)}`);
+}
 
-  const banner = document.createElement('div');
-  banner.className = 'tno-new-attempt-banner';
-  banner.innerHTML = `<i class="fa-solid fa-arrow-rotate-right"></i> ${game.i18n.localize('TNO.Roll.NewAttemptCounts')}`;
-  banner.addEventListener('click', (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    scrollToMessage(data.replaces);
-  });
-  card.appendChild(banner);
+/** A row of dice (sorted, the counting die flagged), reusing the tracker die styling. */
+function diceRowHtml(dice) {
+  const dies = dice
+    .map((d) => `<span class="tno-find-flaw-die${d.isCounted ? ' counted' : ''}">${d.value}</span>`)
+    .join('');
+  return `<span class="tno-edge-result-dice">${dies}</span>`;
 }
 
 /**
- * Render whichever post-edge state a failed roll's own card is in:
- * - Untouched: a single "Problem lösen" toggle that expands, inline on the
- *   card, into the two options ("Fehler finden" and "Neuer Versuch") with
- *   their trade-offs (see renderSolvePanel). Running either claims
- *   `flags.tno.edge.consumed` and locks out the other for this roll.
- * - "Fehler finden" claimed: the reroll-until-success tracker.
- * - "Neuer Versuch" claimed: a stamp marking the roll as replaced (XP
- *   forfeited), linking forward to the reroll that now counts.
+ * Render the failed roll's on-card edge section from `flags.tno`. Order:
+ * public read-only result blocks (Retry / Post-mortem dice, XP stamp) for
+ * every viewer, then the owner/GM interactive panel (activity summary,
+ * Trial-&-error tracker, and the two-view guided controls).
  *
  * @param {ChatMessage} message
  * @param {HTMLElement} html
@@ -87,164 +71,410 @@ async function renderEdgeSection(message, html) {
   const card = html.querySelector('.tno-roll-card');
   if (!card) return;
 
-  // Idempotent: this can now run more than once per card (see
-  // refreshEdgeSectionsFor), so clear whatever it appended last time before
-  // recomputing rather than stacking a second panel/tracker/stamp on top.
+  // The "troubleshoot vs main" view is transient per-viewer UI state, never
+  // persisted. Read whichever view is currently showing before wiping the
+  // section, so a re-render triggered by an action (flag update) keeps the
+  // player on the same screen instead of snapping back to the XP buttons.
+  const view = card.querySelector('.tno-edge-actions.troubleshoot') ? 'troubleshoot' : 'main';
   card.querySelectorAll('.tno-edge-actions').forEach((el) => el.remove());
-  card.classList.remove('tno-replaced');
 
-  // A "Neuer Versuch" reroll replaces the check it came from exactly once
-  // (see problem-solving-prd.md) — it's a final result, not a new failed
-  // check to chain further edge actions off of, so it never gets its own
-  // Problem-lösen panel/tracker/stamp.
-  if (data.replaces) return;
+  // Base dice (and legacy pre-inline Post-mortem cards) opt out of the edge UI
+  // entirely. `data.replaces` is a legacy flag on the standalone reroll cards
+  // Retry produced before v2.2 (rerolls are inline now) — those historical
+  // cards keep opting out too.
+  if (data.edgeExempt || data.replaces) return;
 
-  // Some rolls (e.g. "Fehler Analysieren") are exempt from the Problem-lösen
-  // edge panel entirely: spending reserve to reroll the very roll that
-  // refills that reserve would be circular.
-  if (data.edgeExempt) return;
+  // Public read-only blocks — shown to everyone, since these replace the
+  // standalone chat cards the reroll/analysis rolls used to post.
+  if (data.edge?.newAttempt?.result) renderRetryResult(card, data);
+  if (data.edge?.analyzeFlaw?.result) renderPostMortemResult(card, data);
+  if (data.edge?.xpClaim?.claimed) renderXpClaimedStamp(card, data);
 
   const actor = data.actorId ? game.actors.get(data.actorId) : null;
   const isOwner = actor?.isOwner ?? false;
   const isFailure = data.outcome === 'failure' || data.outcome === 'criticalFailure';
-
-  if (data.edge?.consumed === 'findFlaw') {
-    await renderFindFlawTracker(message, card, data, isOwner);
-    return;
-  }
-
-  if (data.edge?.consumed === 'newAttempt') {
-    renderNewAttemptStamp(card, data);
-    return;
-  }
-
   if (!isOwner || !isFailure) return;
-  const reserve = actor.system.derived?.solveReserve ?? 0;
-  if (reserve <= 0) return;
 
-  await renderSolvePanel(message, card, actor, reserve);
+  await renderOwnerPanel(message, card, actor, data, view);
 }
 
 /**
- * Inline, no-modal picker for the two post-edge actions on a failed roll:
- * a single "Problem lösen" row that expands in place into the two options,
- * each with a one-line trade-off hint and its own run button — clicking a
- * run button both picks and executes that action immediately. Expanding
- * the panel is itself a deliberate first click, so no extra confirm step
- * is needed before the second one commits the point spend.
+ * Public "the result that counts" block for a Retry (rolled in place, no
+ * separate card): the reroll's dice and outcome, on the original card.
  *
- * @param {ChatMessage} message
- * @param {HTMLElement} card
- * @param {Actor} actor
- * @param {number} reserve
- */
-async function renderSolvePanel(message, card, actor, reserve) {
-  const findFlawValue = actor.system.derived?.solveFindFlaw ?? 0;
-
-  const container = document.createElement('div');
-  container.className = 'tno-edge-actions';
-  container.innerHTML = await renderTemplate('systems/tno/templates/chat/edge-panel.hbs', {
-    triggerLabel: game.i18n.format('TNO.Dialog.SolveTrigger', { value: reserve }),
-    findFlawHint: game.i18n.format('TNO.Dialog.SolveFindFlawHint', { value: findFlawValue }),
-    newAttemptHint: game.i18n.localize('TNO.Dialog.SolveNewAttemptHint'),
-  });
-  card.appendChild(container);
-
-  const toggle = container.querySelector('.tno-solve-toggle');
-  toggle.addEventListener('click', (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    container.classList.toggle('expanded');
-  });
-
-  container.querySelectorAll('[data-solve-action]').forEach((option) => {
-    option.addEventListener('click', async (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      if ((actor.system.derived?.solveReserve ?? 0) <= 0) {
-        ui.notifications.warn(game.i18n.localize('TNO.Notify.NoReserve'));
-        return;
-      }
-      if (option.dataset.solveAction === 'findFlaw') {
-        await startFindFlaw(message, actor);
-      } else {
-        await startNewAttempt(message, actor);
-      }
-    });
-  });
-}
-
-/**
- * @param {ChatMessage} message
  * @param {HTMLElement} card
  * @param {object} data
- * @param {boolean} isOwner
  */
-async function renderFindFlawTracker(message, card, data, isOwner) {
+function renderRetryResult(card, data) {
+  const r = data.edge.newAttempt.result;
+  const container = document.createElement('div');
+  container.className = 'tno-edge-actions';
+  container.innerHTML = `
+    <div class="tno-edge-result ${r.outcome}">
+      <span class="tno-edge-result-caption"><i class="fa-solid fa-arrow-rotate-right"></i> ${game.i18n.localize('TNO.Roll.NewAttemptCounts')}</span>
+      ${diceRowHtml(r.dice)}
+      <span class="tno-edge-result-outcome">${outcomeLabel(r.outcome)}</span>
+    </div>`;
+  card.appendChild(container);
+}
+
+/**
+ * Public result block for a Post-mortem analysis roll (rolled in place): its
+ * 3d20 against the analyze value, pass or fail.
+ *
+ * @param {HTMLElement} card
+ * @param {object} data
+ */
+function renderPostMortemResult(card, data) {
+  const r = data.edge.analyzeFlaw.result;
+  const caption = game.i18n.localize('TNO.Derived.PostMortem');
+  const container = document.createElement('div');
+  container.className = 'tno-edge-actions';
+  container.innerHTML = `
+    <div class="tno-edge-result ${r.outcome}">
+      <span class="tno-edge-result-caption"><i class="fa-solid fa-magnifying-glass-chart"></i> ${caption} (&le; ${r.threshold})</span>
+      ${diceRowHtml(r.dice)}
+      <span class="tno-edge-result-outcome">${outcomeLabel(r.outcome)}</span>
+    </div>`;
+  card.appendChild(container);
+}
+
+/**
+ * The dimmed activity summary lines for the owner: the edge-economy events
+ * that happened to this roll (spent points, XP forfeited, refunds, the
+ * no-time-pressure claim), derived from `flags.tno.edge` — no separate log
+ * is persisted. This is where the GM sees the "no time pressure" claim they
+ * can veto, instead of a chat message.
+ *
+ * @param {object} data
+ * @returns {string[]}
+ */
+function buildSummary(data) {
+  const lines = [];
+  const edge = data.edge ?? {};
+
+  if (edge.consumed === 'findFlaw') {
+    lines.push(game.i18n.localize('TNO.Edge.SummaryTrialError'));
+  }
+  if (edge.analyzeFlaw?.used) {
+    lines.push(
+      game.i18n.localize(edge.analyzeFlaw.success ? 'TNO.Edge.SummaryPostMortemRefund' : 'TNO.Edge.SummaryPostMortemNoRefund')
+    );
+  }
+  if (edge.consumed === 'newAttempt') {
+    lines.push(game.i18n.localize('TNO.Edge.SummaryRetry'));
+  }
+
+  return lines;
+}
+
+/**
+ * View model for the Trial-&-error pip tracker (display + reroll control):
+ * the attempts so far, the pip row, and the per-reroll Insight toggle state.
+ *
+ * @param {object} data
+ * @param {Actor} actor
+ * @returns {object}
+ */
+function buildTracker(data, actor) {
   const tracker = data.edge.findFlaw;
-  const attempts = tracker.attempts.map((attempt, index) => ({
-    index: index + 1,
-    dice: attempt.dice
-      .map((value, dieIndex) => ({ value, isCounted: dieIndex === attempt.countingIndex }))
-      .sort((a, b) => a.value - b.value),
-    outcome: attempt.outcome,
-    outcomeLabel: game.i18n.localize(
-      `TNO.RollOutcome.${attempt.outcome.charAt(0).toUpperCase()}${attempt.outcome.slice(1)}`
-    ),
-  }));
+  const attempts = tracker.attempts.map((attempt, index) => {
+    const base = outcomeLabel(attempt.outcome);
+    return {
+      index: index + 1,
+      dice: attempt.dice
+        .map((value, dieIndex) => ({ value, isCounted: dieIndex === attempt.countingIndex }))
+        .sort((a, b) => a.value - b.value),
+      outcome: attempt.outcome,
+      outcomeLabel: attempt.ideaBonus > 0 ? `${base} (+${attempt.ideaBonus})` : base,
+    };
+  });
   const pips = Array.from({ length: tracker.max }, (_, index) => {
     const attempt = tracker.attempts[index];
     return { filled: Boolean(attempt), success: attempt?.success ?? false };
   });
   const succeeded = tracker.attempts.some((attempt) => attempt.success);
-  const active = tracker.active && isOwner;
+  const reserve = actor?.system.derived?.edgePool ?? 0;
 
-  const container = document.createElement('div');
-  container.className = 'tno-edge-actions';
-  container.innerHTML = await renderTemplate('systems/tno/templates/chat/find-flaw-tracker.hbs', {
+  return {
     attempts,
     pips,
-    active,
+    active: tracker.active,
     succeeded,
+    // "Insight" on a reroll is its own independent choice per attempt, gated
+    // the same as the roll dialog's toggle (character actors, pool > 0).
+    hasIdea: tracker.active && actor?.type === 'character',
+    ideaDisabled: reserve <= 0,
+    ideaLabel: game.i18n.format('TNO.Edge.TrialIdeaLabel', { value: actor?.system.derived?.insight ?? 0 }),
+    statusLabel: game.i18n.format('TNO.Roll.FindFlawRemaining', { remaining: tracker.max - tracker.used, max: tracker.max }),
     rerollLabel: game.i18n.format('TNO.Roll.FindFlawReroll', { remaining: tracker.max - tracker.used }),
-    doneLabel: game.i18n.localize(
-      succeeded ? 'TNO.Roll.FindFlawSucceeded' : 'TNO.Roll.FindFlawExhausted'
-    ),
-  });
-  card.appendChild(container);
-
-  if (active) {
-    container.querySelector('.tno-find-flaw-reroll')?.addEventListener('click', async (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      await rerollFindFlaw(message);
-    });
-  }
+    doneLabel: game.i18n.localize(succeeded ? 'TNO.Roll.FindFlawSucceeded' : 'TNO.Roll.FindFlawExhausted'),
+  };
 }
 
 /**
+ * Whether the once-per-failure-chain XP claim is still available on a
+ * failed roll: only for a skill+attribute check, not yet claimed, and no
+ * problem-solving action taken. Every edge action forfeits the XP — Retry and
+ * Trial & error (both set `edge.consumed`) and Post-mortem — regardless of how
+ * the action itself turns out.
+ *
+ * @param {object} data  The message's flags.tno.
+ * @returns {boolean}
+ */
+function xpClaimEligible(data) {
+  if (!data.skillKey) return false;
+  if (data.edge?.xpClaim?.claimed) return false;
+  if (data.edge?.consumed) return false;
+  if (data.edge?.analyzeFlaw?.used) return false;
+  return true;
+}
+
+/**
+ * The two "Lesson learned" XP-claim buttons (the golden path). Empty once the
+ * claim window has closed (see xpClaimEligible).
+ *
+ * @param {object} data
+ * @returns {Array<{action: string, label: string}>}
+ */
+function buildXpOptions(data) {
+  if (!xpClaimEligible(data)) return [];
+  return [
+    { action: 'xpSkill', label: game.i18n.format('TNO.Edge.LessonButton', { label: data.skillLabel }) },
+    { action: 'xpAttribute', label: game.i18n.format('TNO.Edge.LessonButton', { label: data.attributeLabel }) },
+  ];
+}
+
+/**
+ * The grouped "Troubleshoot" action rows: Post-mortem (until used), then the
+ * guided "Try again — got time?" pair (Trial & error / Retry), offered only
+ * before either reroll has claimed this roll.
+ *
+ * @param {object} data
+ * @param {Actor} actor
+ * @returns {Array<{label: string|null, options: Array<object>}>}
+ */
+function buildEdgeGroups(data, actor) {
+  const groups = [];
+  const reserve = actor.system.derived?.edgePool ?? 0;
+  const reserveMax = actor.system.derived?.edgePoolMax ?? 0;
+
+  if (!data.edge?.consumed) {
+    const trialErrorValue = actor.system.derived?.trialErrorMax ?? 0;
+    groups.push({
+      label: game.i18n.localize('TNO.Edge.TryAgainQuestion'),
+      chooser: true,
+      options: [
+        {
+          action: 'trialError',
+          icon: 'fa-clock',
+          big: true,
+          title: game.i18n.localize('TNO.Edge.OptionTrialError'),
+          hint: game.i18n.format('TNO.Edge.TrialErrorHint', { value: trialErrorValue }),
+          disabled: false,
+        },
+        {
+          action: 'retry',
+          icon: 'fa-arrow-rotate-right',
+          big: true,
+          title: game.i18n.localize('TNO.Edge.OptionRetry'),
+          hint: game.i18n.localize('TNO.Edge.RetryHint'),
+          disabled: reserve <= 0,
+        },
+      ],
+    });
+  }
+
+  // Post-mortem is off once any reroll has touched this roll: starting Trial &
+  // error or a Retry (both set `consumed`) forfeits the chance to analyze it.
+  if (!data.edge?.analyzeFlaw?.used && !data.edge?.consumed) {
+    const disabled = reserve >= reserveMax;
+    groups.push({
+      label: game.i18n.localize('TNO.Edge.RefillSection'),
+      section: true,
+      options: [
+        {
+          action: 'postMortem',
+          icon: 'fa-magnifying-glass',
+          title: game.i18n.localize('TNO.Edge.OptionPostMortem'),
+          hint: disabled ? game.i18n.localize('TNO.Notify.ReserveFull') : game.i18n.localize('TNO.Edge.PostMortemHint'),
+          disabled,
+        },
+      ],
+    });
+  }
+
+  return groups;
+}
+
+/**
+ * The owner/GM interactive panel: activity summary + Trial-&-error tracker
+ * display (always shown) plus a two-view guided switch. The "main" view shows
+ * the XP-claim buttons + a Troubleshoot button; clicking Troubleshoot hides
+ * the XP buttons and reveals the edge actions (Post-mortem / Trial & error /
+ * Retry, and the reroll control mid-chain) plus a Back button. The view is a
+ * pure CSS toggle on the container (no flag write, no re-render). The XP
+ * buttons only ever show on a still-clean failure — any problem-solving action
+ * forfeits the claim (see xpClaimEligible), so once one is taken the main view
+ * carries just the Troubleshoot toggle.
+ *
+ * @param {ChatMessage} message
+ * @param {HTMLElement} card
+ * @param {Actor} actor
+ * @param {object} data
+ * @param {'main'|'troubleshoot'} view  The view to restore after a rebuild.
+ */
+async function renderOwnerPanel(message, card, actor, data, view) {
+  const summary = buildSummary(data);
+
+  // Any problem-solving action commits the roll. Once one is taken the card
+  // stops offering navigation and the other actions — no Troubleshoot toggle,
+  // no Back, no cross-action rows — so each choice is final:
+  //   · Trial & error → only its own reroll tracker lives on (no Back).
+  //   · Retry / Lesson learned → hard-terminal (public result/stamp + summary).
+  //   · Post-mortem → done; no Troubleshoot re-entry to Trial & error / Retry.
+  const committed =
+    Boolean(data.edge?.consumed) ||
+    Boolean(data.edge?.analyzeFlaw?.used) ||
+    Boolean(data.edge?.xpClaim?.claimed);
+  const tracker = data.edge?.consumed === 'findFlaw' ? buildTracker(data, actor) : null;
+  const xpOptions = committed ? [] : buildXpOptions(data);
+  const groups = committed ? [] : buildEdgeGroups(data, actor);
+  const reserve = actor.system.derived?.edgePool ?? 0;
+
+  const hasEdgeActions = groups.length > 0 || Boolean(tracker?.active);
+  const hasControls = xpOptions.length > 0 || hasEdgeActions;
+  const showViews = hasControls || Boolean(tracker);
+
+  if (summary.length === 0 && !tracker && !hasControls) return;
+
+  // "Retry" is offered only on a still-clean failure with a payable pool. When
+  // available, arm a confirm step (with an optional Insight boost) instead of
+  // rolling on click.
+  const armedRetry =
+    !committed && reserve > 0
+      ? {
+          title: game.i18n.localize('TNO.Edge.RetryName'),
+          hint: game.i18n.localize('TNO.Edge.RetryArmedHint'),
+          hasIdea: actor.type === 'character',
+          ideaDisabled: reserve < 2,
+          ideaLabel: game.i18n.format('TNO.Edge.RetryIdeaLabel', { value: actor.system.derived?.insight ?? 0 }),
+          cancelLabel: game.i18n.localize('TNO.Edge.RetryCancel'),
+          runLabel: game.i18n.localize('TNO.Edge.RetryRun'),
+        }
+      : null;
+
+  const container = document.createElement('div');
+  container.className = 'tno-edge-actions';
+  // Land on the troubleshoot view whenever a tracker is showing (you just
+  // started Trial & error, or you're mid-chain), or when restoring it after
+  // an action re-render.
+  if (tracker || (view === 'troubleshoot' && hasEdgeActions)) container.classList.add('troubleshoot');
+  container.innerHTML = await renderTemplate('systems/tno/templates/chat/edge-panel.hbs', {
+    summary,
+    tracker,
+    xpOptions,
+    xpCaption: game.i18n.localize('TNO.Edge.LessonCaption'),
+    groups,
+    armedRetry,
+    showViews,
+    committed,
+    hasControls,
+    hasEdgeActions,
+    triggerLabel: game.i18n.format('TNO.Edge.Trigger', { value: reserve }),
+    backLabel: game.i18n.localize('TNO.Edge.Back'),
+  });
+  card.appendChild(container);
+
+  // View switch — pure show/hide, no re-render (see the CSS `.troubleshoot`).
+  // Expanding grows the card below the fold, so pull its now-taller self back
+  // into view in the chat log.
+  container.querySelector('.tno-edge-toggle')?.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    container.classList.add('troubleshoot');
+    scrollCardIntoView(card);
+  });
+  container.querySelector('.tno-edge-back')?.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    container.classList.remove('troubleshoot');
+  });
+
+  // Trial-&-error reroll control.
+  container.querySelector('.tno-find-flaw-reroll')?.addEventListener('click', async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const useIdea = container.querySelector('.tno-find-flaw-idea-toggle')?.checked ?? false;
+    await rerollTrialError(message, useIdea);
+  });
+  // The Insight checkbox keeps its native toggle; only stop the click from
+  // bubbling into the roll card's own dice-tooltip expand handler.
+  container.querySelector('.tno-find-flaw-idea')?.addEventListener('click', (event) => {
+    event.stopPropagation();
+  });
+
+  // Armed-retry confirm step: the "Retry" row reveals it (a pure show/hide,
+  // like the troubleshoot toggle); Cancel hides it; Roll spends the edge and
+  // rerolls, optionally boosted by Insight.
+  container.querySelector('.tno-edge-retry-cancel')?.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    container.classList.remove('retry-armed');
+  });
+  container.querySelector('.tno-edge-retry-run')?.addEventListener('click', async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if ((actor.system.derived?.edgePool ?? 0) <= 0) {
+      ui.notifications.warn(game.i18n.localize('TNO.Notify.NoReserve'));
+      return;
+    }
+    const useIdea = container.querySelector('.tno-edge-retry-idea')?.checked ?? false;
+    await retry(message, actor, useIdea);
+  });
+
+  // Action rows / XP buttons.
+  container.querySelectorAll('[data-edge-action]').forEach((option) => {
+    option.addEventListener('click', async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      switch (option.dataset.edgeAction) {
+        case 'trialError':
+          return startTrialError(message, actor);
+        case 'retry':
+          if ((actor.system.derived?.edgePool ?? 0) <= 0) {
+            ui.notifications.warn(game.i18n.localize('TNO.Notify.NoReserve'));
+            return;
+          }
+          container.classList.add('retry-armed');
+          scrollCardIntoView(card);
+          return;
+        case 'postMortem':
+          return postMortem(message, actor);
+        case 'xpSkill':
+          return claimXp(message, actor, 'skill');
+        case 'xpAttribute':
+          return claimXp(message, actor, 'attribute');
+      }
+    });
+  });
+}
+
+/**
+ * Public terminal stamp shown once the XP claim has been used on this failure.
+ *
  * @param {HTMLElement} card
  * @param {object} data
  */
-function renderNewAttemptStamp(card, data) {
-  card.classList.add('tno-replaced');
-
-  const replacedBy = data.edge.newAttempt?.replacedBy;
+function renderXpClaimedStamp(card, data) {
+  const label = data.edge.xpClaim.target === 'skill' ? data.skillLabel : data.attributeLabel;
 
   const container = document.createElement('div');
   container.className = 'tno-edge-actions';
 
   const stamp = document.createElement('div');
   stamp.className = 'tno-new-attempt-stamp';
-  stamp.innerHTML = `<i class="fa-solid fa-arrow-rotate-right"></i> ${game.i18n.localize('TNO.Roll.NewAttemptReplaced')}`;
-  if (replacedBy) {
-    stamp.classList.add('tno-clickable');
-    stamp.addEventListener('click', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      scrollToMessage(replacedBy);
-    });
-  }
+  stamp.innerHTML = `<i class="fa-solid fa-star"></i> ${game.i18n.format('TNO.Roll.XpClaimed', { label })}`;
 
   container.appendChild(stamp);
   card.appendChild(container);

@@ -153,7 +153,7 @@ export function criticalResultFor(values, advantage) {
  *   (e.g. attribute and skill) shown in the expanded roll breakdown.
  * @param {number} [options.bonus]             Situational modifier shown in the breakdown.
  * @param {object} [options.extraFlags]        Extra properties merged into the message's
- *   `flags.tno`, e.g. `{ replaces: <messageId> }` for a "Neuer Versuch" reroll.
+ *   `flags.tno`, e.g. `{ edgeExempt: true }` for a roll that must not offer the edge panel.
  * @returns {Promise<{roll: Roll, success: boolean|null, message: ChatMessage}>}
  */
 export async function rollTno({
@@ -205,12 +205,16 @@ export async function rollTno({
     bonusDisplay: bonus > 0 ? `+${bonus}` : `${bonus}`,
   });
 
-  // Failed rolls carry enough context in flags.tno for the post-edge
-  // actions (see chat.mjs) to be offered and, once activated, to replay
-  // this roll's parameters exactly: "Fehler finden" rerolls in place on
-  // this same message, "Neuer Versuch" spins up a brand-new message via
-  // this same rollTno() call, fed straight from these flags. The
-  // original card content is never touched by either.
+  // Failed rolls carry enough context in flags.tno (threshold, advantage) for
+  // the post-edge actions (see chat.mjs) to be offered and, once activated, to
+  // replay this roll's parameters exactly: "Trial & error" and "Retry" both
+  // reroll in place on this same message via rollInPlace, storing their result
+  // back into these flags. The persisted card content is never touched.
+  //
+  // The `edge` sub-keys keep their original on-disk names (findFlaw,
+  // newAttempt, analyzeFlaw, consumed: 'findFlaw'|'newAttempt') even though
+  // the mechanics were renamed (Trial & error / Retry / Post-mortem), so
+  // chat cards persisted before the rename keep rendering without migration.
   const message = await ChatMessage.create({
     speaker: actor ? ChatMessage.getSpeaker({ actor }) : ChatMessage.getSpeaker(),
     flavor,
@@ -227,7 +231,7 @@ export async function rollTno({
         components,
         bonus,
         outcome,
-        edge: { consumed: null, findFlaw: null, newAttempt: null },
+        edge: { consumed: null, findFlaw: null, newAttempt: null, xpClaim: null, analyzeFlaw: null },
         ...extraFlags,
       },
     },
@@ -262,57 +266,55 @@ export async function rollTnoBase({ advantage = TNO_ADVANTAGE.none, flavor = '',
 }
 
 /**
- * Start the "Fehler finden" reroll tracker on a failed roll's chat message:
- * spends one reserve point and attaches an empty tracker to the message's
+ * Start the "Trial & error" reroll tracker on a failed roll's chat message:
+ * free of edge cost, it attaches an empty tracker to the message's
  * flags, which the renderChatMessageHTML hook (see chat.mjs) then renders
- * as a pip tracker with a reroll button in place of the trigger button.
+ * as a pip tracker with a reroll button in place of the trigger button. No
+ * reroll happens automatically — the first attempt is triggered the same
+ * manual way as every later one, so it gets the same "Insight" choice
+ * before it rolls.
+ *
+ * Trial & error is the "no time pressure" branch of the guided panel. That
+ * implicit claim is surfaced as an on-card summary line (see chat.mjs),
+ * derived from `edge.consumed==='findFlaw'`, so the GM can veto at the table
+ * without either a permission gate or a chat announcement (see
+ * problem-solving-prd.md, Open Question 3).
  *
  * @param {ChatMessage} message  The failed roll's chat message.
- * @param {Actor} actor          The rolling actor, spending the reserve point.
+ * @param {Actor} actor          The rolling actor.
  * @returns {Promise<void>}
  */
-export async function startFindFlaw(message, actor) {
-  const value = actor.system.derived?.solveFindFlaw ?? 0;
-  const spent = actor.system.problemSolving?.spent ?? 0;
-  await actor.update({ 'system.problemSolving.spent': spent + 1 });
+export async function startTrialError(message, actor) {
+  const value = actor.system.derived?.trialErrorMax ?? 0;
 
   await message.update({
     'flags.tno.edge.consumed': 'findFlaw',
     'flags.tno.edge.findFlaw': { max: value, used: 0, active: value > 0, attempts: [] },
   });
-
-  const reserveMax = actor.system.derived?.solveReserveMax ?? 0;
-  const reserve = actor.system.derived?.solveReserve ?? 0;
-
-  ChatMessage.create({
-    speaker: ChatMessage.getSpeaker({ actor }),
-    content: game.i18n.format('TNO.Chat.SolveFindFlawSuccess', { name: actor.name, value, current: reserve, max: reserveMax }),
-  });
 }
 
 /**
- * Reroll a check under the "Fehler finden" tracker: rolls the same die
- * count against the same threshold/advantage as the original check,
- * appends the attempt to the tracker, and stops the tracker at the first
- * success or once the max reroll count is used up.
+ * Roll d20s in place for an on-card edge action — no new chat message.
+ * Rolls the die count for `advantage`, plays the Dice So Nice animation for
+ * the current user (falling back to the plain dice sound when the module is
+ * absent), evaluates success against `threshold`, and returns both the raw
+ * values and a display-ready dice list (sorted, counted die flagged) matching
+ * roll-card.hbs / the Trial-&-error tracker.
  *
- * @param {ChatMessage} message  The chat message carrying the active tracker.
- * @returns {Promise<void>}
+ * The original roll's animation/sound comes for free from ChatMessage.create
+ * seeing `rolls: [roll]` (Dice So Nice hooks createChatMessage). These
+ * on-card actions never create a message — they only patch `flags.tno` on the
+ * existing card — so they have to trigger the animation themselves.
+ *
+ * @param {number} advantage   One of the TNO_ADVANTAGE values.
+ * @param {number} threshold   Success threshold (counting die must be <=).
+ * @returns {Promise<{values: number[], counting: {value: number, index: number}, success: boolean, outcome: string, dice: {value: number, isCounted: boolean}[], countingValue: number}>}
  */
-export async function rerollFindFlaw(message) {
-  const data = message.flags?.tno;
-  const tracker = data?.edge?.findFlaw;
-  if (!tracker?.active) return;
-
-  const dieCount = dieCountFor(data.advantage);
+async function rollInPlace(advantage, threshold) {
+  const dieCount = dieCountFor(advantage);
   const roll = new Roll(`${dieCount}d20`);
   await roll.evaluate();
 
-  // The original roll's animation/sound comes for free from ChatMessage.create
-  // seeing `rolls: [roll]` (Dice So Nice hooks createChatMessage). This
-  // reroll never creates a new message — it only patches flags on the
-  // existing tracker — so it has to trigger Dice So Nice itself. Without
-  // the module, fall back to the plain roll sound so a reroll is still felt.
   if (game.dice3d) {
     await game.dice3d.showForRoll(roll, game.user, true);
   } else {
@@ -320,10 +322,43 @@ export async function rerollFindFlaw(message) {
   }
 
   const values = roll.terms[0].results.map((r) => r.result);
-  const counting = pickCountingDie(values, data.advantage);
-  const critical = criticalResultFor(values, data.advantage);
-  const success = critical ? critical === 'criticalSuccess' : counting.value <= data.threshold;
+  const counting = pickCountingDie(values, advantage);
+  const critical = criticalResultFor(values, advantage);
+  const success = critical ? critical === 'criticalSuccess' : counting.value <= threshold;
   const outcome = critical ?? (success ? 'success' : 'failure');
+  const dice = values
+    .map((value, index) => ({ value, isCounted: index === counting.index }))
+    .sort((a, b) => a.value - b.value);
+
+  return { values, counting, success, outcome, dice, countingValue: counting.value };
+}
+
+/**
+ * Reroll a check under the "Trial & error" tracker: rolls the same die
+ * count against the same threshold/advantage as the original check,
+ * appends the attempt to the tracker, and stops the tracker at the first
+ * success or once the max reroll count is used up.
+ *
+ * @param {ChatMessage} message  The chat message carrying the active tracker.
+ * @param {boolean} [useIdea]  Whether to spend an independent "Insight"
+ *   point on this specific reroll — never inherited from the original roll
+ *   or from any prior reroll in the chain, each one is its own choice.
+ * @returns {Promise<void>}
+ */
+export async function rerollTrialError(message, useIdea = false) {
+  const data = message.flags?.tno;
+  const tracker = data?.edge?.findFlaw;
+  if (!tracker?.active) return;
+
+  const actor = data.actorId ? game.actors.get(data.actorId) : null;
+  let ideaBonus = 0;
+  if (useIdea && actor && (actor.system.derived?.edgePool ?? 0) > 0) {
+    ideaBonus = actor.system.derived?.insight ?? 0;
+    const spent = actor.system.problemSolving?.spent ?? 0;
+    await actor.update({ 'system.problemSolving.spent': spent + 1 });
+  }
+
+  const { values, counting, success, outcome } = await rollInPlace(data.advantage, data.threshold + ideaBonus);
 
   const used = tracker.used + 1;
   const active = !success && used < tracker.max;
@@ -333,54 +368,114 @@ export async function rerollFindFlaw(message) {
     'flags.tno.edge.findFlaw.active': active,
     'flags.tno.edge.findFlaw.attempts': [
       ...tracker.attempts,
-      { dice: values, countingIndex: counting.index, success, outcome },
+      { dice: values, countingIndex: counting.index, success, outcome, ideaBonus },
     ],
   });
 }
 
 /**
- * Trigger "Neuer Versuch" on a failed roll's chat message: spends one
- * reserve point, forfeits the XP the original check would have earned, and
- * has the system reroll the check itself, once, under identical
- * parameters. Unlike "Fehler finden" there's no player choice left once
- * triggered — the second result replaces the first outright — so the
- * reroll isn't handed to the player as a number to act on; it's carried out
- * here as a brand-new chat message, and the original is stamped (via
- * `flags.tno.edge.newAttempt`) as replaced, linking forward to it.
+ * Trigger "Retry" on a failed roll's chat message: spends one
+ * edge point, forfeits the XP the original check would have earned, and
+ * rerolls the check itself, once, under identical parameters. Unlike
+ * "Trial & error" there's no player choice left once triggered — the second
+ * result replaces the first outright. The reroll happens in place (no new
+ * chat message): its result is stored on `flags.tno.edge.newAttempt.result`
+ * and rendered inline on this same card as "the result that counts" (see
+ * chat.mjs), so nothing about this action clutters the chat log.
  *
  * @param {ChatMessage} message  The failed roll's chat message.
- * @param {Actor} actor          The rolling actor, spending the reserve point.
+ * @param {Actor} actor          The rolling actor, spending the edge point.
  * @returns {Promise<void>}
  */
-export async function startNewAttempt(message, actor) {
+export async function retry(message, actor, useIdea = false) {
   const data = message.flags?.tno;
   if (!data) return;
 
+  // Insight on a Retry is optional and costs its own extra edge point on top
+  // of the base one, so it's only offered when the pool can cover both.
+  let ideaBonus = 0;
+  let spend = 1;
+  if (useIdea && (actor.system.derived?.edgePool ?? 0) >= 2) {
+    ideaBonus = actor.system.derived?.insight ?? 0;
+    spend = 2;
+  }
+
   const spent = actor.system.problemSolving?.spent ?? 0;
-  await actor.update({ 'system.problemSolving.spent': spent + 1 });
+  await actor.update({ 'system.problemSolving.spent': spent + spend });
+
+  const { dice, countingValue, outcome, success } = await rollInPlace(data.advantage, data.threshold + ideaBonus);
 
   await message.update({
     'flags.tno.edge.consumed': 'newAttempt',
-    'flags.tno.edge.newAttempt': { replacedBy: null },
+    'flags.tno.edge.newAttempt': { result: { dice, countingValue, outcome, success, ideaBonus } },
+  });
+}
+
+/**
+ * Trigger "Post-mortem" on a failed roll's chat message: a standard
+ * 3d20 roll against `postMortem` (no advantage/disadvantage), which on
+ * success refunds one edge point. Bound to the specific failed check it's
+ * run from (unlike the old sheet-based version), since using it — win or
+ * lose the analysis roll itself — forfeits that check's XP claim. The forfeit
+ * is written before the roll so it applies regardless of the outcome.
+ *
+ * @param {ChatMessage} message  The failed roll's chat message.
+ * @param {Actor} actor          The rolling actor.
+ * @returns {Promise<void>}
+ */
+export async function postMortem(message, actor) {
+  // Any reroll on this roll (Trial & error or Retry, both set `consumed`)
+  // forfeits the Post-mortem — enforce it here too, not just by hiding the row.
+  if (message.flags?.tno?.edge?.consumed) return;
+
+  const confirmed = await foundry.applications.api.DialogV2.confirm({
+    window: { title: game.i18n.localize('TNO.Edge.PostMortemTitle') },
+    content: game.i18n.localize('TNO.Edge.PostMortemContent'),
+  });
+  if (!confirmed) return;
+
+  // Rolled in place (no separate chat card): the 3d20 result is stored on
+  // flags and rendered inline on this card. Using Post-mortem forfeits the
+  // XP claim regardless of the analysis roll's outcome — `used: true` is
+  // written with the result in one update, which is enough to lock the claim
+  // (see xpClaimEligible in chat.mjs).
+  const threshold = actor.system.derived?.postMortem ?? 0;
+  const { dice, countingValue, outcome, success } = await rollInPlace(TNO_ADVANTAGE.none, threshold);
+
+  await message.update({
+    'flags.tno.edge.analyzeFlaw': {
+      used: true,
+      success,
+      result: { dice, countingValue, outcome, success, threshold },
+    },
   });
 
-  const reserveMax = actor.system.derived?.solveReserveMax ?? 0;
-  const reserve = actor.system.derived?.solveReserve ?? 0;
+  if (!success) return;
+  const spent = actor.system.problemSolving?.spent ?? 0;
+  if (spent <= 0) return;
+  await actor.update({ 'system.problemSolving.spent': spent - 1 });
+}
 
-  ChatMessage.create({
-    speaker: ChatMessage.getSpeaker({ actor }),
-    content: game.i18n.format('TNO.Chat.SolveNewAttemptSuccess', { name: actor.name, current: reserve, max: reserveMax }),
-  });
+/**
+ * Claim the once-per-failure-chain XP reward on a failed roll's chat
+ * message: banks 1 XP on either the skill or the attribute actually used in
+ * that roll (the player's choice), and locks out any further claim on this
+ * same chain.
+ *
+ * @param {ChatMessage} message       The failed roll's chat message.
+ * @param {Actor} actor                The rolling actor.
+ * @param {'skill'|'attribute'} target Which side of the roll to credit.
+ * @returns {Promise<void>}
+ */
+export async function claimXp(message, actor, target) {
+  const data = message.flags?.tno;
+  if (!data || data.edge?.xpClaim?.claimed) return;
 
-  const { message: rerollMessage } = await rollTno({
-    threshold: data.threshold,
-    advantage: data.advantage,
-    flavor: data.flavor,
-    actor,
-    components: data.components ?? [],
-    bonus: data.bonus ?? 0,
-    extraFlags: { replaces: message.id },
-  });
+  const path = target === 'skill' ? `system.skills.${data.skillKey}.xp` : `system.abilities.${data.attributeKey}.xp`;
+  const current =
+    target === 'skill' ? actor.system.skills?.[data.skillKey]?.xp ?? 0 : actor.system.abilities?.[data.attributeKey]?.xp ?? 0;
 
-  await message.update({ 'flags.tno.edge.newAttempt.replacedBy': rerollMessage.id });
+  await actor.update({ [path]: current + 1 });
+  await message.update({ 'flags.tno.edge.xpClaim': { claimed: true, target } });
+  // No chat announcement — the on-card "Lesson learned" stamp conveys it.
 }
