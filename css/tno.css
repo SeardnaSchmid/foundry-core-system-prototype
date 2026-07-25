@@ -433,6 +433,7 @@
 }
 .tno .problem-solving-group .reserve-label {
   min-height: calc(var(--font-size-10, 10px) * 1.2 * 2);
+  text-align: center;
   font-size: var(--font-size-10, 10px);
   line-height: 1.2;
   text-transform: uppercase;

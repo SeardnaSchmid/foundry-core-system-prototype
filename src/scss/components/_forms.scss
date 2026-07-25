@@ -330,6 +330,7 @@ $portrait-frame-cut: 14% 0%, 86% 0%, 100% 9%, 100% 100%, 0% 100%, 0% 9%;
     // Matches .solve-tile-label's fixed 2-line height so "RESERVE" lines up
     // with the (sometimes 2-line) tile labels beside it.
     min-height: calc(var(--font-size-10, 10px) * 1.2 * 2);
+    text-align: center;
     font-size: var(--font-size-10, 10px);
     line-height: 1.2;
     text-transform: uppercase;

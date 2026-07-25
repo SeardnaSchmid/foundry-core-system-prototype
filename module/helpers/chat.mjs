@@ -328,7 +328,7 @@ function buildEdgeGroups(data, actor) {
           icon: 'fa-arrow-rotate-right',
           big: true,
           title: game.i18n.localize('TNO.Edge.OptionRetry'),
-          hint: game.i18n.localize('TNO.Edge.RetryHint'),
+          hint: reserve <= 0 ? game.i18n.localize('TNO.Notify.NoReserve') : game.i18n.localize('TNO.Edge.RetryHint'),
           disabled: reserve <= 0,
         },
       ],

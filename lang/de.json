@@ -274,10 +274,10 @@
       "MovementCrawl": "Bewegungsreichweite (Kriechen)",
       "CarrySlots": "Trageslots",
       "SixthSense": "Sechster Sinn",
-      "Insight": "Edge: Geistesblitz",
+      "Insight": "Edge: Ideen Bonus",
       "TrialError": "Edge: Trial & error",
-      "EdgePool": "Edge-Pool",
-      "PostMortem": "Edge: Fehleranalyse",
+      "EdgePool": "Edge-Vorrat",
+      "PostMortem": "Edge: Fehler Analyse",
       "Retry": "Edge: Neuer Versuch"
     },
     "DerivedShort": {
@@ -287,10 +287,10 @@
       "MovementCrawl": "Kriechen",
       "CarrySlots": "Trageslots",
       "SixthSense": "6. Sinn",
-      "Insight": "Geistesblitz",
+      "Insight": "Ideen Bonus",
       "TrialError": "Max Wiederholen",
-      "EdgePool": "Edge-Pool",
-      "PostMortem": "Fehleranalyse",
+      "EdgePool": "Edge Vorrat",
+      "PostMortem": "Fehler Analyse",
       "Retry": "Neuer Versuch"
     },
     "DerivedHint": {
@@ -302,26 +302,26 @@
       "SixthSense": "(Sinnesschärfe+Menschenkenntnis+Untersuchen)/3",
       "Insight": "Gib 1 Edge-Punkt aus, um diesen Wert zu deinem Wurfergebnis zu addieren. Wert: (Intelligenz+Wissen)/2, aufgerundet.",
       "TrialError": "Kostenlos nutzbar, für bis zu so viele Wiederholungen wie diesen Wert (nur ohne Zeitdruck). Wert: (Intelligenz+Willenskraft)/2, aufgerundet.",
-      "EdgePool": "Punkte, die du für Edge-Aktionen ausgibst (Geistesblitz, Neuer Versuch) — jede kostet 1 Punkt. Trial & error ist kostenlos. Wert: (Willenskraft+Wissen)/2, aufgerundet.",
+      "EdgePool": "Punkte, die du für Edge-Aktionen ausgibst (Ideen Bonus, Neuer Versuch) — jede kostet 1 Punkt. Trial & error ist kostenlos. Wert: (Willenskraft+Wissen)/2, aufgerundet.",
       "PostMortem": "Nach einem Fehlschlag füllt ein erfolgreicher Wurf gegen diesen Wert 1 Edge-Punkt wieder auf — kostet dafür den Erfahrungspunkt, den der Fehlschlag gebracht hätte. Wert: 2×Untersuchen.",
       "Retry": "1 Punkt + Verzicht auf den XP, zweiter Versuch zählt"
     },
     "Notify": {
       "NoReserve": "Kein Edge-Punkt mehr übrig.",
-      "ReserveFull": "Edge-Pool ist bereits voll.",
+      "ReserveFull": "Edge-Vorrat ist bereits voll.",
       "ProblemSolvingGate": "Nur einsetzbar, wenn gerade kein Zeitdruck herrscht — das entscheidet dein Spielleiter."
     },
     "Edge": {
       "Trigger": "Fehlersuche ({value})",
-      "LessonCaption": "Lehrgeld — 1 XP einlösen",
+      "LessonCaption": "Praktische Erfahrung gesammelt — 1 XP beanspruchen",
       "LessonButton": "{label} +1",
-      "OptionPostMortem": "Fehleranalyse",
-      "PostMortemHint": "Bei Erfolg: +1 Edge-Punkt, verwirkt aber den XP-Anspruch · bei Misserfolg passiert nichts",
-      "RefillSection": "Vorrat auffüllen",
-      "TryAgainQuestion": "Nochmal versuchen — herrscht Zeitdruck?",
-      "OptionTrialError": "Nein — wir haben Zeit",
-      "TrialErrorHint": "Trial & error · kostenlos · bis zu {value} Wiederholungen",
-      "OptionRetry": "Ja — jetzt handeln",
+      "OptionPostMortem": "Fehler analysieren",
+      "PostMortemHint": "Bei Erfolg: +1 Edge-Punkt · verwirkt so oder so die XP",
+      "RefillSection": "Hat dich der Fehlschlag eine Lektion gelehrt?",
+      "TryAgainQuestion": "Nochmal versuchen — wie viel Zeit hast du?",
+      "OptionTrialError": "Kein Zeitdruck — beliebig oft wiederholen",
+      "TrialErrorHint": "Trial & error · kostenlos · bis zu {value} Wiederholungen, verwirkt XP",
+      "OptionRetry": "Jetzt durchziehen — gib einen Edge-Punkt aus",
       "RetryHint": "Neuer Versuch · 1 Edge · Ergebnis zählt, verwirkt XP",
       "RetryName": "Neuer Versuch",
       "RetryArmedHint": "1 Edge · gleiche Schwelle · Ergebnis zählt, verwirkt XP",
@@ -331,14 +331,14 @@
       "RetryRun": "Würfeln",
       "Back": "Zurück",
       "SummaryTrialError": "Trial & error — keine Zeitnot angenommen · XP verwirkt",
-      "SummaryPostMortemRefund": "Fehleranalyse — +1 Edge · XP verwirkt",
-      "SummaryPostMortemNoRefund": "Fehleranalyse — keine Rückerstattung · XP verwirkt",
+      "SummaryPostMortemRefund": "Fehler Analyse — +1 Edge · XP verwirkt",
+      "SummaryPostMortemNoRefund": "Fehler Analyse — keine Rückerstattung · XP verwirkt",
       "SummaryRetry": "Neuer Versuch — 1 Edge ausgegeben · XP verwirkt",
-      "PostMortemTitle": "Edge — Fehleranalyse",
-      "PostMortemContent": "<p>Du versuchst, aus deinem letzten Fehlschlag zu lernen. Gelingt der Wurf, füllt sich dein Edge-Pool um einen Punkt auf — dafür verzichtest du auf den möglichen XP-Anspruch dieses Fehlschlags.</p><p>Kläre vorher mit deinem Spielleiter ab, ob das hier passt: Die Mechanik ist nur gedacht für Fehlschläge mit einer echten, spürbaren Konsequenz und setzt zudem voraus, dass gerade kein Zeitdruck herrscht — nicht für jeden verpatzten Wurf mitten im Getümmel.</p>"
+      "PostMortemTitle": "Edge — Fehler Analyse",
+      "PostMortemContent": "<p>Du versuchst zu analysieren, was schiefgelaufen ist. Gelingt der Wurf, füllt sich dein Edge-Vorrat um <strong>1 Punkt</strong> auf.</p><p><strong>So oder so verwirkst du die XP</strong> dieses Fehlschlags — sobald du die Analyse versuchst, ist die XP weg, egal ob du erfolgreich bist oder nicht.</p><p>Kläre vorher mit deinem Spielleiter ab, ob das hier passt: Die Mechanik ist nur gedacht für Fehlschläge mit einer <strong>echten, spürbaren Konsequenz</strong> — nicht für jeden verpatzten Wurf mitten im Getümmel.</p>"
     },
     "Chat": {
-      "EdgeSpent": "{name} gibt {count} Edge-Punkt(e) aus ({current}/{max})."
+      "EdgeSpent": "{name} hat den Edge-Vorrat manuell bearbeitet: {from}/{max} → {to}/{max}."
     },
     "SheetLabels": {
       "Actor": "Charakterbogen",
@@ -377,8 +377,8 @@
       "FreeTitle": "Freier Wurf",
       "FreeHint": "Ein wählbares Attribut plus einen freien Fähigkeitswert würfeln",
       "FreeSkillValue": "Fähigkeitswert",
-      "IdeaToggle": "Geistesblitz",
-      "IdeaComponent": "Geistesblitz",
+      "IdeaToggle": "Ideen Bonus",
+      "IdeaComponent": "Ideen Bonus",
       "IdeaReserve": "Edge",
       "FindFlawReroll": "Nochmal würfeln ({remaining} übrig)",
       "FindFlawRemaining": "Noch {remaining} von {max} Wiederholungen übrig",
@@ -399,9 +399,9 @@
     },
     "RollOutcome": {
       "Success": "Erfolg",
-      "Failure": "Misserfolg",
+      "Failure": "Fehlschlag",
       "CriticalSuccess": "Kritischer Erfolg",
-      "CriticalFailure": "Kritischer Misserfolg"
+      "CriticalFailure": "Kritischer Fehlschlag"
     },
     "Effect": {
       "Source": "Quelle",

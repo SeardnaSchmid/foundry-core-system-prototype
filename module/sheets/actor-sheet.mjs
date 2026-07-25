@@ -501,8 +501,8 @@ export class TnoActorSheet extends ActorSheet {
 
     // Edge pool: editable directly, clamped to
     // 0..max. Stored as "spent" (max minus the edited value) since the
-    // pool itself is derived, recomputed from problemSolving.spent. A
-    // manual decrease is a point spent outside the dedicated actions
+    // pool itself is derived, recomputed from problemSolving.spent. Any
+    // manual edit — up or down — happens outside the dedicated actions
     // (Insight, Post-mortem), so it's announced in chat too.
     html.on('change', '.reserve-value-input', (ev) => {
       const input = ev.currentTarget;
@@ -512,13 +512,13 @@ export class TnoActorSheet extends ActorSheet {
       input.value = value;
       this.actor.update({ 'system.problemSolving.spent': max - value });
 
-      if (value < current) {
+      if (value !== current) {
         ChatMessage.create({
           speaker: ChatMessage.getSpeaker({ actor: this.actor }),
           content: game.i18n.format('TNO.Chat.EdgeSpent', {
             name: this.actor.name,
-            count: current - value,
-            current: value,
+            from: current,
+            to: value,
             max,
           }),
         });
