@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.24.5](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.24.4...v0.24.5) (2026-07-25)
+
+
+### Bug Fixes
+
+* **e2e:** give cold-cache container starts more time to become ready ([ee28a98](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/ee28a98d4d61a103babe9e8ca7775410c740d74f))
+
 ## [0.24.4](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.24.3...v0.24.4) (2026-07-25)
 
 ## [0.24.3](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.24.2...v0.24.3) (2026-07-25)
