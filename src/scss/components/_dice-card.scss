@@ -1,3 +1,9 @@
+// The card renders its own flavor title (.tno-roll-flavor), so hide core's
+// native flavor-text line in the message header to avoid showing it twice.
+.chat-message:has(.tno-roll-card) .message-header .flavor-text {
+  display: none;
+}
+
 .tno-roll-card {
   text-align: center;
   cursor: pointer;
@@ -97,9 +103,15 @@
 
     .wrapper {
       padding-top: 4px;
-      border-top: 1px solid $c-beige;
       margin-top: 4px;
     }
+  }
+
+  // The tooltip's `.wrapper` keeps its box (and thus its border) even while
+  // collapsed to 0 height, so the divider would show as a stray line above
+  // the outcome. Only draw it once the roll is actually expanded.
+  &.expanded .tno-roll-tooltip .wrapper {
+    border-top: 1px solid $c-beige;
   }
 
   .tno-roll-detail {
@@ -122,6 +134,8 @@
   .tno-edge-actions {
     order: 2;
     margin-top: 4px;
+    padding-top: 4px;
+    border-top: 1px solid $c-beige;
     cursor: default;
   }
 
@@ -560,11 +574,6 @@ $parch-panel: rgba(255, 255, 255, 0.35);
 
 .tno-roll-card:has(.tno-roll-outcome.failure),
 .tno-roll-card:has(.tno-roll-outcome.criticalFailure) {
-  background: $parch-bg;
-  border: 1px solid rgba(58, 45, 20, 0.25);
-  border-radius: 14px;
-  padding: 16px 18px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
   color: $parch-ink;
 
   .tno-roll-title {
@@ -630,9 +639,16 @@ $parch-panel: rgba(255, 255, 255, 0.35);
     }
   }
 
-  // Divider above each appended section (result blocks, owner panel), matching
-  // the design's hairline under the outcome row.
   .tno-edge-actions {
+    margin-top: 14px;
+    padding-top: 0;
+    border-top: none;
+  }
+
+  // Divider above the expanded troubleshoot view, matching the design's
+  // hairline under the outcome row — only shown once the collapsible part
+  // is actually revealed, not above the always-visible XP claim / toggle row.
+  .tno-edge-view-troubleshoot {
     border-top: 1px solid rgba(43, 38, 32, 0.14);
     margin-top: 14px;
     padding-top: 14px;

@@ -1,0 +1,68 @@
+---
+type: concept
+title: Dice resolution
+description: How a 3d20 roll-under check is built, rolled, and scored, including advantage and criticals.
+tags: [dice, rolls, advantage, criticals, threshold]
+resource: module/helpers/dice.mjs
+spec: docs/design/dice-system-prd.md
+related: [concepts/edge-pool, concepts/attributes]
+---
+
+# Dice resolution
+
+Full mechanic spec (thresholds, difficulty modifiers, risk profiles):
+[`docs/design/dice-system-prd.md`](../../design/dice-system-prd.md). This
+page covers only where each rule lives in code.
+
+All resolution logic is in
+[`module/helpers/dice.mjs`](../../../module/helpers/dice.mjs), which has no
+imports of its own — it's a leaf module every other roll-producing file
+depends on (see [layering.md](../architecture/layering.md)).
+
+## Advantage levels
+
+`TNO_ADVANTAGE`: `strongDisadvantage` (-2), `disadvantage` (-1), `none` (0),
+`advantage` (1), `strongAdvantage` (2). `TNO_ADVANTAGE_ABBR` / `_GLYPH` give
+the badge text/symbol shown on roll dialogs and chat cards.
+
+## The three-step resolution
+
+1. **`dieCountFor(advantage)`** — `none`/`strongAdvantage`/`strongDisadvantage`
+   roll 3d20; simple `advantage`/`disadvantage` roll only 2d20.
+2. **`pickCountingDie(values, advantage)`** — which rolled die "counts":
+   the middle die for `none`, the lower for `advantage` (of 2), the higher
+   for `disadvantage` (of 2), the lowest for `strongAdvantage` (of 3), the
+   highest for `strongDisadvantage` (of 3). Lower always wins, since success
+   is `countingDie <= threshold`.
+3. **`criticalResultFor(values, advantage)`** — evaluated independently of
+   the threshold; can override an otherwise-failing or otherwise-succeeding
+   result. The exact 1s/20s counts required vary per advantage level — see
+   the function's docstring in source, which spells out all five cases.
+
+## Entry points
+
+- **`rollTno(options)`** — the main entry point. Builds the roll, posts a
+  chat card (`templates/chat/roll-card.hbs`), and writes the full context
+  (threshold, advantage, components, `edge: {...}`) to
+  `ChatMessage.flags.tno` so post-roll edge actions can replay it — see
+  [edge-pool.md](edge-pool.md).
+- **`rollTnoBase(options)`** — the bare "Basiswürfel" roll with no
+  threshold (only a landed critical is an outcome). Sets
+  `extraFlags: { edgeExempt: true }` since a check with no
+  skill/attribute behind it can't offer the edge pool. Wired to the chat
+  log's quick-roll button — see
+  [bootstrap.md](../architecture/bootstrap.md).
+
+## Where rolls are triggered from
+
+- [`module/sheets/actor-sheet.mjs`](../../../module/sheets/actor-sheet.mjs)
+  `_onRoll` — ability/skill/free/sixthSense rolls from the character sheet.
+- [`module/apps/roll-dialog.mjs`](../../../module/apps/roll-dialog.mjs) —
+  the full roll builder (attribute picker, skill/ability/free/fixed modes,
+  bonus, "Idee haben" pre-edge toggle).
+- [`module/apps/base-roll-dialog.mjs`](../../../module/apps/base-roll-dialog.mjs)
+  — the bare-dice dialog, no actor required.
+- [`module/documents/item.mjs`](../../../module/documents/item.mjs)
+  `Item#roll()` — evaluates `system.formula` directly via `new Roll(...)`,
+  bypassing `rollTno` entirely (no advantage picker, no threshold, no edge
+  flags). Used for simple item rolls, not skill/attribute checks.

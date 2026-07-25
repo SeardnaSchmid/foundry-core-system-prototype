@@ -1,6 +1,9 @@
 # foundry-core-system-prototype
 foundry-core-system-prototype
 
+Für eine Architekturübersicht des Codes siehe
+[docs/wiki/index.md](docs/wiki/index.md).
+
 ## Working title → finaler Name
 
 „Trans-Neptunian Objects" ist aktuell der Arbeitstitel (System-ID `tno`).
@@ -11,8 +14,7 @@ Für eine vollständige Umbenennung (System-ID, Namespace, Dateien, Klassen)
 müssen zusätzlich folgende Stellen angefasst werden:
 
 - **`system.json`**: `id`, `title`, ggf. `manifest`/`download`-URLs
-- **Dateien mit `tno` im Namen**: `module/tno.mjs`,
-  `src/datamodels/module/tno.mjs`, `css/tno.css`,
+- **Dateien mit `tno` im Namen**: `module/tno.mjs`, `css/tno.css`,
   `src/scss/tno.scss`
 - **Namespace/Klassen im Code**: `game.tno`, `TnoRollDialog` und
   weitere `Tno*`-Bezeichner — suchbar mit

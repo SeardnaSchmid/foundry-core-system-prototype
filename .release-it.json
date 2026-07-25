@@ -23,7 +23,7 @@
     }
   },
   "hooks": {
-    "before:init": "npm test -- --run",
+    "before:init": "npm test -- --run && npm run docs:check",
     "after:bump": "sed -i 's|\"download\": \"https://github.com/SeardnaSchmid/foundry-core-system-prototype/releases/download/v[0-9.]*/system.zip\"|\"download\": \"https://github.com/SeardnaSchmid/foundry-core-system-prototype/releases/download/v${version}/system.zip\"|' system.json"
   }
 }
