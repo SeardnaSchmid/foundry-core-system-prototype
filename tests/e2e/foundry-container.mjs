@@ -288,22 +288,28 @@ export async function start() {
   const { stdout } = await docker(args);
   const id = stdout.trim();
 
-  const deadline = Date.now() + 180_000;
+  // A cold cache means the image has to download the ~250MB Foundry release
+  // and fetch a signed licence before the world can even start loading, which
+  // routinely blows past 180s in CI. A warm cache skips both, so it stays
+  // fast for the common case.
+  const readyTimeoutMs = cached ? 180_000 : 400_000;
+
+  const deadline = Date.now() + readyTimeoutMs;
   while (Date.now() < deadline) {
     const s = await status();
     if (s?.active && s.world === WORLD_ID) return id;
 
     const { stdout: state } = await docker(['inspect', '-f', '{{.State.Running}}', CONTAINER_NAME]);
     if (state.trim() !== 'true') {
-      const { stdout: logs } = await docker(['logs', '--tail', '40', CONTAINER_NAME]);
+      const { stdout: logs } = await docker(['logs', '--tail', '200', CONTAINER_NAME]);
       throw new Error(`Foundry container exited early:\n${logs}`);
     }
     await new Promise((r) => setTimeout(r, 1000));
   }
 
-  const { stdout: logs } = await docker(['logs', '--tail', '40', CONTAINER_NAME]);
+  const { stdout: logs } = await docker(['logs', '--tail', '200', CONTAINER_NAME]);
   await removeContainer();
-  throw new Error(`Foundry container was not ready within 180s:\n${logs}`);
+  throw new Error(`Foundry container was not ready within ${readyTimeoutMs / 1000}s:\n${logs}`);
 }
 
 /** Dump recent container logs, for diagnosing a failed start. */
