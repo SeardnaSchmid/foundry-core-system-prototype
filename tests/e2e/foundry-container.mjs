@@ -229,11 +229,17 @@ export async function start() {
     // and that needs an authenticated session — note this is required even when
     // the release zip is already cached, because it is the *licence* being
     // fetched here, not the download.
-    if (!process.env.FOUNDRY_LICENSE_KEY || !hasCredentials) {
+    const missing = ['FOUNDRY_LICENSE_KEY', 'FOUNDRY_USERNAME', 'FOUNDRY_PASSWORD'].filter(
+      (name) => !process.env[name]
+    );
+    if (missing.length) {
       throw new Error(
-        'No signed Foundry activation available. Either install Foundry locally (the suite reuses ' +
-          'its activation), or set FOUNDRY_LICENSE_KEY, FOUNDRY_USERNAME and FOUNDRY_PASSWORD so the ' +
-          'container can activate one itself.'
+        `No signed Foundry activation available, and ${missing.join(', ')} ${
+          missing.length === 1 ? 'is' : 'are'
+        } not set. Either install Foundry locally (the suite reuses its activation), or set all of ` +
+          'FOUNDRY_LICENSE_KEY, FOUNDRY_USERNAME and FOUNDRY_PASSWORD so the container can activate ' +
+          'one itself. All three are required: the key alone does not authenticate the request that ' +
+          'fetches the signed licence.'
       );
     }
     env.FOUNDRY_LICENSE_KEY = process.env.FOUNDRY_LICENSE_KEY;
