@@ -1,5 +1,13 @@
 # Changelog
 
+# [0.23.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.22.5...v0.23.0) (2026-07-25)
+
+
+### Features
+
+* add Playwright e2e test suite with Foundry Docker container ([237a991](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/237a991ef4c7eec763dbe3c250e7dc0b06319b36)), closes [foundry-joster-system#e2e](https://github.com/foundry-joster-system/issues/e2e)
+* show trial & error progress and edge summary to all players ([c427927](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/c427927173c5a15a8e54e505015dd1865f2655e9))
+
 ## [0.22.5](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.22.4...v0.22.5) (2026-07-24)
 
 ## [0.22.4](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.22.3...v0.22.4) (2026-07-23)
