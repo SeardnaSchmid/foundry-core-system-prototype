@@ -1,0 +1,83 @@
+name: E2E
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+# This repository is public, so GitHub does not expose secrets to workflows
+# triggered by a pull request from a fork. The e2e suite needs Foundry
+# credentials, so it can only run for branches pushed to this repository.
+#
+# Do NOT "fix" this with pull_request_target: that runs the PR's own code with
+# our secrets in scope, which is the standard way credentials leak out of a
+# public repository.
+
+concurrency:
+  # A Foundry licence activates one instance at a time; overlapping runs would
+  # fight over it.
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: Playwright against Foundry
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    env:
+      FOUNDRY_VERSION: '14.364'
+      TNO_E2E_DATA_PATH: ${{ github.workspace }}/.foundry-e2e
+      # No Foundry installed on the runner, so the container must activate the
+      # licence itself rather than reusing a local activation.
+      TNO_E2E_FORCE_ACTIVATION: '1'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Cache Foundry release
+        # Caching the release zip avoids re-downloading ~250MB from Foundry's
+        # servers on every run.
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.foundry-e2e/container_cache
+          key: foundry-release-${{ env.FOUNDRY_VERSION }}
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Run e2e suite
+        run: npm run test:e2e
+        env:
+          FOUNDRY_LICENSE_KEY: ${{ secrets.FOUNDRY_LICENSE_KEY }}
+          FOUNDRY_USERNAME: ${{ secrets.FOUNDRY_USERNAME }}
+          FOUNDRY_PASSWORD: ${{ secrets.FOUNDRY_PASSWORD }}
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+  skipped-for-fork:
+    name: Playwright against Foundry
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
+    steps:
+      - name: Explain why the suite did not run
+        run: |
+          echo "::notice::E2E is skipped for pull requests from forks, because Foundry" \
+               "credentials are not available to them. A maintainer can run the suite by" \
+               "pushing the branch to this repository."
