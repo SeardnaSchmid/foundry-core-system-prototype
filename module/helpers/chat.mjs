@@ -8,7 +8,9 @@ import { startTrialError, rerollTrialError, retry, postMortem, claimXp } from '.
  * card instead of cluttering the chat log, and every reopen of the log
  * reflects the current state. Read-only result blocks are shown to all
  * viewers (they replace the standalone cards the reroll/analysis rolls used
- * to spawn); the interactive controls are owner/GM-only.
+ * to spawn), including a non-owner's read-only view of an in-progress or
+ * concluded Trial & error tracker; the interactive controls (reroll, XP
+ * claim, Troubleshoot menu) are owner/GM-only.
  */
 export function registerChatListeners() {
   Hooks.on('renderChatMessageHTML', (message, html) => renderEdgeSection(message, html));
@@ -57,9 +59,11 @@ function diceRowHtml(dice) {
 
 /**
  * Render the failed roll's on-card edge section from `flags.tno`. Order:
- * public read-only result blocks (Retry / Post-mortem dice, XP stamp) for
- * every viewer, then the owner/GM interactive panel (activity summary,
- * Trial-&-error tracker, and the two-view guided controls).
+ * public read-only result blocks (Retry / Post-mortem dice, XP stamp, and —
+ * for non-owners — the Trial & error tracker) for every viewer, then the
+ * owner/GM interactive panel (Trial-&-error tracker and the two-view guided
+ * controls) for the owner only, then the activity summary — also public —
+ * last.
  *
  * @param {ChatMessage} message
  * @param {HTMLElement} html
@@ -84,18 +88,24 @@ async function renderEdgeSection(message, html) {
   // cards keep opting out too.
   if (data.edgeExempt || data.replaces) return;
 
+  const actor = data.actorId ? game.actors.get(data.actorId) : null;
+  const isOwner = actor?.isOwner ?? false;
+
   // Public read-only blocks — shown to everyone, since these replace the
   // standalone chat cards the reroll/analysis rolls used to post.
   if (data.edge?.newAttempt?.result) renderRetryResult(card, data);
   if (data.edge?.analyzeFlaw?.result) renderPostMortemResult(card, data);
   if (data.edge?.xpClaim?.claimed) renderXpClaimedStamp(card, data);
+  if (!isOwner && data.edge?.findFlaw) await renderTrialErrorProgress(card, data);
 
-  const actor = data.actorId ? game.actors.get(data.actorId) : null;
-  const isOwner = actor?.isOwner ?? false;
   const isFailure = data.outcome === 'failure' || data.outcome === 'criticalFailure';
-  if (!isOwner || !isFailure) return;
+  if (isOwner && isFailure) {
+    await renderOwnerPanel(message, card, actor, data, view);
+  }
 
-  await renderOwnerPanel(message, card, actor, data, view);
+  // The dimmed activity summary is read-only accounting (which action was
+  // taken, refund/no-refund) — public to every viewer, not just the owner.
+  renderSummaryBlock(card, data);
 }
 
 /**
@@ -140,11 +150,30 @@ function renderPostMortemResult(card, data) {
 }
 
 /**
- * The dimmed activity summary lines for the owner: the edge-economy events
- * that happened to this roll (spent points, XP forfeited, refunds, the
- * no-time-pressure claim), derived from `flags.tno.edge` — no separate log
- * is persisted. This is where the GM sees the "no time pressure" claim they
- * can veto, instead of a chat message.
+ * Public read-only Trial & error tracker for non-owner viewers: the same
+ * pips/attempts markup the owner sees, without the reroll control.
+ *
+ * @param {HTMLElement} card
+ * @param {object} data
+ */
+async function renderTrialErrorProgress(card, data) {
+  const tracker = buildTracker(data, null);
+  const container = document.createElement('div');
+  container.className = 'tno-edge-actions';
+  container.innerHTML = await renderTemplate('systems/tno/templates/chat/parts/trial-error-tracker.hbs', {
+    tracker,
+    showReroll: false,
+  });
+  card.appendChild(container);
+}
+
+/**
+ * The dimmed activity summary lines, public to every viewer: the
+ * edge-economy events that happened to this roll (spent points, XP
+ * forfeited, refunds, the no-time-pressure claim), derived from
+ * `flags.tno.edge` — no separate log is persisted. This is where the GM (and
+ * everyone else at the table) sees the "no time pressure" claim, instead of
+ * a chat message.
  *
  * @param {object} data
  * @returns {string[]}
@@ -166,6 +195,27 @@ function buildSummary(data) {
   }
 
   return lines;
+}
+
+/**
+ * Public summary block: the dimmed activity lines from {@link buildSummary},
+ * shown to every viewer (owner and non-owner alike). A no-op when there's
+ * nothing to report yet.
+ *
+ * @param {HTMLElement} card
+ * @param {object} data
+ */
+function renderSummaryBlock(card, data) {
+  const summary = buildSummary(data);
+  if (summary.length === 0) return;
+
+  const container = document.createElement('div');
+  container.className = 'tno-edge-actions';
+  container.innerHTML = `
+    <div class="tno-edge-summary">
+      ${summary.map((line) => `<span class="tno-edge-summary-line">${line}</span>`).join('')}
+    </div>`;
+  card.appendChild(container);
 }
 
 /**
@@ -308,15 +358,16 @@ function buildEdgeGroups(data, actor) {
 }
 
 /**
- * The owner/GM interactive panel: activity summary + Trial-&-error tracker
- * display (always shown) plus a two-view guided switch. The "main" view shows
- * the XP-claim buttons + a Troubleshoot button; clicking Troubleshoot hides
- * the XP buttons and reveals the edge actions (Post-mortem / Trial & error /
- * Retry, and the reroll control mid-chain) plus a Back button. The view is a
- * pure CSS toggle on the container (no flag write, no re-render). The XP
- * buttons only ever show on a still-clean failure — any problem-solving action
- * forfeits the claim (see xpClaimEligible), so once one is taken the main view
- * carries just the Troubleshoot toggle.
+ * The owner/GM interactive panel: Trial-&-error tracker display (always
+ * shown) plus a two-view guided switch. The "main" view shows the XP-claim
+ * buttons + a Troubleshoot button; clicking Troubleshoot hides the XP
+ * buttons and reveals the edge actions (Post-mortem / Trial & error / Retry,
+ * and the reroll control mid-chain) plus a Back button. The view is a pure
+ * CSS toggle on the container (no flag write, no re-render). The XP buttons
+ * only ever show on a still-clean failure — any problem-solving action
+ * forfeits the claim (see xpClaimEligible), so once one is taken the main
+ * view carries just the Troubleshoot toggle. The activity summary is public
+ * (see {@link renderSummaryBlock}) and rendered separately, not here.
  *
  * @param {ChatMessage} message
  * @param {HTMLElement} card
@@ -325,8 +376,6 @@ function buildEdgeGroups(data, actor) {
  * @param {'main'|'troubleshoot'} view  The view to restore after a rebuild.
  */
 async function renderOwnerPanel(message, card, actor, data, view) {
-  const summary = buildSummary(data);
-
   // Any problem-solving action commits the roll. Once one is taken the card
   // stops offering navigation and the other actions — no Troubleshoot toggle,
   // no Back, no cross-action rows — so each choice is final:
@@ -346,7 +395,7 @@ async function renderOwnerPanel(message, card, actor, data, view) {
   const hasControls = xpOptions.length > 0 || hasEdgeActions;
   const showViews = hasControls || Boolean(tracker);
 
-  if (summary.length === 0 && !tracker && !hasControls) return;
+  if (!tracker && !hasControls) return;
 
   // "Retry" is offered only on a still-clean failure with a payable pool. When
   // available, arm a confirm step (with an optional Insight boost) instead of
@@ -371,7 +420,6 @@ async function renderOwnerPanel(message, card, actor, data, view) {
   // an action re-render.
   if (tracker || (view === 'troubleshoot' && hasEdgeActions)) container.classList.add('troubleshoot');
   container.innerHTML = await renderTemplate('systems/tno/templates/chat/edge-panel.hbs', {
-    summary,
     tracker,
     xpOptions,
     xpCaption: game.i18n.localize('TNO.Edge.LessonCaption'),

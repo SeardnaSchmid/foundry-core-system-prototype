@@ -23,5 +23,6 @@ export const preloadHandlebarsTemplates = async function () {
     // Chat
     'systems/tno/templates/chat/roll-card.hbs',
     'systems/tno/templates/chat/edge-panel.hbs',
+    'systems/tno/templates/chat/parts/trial-error-tracker.hbs',
   ]);
 };

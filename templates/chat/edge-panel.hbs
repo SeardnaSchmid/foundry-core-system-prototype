@@ -24,44 +24,7 @@
   </div>
 
   <div class="tno-edge-view-troubleshoot">
-    {{#if tracker}}
-    <div class="tno-find-flaw-tracker">
-      <div class="tno-find-flaw-header">
-        <span class="tno-find-flaw-icon"><i class="fa-solid fa-clock"></i></span>
-        <div class="tno-find-flaw-heading">
-          <span class="tno-find-flaw-label">{{localize "TNO.Derived.TrialError"}}</span>
-          <span class="tno-find-flaw-status">{{#if tracker.active}}{{tracker.statusLabel}}{{else}}{{tracker.doneLabel}}{{/if}}</span>
-        </div>
-      </div>
-      <div class="tno-find-flaw-pips">
-        {{#each tracker.pips as |pip|}}
-        <span class="tno-find-flaw-pip{{#if pip.filled}} filled{{/if}}{{#if pip.success}} success{{/if}}"></span>
-        {{/each}}
-      </div>
-      {{#each tracker.attempts as |attempt|}}
-      <div class="tno-find-flaw-attempt {{attempt.outcome}}">
-        <span class="tno-find-flaw-attempt-index">#{{attempt.index}}</span>
-        <span class="tno-find-flaw-attempt-dice">
-          {{#each attempt.dice as |die|}}
-          <span class="tno-find-flaw-die{{#if die.isCounted}} counted{{/if}}">{{die.value}}</span>
-          {{/each}}
-        </span>
-        <span class="tno-find-flaw-attempt-outcome">{{attempt.outcomeLabel}}</span>
-      </div>
-      {{/each}}
-      {{#if tracker.active}}
-      <div class="tno-find-flaw-reroll-row">
-        {{#if tracker.hasIdea}}
-        <label class="tno-find-flaw-idea{{#if tracker.ideaDisabled}} disabled{{/if}}" title="{{#if tracker.ideaDisabled}}{{localize 'TNO.Notify.NoReserve'}}{{else}}{{localize 'TNO.DerivedHint.Insight'}}{{/if}}">
-          <input type="checkbox" class="tno-find-flaw-idea-toggle" {{#if tracker.ideaDisabled}}disabled{{/if}}/>
-          {{tracker.ideaLabel}}
-        </label>
-        {{/if}}
-        <a class="tno-find-flaw-reroll"><i class="fa-solid fa-dice-d20"></i> {{tracker.rerollLabel}}</a>
-      </div>
-      {{/if}}
-    </div>
-    {{/if}}
+    {{> "systems/tno/templates/chat/parts/trial-error-tracker.hbs" tracker=tracker showReroll=true}}
 
     {{#each groups}}
     <div class="tno-edge-group{{#if this.chooser}} tno-edge-chooser{{/if}}">
@@ -114,11 +77,5 @@
     <a class="tno-edge-back"><i class="fa-solid fa-chevron-left"></i> {{backLabel}}</a>
     {{/unless}}
   </div>
-</div>
-{{/if}}
-
-{{#if summary.length}}
-<div class="tno-edge-summary">
-  {{#each summary}}<span class="tno-edge-summary-line">{{this}}</span>{{/each}}
 </div>
 {{/if}}
