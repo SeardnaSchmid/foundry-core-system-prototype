@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.24.2](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.24.1...v0.24.2) (2026-07-25)
+
+
+### Bug Fixes
+
+* **e2e:** open up host data dir permissions for the Foundry container ([2e7dee3](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/2e7dee3929dfcd126acb9d7202f2f5e0255864a1))
+
 ## [0.24.1](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.24.0...v0.24.1) (2026-07-25)
 
 # [0.24.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.23.1...v0.24.0) (2026-07-25)
