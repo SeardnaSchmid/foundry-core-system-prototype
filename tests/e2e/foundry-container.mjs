@@ -158,6 +158,23 @@ export function provision() {
       2
     )}\n`
   );
+
+  // The container always runs as uid:gid 1000:1000 regardless of who owns the
+  // bind-mounted host directory (e.g. the GitHub Actions runner user does not
+  // have uid 1000), so it cannot write under a normal 0755 tree. Opening
+  // permissions up is simpler and more portable than chown, which would
+  // require root.
+  chmodRecursive(HOST_DATA, 0o777);
+}
+
+/** Recursively chmod a directory tree, since fs.mkdirSync's mode is subject to umask. */
+function chmodRecursive(dir, mode) {
+  fs.chmodSync(dir, mode);
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const entryPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) chmodRecursive(entryPath, mode);
+    else fs.chmodSync(entryPath, mode);
+  }
 }
 
 /**
