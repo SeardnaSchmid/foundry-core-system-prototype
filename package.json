@@ -5,7 +5,8 @@
   "scripts": {
     "build": "sass src/scss/tno.scss css/tno.css --style=expanded --no-source-map",
     "watch": "sass src/scss/tno.scss css/tno.css --style=expanded --source-map --watch",
-    "release": "release-it",
+    "release:verify": "npm run docs:check && release-it",
+    "release": "npm run release:verify && release-it",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
