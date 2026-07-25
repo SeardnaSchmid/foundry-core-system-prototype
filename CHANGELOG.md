@@ -1,5 +1,17 @@
 # Changelog
 
+# [0.24.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.23.1...v0.24.0) (2026-07-25)
+
+
+### Bug Fixes
+
+* **e2e:** name the missing credential in the activation error ([83c551a](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/83c551aaf8a1e4b778a85b6900846c10f802511d))
+
+
+### Features
+
+* **edge:** rename Insight/Post-mortem, announce manual reserve edits both ways ([d5c0f08](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/d5c0f0813f795e374b39448950ddc83d2a087975))
+
 ## [0.23.1](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.23.0...v0.23.1) (2026-07-25)
 
 # [0.23.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.22.5...v0.23.0) (2026-07-25)
