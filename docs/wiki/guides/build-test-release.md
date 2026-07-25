@@ -18,6 +18,7 @@ just the command reference.
 | `npm run watch` | Same, with source maps and `--watch` |
 | `npm test` | Runs the Vitest suite (`tests/helpers/*.test.js`) |
 | `npm run test:coverage` | Same, with v8 coverage (text + HTML + JSON summary) |
+| `npm run test:e2e` | Runs the Playwright suite against a disposable Foundry in Docker — see [e2e-testing.md](e2e-testing.md) |
 | `npm run docs:check` | Validates `docs/wiki/**` — see below |
 | `npm run release` | Runs `release-it`: bumps version, updates `CHANGELOG.md`, tags, pushes |
 
@@ -26,7 +27,7 @@ There is no bundler and no linter (`eslint`/`prettier`) in this repo —
 
 ## CI
 
-Two GitHub Actions workflows:
+Three GitHub Actions workflows:
 
 - **`.github/workflows/release.yml`** — triggers only on `v*.*.*` tags.
   Runs the test suite, generates coverage, packages `system.zip` from an
@@ -34,6 +35,11 @@ Two GitHub Actions workflows:
 - **`.github/workflows/docs.yml`** — triggers on push/PR touching
   `docs/wiki/**`, `module/**`, `template.json`, or the validator itself.
   Runs `npm run docs:check`.
+- **`.github/workflows/e2e.yml`** — triggers on push to `main` and on pull
+  requests from branches in this repository. Runs the Playwright suite
+  against Foundry in Docker. It is *not* part of the release gate, since it
+  needs Docker and Foundry credentials — see
+  [e2e-testing.md](e2e-testing.md).
 
 `npm run docs:check` is also wired into `.release-it.json`'s `before:init`
 hook alongside `npm test`, so a release cannot ship with a stale wiki

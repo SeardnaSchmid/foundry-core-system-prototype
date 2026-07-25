@@ -54,6 +54,7 @@ New to the codebase? Read in this order:
 ## Guides
 
 - [guides/build-test-release.md](guides/build-test-release.md) — build, test, and release commands
+- [guides/e2e-testing.md](guides/e2e-testing.md) — the Playwright suite that runs the system in a real Foundry
 
 ## Known tripwires
 

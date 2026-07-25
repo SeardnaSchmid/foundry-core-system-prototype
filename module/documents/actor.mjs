@@ -14,6 +14,15 @@ export class TnoActor extends Actor {
 
   /** @override */
   prepareBaseData() {
+    // Must call super: core's Actor#prepareBaseData runs _clearData(), which
+    // initializes `overrides`, `statuses`, `tokenActiveEffectChanges` and
+    // `_completedActiveEffectPhases`. Without it, applyActiveEffects("initial")
+    // throws during prepareEmbeddedDocuments ("Cannot set properties of
+    // undefined (setting 'initial')"), which aborts preparation before
+    // prepareDerivedData ever runs — leaving every actor with no derived data
+    // and no active effects applied.
+    super.prepareBaseData();
+
     // Data modifications in this step occur before processing embedded
     // documents or derived data.
   }

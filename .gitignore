@@ -4,6 +4,16 @@ node_modules/
 # Test coverage
 coverage/
 
+# Playwright / e2e artefacts
+test-results/
+playwright-report/
+
+# Secrets. Never commit a Foundry licence key or account credentials — this
+# repository is public. Local e2e runs reuse the licence activation from an
+# existing Foundry install; CI reads them from GitHub Actions secrets.
+.env
+.env.*
+
 # OS files
 .DS_Store
 Thumbs.db
