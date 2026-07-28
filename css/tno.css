@@ -1664,12 +1664,12 @@
 .tno .paperdoll {
   display: flex;
   gap: 14px;
-  align-items: center;
+  align-items: stretch;
   padding: 14px 16px;
 }
 .tno .paperdoll-figure {
   flex: 0 0 auto;
-  width: 84px;
+  width: 92px;
   height: auto;
   padding: 6px;
   border-radius: 8px;

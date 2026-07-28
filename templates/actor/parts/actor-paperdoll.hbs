@@ -4,7 +4,10 @@ mirroring the Rüstungen table's hit locations (Kopf, Torso, Arme, Beine).
 to fit the 300px column; the Items tab passes it falsey for the full view. --}}
 <div class='paperdoll card {{#if compact}}paperdoll-compact{{/if}}'>
 
-  <svg class='paperdoll-figure' viewBox='0 0 120 178' role='img'
+  {{!-- The viewBox is cropped to the drawing's actual bounds (x 22-98,
+  y 4-160, plus a stroke's worth of margin) rather than a round 120x178 canvas,
+  so the figure fills its box instead of floating in dead space. --}}
+  <svg class='paperdoll-figure' viewBox='19 1 82 162' role='img'
        aria-label='{{localize "TNO.Armor.FigureAlt"}}'>
     <title>{{localize 'TNO.Armor.Zones'}}</title>
     {{!-- Three paint states, decided in the sheet: `bare` (grey — nothing on
