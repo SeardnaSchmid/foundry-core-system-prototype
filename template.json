@@ -11,6 +11,14 @@
       "problemSolving": {
         "spent": 0
       },
+      "hasContainer": true,
+      "equipment": {
+        "suit": null,
+        "head": null,
+        "torso": null,
+        "arms": null,
+        "legs": null
+      },
       "abilities": {
         "str": {
           "base": 4,
@@ -96,7 +104,7 @@
     }
   },
   "Item": {
-    "types": ["item", "feature", "spell"],
+    "types": ["item", "feature", "spell", "armor"],
     "templates": {
       "base": {
         "description": ""
@@ -105,7 +113,7 @@
     "item": {
       "templates": ["base"],
       "quantity": 1,
-      "weight": 0,
+      "slots": 0,
       "formula": "d20 + @str.value"
     },
     "feature": {
@@ -114,6 +122,16 @@
     "spell": {
       "templates": ["base"],
       "spellLevel": 1
+    },
+    "armor": {
+      "templates": ["base"],
+      "quantity": 1,
+      "slots": 0,
+      "zone": "torso",
+      "sv": 0,
+      "rh": 0,
+      "rw": 0,
+      "ra": 0
     }
   }
 }

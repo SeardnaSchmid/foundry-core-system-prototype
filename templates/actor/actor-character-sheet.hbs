@@ -54,6 +54,13 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
           </div>
         </div>
 
+        {{!-- Rüstung und Trageslots: beide sichtbar auf jedem Tab, da sie im
+        Kampf ständig gebraucht werden. Hier in der Kompaktvariante — die
+        Sidebar ist 300px breit, die beschriftete Vollansicht lebt im
+        Ausrüstungs-Tab. --}}
+        {{> "systems/tno/templates/actor/parts/actor-paperdoll.hbs" compact=true}}
+        {{> "systems/tno/templates/actor/parts/actor-slot-grid.hbs" compact=true}}
+
         {{!-- Problemlösen: Vorrat zeigt den aktuell verbleibenden Punktestand
         an (Maximalwert minus Verbrauch) und ist direkt editierbar, geclampt
         auf 0..Maximalwert. Alle vier Tiles daneben sind reine Anzeigewerte

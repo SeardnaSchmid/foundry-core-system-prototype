@@ -1,3 +1,5 @@
+import { computeCarry, resolveArmor } from '../helpers/inventory.mjs';
+
 /**
  * Extend the base Actor document by defining a custom roll data structure which is ideal for the Simple system.
  * @extends {Actor}
@@ -75,20 +77,34 @@ export class TnoActor extends Actor {
     const edgePoolMax = Math.ceil((base('wil') + base('wis')) / 2);
     const edgePoolSpent = Math.min(systemData.problemSolving?.spent ?? 0, edgePoolMax);
 
-    // Carried slots used so far: each carried item (type "item") occupies
-    // its `weight` field times how many are carried.
-    const carrySlotsUsed = actorData.items
-      .filter((item) => item.type === 'item')
-      .reduce((sum, item) => sum + (item.system.weight ?? 0) * (item.system.quantity ?? 1), 0);
+    // The two equipment axes. Worn armour resolves zone-by-zone against the
+    // paper doll and is invisible to the slot sum; carried gear hits the slot
+    // sum only while a container is present. See helpers/inventory.mjs.
+    const carrySlots = 2 * base('str') + base('dex');
+    const carry = computeCarry(
+      actorData.items,
+      systemData.equipment,
+      systemData.hasContainer ?? true,
+      carrySlots
+    );
+    const armor = resolveArmor(systemData.equipment, actorData.items);
 
     systemData.derived = {
       initiative: Math.ceil((2 * base('dex') + base('per')) / 3),
       movementWalk: base('dex'),
       movementSprint: 3 * base('dex'),
       movementCrawl: 1,
-      canSprint: value('dex') >= base('dex'),
-      carrySlots: 2 * base('str') + base('dex'),
-      carrySlotsUsed,
+      // Sprinting needs both an undamaged Beweglichkeit and a load under half
+      // the slot budget — either one alone is enough to rule it out.
+      canSprint: value('dex') >= base('dex') && (carry.state === 'ok' || carry.state === 'noContainer'),
+      carrySlots,
+      carrySlotsUsed: carry.used,
+      carryState: carry.state,
+      armor: armor.zones,
+      armorSv: armor.sv,
+      // Falling short of the Stärkevorraussetzung costs one Malusstufe on
+      // every Beweglichkeit roll; the sheet surfaces it as a warning line.
+      armorSvPenalty: armor.sv > 0 && base('str') < armor.sv,
       sixthSense: Math.round((base('per') + base('emp') + base('inv')) / 3),
       insight: Math.ceil((base('int') + base('wis')) / 2),
       trialErrorMax: Math.ceil((base('int') + base('wil')) / 2),

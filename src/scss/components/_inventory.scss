@@ -1,0 +1,418 @@
+// Equipment views: the armour paper doll and the Trageslots grid. Both are
+// rendered twice — a compact variant in the 300px sidebar (visible on every
+// tab) and a labelled, full-width variant in the equipment tab — so nearly
+// everything here is sized off the shared variant and then tightened under
+// .paperdoll-compact / .slot-grid-compact.
+
+// Worn zones read as "protected", empty ones as an invitation to fill them.
+$c-zone-filled: #7f9a62;
+$c-zone-filled-bg: #dfe8d5;
+$c-zone-filled-border: #8ba06f;
+$c-zone-bare: #c3ccd4;
+$c-zone-bare-stroke: #9aa6b0;
+$c-zone-filled-stroke: #5d7546;
+// Reused for both the SV shortfall warning and the over-capacity load state:
+// in each case a rule is actively working against the character.
+$c-armor-warning: #7a2028;
+
+.paperdoll {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 16px;
+}
+
+.paperdoll-figure {
+  flex: 0 0 auto;
+  width: 84px;
+  height: auto;
+
+  .zone {
+    fill: $c-zone-bare;
+    stroke: $c-zone-bare-stroke;
+    stroke-width: 1;
+    cursor: pointer;
+
+    &.filled {
+      fill: $c-zone-filled;
+      stroke: $c-zone-filled-stroke;
+      stroke-width: 1.5;
+    }
+
+    // An unarmoured location is outlined rather than filled, so the
+    // silhouette reads as a gap at a glance.
+    &.empty {
+      fill: none;
+      stroke-dasharray: 4 3;
+    }
+
+    &:hover {
+      stroke: $c-advance;
+    }
+  }
+}
+
+.paperdoll-zones {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.armor-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 1px solid $c-zone-filled-border;
+  border-radius: 8px;
+  background: $c-zone-filled-bg;
+  font-size: var(--font-size-13, 13px);
+
+  &.armor-empty {
+    border-style: dashed;
+    border-color: $c-beige;
+    background: none;
+    color: $c-tan;
+    cursor: pointer;
+
+    &:hover {
+      border-color: $c-advance;
+    }
+  }
+
+  // The Unterkleidung is a layer under everything else rather than a hit
+  // location, so it sits apart from the four zone rows below it.
+  &.armor-suit {
+    margin-bottom: 4px;
+  }
+}
+
+.armor-icon {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  text-align: center;
+}
+
+.armor-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: bold;
+}
+
+.armor-values {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: baseline;
+  gap: 8px;
+  font-variant-numeric: tabular-nums;
+  font-weight: bold;
+  color: $c-dark;
+
+  // Middot separators between the pairs, so RH/RW/RA read as one read-out
+  // rather than three loose labels — cheaper than a divider element each.
+  .armor-value + .armor-value::before {
+    content: '·';
+    margin-right: 8px;
+    font-weight: normal;
+    color: $c-beige;
+  }
+
+  // Values contributed by the suit alone, shown on a zone with no addon of
+  // its own — dimmed so they don't read as a piece being worn there.
+  &.armor-values-suit {
+    opacity: 0.6;
+  }
+}
+
+// The label half of a value pair: present but recessive, so the eye lands on
+// the number.
+.armor-key {
+  margin-right: 4px;
+  font-size: var(--font-size-11, 11px);
+  font-weight: normal;
+  letter-spacing: 0.04em;
+  color: $c-tan;
+}
+
+.armor-unequip {
+  flex: 0 0 auto;
+  color: $c-tan;
+
+  &:hover {
+    color: $c-armor-warning;
+  }
+}
+
+.armor-warning {
+  margin-top: 6px;
+  font-size: var(--font-size-12, 12px);
+  font-weight: bold;
+  color: $c-armor-warning;
+
+  i {
+    margin-right: 6px;
+  }
+}
+
+.slot-grid-block {
+  padding: 14px 16px;
+}
+
+.slot-grid-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: var(--font-size-13, 13px);
+}
+
+.slot-grid-title {
+  font-weight: bold;
+  color: $c-dark;
+}
+
+.slot-grid-count {
+  font-size: var(--font-size-16, 16px);
+  font-variant-numeric: tabular-nums;
+  color: $c-beige;
+
+  // The used count is the number players actually track, so it carries the
+  // weight; the capacity behind it is context.
+  strong {
+    margin-right: 1px;
+    font-size: var(--font-size-22, 22px);
+    color: $c-advance;
+
+    // Over budget is legal — it just costs movement — so this is a warning
+    // colour, never a blocked state.
+    &.over-capacity {
+      color: $c-armor-warning;
+    }
+  }
+}
+
+.slot-badge {
+  @extend %stat-chip;
+  margin-left: auto;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: var(--font-size-12, 12px);
+  color: $c-white;
+  background: $c-advance;
+
+  &.badge-crawl-only {
+    background: $c-armor-warning;
+  }
+
+  &.badge-no-container {
+    background: $c-tan;
+  }
+}
+
+// One column per slot. The grid is derived from the item list on every
+// render, so a block simply spans as many columns as it costs.
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--slot-columns, 5), minmax(0, 1fr));
+  gap: 8px;
+}
+
+.slot-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  // A block is as wide as it is expensive, so its contents are centred rather
+  // than left-aligned — otherwise a 3-slot item's label floats far from the
+  // cell it visually belongs to.
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: var(--font-size-13, 13px);
+  white-space: nowrap;
+  overflow: hidden;
+  grid-column: span min(var(--slot-span, 1), var(--slot-columns, 5));
+}
+
+.slot-filled {
+  border: 1px solid $c-zone-filled-border;
+  background: $c-zone-filled-bg;
+  font-weight: bold;
+  cursor: grab;
+
+  &.over-capacity {
+    border-color: $c-armor-warning;
+    border-style: dashed;
+    background: rgba($c-armor-warning, 0.08);
+  }
+}
+
+.slot-empty {
+  border: 1px dashed $c-beige;
+}
+
+// The tail of the last row: raster cells past the character's capacity, so
+// they are neither free nor fillable.
+.slot-locked {
+  border: 1px solid $c-beige;
+  background: rgba($c-beige, 0.35);
+  cursor: not-allowed;
+
+  i {
+    position: absolute;
+    top: 5px;
+    left: 7px;
+    font-size: var(--font-size-11, 11px);
+    color: $c-advance;
+  }
+}
+
+// The affordance that says "these cells can be rearranged"; muted, since the
+// item's own icon and name are what identify the block.
+.slot-grip {
+  flex: 0 0 auto;
+  font-size: var(--font-size-11, 11px);
+  color: $c-beige;
+}
+
+.slot-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.slot-qty {
+  color: $c-tan;
+  font-weight: normal;
+  font-variant-numeric: tabular-nums;
+}
+
+.slot-grid-note {
+  margin: 8px 0 0;
+  font-size: var(--font-size-11, 11px);
+  color: $c-beige;
+}
+
+// Zero-slot items (Geld, Papiere, Krimskrams) never occupy a cell, so they
+// trail the grid as chips instead.
+.slot-trinkets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.slot-trinket {
+  @extend %stat-chip;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: normal;
+  color: $c-tan;
+  border: 1px solid $c-beige;
+}
+
+/* -------------------------------------------- */
+/*  Sidebar variants                            */
+/* -------------------------------------------- */
+
+// The sidebar is a fixed 300px column, so both views drop to icons and
+// shorter rows there; the labelled versions live in the equipment tab.
+.paperdoll-compact {
+  gap: 6px;
+  padding: 6px 8px;
+
+  .paperdoll-figure {
+    width: 48px;
+  }
+
+  .paperdoll-zones {
+    gap: 3px;
+  }
+
+  .armor-row {
+    gap: 5px;
+    min-height: 0;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-size: var(--font-size-10, 10px);
+  }
+
+  .armor-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  // At 300px there is no room for three value pairs beside a name, and the
+  // full read-out is one tab away.
+  .armor-values {
+    display: none;
+  }
+
+  .armor-warning {
+    font-size: var(--font-size-10, 10px);
+  }
+}
+
+.slot-grid-compact {
+  padding: 6px 8px;
+
+  .slot-grid-header {
+    gap: 6px;
+    margin-bottom: 6px;
+    font-size: var(--font-size-11, 11px);
+  }
+
+  .slot-grid-count {
+    font-size: var(--font-size-12, 12px);
+
+    strong {
+      font-size: var(--font-size-14, 14px);
+    }
+  }
+
+  .slot-badge {
+    padding: 1px 8px;
+    font-size: var(--font-size-10, 10px);
+  }
+
+  .slot-grid {
+    gap: 3px;
+  }
+
+  .slot-cell {
+    gap: 3px;
+    min-height: 22px;
+    padding: 0 4px;
+    border-radius: 4px;
+    font-size: var(--font-size-10, 10px);
+  }
+
+  // Names would be ellipsed to nothing in a 1-slot cell this narrow; the
+  // icon plus the item's tooltip carries the identity instead. The drag grip
+  // and the raster footnote go with them — at this width the icon is the
+  // whole cell.
+  .slot-name,
+  .slot-grip,
+  .slot-grid-note {
+    display: none;
+  }
+
+  .slot-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .slot-locked i {
+    top: 3px;
+    left: 4px;
+    font-size: var(--font-size-10, 10px);
+  }
+}

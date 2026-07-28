@@ -409,6 +409,61 @@
       "Temporary": "Temporary Effects",
       "Passive": "Passive Effects",
       "Inactive": "Inactive Effects"
+    },
+    "TabEffects": "Effects",
+    "Armor": {
+      "Zones": "Armour zones",
+      "FigureAlt": "Silhouette with the armoured zones highlighted",
+      "Values": "Armour Values",
+      "Empty": "empty",
+      "Equip": "Wear",
+      "EquipTitle": "Wear armour",
+      "Unequip": "Take off",
+      "NoneForZone": "No carried armour fits the {zone} location.",
+      "Sv": "Strength Req. (SV)",
+      "SvHint": "Below this Strength, every Agility roll takes one penalty step.",
+      "SvPenalty": "Strength {str} < SV {sv} · one penalty step on Agility",
+      "SvPenaltyHint": "The most demanding piece worn sets the requirement.",
+      "Rh": "Armour Hardness (RH)",
+      "RhShort": "RH",
+      "RhHint": "Compared against a weapon's Armour Penetration. Underclothing never contributes RH.",
+      "Rw": "Armour Value (RW)",
+      "RwShort": "RW",
+      "RwHint": "Padding. Feeds into Resistance = Strength + RW − Damage.",
+      "Ra": "Armour Coverage (RA)",
+      "RaShort": "RA",
+      "RaHint": "How well the location is covered. Suit and addon are summed, capped at 10.",
+      "SuitHint": "The underclothing layers beneath every zone at once.",
+      "SuitNoRhHint": "Underclothing never grants Armour Hardness — RH is ignored on a suit.",
+      "Zone": {
+        "Label": "Location",
+        "Suit": "Underclothing",
+        "Head": "Head",
+        "Torso": "Torso",
+        "Arms": "Arms",
+        "Legs": "Legs"
+      }
+    },
+    "Inventory": {
+      "CarrySlots": "Carry Slots",
+      "Slots": "Slots",
+      "SlotsHint": "0 trinkets · 1 small · 2 medium · 3 large · 4 backpack-sized",
+      "SlotsCarriedArmorHint": "Only counts while the armour is carried rather than worn.",
+      "NoSprint": "No Sprint",
+      "NoSprintHint": "At half the slots or more the character can no longer sprint.",
+      "CrawlOnly": "Crawl Only",
+      "CrawlOnlyHint": "With every slot filled the character can only crawl.",
+      "NoContainer": "No Bag",
+      "NoContainerHint": "Without a bag or backpack there is no slot budget — the character's hands are full.",
+      "TrinketsHint": "Money, papers and odds and ends cost no slots.",
+      "LockedHint": "Grey cell = the remainder a capacity of {capacity} leaves in the 5-wide grid.",
+      "SlotHint": {
+        "0": "Money, papers, odds and ends",
+        "1": "Small items, ration bags, one-handed weapons, hand grenades",
+        "2": "Medium items, two-handed weapons, bedrolls",
+        "3": "Large items, heavy weapons, toolboxes, oxygen tanks",
+        "4": "Backpack-sized items, welding gear, tents, parachutes"
+      }
     }
   },
 
@@ -420,7 +475,8 @@
     "Item": {
       "item": "Item",
       "feature": "Feature",
-      "spell": "Spell"
+      "spell": "Spell",
+      "armor": "Armour"
     }
   }
 }

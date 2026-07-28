@@ -1,3 +1,12 @@
+{{!-- The two visual views sit above the flat list, which stays as the
+administrative surface for creating, editing and deleting items. Both are
+character-only — this partial is shared with the NPC sheet, which has neither
+an equipment store nor a derived slot budget. --}}
+{{#if paperdoll}}
+  {{> "systems/tno/templates/actor/parts/actor-paperdoll.hbs"}}
+  {{> "systems/tno/templates/actor/parts/actor-slot-grid.hbs"}}
+{{/if}}
+
 <ol class='items-list'>
   <li class='item flexrow items-header'>
     {{!-- Column captions only make sense once there are rows to label; while

@@ -1,3 +1,5 @@
+import { ARMOR_ADDON_ZONES } from './inventory.mjs';
+
 export const TNO = {};
 
 /**
@@ -221,3 +223,42 @@ TNO.skills = {
   cultReligion: { label: 'TNO.Skill.CultReligion', category: 'knowledge', subgroup: 'cult', attribute: 'wis', starter: true },
   cultHistory: { label: 'TNO.Skill.CultHistory', category: 'knowledge', subgroup: 'cult', attribute: 'wis', starter: true },
 };
+
+/**
+ * Armour zones, in paperdoll order. `suit` is the Unterkleidung base layer
+ * (the spacesuit) and is not a hit location of its own — it applies in every
+ * zone at once, which is why it leads the list rather than sitting alongside
+ * the four addon locations from the Rüstungen table (Torso, Arme, Beine, Kopf).
+ * @type {Object}
+ */
+TNO.armorZones = {
+  suit: 'TNO.Armor.Zone.Suit',
+  head: 'TNO.Armor.Zone.Head',
+  torso: 'TNO.Armor.Zone.Torso',
+  arms: 'TNO.Armor.Zone.Arms',
+  legs: 'TNO.Armor.Zone.Legs',
+};
+
+/**
+ * The four addon zones, i.e. every zone except the all-covering `suit`.
+ * Anything that resolves per hit location iterates this rather than
+ * TNO.armorZones. Re-exported from the inventory helper so the display order
+ * here and the maths there can never drift apart.
+ * @type {Array<string>}
+ */
+TNO.armorAddonZones = ARMOR_ADDON_ZONES;
+
+/**
+ * The Richtwert table from the Inventarregeln: what an item costs in
+ * Inventarslots when its own entry does not say. Shown as help text on the
+ * item sheet's slot field; never applied automatically, since "Alles andere —
+ * nach Angabe" means the authored value always wins.
+ * @type {Array<{slots: number, hint: string}>}
+ */
+TNO.slotCostHints = [
+  { slots: 0, hint: 'TNO.Inventory.SlotHint.0' },
+  { slots: 1, hint: 'TNO.Inventory.SlotHint.1' },
+  { slots: 2, hint: 'TNO.Inventory.SlotHint.2' },
+  { slots: 3, hint: 'TNO.Inventory.SlotHint.3' },
+  { slots: 4, hint: 'TNO.Inventory.SlotHint.4' },
+];

@@ -16,9 +16,15 @@ import {
   TEMP_MAX,
   tempValueForBase,
 } from '../helpers/attributes.mjs';
+import { buildSlotGrid, ARMOR_ADDON_ZONES, wornItemIds } from '../helpers/inventory.mjs';
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
+
+// Columns in the Trageslots raster. Purely a layout number, but the template
+// needs it to pad the final row with locked cells, so it has to stay in step
+// with `--slot-columns` in _inventory.scss.
+const SLOT_GRID_COLUMNS = 5;
 
 /**
  * Case/diacritic-insensitive subsequence fuzzy match: true if every
@@ -402,6 +408,8 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       9: [],
     };
 
+    const armory = [];
+
     // Iterate through items, allocating to containers
     for (let i of context.items) {
       i.img = i.img || Item.DEFAULT_ICON;
@@ -412,6 +420,10 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       // Append to features.
       else if (i.type === 'feature') {
         features.push(i);
+      }
+      // Append to armour, whether it is currently worn or just hauled along.
+      else if (i.type === 'armor') {
+        armory.push(i);
       }
       // Append to spells.
       else if (i.type === 'spell') {
@@ -425,6 +437,61 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     context.gear = gear;
     context.features = features;
     context.spells = spells;
+    context.armory = armory;
+
+    if (context.actor.type === 'character') this._prepareEquipment(context);
+  }
+
+  /**
+   * Build the view models the paper doll and Trageslots grid render from.
+   * Both are derived on every render rather than stored: the paper doll reads
+   * `system.equipment`, and the grid packs carried gear in its existing sort
+   * order, so a player's arrangement never needs persisting.
+   *
+   * @param {object} context The context object to mutate
+   */
+  _prepareEquipment(context) {
+    const derived = this.actor.system.derived ?? {};
+    const equipment = this.actor.system.equipment ?? {};
+
+    // The suit is a layer under everything rather than a hit location, so it
+    // gets its own row above the four zones instead of sitting among them.
+    const suit = this.actor.items.get(equipment.suit) ?? null;
+    context.paperdoll = {
+      suit,
+      svPenalty: derived.armorSvPenalty ?? false,
+      sv: derived.armorSv ?? 0,
+      zones: ARMOR_ADDON_ZONES.map((zone) => ({
+        zone,
+        label: CONFIG.TNO.armorZones[zone],
+        item: this.actor.items.get(equipment[zone]) ?? null,
+        ...(derived.armor?.[zone] ?? { rh: 0, rw: 0, ra: 0 }),
+      })),
+    };
+
+    const capacity = derived.carrySlots ?? 0;
+    const grid = buildSlotGrid(this.actor.items.contents, equipment, capacity);
+    const used = derived.carrySlotsUsed ?? 0;
+    context.slotGrid = {
+      ...grid,
+      // A stack's multiplier is only worth the pixels when there is more than
+      // one of it; Handlebars can't compare inline, so decide it here.
+      blocks: grid.blocks.map((block) => ({ ...block, showQty: block.quantity > 1 })),
+      // Handlebars has no "repeat n times", so the free-cell count becomes a
+      // list the template can simply iterate.
+      emptyCells: Array.from({ length: grid.empty }, (_, i) => i),
+      // The raster is a fixed number of columns wide, so a capacity that isn't
+      // a multiple of it leaves a tail of cells the character doesn't actually
+      // have. They are rendered as locked so every row keeps its full width.
+      lockedCells: Array.from(
+        { length: (SLOT_GRID_COLUMNS - (capacity % SLOT_GRID_COLUMNS)) % SLOT_GRID_COLUMNS },
+        (_, i) => i,
+      ),
+      used,
+      capacity,
+      over: used > capacity,
+      state: derived.carryState ?? 'ok',
+    };
   }
 
   /* -------------------------------------------- */
@@ -589,6 +656,18 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       this.actor.items.get(li.dataset.itemId)?.delete();
     }, editable);
 
+    // Equipment: click an empty paper doll zone to pick armour for it, click
+    // the x on a filled one to take it off. Drag-and-drop onto the doll is
+    // supported too (see _onDrop), but a click path has to exist as well —
+    // dragging is unreliable in Firefox and impossible on touch.
+    this.#delegate('click', '.armor-unequip', (event, target) => {
+      event.preventDefault();
+      this._setEquippedArmor(target.dataset.zone, null);
+    }, editable);
+    this.#delegate('click', '.armor-row.armor-empty', (event, target) => {
+      this._promptEquipArmor(target.dataset.zone);
+    }, editable);
+
     // Active Effect management
     this.#delegate('click', '.effect-control', (event, target) => {
       const row = target.closest('li');
@@ -637,6 +716,100 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
       if (!el.hasAttribute('role')) el.setAttribute('role', 'button');
     }
+  }
+
+  /**
+   * Put an armour item into a paper doll zone, or clear the zone when
+   * `itemId` is null. A piece can only occupy one zone at a time, so any
+   * other zone already holding it is cleared in the same update.
+   *
+   * @param {string} zone  A key of CONFIG.TNO.armorZones.
+   * @param {string|null} itemId
+   * @private
+   */
+  async _setEquippedArmor(zone, itemId) {
+    if (!(zone in CONFIG.TNO.armorZones)) return;
+
+    const update = { [`system.equipment.${zone}`]: itemId };
+    if (itemId) {
+      for (const [other, worn] of Object.entries(this.actor.system.equipment ?? {})) {
+        if (other !== zone && worn === itemId) update[`system.equipment.${other}`] = null;
+      }
+    }
+    return this.actor.update(update);
+  }
+
+  /**
+   * Ask which piece of armour to put in a zone. Only armour the actor already
+   * carries is offered — equipping is a state change on gear in hand, not a
+   * way to conjure it — and only pieces authored for this zone, since the
+   * Rüstungen table binds each piece to a Stelle.
+   *
+   * @param {string} zone  A key of CONFIG.TNO.armorZones.
+   * @private
+   */
+  async _promptEquipArmor(zone) {
+    const worn = wornItemIds(this.actor.system.equipment);
+    const candidates = this.actor.items.filter(
+      (item) => item.type === 'armor' && item.system.zone === zone && !worn.has(item.id)
+    );
+
+    if (!candidates.length) {
+      return ui.notifications.info(
+        game.i18n.format('TNO.Armor.NoneForZone', {
+          zone: game.i18n.localize(CONFIG.TNO.armorZones[zone]),
+        })
+      );
+    }
+
+    // A single candidate has no decision to make, so skip the dialog.
+    if (candidates.length === 1) return this._setEquippedArmor(zone, candidates[0].id);
+
+    const options = candidates
+      .map((item) => `<option value="${item.id}">${foundry.utils.escapeHTML(item.name)}</option>`)
+      .join('');
+
+    const itemId = await foundry.applications.api.DialogV2.prompt({
+      window: { title: game.i18n.localize('TNO.Armor.EquipTitle') },
+      content: `<div class="form-group"><label>${game.i18n.localize(
+        CONFIG.TNO.armorZones[zone]
+      )}</label><select name="itemId">${options}</select></div>`,
+      ok: {
+        label: game.i18n.localize('TNO.Armor.Equip'),
+        callback: (event, button) => button.form.elements.itemId.value,
+      },
+      rejectClose: false,
+    });
+
+    if (itemId) return this._setEquippedArmor(zone, itemId);
+  }
+
+  /**
+   * @override
+   * Intercept drops onto a paper doll zone so armour can be equipped by
+   * dragging. Anything else — and any drop that is not armour authored for
+   * the zone it landed on — falls through to core's handling, which is what
+   * still creates the item when it comes from a compendium or another actor.
+   */
+  async _onDrop(event) {
+    const zoneEl = event.target?.closest?.('[data-zone]');
+    if (!zoneEl) return super._onDrop(event);
+
+    const data = TextEditor.getDragEventData(event);
+    if (data?.type !== 'Item') return super._onDrop(event);
+
+    const item = await Item.implementation.fromDropData(data);
+    const zone = zoneEl.dataset.zone;
+    if (item?.type !== 'armor' || item.system.zone !== zone) return super._onDrop(event);
+
+    // Dropping armour the actor does not own yet has to create it first;
+    // `parent` being this actor is what distinguishes the two cases.
+    const owned =
+      item.parent === this.actor
+        ? item
+        : (await this.actor.createEmbeddedDocuments('Item', [item.toObject()]))[0];
+
+    return this._setEquippedArmor(zone, owned.id);
   }
 
   /**

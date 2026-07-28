@@ -6,7 +6,10 @@
  * steps that are already published.
  * @type {Array<{version: string, migrate: () => Promise<void>}>}
  */
-export const MIGRATIONS = [{ version: '0.16.0', migrate: migrateNormalizeCustomSkills }];
+export const MIGRATIONS = [
+  { version: '0.16.0', migrate: migrateNormalizeCustomSkills },
+  { version: '0.25.0', migrate: migrateWeightToSlots },
+];
 
 /**
  * Register the hidden world setting that tracks which migrations have
@@ -85,5 +88,33 @@ async function migrateNormalizeCustomSkills() {
     }
 
     if (!foundry.utils.isEmpty(update)) await actor.update(update);
+  }
+}
+
+/**
+ * Rename `system.weight` to `system.slots` on every gear item. The field
+ * always held Inventarslots rather than a mass — the rules never weigh
+ * anything — so this is a rename, not a conversion, and the value carries
+ * over untouched.
+ *
+ * Idempotent by construction: an item that no longer has a `weight` key is
+ * skipped, and re-running after the unset therefore does nothing. Where both
+ * keys somehow exist, the already-migrated `slots` wins and the stale
+ * `weight` is simply dropped.
+ */
+async function migrateWeightToSlots() {
+  const migrate = async (item) => {
+    if (item.type !== 'item') return;
+    const weight = item.system?.weight;
+    if (weight === undefined) return;
+
+    const update = { 'system.-=weight': null };
+    if (item.system.slots === undefined) update['system.slots'] = Number(weight) || 0;
+    await item.update(update);
+  };
+
+  for (const item of game.items) await migrate(item);
+  for (const actor of game.actors) {
+    for (const item of actor.items) await migrate(item);
   }
 }

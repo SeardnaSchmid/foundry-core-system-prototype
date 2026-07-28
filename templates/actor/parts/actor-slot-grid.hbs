@@ -1,0 +1,80 @@
+{{!-- Trageslots: carried gear packed into the slot budget. The layout is
+derived on every render from the items' existing sort order — nothing about
+the arrangement is stored — so reordering is purely a view concern.
+
+Worn clothing and armour never appear here: "Von den Inventarregeln
+ausgenommen sind Kleidung und Rüstung welche der Charakter am Leib trägt". --}}
+<div class='slot-grid-block card {{#if compact}}slot-grid-compact{{/if}}'>
+
+  <div class='slot-grid-header'>
+    <span class='slot-grid-title'>{{localize 'TNO.Inventory.CarrySlots'}}</span>
+    <span class='slot-grid-count'>
+      <strong class='{{#if slotGrid.over}}over-capacity{{/if}}'>{{slotGrid.used}}</strong>/{{slotGrid.capacity}}
+    </span>
+
+    {{!-- One badge per movement consequence. "Keine Tasche" is its own state
+    rather than a load level: without a container there is no slot economy at
+    all, the character just has their hands full. --}}
+    {{#ifEquals slotGrid.state 'noContainer'}}
+      <span class='slot-badge badge-no-container' title='{{localize "TNO.Inventory.NoContainerHint"}}'>
+        {{localize 'TNO.Inventory.NoContainer'}}
+      </span>
+    {{/ifEquals}}
+    {{#ifEquals slotGrid.state 'noSprint'}}
+      <span class='slot-badge badge-no-sprint' title='{{localize "TNO.Inventory.NoSprintHint"}}'>
+        {{localize 'TNO.Inventory.NoSprint'}}
+      </span>
+    {{/ifEquals}}
+    {{#ifEquals slotGrid.state 'crawlOnly'}}
+      <span class='slot-badge badge-crawl-only' title='{{localize "TNO.Inventory.CrawlOnlyHint"}}'>
+        {{localize 'TNO.Inventory.CrawlOnly'}}
+      </span>
+    {{/ifEquals}}
+  </div>
+
+  <div class='slot-grid'>
+    {{#each slotGrid.blocks as |block|}}
+      <div class='slot-cell slot-filled {{#if block.over}}over-capacity{{/if}}'
+           style='--slot-span: {{block.span}}'
+           data-item-id='{{block.item._id}}'
+           draggable='true'
+           title='{{block.item.name}} · {{block.span}}'>
+        <i class='fas fa-grip-vertical slot-grip'></i>
+        <img class='slot-icon' src='{{block.item.img}}' width='20' height='20' alt=''/>
+        <span class='slot-name'>{{block.item.name}}</span>
+        {{#if block.showQty}}<span class='slot-qty'>×{{block.quantity}}</span>{{/if}}
+      </div>
+    {{/each}}
+
+    {{#each slotGrid.emptyCells}}
+      <div class='slot-cell slot-empty'></div>
+    {{/each}}
+
+    {{!-- The grid is a fixed-width raster, so a capacity that isn't a multiple
+    of the column count leaves a tail of cells that are not slots at all. They
+    are drawn as locked rather than omitted, so every row stays the same width
+    and the remainder reads as "not yours" instead of "free". --}}
+    {{#each slotGrid.lockedCells}}
+      <div class='slot-cell slot-locked' title='{{localize "TNO.Inventory.LockedHint" capacity=../slotGrid.capacity}}'>
+        <i class='fas fa-lock'></i>
+      </div>
+    {{/each}}
+  </div>
+
+  {{#if slotGrid.lockedCells.length}}
+    <p class='slot-grid-note'>{{localize 'TNO.Inventory.LockedHint' capacity=slotGrid.capacity}}</p>
+  {{/if}}
+
+  {{!-- Geld, Papiere, Krimskrams: nominally 0 slots, so they get chips rather
+  than cells they would otherwise occupy at zero width. --}}
+  {{#if slotGrid.trinkets.length}}
+    <div class='slot-trinkets' title='{{localize "TNO.Inventory.TrinketsHint"}}'>
+      {{#each slotGrid.trinkets as |item|}}
+        <span class='slot-trinket' data-item-id='{{item._id}}'>
+          <img src='{{item.img}}' width='14' height='14' alt=''/>{{item.name}}
+        </span>
+      {{/each}}
+    </div>
+  {{/if}}
+
+</div>

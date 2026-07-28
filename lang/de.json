@@ -409,6 +409,61 @@
       "Temporary": "Temporäre Effekte",
       "Passive": "Passive Effekte",
       "Inactive": "Inaktive Effekte"
+    },
+    "TabEffects": "Effekte",
+    "Armor": {
+      "Zones": "Rüstungszonen",
+      "FigureAlt": "Silhouette mit hervorgehobenen Rüstungszonen",
+      "Values": "Rüstungswerte",
+      "Empty": "leer",
+      "Equip": "Anlegen",
+      "EquipTitle": "Rüstung anlegen",
+      "Unequip": "Ablegen",
+      "NoneForZone": "Keine mitgeführte Rüstung passt auf die Stelle {zone}.",
+      "Sv": "Stärkevorraussetzung (SV)",
+      "SvHint": "Unter dieser Stärke erhält jeder Beweglichkeitswurf eine Malusstufe.",
+      "SvPenalty": "Stärke {str} < SV {sv} · Malusstufe auf Beweglichkeit",
+      "SvPenaltyHint": "Das anspruchsvollste getragene Teil bestimmt die Vorraussetzung.",
+      "Rh": "Rüstungshärte (RH)",
+      "RhShort": "RH",
+      "RhHint": "Wird mit der Rüstungsdurchdringung der Waffe verglichen. Unterkleidung gibt nie RH.",
+      "Rw": "Rüstungswert (RW)",
+      "RwShort": "RW",
+      "RwHint": "Polsterung. Geht ein in Widerstandswert = Stärke + RW − Schadenswert.",
+      "Ra": "Rüstungsabdeckung (RA)",
+      "RaShort": "RA",
+      "RaHint": "Wie gut die Stelle bedeckt ist. Unterkleidung und Addon werden addiert, gedeckelt bei 10.",
+      "SuitHint": "Die Unterkleidung liegt unter allen Zonen gleichzeitig.",
+      "SuitNoRhHint": "Unterkleidung gibt nie Rüstungshärte — RH wird bei einem Anzug ignoriert.",
+      "Zone": {
+        "Label": "Stelle",
+        "Suit": "Unterkleidung",
+        "Head": "Kopf",
+        "Torso": "Torso",
+        "Arms": "Arme",
+        "Legs": "Beine"
+      }
+    },
+    "Inventory": {
+      "CarrySlots": "Trageslots",
+      "Slots": "Inventarslots",
+      "SlotsHint": "0 Krimskrams · 1 klein · 2 mittel · 3 groß · 4 rucksackgroß",
+      "SlotsCarriedArmorHint": "Zählt nur, solange die Rüstung mitgeführt und nicht getragen wird.",
+      "NoSprint": "Kein Sprint",
+      "NoSprintHint": "Ab der Hälfte der Inventarslots kann der Charakter nicht mehr sprinten.",
+      "CrawlOnly": "Nur Kriechen",
+      "CrawlOnlyHint": "Sind alle Inventarslots belegt, kann der Charakter nur noch kriechen.",
+      "NoContainer": "Keine Tasche",
+      "NoContainerHint": "Ohne Tasche oder Rucksack gibt es keine Slotrechnung — die Hände sind belegt.",
+      "TrinketsHint": "Geld, Papiere und Krimskrams kosten keine Inventarslots.",
+      "LockedHint": "Graue Zelle = Rest, den die Kapazität {capacity} im 5er-Raster nicht füllt.",
+      "SlotHint": {
+        "0": "Geld, Papiere, Krimskrams",
+        "1": "Kleine Gegenstände, Proviantbeutel, Einhändige Waffen, Handgranate",
+        "2": "Mittlere Gegenstände, Zweihändige Waffen, Schlafrolle",
+        "3": "Große Gegenstände, Schwere Waffen, Werkzeugkiste, Sauerstoffflasche",
+        "4": "Rucksackgroße Gegenstände, Schweißgerät, Zelt, Fallschirm"
+      }
     }
   },
 
@@ -420,7 +475,8 @@
     "Item": {
       "item": "Gegenstand",
       "feature": "Merkmal",
-      "spell": "Zauber"
+      "spell": "Zauber",
+      "armor": "Rüstung"
     }
   }
 }

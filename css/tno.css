@@ -1,3 +1,4 @@
+@charset "UTF-8";
 @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap");
 /* Global styles */
 .window-app,
@@ -275,6 +276,9 @@
   font-size: var(--font-size-13, 13px);
   white-space: nowrap;
 }
+.tno form.character {
+  min-height: 0;
+}
 .tno .sheet-columns {
   flex: 1;
   min-height: 0;
@@ -286,6 +290,9 @@
   width: 300px;
   gap: 8px;
   align-items: stretch;
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
 }
 .tno .sidebar .profile-img {
   flex: 0 0 360px;
@@ -879,7 +886,7 @@
   outline: 2px solid #444;
   outline-offset: 1px;
 }
-.tno .skill-level, .tno .attribute-table.heatmap .heatmap-cell .heatmap-delta, .tno .xp-badge {
+.tno .slot-trinket, .tno .slot-badge, .tno .skill-level, .tno .attribute-table.heatmap .heatmap-cell .heatmap-delta, .tno .xp-badge {
   font-size: var(--font-size-11, 11px);
   font-weight: bold;
   line-height: 1;
@@ -1653,6 +1660,314 @@
 .tno .item-formula {
   flex: 0 0 200px;
   padding: 0 8px;
+}
+.tno .paperdoll {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 16px;
+}
+.tno .paperdoll-figure {
+  flex: 0 0 auto;
+  width: 84px;
+  height: auto;
+}
+.tno .paperdoll-figure .zone {
+  fill: #c3ccd4;
+  stroke: #9aa6b0;
+  stroke-width: 1;
+  cursor: pointer;
+}
+.tno .paperdoll-figure .zone.filled {
+  fill: #7f9a62;
+  stroke: #5d7546;
+  stroke-width: 1.5;
+}
+.tno .paperdoll-figure .zone.empty {
+  fill: none;
+  stroke-dasharray: 4 3;
+}
+.tno .paperdoll-figure .zone:hover {
+  stroke: #b8860b;
+}
+.tno .paperdoll-zones {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+.tno .armor-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 1px solid #8ba06f;
+  border-radius: 8px;
+  background: #dfe8d5;
+  font-size: var(--font-size-13, 13px);
+}
+.tno .armor-row.armor-empty {
+  border-style: dashed;
+  border-color: #b5b3a4;
+  background: none;
+  color: #444;
+  cursor: pointer;
+}
+.tno .armor-row.armor-empty:hover {
+  border-color: #b8860b;
+}
+.tno .armor-row.armor-suit {
+  margin-bottom: 4px;
+}
+.tno .armor-icon {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  text-align: center;
+}
+.tno .armor-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: bold;
+}
+.tno .armor-values {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: baseline;
+  gap: 8px;
+  font-variant-numeric: tabular-nums;
+  font-weight: bold;
+  color: #191813;
+}
+.tno .armor-values .armor-value + .armor-value::before {
+  content: "·";
+  margin-right: 8px;
+  font-weight: normal;
+  color: #b5b3a4;
+}
+.tno .armor-values.armor-values-suit {
+  opacity: 0.6;
+}
+.tno .armor-key {
+  margin-right: 4px;
+  font-size: var(--font-size-11, 11px);
+  font-weight: normal;
+  letter-spacing: 0.04em;
+  color: #444;
+}
+.tno .armor-unequip {
+  flex: 0 0 auto;
+  color: #444;
+}
+.tno .armor-unequip:hover {
+  color: #7a2028;
+}
+.tno .armor-warning {
+  margin-top: 6px;
+  font-size: var(--font-size-12, 12px);
+  font-weight: bold;
+  color: #7a2028;
+}
+.tno .armor-warning i {
+  margin-right: 6px;
+}
+.tno .slot-grid-block {
+  padding: 14px 16px;
+}
+.tno .slot-grid-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: var(--font-size-13, 13px);
+}
+.tno .slot-grid-title {
+  font-weight: bold;
+  color: #191813;
+}
+.tno .slot-grid-count {
+  font-size: var(--font-size-16, 16px);
+  font-variant-numeric: tabular-nums;
+  color: #b5b3a4;
+}
+.tno .slot-grid-count strong {
+  margin-right: 1px;
+  font-size: var(--font-size-22, 22px);
+  color: #b8860b;
+}
+.tno .slot-grid-count strong.over-capacity {
+  color: #7a2028;
+}
+.tno .slot-badge {
+  margin-left: auto;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: var(--font-size-12, 12px);
+  color: #fff;
+  background: #b8860b;
+}
+.tno .slot-badge.badge-crawl-only {
+  background: #7a2028;
+}
+.tno .slot-badge.badge-no-container {
+  background: #444;
+}
+.tno .slot-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--slot-columns, 5), minmax(0, 1fr));
+  gap: 8px;
+}
+.tno .slot-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: var(--font-size-13, 13px);
+  white-space: nowrap;
+  overflow: hidden;
+  grid-column: span min(var(--slot-span, 1), var(--slot-columns, 5));
+}
+.tno .slot-filled {
+  border: 1px solid #8ba06f;
+  background: #dfe8d5;
+  font-weight: bold;
+  cursor: grab;
+}
+.tno .slot-filled.over-capacity {
+  border-color: #7a2028;
+  border-style: dashed;
+  background: rgba(122, 32, 40, 0.08);
+}
+.tno .slot-empty {
+  border: 1px dashed #b5b3a4;
+}
+.tno .slot-locked {
+  border: 1px solid #b5b3a4;
+  background: rgba(181, 179, 164, 0.35);
+  cursor: not-allowed;
+}
+.tno .slot-locked i {
+  position: absolute;
+  top: 5px;
+  left: 7px;
+  font-size: var(--font-size-11, 11px);
+  color: #b8860b;
+}
+.tno .slot-grip {
+  flex: 0 0 auto;
+  font-size: var(--font-size-11, 11px);
+  color: #b5b3a4;
+}
+.tno .slot-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tno .slot-qty {
+  color: #444;
+  font-weight: normal;
+  font-variant-numeric: tabular-nums;
+}
+.tno .slot-grid-note {
+  margin: 8px 0 0;
+  font-size: var(--font-size-11, 11px);
+  color: #b5b3a4;
+}
+.tno .slot-trinkets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+.tno .slot-trinket {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: normal;
+  color: #444;
+  border: 1px solid #b5b3a4;
+}
+.tno {
+  /* -------------------------------------------- */
+  /*  Sidebar variants                            */
+  /* -------------------------------------------- */
+}
+.tno .paperdoll-compact {
+  gap: 6px;
+  padding: 6px 8px;
+}
+.tno .paperdoll-compact .paperdoll-figure {
+  width: 48px;
+}
+.tno .paperdoll-compact .paperdoll-zones {
+  gap: 3px;
+}
+.tno .paperdoll-compact .armor-row {
+  gap: 5px;
+  min-height: 0;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: var(--font-size-10, 10px);
+}
+.tno .paperdoll-compact .armor-icon {
+  width: 16px;
+  height: 16px;
+}
+.tno .paperdoll-compact .armor-values {
+  display: none;
+}
+.tno .paperdoll-compact .armor-warning {
+  font-size: var(--font-size-10, 10px);
+}
+.tno .slot-grid-compact {
+  padding: 6px 8px;
+}
+.tno .slot-grid-compact .slot-grid-header {
+  gap: 6px;
+  margin-bottom: 6px;
+  font-size: var(--font-size-11, 11px);
+}
+.tno .slot-grid-compact .slot-grid-count {
+  font-size: var(--font-size-12, 12px);
+}
+.tno .slot-grid-compact .slot-grid-count strong {
+  font-size: var(--font-size-14, 14px);
+}
+.tno .slot-grid-compact .slot-badge {
+  padding: 1px 8px;
+  font-size: var(--font-size-10, 10px);
+}
+.tno .slot-grid-compact .slot-grid {
+  gap: 3px;
+}
+.tno .slot-grid-compact .slot-cell {
+  gap: 3px;
+  min-height: 22px;
+  padding: 0 4px;
+  border-radius: 4px;
+  font-size: var(--font-size-10, 10px);
+}
+.tno .slot-grid-compact .slot-name,
+.tno .slot-grid-compact .slot-grip,
+.tno .slot-grid-compact .slot-grid-note {
+  display: none;
+}
+.tno .slot-grid-compact .slot-icon {
+  width: 16px;
+  height: 16px;
+}
+.tno .slot-grid-compact .slot-locked i {
+  top: 3px;
+  left: 4px;
+  font-size: var(--font-size-10, 10px);
 }
 .tno .effects .item .effect-source,
 .tno .effects .item .effect-duration,

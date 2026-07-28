@@ -1,0 +1,109 @@
+{{!-- Paper doll: the Unterkleidung as a base layer above four zone rows,
+mirroring the Rüstungen table's hit locations (Kopf, Torso, Arme, Beine).
+`compact` renders the sidebar variant, which drops the per-zone value read-out
+to fit the 300px column; the Items tab passes it falsey for the full view. --}}
+<div class='paperdoll card {{#if compact}}paperdoll-compact{{/if}}'>
+
+  <svg class='paperdoll-figure' viewBox='0 0 120 178' role='img'
+       aria-label='{{localize "TNO.Armor.FigureAlt"}}'>
+    <title>{{localize 'TNO.Armor.Zones'}}</title>
+    {{#each paperdoll.zones as |z|}}
+      {{#ifEquals z.zone 'head'}}
+        <circle class='zone {{#if z.item}}filled{{else}}empty{{/if}}' data-zone='head'
+                cx='60' cy='20' r='16'/>
+      {{/ifEquals}}
+      {{#ifEquals z.zone 'torso'}}
+        <rect class='zone {{#if z.item}}filled{{else}}empty{{/if}}' data-zone='torso'
+              x='41' y='40' width='38' height='54' rx='5'/>
+      {{/ifEquals}}
+      {{#ifEquals z.zone 'arms'}}
+        <g class='zone {{#if z.item}}filled{{else}}empty{{/if}}' data-zone='arms'>
+          <rect x='22' y='42' width='15' height='50' rx='6'/>
+          <rect x='83' y='42' width='15' height='50' rx='6'/>
+        </g>
+      {{/ifEquals}}
+      {{#ifEquals z.zone 'legs'}}
+        <g class='zone {{#if z.item}}filled{{else}}empty{{/if}}' data-zone='legs'>
+          <rect x='43' y='98' width='15' height='62' rx='5'/>
+          <rect x='62' y='98' width='15' height='62' rx='5'/>
+        </g>
+      {{/ifEquals}}
+    {{/each}}
+  </svg>
+
+  <div class='paperdoll-zones'>
+
+    {{!-- The Unterkleidung is not a hit location: it applies in all four
+    zones at once, so it leads the list rather than sitting among them. --}}
+    <div class='armor-row armor-suit {{#unless paperdoll.suit}}armor-empty{{/unless}}'
+         data-zone='suit'
+         title='{{localize "TNO.Armor.SuitHint"}}'>
+      {{#if paperdoll.suit}}
+        <img class='armor-icon' src='{{paperdoll.suit.img}}' width='16' height='16' alt=''/>
+        <span class='armor-name'>{{paperdoll.suit.name}}</span>
+        <span class='armor-values'>
+          <span class='armor-value' title='{{localize "TNO.Armor.Rw"}}'>
+            <span class='armor-key'>{{localize 'TNO.Armor.RwShort'}}</span>{{paperdoll.suit.system.rw}}
+          </span>
+          <span class='armor-value' title='{{localize "TNO.Armor.Ra"}}'>
+            <span class='armor-key'>{{localize 'TNO.Armor.RaShort'}}</span>{{paperdoll.suit.system.ra}}
+          </span>
+        </span>
+        <a class='armor-unequip' data-zone='suit' title='{{localize "TNO.Armor.Unequip"}}'>
+          <i class='fas fa-times'></i>
+        </a>
+      {{else}}
+        <i class='fas fa-plus armor-icon'></i>
+        <span class='armor-name'>{{localize 'TNO.Armor.Zone.Suit'}} · {{localize 'TNO.Armor.Empty'}}</span>
+      {{/if}}
+    </div>
+
+    {{#each paperdoll.zones as |z|}}
+      <div class='armor-row {{#unless z.item}}armor-empty{{/unless}}' data-zone='{{z.zone}}'>
+        {{#if z.item}}
+          <img class='armor-icon' src='{{z.item.img}}' width='16' height='16' alt=''/>
+          <span class='armor-name'>{{localize z.label}} · {{z.item.name}}</span>
+          {{!-- Effective values, already layered with the Unterkleidung in
+          prepareDerivedData: RH from the addon alone, RW and RA summed. --}}
+          <span class='armor-values'>
+            <span class='armor-value' title='{{localize "TNO.Armor.Rh"}}'>
+              <span class='armor-key'>{{localize 'TNO.Armor.RhShort'}}</span>{{z.rh}}
+            </span>
+            <span class='armor-value' title='{{localize "TNO.Armor.Rw"}}'>
+              <span class='armor-key'>{{localize 'TNO.Armor.RwShort'}}</span>{{z.rw}}
+            </span>
+            <span class='armor-value' title='{{localize "TNO.Armor.Ra"}}'>
+              <span class='armor-key'>{{localize 'TNO.Armor.RaShort'}}</span>{{z.ra}}
+            </span>
+          </span>
+          <a class='armor-unequip' data-zone='{{z.zone}}' title='{{localize "TNO.Armor.Unequip"}}'>
+            <i class='fas fa-times'></i>
+          </a>
+        {{else}}
+          <i class='fas fa-plus armor-icon'></i>
+          <span class='armor-name'>{{localize z.label}} · {{localize 'TNO.Armor.Empty'}}</span>
+          {{!-- A bare suit still covers this zone, so show what it contributes
+          rather than implying the location is unprotected. --}}
+          {{#if ../paperdoll.suit}}
+            <span class='armor-values armor-values-suit'>
+              <span class='armor-value' title='{{localize "TNO.Armor.Rw"}}'>
+                <span class='armor-key'>{{localize 'TNO.Armor.RwShort'}}</span>{{z.rw}}
+              </span>
+              <span class='armor-value' title='{{localize "TNO.Armor.Ra"}}'>
+                <span class='armor-key'>{{localize 'TNO.Armor.RaShort'}}</span>{{z.ra}}
+              </span>
+            </span>
+          {{/if}}
+        {{/if}}
+      </div>
+    {{/each}}
+
+    {{#if paperdoll.svPenalty}}
+      <div class='armor-warning' title='{{localize "TNO.Armor.SvPenaltyHint"}}'>
+        <i class='fas fa-triangle-exclamation'></i>
+        {{localize 'TNO.Armor.SvPenalty' str=system.abilities.str.base sv=paperdoll.sv}}
+      </div>
+    {{/if}}
+
+  </div>
+</div>
