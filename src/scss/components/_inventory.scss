@@ -8,9 +8,18 @@
 $c-zone-filled: #7f9a62;
 $c-zone-filled-bg: #dfe8d5;
 $c-zone-filled-border: #8ba06f;
-$c-zone-bare: #c3ccd4;
-$c-zone-bare-stroke: #9aa6b0;
 $c-zone-filled-stroke: #5d7546;
+// A bare location is a neutral grey rather than "none": the card sits on
+// parchment, and an unfilled shape has to be visible as a silhouette before it
+// can read as a gap. Deliberately desaturated so it never competes with the
+// two greens.
+$c-zone-bare: #b0b2ad;
+$c-zone-bare-stroke: #85877f;
+// Covered by the Unterkleidung alone: the same green, washed out. The suit
+// closes the coverage but grants no hardness, so this must not read as
+// armoured — it is the pale step between grey and green.
+$c-zone-suited: #cadcbb;
+$c-zone-suited-stroke: #8ba06f;
 // Reused for both the SV shortfall warning and the over-capacity load state:
 // in each case a rule is actively working against the character.
 $c-armor-warning: #7a2028;
@@ -26,24 +35,35 @@ $c-armor-warning: #7a2028;
   flex: 0 0 auto;
   width: 84px;
   height: auto;
+  // A quiet grey panel behind the silhouette, so the figure sits on its own
+  // ground instead of floating on the card's parchment.
+  padding: 6px;
+  border-radius: 8px;
+  background: rgba($c-zone-bare, 0.3);
 
   .zone {
-    fill: $c-zone-bare;
-    stroke: $c-zone-bare-stroke;
     stroke-width: 1;
     cursor: pointer;
 
-    &.filled {
+    // Nothing on this location. Filled grey rather than left open: the figure
+    // has to be legible as a body against the parchment before an empty zone
+    // can read as a gap, and the dashed outline carries "unfilled" instead.
+    &.zone-bare {
+      fill: $c-zone-bare;
+      stroke: $c-zone-bare-stroke;
+      stroke-dasharray: 4 3;
+    }
+
+    // Unterkleidung only — covered, but not hardened.
+    &.zone-suited {
+      fill: $c-zone-suited;
+      stroke: $c-zone-suited-stroke;
+    }
+
+    &.zone-filled {
       fill: $c-zone-filled;
       stroke: $c-zone-filled-stroke;
       stroke-width: 1.5;
-    }
-
-    // An unarmoured location is outlined rather than filled, so the
-    // silhouette reads as a gap at a glance.
-    &.empty {
-      fill: none;
-      stroke-dasharray: 4 3;
     }
 
     &:hover {

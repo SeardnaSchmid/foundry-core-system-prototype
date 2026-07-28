@@ -461,12 +461,20 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       suit,
       svPenalty: derived.armorSvPenalty ?? false,
       sv: derived.armorSv ?? 0,
-      zones: ARMOR_ADDON_ZONES.map((zone) => ({
-        zone,
-        label: CONFIG.TNO.armorZones[zone],
-        item: this.actor.items.get(equipment[zone]) ?? null,
-        ...(derived.armor?.[zone] ?? { rh: 0, rw: 0, ra: 0 }),
-      })),
+      zones: ARMOR_ADDON_ZONES.map((zone) => {
+        const item = this.actor.items.get(equipment[zone]) ?? null;
+        return {
+          zone,
+          label: CONFIG.TNO.armorZones[zone],
+          item,
+          // How the silhouette paints this location. A bare zone under the
+          // suit is neither unprotected nor armoured — the suit closes the
+          // coverage without hardening it — so it gets a state of its own
+          // rather than being lumped in with either extreme.
+          state: item ? 'filled' : suit ? 'suited' : 'bare',
+          ...(derived.armor?.[zone] ?? { rh: 0, rw: 0, ra: 0 }),
+        };
+      }),
     };
 
     const capacity = derived.carrySlots ?? 0;

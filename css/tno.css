@@ -1671,21 +1671,27 @@
   flex: 0 0 auto;
   width: 84px;
   height: auto;
+  padding: 6px;
+  border-radius: 8px;
+  background: rgba(176, 178, 173, 0.3);
 }
 .tno .paperdoll-figure .zone {
-  fill: #c3ccd4;
-  stroke: #9aa6b0;
   stroke-width: 1;
   cursor: pointer;
 }
-.tno .paperdoll-figure .zone.filled {
+.tno .paperdoll-figure .zone.zone-bare {
+  fill: #b0b2ad;
+  stroke: #85877f;
+  stroke-dasharray: 4 3;
+}
+.tno .paperdoll-figure .zone.zone-suited {
+  fill: #cadcbb;
+  stroke: #8ba06f;
+}
+.tno .paperdoll-figure .zone.zone-filled {
   fill: #7f9a62;
   stroke: #5d7546;
   stroke-width: 1.5;
-}
-.tno .paperdoll-figure .zone.empty {
-  fill: none;
-  stroke-dasharray: 4 3;
 }
 .tno .paperdoll-figure .zone:hover {
   stroke: #b8860b;
