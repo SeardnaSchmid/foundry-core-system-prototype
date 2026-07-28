@@ -41,6 +41,7 @@ New to the codebase? Read in this order:
 - [concepts/attributes.md](concepts/attributes.md) — the 12 attributes and their derived values
 - [concepts/skills.md](concepts/skills.md) — built-in and custom skills
 - [concepts/advancement.md](concepts/advancement.md) — spending XP to raise a rank
+- [concepts/inventory.md](concepts/inventory.md) — the Trageslots budget and the armour paper doll
 - [concepts/heatmap.md](concepts/heatmap.md) — the attribute-cell color gradient
 - [concepts/active-effects.md](concepts/active-effects.md) — Foundry Active Effects in this system
 - [concepts/migrations.md](concepts/migrations.md) — version-gated world data migrations

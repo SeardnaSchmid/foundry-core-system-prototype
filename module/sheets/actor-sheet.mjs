@@ -753,21 +753,42 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    * way to conjure it — and only pieces authored for this zone, since the
    * Rüstungen table binds each piece to a Stelle.
    *
+   * With nothing to offer, the click becomes an explicit offer to author a
+   * piece for this zone instead of a dead end: an empty doll would otherwise
+   * send the player off to the items list to create armour and set its zone by
+   * hand before the doll could do anything at all.
+   *
    * @param {string} zone  A key of CONFIG.TNO.armorZones.
    * @private
    */
   async _promptEquipArmor(zone) {
     const worn = wornItemIds(this.actor.system.equipment);
+    const zoneLabel = game.i18n.localize(CONFIG.TNO.armorZones[zone]);
     const candidates = this.actor.items.filter(
       (item) => item.type === 'armor' && item.system.zone === zone && !worn.has(item.id)
     );
 
     if (!candidates.length) {
-      return ui.notifications.info(
-        game.i18n.format('TNO.Armor.NoneForZone', {
-          zone: game.i18n.localize(CONFIG.TNO.armorZones[zone]),
-        })
-      );
+      const confirmed = await foundry.applications.api.DialogV2.confirm({
+        window: { title: game.i18n.localize('TNO.Armor.EquipTitle') },
+        content: `<p>${game.i18n.format('TNO.Armor.CreateForZone', { zone: zoneLabel })}</p>`,
+        rejectClose: false,
+      });
+      if (!confirmed) return;
+
+      // Authored for this zone from the start, so it lands in the slot the
+      // player clicked rather than the schema's default one.
+      const [created] = await this.actor.createEmbeddedDocuments('Item', [
+        {
+          name: game.i18n.format('TNO.Armor.NewForZone', { zone: zoneLabel }),
+          type: 'armor',
+          system: { zone },
+        },
+      ]);
+      await this._setEquippedArmor(zone, created.id);
+      // Straight into the values — a piece with RH/RW/RA all 0 is the one
+      // thing the player certainly still has to fill in.
+      return created.sheet.render(true);
     }
 
     // A single candidate has no decision to make, so skip the dialog.
@@ -779,9 +800,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     const itemId = await foundry.applications.api.DialogV2.prompt({
       window: { title: game.i18n.localize('TNO.Armor.EquipTitle') },
-      content: `<div class="form-group"><label>${game.i18n.localize(
-        CONFIG.TNO.armorZones[zone]
-      )}</label><select name="itemId">${options}</select></div>`,
+      content: `<div class="form-group"><label>${zoneLabel}</label><select name="itemId">${options}</select></div>`,
       ok: {
         label: game.i18n.localize('TNO.Armor.Equip'),
         callback: (event, button) => button.form.elements.itemId.value,

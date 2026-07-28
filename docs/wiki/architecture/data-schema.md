@@ -28,10 +28,23 @@ in Foundry v14+.
   - `character.problemSolving.spent` — how many edge points have been used
     since the pool last refilled. See
     [edge-pool.md](../concepts/edge-pool.md).
+  - `character.equipment.<zone>` — the worn-gear store: `suit`, `head`,
+    `torso`, `arms`, `legs`, each holding an owned item id or `null`. See
+    [inventory.md](../concepts/inventory.md).
+  - `character.hasContainer` — whether the character carries a bag or
+    backpack. Without one there is no slot economy at all.
   - `npc.cr` — challenge rating; XP is derived from it (`cr² × 100`).
-- **Item types:** `item`, `feature`, `spell`. All extend `base`
-  (`description`). `item` additionally has `quantity`, `weight`, `formula`
-  (an optional roll formula evaluated by `Item#roll()`).
+- **Item types:** `item`, `feature`, `spell`, `armor`. All extend `base`
+  (`description`).
+  - `item` additionally has `quantity`, `slots`, `formula` (an optional
+    roll formula evaluated by `Item#roll()`).
+  - `armor` has `quantity`, `slots`, `zone` (which Stelle it is authored
+    for, `suit` included), `sv`, `rh`, `rw`, `ra`.
+
+Item types are declared in `template.json`, which Foundry reads **at
+startup** — adding a type needs a server restart, not just a reload, or
+creating one fails validation with `"<type>" is not a valid type for the
+Item Document class`.
 
 ## Derived data
 
@@ -44,8 +57,11 @@ computes them in `TnoActor.prepareDerivedData()`, writing to
 | --- | --- | --- |
 | `initiative` | `ceil((2·base(dex) + base(per)) / 3)` | |
 | `movementWalk` / `movementSprint` / `movementCrawl` | `base(dex)`, `3·base(dex)`, `1` | |
-| `canSprint` | `value(dex) >= base(dex)` | the one derived value compared against damaged `value`, not `base` — detects Beweglichkeit damage |
-| `carrySlots` / `carrySlotsUsed` | `2·base(str) + base(dex)` / sum of carried `item` weights×quantities | |
+| `canSprint` | `value(dex) >= base(dex)` **and** the load is under half capacity | the one derived value compared against damaged `value`, not `base` — detects Beweglichkeit damage. Either blocker alone rules sprinting out |
+| `carrySlots` / `carrySlotsUsed` | `2·base(str) + base(dex)` / sum of carried `slots × quantity` | worn gear is excluded; `used` is never clamped to capacity — see [inventory.md](../concepts/inventory.md) |
+| `carryState` | `ok` \| `noSprint` \| `crawlOnly` \| `noContainer` | the movement consequence of the current load |
+| `armor.<zone>` | `{ equipped, rh, rw, ra }` per hit location | RH from the addon alone, RW/RA summed with the Unterkleidung, RA capped at 10 |
+| `armorSv` / `armorSvPenalty` | max `sv` of all worn pieces / `armorSv > 0 && base(str) < armorSv` | the Stärkevorraussetzung malus is one penalty from the most demanding piece, never a sum |
 | `sixthSense` | `round((base(per) + base(emp) + base(inv)) / 3)` | |
 | `insight` | `ceil((base(int) + base(wis)) / 2)` | edge-pool "Idee haben" bonus, see [edge-pool.md](../concepts/edge-pool.md) |
 | `trialErrorMax` | `ceil((base(int) + base(wil)) / 2)` | |

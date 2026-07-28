@@ -29,7 +29,7 @@ Entry point, no exports (side-effecting init). See
 | File | Exports | Responsibility |
 | --- | --- | --- |
 | `actor-sheet.mjs` | `TnoActorSheet extends ActorSheetV2` | Character/NPC sheet: attribute heatmap grid, skill groups with filter/search, inventory, effects, edge pool display |
-| `item-sheet.mjs` | `TnoItemSheet extends ItemSheet` | Generic sheet for `item`/`feature`/`spell`, template resolved per type |
+| `item-sheet.mjs` | `TnoItemSheet extends ItemSheet` | Generic sheet for `item`/`feature`/`spell`/`armor`, template resolved per type |
 
 ## `helpers/`
 
@@ -42,6 +42,7 @@ Entry point, no exports (side-effecting init). See
 | `heatmap.mjs` | gradient constants, `HEATMAP_QUICK_PRESETS`, `DEFAULT_HEATMAP_CONFIG`, `setActiveHeatmapConfig`, `getActiveHeatmapConfig`, `colorForValue`, `colorForCritical` | See [heatmap.md](../concepts/heatmap.md) |
 | `skills.mjs` | `slugifySkillName`, `generateCustomSkillKey`, `getSkillDefinitions`, `getSkillDefinition` | See [skills.md](../concepts/skills.md) |
 | `effects.mjs` | `onManageActiveEffect`, `prepareActiveEffectCategories` | See [active-effects.md](../concepts/active-effects.md) |
+| `inventory.mjs` | `ARMOR_ADDON_ZONES`, `CARRY_THRESHOLDS`, `wornItemIds`, `itemSlotCost`, `computeCarry`, `buildSlotGrid`, `resolveArmor` | Pure carry/armour maths, no Foundry globals — see [inventory.md](../concepts/inventory.md) |
 | `migrations.mjs` | `MIGRATIONS`, `registerMigrationSettings`, `migrateWorld` | See [migrations.md](../concepts/migrations.md) |
 | `templates.mjs` | `preloadHandlebarsTemplates` | Preloads every `.hbs` used by apps/sheets — see [ui-surfaces.md](ui-surfaces.md) |
 

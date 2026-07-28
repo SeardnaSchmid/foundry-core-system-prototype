@@ -38,6 +38,12 @@ system version has advanced past what a world last recorded.
   stored `category`/`attribute` no longer exists in `CONFIG.TNO`, and
   coerces `value`/`xp` back to numbers. Only writes actors that actually
   need a change; only ever touches `.custom` skill entries, never built-ins.
+- **`0.25.0` — `migrateWeightToSlots`**: renames `system.weight` to
+  `system.slots` on every `item`, world-wide and on every actor. The field
+  always held Inventarslots rather than a mass — the rules never weigh
+  anything — so the value carries over untouched. Idempotent: an item with
+  no `weight` key is skipped, and where both keys exist the already-migrated
+  `slots` wins. See [inventory.md](inventory.md).
 
 ## Adding a new step
 

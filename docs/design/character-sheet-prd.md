@@ -14,7 +14,7 @@
 4. [Basics Tab: Attributes](#basics-tab-attributes)
 5. [Basics Tab: Skills](#basics-tab-skills)
 6. [Biography Tab](#biography-tab)
-7. [Items Tab](#items-tab)
+7. [Inventory Tab](#inventory-tab)
 8. [Accessibility](#accessibility)
 9. [Implementation Notes](#implementation-notes)
 10. [Localization](#localization)
@@ -91,9 +91,16 @@ Plain `<textarea name="system.biography">`, not Foundry's ProseMirror rich-text 
 
 ---
 
-## Items Tab
+## Inventory Tab
 
-Renders `templates/actor/parts/actor-items.hbs`, populated by `_prepareItems()`: owned items are bucketed into `gear` (type `item`), `features` (type `feature`), and `spells` (type `spell`, sub-bucketed 0–9 by `system.spellLevel`). Standard Foundry item-sheet affordances apply (create/edit/delete, drag-to-macro for owners).
+Renders `templates/actor/parts/actor-items.hbs`, populated by `_prepareItems()`: owned items are bucketed into `gear` (type `item`), `features` (type `feature`), and `spells` (type `spell`, sub-bucketed 0–9 by `system.spellLevel`). Standard Foundry item-sheet affordances apply (create/edit/delete, drag-to-macro for owners). Two create controls sit in the list header — one per item type the inventory rules use (`item` and `armor`) — because armour can only be equipped from gear the actor already owns, so there has to be a way to author it here.
+
+Above that flat list sit two visual views, both character-only (the NPC sheet shares this partial but has neither an equipment store nor a slot budget) and both rendered a second time in the sidebar via `compact=true`. Both are derived on every render from `_prepareEquipment()` — nothing about either arrangement is persisted:
+
+- **Paper doll** (`parts/actor-paperdoll.hbs`) — the Unterkleidung as a base-layer row above the four hit locations (Kopf, Torso, Arme, Beine), each with its effective RH/RW/RA. The silhouette paints three states per zone, decided in the sheet as `z.state`: `bare` (grey — nothing here), `suited` (pale green — covered by the Unterkleidung alone, which closes coverage but grants no hardness) and `filled` (green — a zone addon is worn). Clicking an empty zone offers the armour the actor carries for that location; with nothing to offer it offers to author a piece for the zone instead of dead-ending. Dropping armour onto a zone equips it too.
+- **Trageslots** (`parts/actor-slot-grid.hbs`) — carried gear packed into the slot budget in its existing `sort` order, one grid column per slot. Worn clothing and armour never appear (they are exempt from the Inventarregeln); zero-slot items (Geld, Papiere, Krimskrams) become chips rather than zero-width cells. The header carries the used/capacity read-out plus one badge per movement consequence (`Kein Sprint`, `Nur Kriechen`, `Keine Tasche`). The raster is a fixed five columns wide, so a capacity that isn't a multiple of five leaves a tail of *locked* cells — drawn rather than omitted, so every row keeps its width and the remainder reads as "not yours" instead of "free".
+
+The rules behind both views live in [`helpers/inventory.mjs`](../../module/helpers/inventory.mjs) as pure functions — see the wiki's [inventory concept page](../wiki/concepts/inventory.md).
 
 ---
 
@@ -123,7 +130,9 @@ Key prefixes used throughout the sheet (see `lang/de.json` / `lang/en.json`):
 - `TNO.Skill*` — skills tab title, search placeholder/hint, filter labels/hints, category-empty hint, advance action label.
 - `TNO.CustomSkill.*` — add button, badge, shift-click hint for custom skills.
 - `TNO.Derived.*` / `TNO.DerivedShort.*` / `TNO.DerivedHint.*` — sidebar meta stat labels (Initiative, Sixth Sense, movement tiers, carry slots) in long/short/tooltip variants.
-- `TNO.TabBasics` / `TabDescription` / `TabItems` — tab rail labels.
+- `TNO.TabBasics` / `TabDescription` / `TabItems` — tab rail labels (`TabItems` reads "Inventar" / "Inventory": the tab covers the inventory rules as a whole, not just a list of things).
+- `TNO.Inventory.*` — Trageslots view: title, slot-cost hints, the three load-state badges and their tooltips, the trinket and locked-cell hints.
+- `TNO.Armor.*` — paper doll: zone labels (`TNO.Armor.Zone.*`), the RH/RW/RA long/short/hint triples, equip/unequip actions, the "create one for this zone?" prompt, and the Stärkevorraussetzung warning.
 - `TNO.XpTotalAllHint` / `XpTotalAttributesHint` / `XpTotalSkillsHint` / `XpMaxBadge` — the three XP badge tooltips and the at-cap badge text.
 - `TNO.BiographyPlaceholder` — biography textarea placeholder.
 - Problem-Solving keys are documented in full in [problem-solving-prd.md](problem-solving-prd.md#localization).

@@ -17,6 +17,20 @@ an equipment store nor a derived slot budget. --}}
     <div class='item-formula'>{{localize 'Roll Formula'}}</div>
     {{/if}}
     <div class='item-controls'>
+      {{!-- Armour needs its own control: it is a distinct item type with the
+      zone/RH/RW/RA fields, and without a way to create one here the paper doll
+      can never be filled — equipping only ever offers gear the actor already
+      owns. --}}
+      {{#if paperdoll}}
+        <a
+          class='item-control item-create'
+          title='{{localize "DOCUMENT.Create" type=(localize "TYPES.Item.armor")}}'
+          data-type='armor'
+        >
+          <i class='fas fa-shield-halved'></i>
+          {{localize 'DOCUMENT.New' type=(localize 'TYPES.Item.armor')}}
+        </a>
+      {{/if}}
       <a
         class='item-control item-create'
         title='{{localize "DOCUMENT.Create" type='Item'}}'
