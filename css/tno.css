@@ -1669,11 +1669,8 @@
 }
 .tno .paperdoll-figure {
   flex: 0 0 auto;
-  width: 92px;
+  width: 110px;
   height: auto;
-  padding: 6px;
-  border-radius: 8px;
-  background: rgba(176, 178, 173, 0.3);
 }
 .tno .paperdoll-figure .zone {
   stroke-width: 1;

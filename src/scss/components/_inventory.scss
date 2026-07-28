@@ -35,13 +35,8 @@ $c-armor-warning: #7a2028;
 
 .paperdoll-figure {
   flex: 0 0 auto;
-  width: 92px;
+  width: 110px;
   height: auto;
-  // A quiet grey panel behind the silhouette, so the figure sits on its own
-  // ground instead of floating on the card's parchment.
-  padding: 6px;
-  border-radius: 8px;
-  background: rgba($c-zone-bare, 0.3);
 
   .zone {
     stroke-width: 1;
