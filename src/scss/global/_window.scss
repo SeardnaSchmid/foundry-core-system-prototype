@@ -1,5 +1,29 @@
-.window-app {
+// `.window-app` is the ApplicationV1 frame, `.application` the V2 one. Both are
+// listed while the dialogs are still V1 and the actor sheet is already V2.
+.window-app,
+.application {
   font-family: $font-primary;
+}
+
+// ApplicationV2 makes `.window-content` the sheet's <form> element, so the root
+// flex layout that used to sit on the template's own <form> lives here now.
+.tno.sheet.actor {
+  .window-content {
+    display: flex;
+    // The tab rail is absolutely positioned past the sheet's right edge, so the
+    // content box must not clip it (see `.tabs-right` in components/_forms.scss).
+    overflow: visible;
+  }
+
+  // The actor type is pushed onto the app's classes by
+  // TnoActorSheet#_initializeApplicationOptions.
+  &.character .window-content {
+    flex-direction: column;
+  }
+
+  &.npc .window-content {
+    flex-direction: row;
+  }
 }
 
 .rollable {

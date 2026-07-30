@@ -78,12 +78,12 @@ export async function openSheet(page, actorId) {
   const appId = await page.evaluate(async (id) => {
     const actor = game.actors.get(id);
     await actor.sheet.render(true);
-    return actor.sheet.appId;
+    return actor.sheet.id;
   }, actorId);
 
-  // Match on data-appid rather than the element id: appIds are numeric, and
-  // `#28` is not a valid CSS selector.
-  const sheet = page.locator(`[data-appid="${appId}"]`);
+  // ApplicationV2 identifies its frame by element id rather than the numeric
+  // V1 `data-appid`; the id is a document-derived string, so it is selector-safe.
+  const sheet = page.locator(`#${appId}`);
   await sheet.waitFor({ state: 'visible', timeout: 20_000 });
   // The sheet's own render is async beyond the promise above; waiting on a
   // known-present element avoids asserting against a half-populated form.

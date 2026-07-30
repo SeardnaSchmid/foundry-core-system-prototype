@@ -1,5 +1,5 @@
-<form class="{{cssClass}} {{actor.type}} flexcol" autocomplete="off">
-
+{{!-- ApplicationV2 renders this part straight into `.window-content`, which is
+itself the sheet's <form> element — hence no <form> wrapper here. --}}
   <div class="sheet-columns flexrow">
 
     {{!-- Sidebar: portrait plus all derived meta stats, docked to the left
@@ -13,7 +13,7 @@
       meta cards used to take. The lozenges are opaque, so they stay legible
       on any uploaded portrait. --}}
       <div class="portrait-wrap">
-        <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" height="360" width="300"/>
+        <img class="profile-img" src="{{actor.img}}" data-edit="img" data-action="editImage" title="{{actor.name}}" height="360" width="300"/>
 
         <div class="lozenges flexrow portrait-overlay">
           {{!-- Initiative wird gewürfelt mit Initiativegrundwert+1d10. --}}
@@ -110,7 +110,7 @@
   <section class="sheet-body">
 
     {{!-- Basics Tab --}}
-    <div class="tab basics" data-group="primary" data-tab="basics">
+    <div class="tab basics {{tabs.basics.cssClass}}" data-group="primary" data-tab="basics">
       <section class="flexcol">
 
         {{!-- Primary attributes, laid out as a heatmap: one column per category
@@ -248,7 +248,7 @@
     </div>
 
     {{!-- Biography Tab --}}
-    <div class="tab biography" data-group="primary" data-tab="description">
+    <div class="tab biography {{tabs.description.cssClass}}" data-group="primary" data-tab="description">
       {{!-- Plain textarea instead of the ProseMirror editor helper: the
       editor requires an explicit click into an edit mode before typing,
       which is unnecessary friction for a simple freetext notes field. --}}
@@ -256,7 +256,7 @@
     </div>
 
     {{!-- Owned Items Tab --}}
-    <div class="tab items" data-group="primary" data-tab="items">
+    <div class="tab items {{tabs.items.cssClass}}" data-group="primary" data-tab="items">
        {{> "systems/tno/templates/actor/parts/actor-items.hbs"}}
     </div>
 
@@ -272,9 +272,9 @@
   _forms.scss), so the rail's purpose as tab navigation is discoverable
   without waiting on the native tooltip's delay. --}}
   <nav class="sheet-tabs tabs tabs-right" data-group="primary">
-    {{!-- Default tab is specified in actor-sheet.mjs --}}
-    <a class="item" data-tab="basics"><i class="fa-solid fa-chart-simple"></i><span class="tab-label">{{localize 'TNO.TabBasics'}}</span></a>
-    <a class="item" data-tab="description"><i class="fa-solid fa-feather"></i><span class="tab-label">{{localize 'TNO.TabDescription'}}</span></a>
-    <a class="item" data-tab="items"><i class="fa-solid fa-suitcase"></i><span class="tab-label">{{localize 'TNO.TabItems'}}</span></a>
+    {{!-- Tab set and default tab are declared in actor-sheet.mjs (static TABS);
+    `data-action="tab"` is what hands the click to ApplicationV2#changeTab. --}}
+    {{#each tabs as |tab|}}
+    <a class="item {{tab.cssClass}}" data-action="tab" data-group="{{tab.group}}" data-tab="{{tab.id}}"><i class="{{tab.icon}}"></i><span class="tab-label">{{localize tab.label}}</span></a>
+    {{/each}}
   </nav>
-</form>

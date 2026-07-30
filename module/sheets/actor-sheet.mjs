@@ -17,6 +17,9 @@ import {
   tempValueForBase,
 } from '../helpers/attributes.mjs';
 
+const { HandlebarsApplicationMixin } = foundry.applications.api;
+const { ActorSheetV2 } = foundry.applications.sheets;
+
 /**
  * Case/diacritic-insensitive subsequence fuzzy match: true if every
  * character of `query` appears in `text`, in order, possibly with gaps
@@ -59,49 +62,109 @@ function attributeRankXpCost(rank) {
 }
 
 /**
- * Extend the basic ActorSheet with some very simple modifications
- * @extends {ActorSheet}
+ * Character/NPC sheet, built on ApplicationV2. The V2 framework is what
+ * carries Foundry v14's native pop-out support, so the sheet gains the
+ * "Detach" window control for free — V1 `ActorSheet` windows never get it.
+ *
+ * A detached application still executes in the *main* workspace's JS context,
+ * so `window` and `document` keep pointing at the parent window: every DOM
+ * lookup below therefore goes through `this.element`, never a bare `document`.
+ * @extends {ActorSheetV2}
  */
-export class TnoActorSheet extends ActorSheet {
+export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   /** @override */
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ['tno', 'sheet', 'actor'],
-      // The slimmed attribute matrix no longer forces a 1200px sheet; 1000px
-      // fits the compact matrix plus the three skill columns comfortably.
-      width: 1000,
-      height: 640,
-      tabs: [
-        {
-          navSelector: '.sheet-tabs',
-          contentSelector: '.sheet-body',
-          initial: 'basics',
-        },
-      ],
-    });
+  static DEFAULT_OPTIONS = {
+    classes: ['tno', 'sheet', 'actor'],
+    // The slimmed attribute matrix no longer forces a 1200px sheet; 1000px
+    // fits the compact matrix plus the three skill columns comfortably.
+    position: { width: 1000, height: 640 },
+    window: { resizable: true },
+    // V1 sheets submitted on every field change; keep that, since the sheet has
+    // no save button.
+    form: { submitOnChange: true },
+  };
+
+  /**
+   * ApplicationV2 owns the form element, so the actor-type class the template's
+   * own <form> used to carry has to come from the options instead. The SCSS
+   * keys the sheet's root flex direction off it (see `_forms.scss`).
+   * @override
+   */
+  _initializeApplicationOptions(options) {
+    const applied = super._initializeApplicationOptions(options);
+    applied.classes.push(options.document.type);
+    return applied;
   }
 
+  /**
+   * One full-sheet part. `root` splices the template's own children directly
+   * into `.window-content` instead of nesting them under a generated wrapper,
+   * which keeps the DOM — and therefore the SCSS — flat.
+   * @override
+   */
+  static PARTS = {
+    body: { template: '', root: true },
+  };
+
   /** @override */
-  get template() {
-    return `systems/tno/templates/actor/actor-${this.actor.type}-sheet.hbs`;
+  static TABS = {
+    primary: {
+      initial: 'basics',
+      tabs: [
+        { id: 'basics', icon: 'fa-solid fa-chart-simple', label: 'TNO.TabBasics' },
+        { id: 'description', icon: 'fa-solid fa-feather', label: 'TNO.TabDescription' },
+        { id: 'items', icon: 'fa-solid fa-suitcase', label: 'TNO.TabItems' },
+      ],
+    },
+  };
+
+  /* -------------------------------------------- */
+
+  /**
+   * The template is picked per actor type, which `static PARTS` cannot express
+   * because it is resolved before any instance exists.
+   * @override
+   */
+  _configureRenderParts(options) {
+    const parts = super._configureRenderParts(options);
+    parts.body.template = `systems/tno/templates/actor/actor-${this.actor.type}-sheet.hbs`;
+    return parts;
+  }
+
+  /**
+   * NPCs have no attribute matrix or skill list, so they drop the "basics" tab
+   * and open on the biography instead.
+   * @override
+   */
+  _getTabsConfig(group) {
+    const config = super._getTabsConfig(group);
+    if (!config || this.actor.type !== 'npc') return config;
+    return {
+      ...config,
+      tabs: config.tabs.filter((tab) => tab.id !== 'basics'),
+      initial: 'description',
+    };
   }
 
   /* -------------------------------------------- */
 
   /** @override */
-  async getData() {
-    // Retrieve the data structure from the base sheet. You can inspect or log
-    // the context variable to see the structure, but some key properties for
-    // sheets are the actor object, the data object, whether or not it's
-    // editable, the items array, and the effects array.
-    const context = super.getData();
+  async _prepareContext(options) {
+    // Supplies the V2 basics the templates rely on: `tabs`, `editable`, and
+    // the document itself.
+    const context = await super._prepareContext(options);
 
     // Use a safe clone of the actor data for further operations.
     const actorData = this.document.toObject(false);
 
-    // Add the actor's data to context.data for easier access, as well as flags.
+    context.actor = this.actor;
     context.system = actorData.system;
     context.flags = actorData.flags;
+
+    // V1's getData() handed the templates a sorted array of plain item data;
+    // ApplicationV2 does not, so build it here.
+    context.items = this.actor.items.map((item) => item.toObject(false));
+    context.items.sort((a, b) => (a.sort || 0) - (b.sort || 0));
 
     // Adding a pointer to CONFIG.TNO
     context.config = CONFIG.TNO;
@@ -367,53 +430,44 @@ export class TnoActorSheet extends ActorSheet {
   /* -------------------------------------------- */
 
   /**
-   * Move the tab rail nav out of `.window-content` and re-parent it directly
-   * onto the app window element, so it can be positioned outside the sheet's
-   * visible bounds (`.tabs-right` docks to the right, past the window edge)
-   * without being clipped by the window-content scroll container.
-   */
-  _dockTabsRail() {
-    const nav = this.element.find('> .window-content .tabs-right');
-    if (nav.length && !nav.parent().is(this.element)) this.element.append(nav);
-  }
-
-  /**
-   * The sheet is full of custom clickable chips (anchors without `href`,
-   * plus `.skill-info`) that read fine visually but are invisible to
-   * keyboard/screen-reader users: browsers only put `<a href>`, `<button>`,
-   * and native form controls in the tab order. This promotes every such
-   * element to a real keyboard target — `tabindex="0"` and `role="button"`
-   * so it's reachable and announced, plus an Enter/Space handler that
-   * forwards to the same `click` listeners already bound elsewhere — without
-   * having to touch every template or click handler individually.
-   * @param {JQuery} html
+   * Delegate an event from the persistent sheet root down to whichever
+   * descendant matches `selector`. ApplicationV2 replaces the sheet's contents
+   * on every re-render but keeps the root element, so binding here once (from
+   * `_onFirstRender`) survives re-renders without stacking up duplicate
+   * listeners the way binding per-render would.
+   * @param {string} type                              DOM event name
+   * @param {string} selector                          Selector the target must match
+   * @param {(event: Event, target: Element) => void} handler
+   * @param {object} [options]
+   * @param {boolean} [options.requireEditable=false]  Skip the handler on read-only sheets
    * @private
    */
-  _makeKeyboardAccessible(html) {
-    const targets = html[0].querySelectorAll('a:not([href]), .skill-info');
-    for (const el of targets) {
-      if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
-      if (!el.hasAttribute('role')) el.setAttribute('role', 'button');
-    }
-
-    html.on('keydown', 'a:not([href]), .skill-info', (ev) => {
-      if (ev.key !== 'Enter' && ev.key !== ' ') return;
-      ev.preventDefault();
-      ev.currentTarget.click();
+  #delegate(type, selector, handler, { requireEditable = false } = {}) {
+    this.element.addEventListener(type, (event) => {
+      const target = event.target.closest(selector);
+      if (!target || !this.element.contains(target)) return;
+      if (requireEditable && !this.isEditable) return;
+      handler(event, target);
     });
   }
 
-  /** @override */
-  activateListeners(html) {
-    super.activateListeners(html);
+  /** @inheritDoc */
+  async _onFirstRender(context, options) {
+    await super._onFirstRender(context, options);
 
-    this._dockTabsRail();
-    this._makeKeyboardAccessible(html);
+    // Custom clickable chips (anchors without `href`, plus `.skill-info`) are
+    // promoted to real keyboard targets in _onRender; this forwards their
+    // Enter/Space to the same click listeners bound below.
+    this.#delegate('keydown', 'a:not([href]), .skill-info', (event, target) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      target.click();
+    });
 
     // Render the item sheet for viewing/editing prior to the editable check.
-    html.on('click', '.item-edit', (ev) => {
-      const li = $(ev.currentTarget).parents('.item');
-      const item = this.actor.items.get(li.data('itemId'));
+    this.#delegate('click', '.item-edit', (event, target) => {
+      const li = target.closest('.item');
+      const item = this.actor.items.get(li.dataset.itemId);
       item.sheet.render(true);
     });
 
@@ -421,52 +475,52 @@ export class TnoActorSheet extends ActorSheet {
     // in-app experimentation, without leaving the sheet. This only touches a
     // client display setting, not actor data, so it works on read-only
     // sheets too.
-    html.on('click', '.heatmap-lab-btn', (ev) => {
-      ev.preventDefault();
+    this.#delegate('click', '.heatmap-lab-btn', (event) => {
+      event.preventDefault();
       new TnoHeatmapLab().render(true);
     });
 
     // Skill list filter: toggles which rows are shown, purely client-side
     // (no re-render), so it also works on read-only sheets.
-    html.on('click', '.skill-filter-btn', (ev) => {
-      ev.preventDefault();
-      this._skillFilter = ev.currentTarget.dataset.filter;
-      html.find('.skill-filter-btn').removeClass('active');
-      $(ev.currentTarget).addClass('active');
-      this._applySkillFilter(html);
+    this.#delegate('click', '.skill-filter-btn', (event, target) => {
+      event.preventDefault();
+      this._skillFilter = target.dataset.filter;
+      for (const btn of this.element.querySelectorAll('.skill-filter-btn')) {
+        btn.classList.toggle('active', btn === target);
+      }
+      this._applySkillFilter();
     });
 
     // Skill list search: fuzzy-matches the skill name and, while active,
     // overrides the category filter so any matching skill is shown.
-    html.on('input', '.skill-search-input', (ev) => {
-      this._skillSearch = ev.currentTarget.value;
-      this._applySkillFilter(html);
+    this.#delegate('input', '.skill-search-input', (event, target) => {
+      this._skillSearch = target.value;
+      this._applySkillFilter();
     });
-    this._applySkillFilter(html);
 
     // -------------------------------------------------------------
-    // Everything below here is only needed if the sheet is editable
-    if (!this.isEditable) return;
+    // Everything below here only acts on an editable sheet.
+    const editable = { requireEditable: true };
 
     // Heatmap +/- steppers: adjust temp (value) by default, or base while
     // holding Shift, since base is the rarer, more deliberate change.
-    html.on('click', '.heatmap-stepper', (ev) => {
-      const { key, action } = ev.currentTarget.dataset;
-      const field = ev.shiftKey ? 'base' : 'value';
+    this.#delegate('click', '.heatmap-stepper', (event, target) => {
+      const { key, action } = target.dataset;
+      const field = event.shiftKey ? 'base' : 'value';
       this._stepAttribute(key, action === 'increment' ? 1 : -1, field);
-    });
+    }, editable);
 
     // Reset an attribute's temp value back to its base value.
-    html.on('click', '.heatmap-delta', (ev) => {
-      this._resetTemp(ev.currentTarget.dataset.key);
-    });
+    this.#delegate('click', '.heatmap-delta', (event, target) => {
+      this._resetTemp(target.dataset.key);
+    }, editable);
 
     // Open the skill advancement dialog, either from the dedicated arrow
     // button or by clicking the skill's XP bar directly (mirroring the
     // attribute heatmap, where the XP bar itself is the advance click target).
-    html.on('click', '.skill-advance-button, .skill-xp-bar', (ev) => {
-      ev.preventDefault();
-      const key = ev.currentTarget.dataset.skill;
+    this.#delegate('click', '.skill-advance-button, .skill-xp-bar', (event, target) => {
+      event.preventDefault();
+      const key = target.dataset.skill;
       const skill = this.actor.system.skills?.[key] ?? {};
       new TnoAdvanceDialog(this.actor, {
         type: 'skill',
@@ -475,19 +529,19 @@ export class TnoActorSheet extends ActorSheet {
         rank: skill.value ?? 0,
         xp: skill.xp ?? 0,
       }).render(true);
-    });
+    }, editable);
 
     // Add a new custom skill to the group whose "+" was clicked.
-    html.on('click', '.skill-create-button', (ev) => {
-      ev.preventDefault();
-      new TnoCustomSkillDialog(this.actor, { category: ev.currentTarget.dataset.category }).render(true);
-    });
+    this.#delegate('click', '.skill-create-button', (event, target) => {
+      event.preventDefault();
+      new TnoCustomSkillDialog(this.actor, { category: target.dataset.category }).render(true);
+    }, editable);
 
     // Open the attribute advancement dialog from the heatmap cell's XP bar.
-    html.on('click', '.heatmap-xp-bar', (ev) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      const key = ev.currentTarget.dataset.key;
+    this.#delegate('click', '.heatmap-xp-bar', (event, target) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const key = target.dataset.key;
       const ability = this.actor.system.abilities?.[key] ?? {};
       new TnoAdvanceDialog(this.actor, {
         type: 'attribute',
@@ -496,19 +550,18 @@ export class TnoActorSheet extends ActorSheet {
         rank: ability.base ?? 0,
         xp: ability.xp ?? 0,
       }).render(true);
-    });
+    }, editable);
 
     // Edge pool: editable directly, clamped to
     // 0..max. Stored as "spent" (max minus the edited value) since the
     // pool itself is derived, recomputed from problemSolving.spent. Any
     // manual edit — up or down — happens outside the dedicated actions
     // (Insight, Post-mortem), so it's announced in chat too.
-    html.on('change', '.reserve-value-input', (ev) => {
-      const input = ev.currentTarget;
+    this.#delegate('change', '.reserve-value-input', (event, target) => {
       const max = this.actor.system.derived?.edgePoolMax ?? 0;
       const current = this.actor.system.derived?.edgePool ?? 0;
-      const value = Math.clamp(Number(input.value) || 0, 0, max);
-      input.value = value;
+      const value = Math.clamp(Number(target.value) || 0, 0, max);
+      target.value = value;
       this.actor.update({ 'system.problemSolving.spent': max - value });
 
       if (value !== current) {
@@ -522,28 +575,29 @@ export class TnoActorSheet extends ActorSheet {
           }),
         });
       }
-    });
+    }, editable);
 
     // Add Inventory Item
-    html.on('click', '.item-create', this._onItemCreate.bind(this));
+    this.#delegate('click', '.item-create', (event, target) => {
+      this._onItemCreate(event, target);
+    }, editable);
 
-    // Delete Inventory Item
-    html.on('click', '.item-delete', (ev) => {
-      const li = $(ev.currentTarget).parents('.item');
-      const item = this.actor.items.get(li.data('itemId'));
-      item.delete();
-      li.slideUp(200, () => this.render(false));
-    });
+    // Delete Inventory Item. Deleting the embedded document re-renders the
+    // sheet on its own, so the row does not need to be removed by hand.
+    this.#delegate('click', '.item-delete', (event, target) => {
+      const li = target.closest('.item');
+      this.actor.items.get(li.dataset.itemId)?.delete();
+    }, editable);
 
     // Active Effect management
-    html.on('click', '.effect-control', (ev) => {
-      const row = ev.currentTarget.closest('li');
-      const document =
+    this.#delegate('click', '.effect-control', (event, target) => {
+      const row = target.closest('li');
+      const owner =
         row.dataset.parentId === this.actor.id
           ? this.actor
           : this.actor.items.get(row.dataset.parentId);
-      onManageActiveEffect(ev, document);
-    });
+      onManageActiveEffect(event, owner);
+    }, editable);
 
     // Rollable abilities. None of the four problem-solving actions go
     // through this handler anymore: "Idee haben" is a pre-edge, offered as
@@ -551,31 +605,52 @@ export class TnoActorSheet extends ActorSheet {
     // finden", "Neuer Versuch" and "Fehler Analysieren" are post-edges,
     // triggered from a failed roll's own chat card (see chat.mjs), not
     // from the sheet.
-    html.on('click', '.rollable', this._onRoll.bind(this));
+    this.#delegate('click', '.rollable', (event, target) => {
+      this._onRoll(event, target);
+    }, editable);
+  }
 
-    // Drag events for macros.
-    if (this.actor.isOwner) {
-      let handler = (ev) => this._onDragStart(ev);
-      html.find('li.item').each((i, li) => {
-        if (li.classList.contains('inventory-header')) return;
-        li.setAttribute('draggable', true);
-        li.addEventListener('dragstart', handler, false);
-      });
+  /** @inheritDoc */
+  async _onRender(context, options) {
+    // Binds the inherited DragDrop instance, which makes `.draggable` item
+    // rows draggable onto the hotbar.
+    await super._onRender(context, options);
+
+    this._makeKeyboardAccessible();
+    this._applySkillFilter();
+  }
+
+  /**
+   * The sheet is full of custom clickable chips (anchors without `href`,
+   * plus `.skill-info`) that read fine visually but are invisible to
+   * keyboard/screen-reader users: browsers only put `<a href>`, `<button>`,
+   * and native form controls in the tab order. This promotes every such
+   * element to a real keyboard target — `tabindex="0"` and `role="button"`
+   * so it's reachable and announced — without having to touch every
+   * template individually. The matching Enter/Space handler is delegated
+   * once in `_onFirstRender`.
+   * @private
+   */
+  _makeKeyboardAccessible() {
+    const targets = this.element.querySelectorAll('a:not([href]), .skill-info');
+    for (const el of targets) {
+      if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
+      if (!el.hasAttribute('role')) el.setAttribute('role', 'button');
     }
   }
 
   /**
    * Handle creating a new Owned Item for the actor using initial data defined in the HTML dataset
-   * @param {Event} event   The originating click event
+   * @param {Event} event    The originating click event
+   * @param {Element} target The clicked create control
    * @private
    */
-  async _onItemCreate(event) {
+  async _onItemCreate(event, target) {
     event.preventDefault();
-    const header = event.currentTarget;
     // Get the type of item to create.
-    const type = header.dataset.type;
+    const type = target.dataset.type;
     // Grab any data associated with this control.
-    const data = duplicate(header.dataset);
+    const data = { ...target.dataset };
     // Initialize a default name.
     const name = `New ${type.capitalize()}`;
     // Prepare the item object.
@@ -603,17 +678,15 @@ export class TnoActorSheet extends ActorSheet {
    * Groups with no visible rows are hidden too, unless they have no skills
    * defined at all (those keep their "SkillCategoryEmptyHint" placeholder
    * regardless of filter).
-   * @param {JQuery} html
    * @private
    */
-  _applySkillFilter(html) {
+  _applySkillFilter() {
     const filter = this._skillFilter ?? 'trained';
     const search = (this._skillSearch ?? '').trim();
-    html.find('.skill-group').each((_i, groupEl) => {
-      const $group = $(groupEl);
-      const $rows = $group.find('.skill-row');
+    for (const groupEl of this.element.querySelectorAll('.skill-group')) {
+      const rows = groupEl.querySelectorAll('.skill-row');
       let anyVisible = false;
-      $rows.each((_j, rowEl) => {
+      for (const rowEl of rows) {
         const rank = Number(rowEl.dataset.rank) || 0;
         const xp = Number(rowEl.dataset.xp) || 0;
         const starter = rowEl.dataset.starter === 'true';
@@ -625,9 +698,10 @@ export class TnoActorSheet extends ActorSheet {
             (filter === 'starter' && starter);
         rowEl.style.display = visible ? '' : 'none';
         if (visible) anyVisible = true;
-      });
-      $group.toggle((filter === 'all' && !search) || $rows.length === 0 || anyVisible);
-    });
+      }
+      const groupVisible = (filter === 'all' && !search) || rows.length === 0 || anyVisible;
+      groupEl.style.display = groupVisible ? '' : 'none';
+    }
   }
 
   /**
@@ -670,12 +744,12 @@ export class TnoActorSheet extends ActorSheet {
 
   /**
    * Handle clickable rolls.
-   * @param {Event} event   The originating click event
+   * @param {Event} event     The originating click event
+   * @param {Element} element The clicked rollable element
    * @private
    */
-  async _onRoll(event) {
+  async _onRoll(event, element) {
     event.preventDefault();
-    const element = event.currentTarget;
     const dataset = element.dataset;
 
     // Handle item rolls.

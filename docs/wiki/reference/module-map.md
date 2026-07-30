@@ -28,7 +28,7 @@ Entry point, no exports (side-effecting init). See
 
 | File | Exports | Responsibility |
 | --- | --- | --- |
-| `actor-sheet.mjs` | `TnoActorSheet extends ActorSheet` | Character/NPC sheet: attribute heatmap grid, skill groups with filter/search, inventory, effects, edge pool display |
+| `actor-sheet.mjs` | `TnoActorSheet extends ActorSheetV2` | Character/NPC sheet: attribute heatmap grid, skill groups with filter/search, inventory, effects, edge pool display |
 | `item-sheet.mjs` | `TnoItemSheet extends ItemSheet` | Generic sheet for `item`/`feature`/`spell`, template resolved per type |
 
 ## `helpers/`
@@ -57,8 +57,23 @@ Entry point, no exports (side-effecting init). See
 | `custom-skill-dialog.mjs` | `TnoCustomSkillDialog extends FormApplication` | Add/edit a custom skill — see [skills.md](../concepts/skills.md) |
 | `custom-skills-overview.mjs` | `TnoCustomSkillsOverview extends FormApplication` | GM-only world-wide custom skill listing |
 
-All apps/sheets extend Foundry's **V1** `FormApplication`/`ActorSheet`/
-`ItemSheet`, not `ApplicationV2` — a known forward-compat item, tracked but
-out of scope for this wiki (see
+`TnoActorSheet` is on **ApplicationV2** (`HandlebarsApplicationMixin(ActorSheetV2)`);
+that is what earns it Foundry v14's native pop-out, since the "Detach" window
+control ships in `ApplicationV2.DEFAULT_OPTIONS.window.controls` and V1 windows
+never receive it. Consequences worth knowing when editing the sheet:
+
+* `.window-content` **is** the sheet's `<form>`, so the actor templates have no
+  `<form>` wrapper of their own and the root flex layout lives in
+  `global/_window.scss`.
+* Tabs are declared as `static TABS`; the nav anchors need
+  `data-action="tab"` and must stay inside `.window-content`, because
+  `ApplicationV2#changeTab` only searches there.
+* A detached sheet still runs in the **main** window's JS context, so `window`
+  and `document` refer to the parent window — DOM lookups go through
+  `this.element`.
+
+`TnoItemSheet` and every app under `module/apps/` are still **V1**
+(`FormApplication`/`ItemSheet`) and therefore cannot be detached — a known
+forward-compat item, tracked but out of scope for this wiki (see
 [datamodel-migration.md](../architecture/datamodel-migration.md) for the
 sibling schema-side deprecation).

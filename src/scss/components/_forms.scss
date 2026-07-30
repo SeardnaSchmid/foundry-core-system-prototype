@@ -81,6 +81,11 @@
   flex: 1;
   min-height: 0;
   gap: 12px;
+  // Core's `.flexrow` sets `align-items: center`, which leaves both columns at
+  // their content height instead of the row's. .sheet-main has to fill it, or
+  // .sheet-body is too short for .skill-groups-scroll to get any height at all
+  // and the whole skill list collapses out of view.
+  align-items: stretch;
 }
 
 .sidebar {
@@ -465,9 +470,11 @@ $portrait-frame-cut: 14% 0%, 86% 0%, 100% 9%, 100% 100%, 0% 100%, 0% 9%;
 }
 
 // Vertical icon-only tab rail docked outside the sheet's right edge, styled
-// after the reference dnd5e sheet's tab layout: re-parented onto the app
-// window element by TnoActorSheet#_dockTabsRail so it can hang past the
-// window-content bounds instead of living inside the scrollable form.
+// after the reference dnd5e sheet's tab layout. It stays inside
+// `.window-content` — ApplicationV2#changeTab only finds nav elements there —
+// and hangs past the sheet edge because that content box is `overflow: visible`
+// (see global/_window.scss); the nearest positioned ancestor it offsets from is
+// the app frame itself.
 .tabs-right {
   position: absolute;
   top: 160px;

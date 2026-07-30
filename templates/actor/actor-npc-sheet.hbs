@@ -1,10 +1,10 @@
-<form class="{{cssClass}} {{actor.type}} flexrow" autocomplete="off">
-
+{{!-- ApplicationV2 renders this part straight into `.window-content`, which is
+itself the sheet's <form> element — hence no <form> wrapper here. --}}
   <div class="sheet-main flexcol">
 
   {{!-- Sheet Header --}}
   <header class="sheet-header">
-    <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" height="100" width="100"/>
+    <img class="profile-img" src="{{actor.img}}" data-edit="img" data-action="editImage" title="{{actor.name}}" height="100" width="100"/>
     <div class="header-fields">
       <h1 class="charname"><input name="name" type="text" value="{{actor.name}}" placeholder="Name"/></h1>
       {{!-- The grid classes are defined in scss/global/_grid.scss. To use,
@@ -32,7 +32,7 @@
   <section class="sheet-body">
 
     {{!-- Biography Tab --}}
-    <div class="tab biography" data-group="primary" data-tab="description">
+    <div class="tab biography {{tabs.description.cssClass}}" data-group="primary" data-tab="description">
       {{!-- Plain textarea instead of the ProseMirror editor helper: the
       editor requires an explicit click into an edit mode before typing,
       which is unnecessary friction for a simple freetext notes field. --}}
@@ -40,7 +40,7 @@
     </div>
 
     {{!-- Owned Items Tab --}}
-    <div class="tab items" data-group="primary" data-tab="items">
+    <div class="tab items {{tabs.items.cssClass}}" data-group="primary" data-tab="items">
        {{> "systems/tno/templates/actor/parts/actor-items.hbs"}}
     </div>
 
@@ -51,9 +51,10 @@
   {{!-- Sheet Tab Navigation, docked as a vertical icon rail along the right
   edge, mirroring the reference dnd5e sheet's tab layout. --}}
   <nav class="sheet-tabs tabs tabs-right" data-group="primary">
-    {{!-- Default tab is specified in actor-sheet.mjs --}}
-    <a class="item" data-tab="description"><i class="fa-solid fa-feather"></i><span class="tab-label">{{localize 'TNO.TabDescription'}}</span></a>
-    <a class="item" data-tab="items"><i class="fa-solid fa-suitcase"></i><span class="tab-label">{{localize 'TNO.TabItems'}}</span></a>
+    {{!-- Tab set and default tab are declared in actor-sheet.mjs (static TABS);
+    NPCs drop the "basics" tab there. --}}
+    {{#each tabs as |tab|}}
+    <a class="item {{tab.cssClass}}" data-action="tab" data-group="{{tab.group}}" data-tab="{{tab.id}}"><i class="{{tab.icon}}"></i><span class="tab-label">{{localize tab.label}}</span></a>
+    {{/each}}
   </nav>
-</form>
 
