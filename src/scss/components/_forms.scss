@@ -73,15 +73,6 @@
   }
 }
 
-// The character sheet's root form. `min-height: 0` is the link that makes the
-// whole "each region scrolls itself" scheme hold: without it the form's
-// default `min-height: auto` lets it grow to its content, .sheet-columns and
-// .sidebar inherit that unbounded height, and the entire sheet — portrait and
-// attribute matrix included — scrolls instead of the one overflowing region.
-form.character {
-  min-height: 0;
-}
-
 // Below the name header, the sheet splits into a fixed-width left sidebar
 // (portrait + derived meta stats) and the tab content on the right,
 // mirroring the reference dnd5e sheet's layout. The sidebar stays outside
@@ -102,15 +93,6 @@ form.character {
   width: 300px;
   gap: 8px;
   align-items: stretch;
-  // The portrait alone is 360px, and the meta cards below it (movement,
-  // paper doll, carry slots, problem-solving) together outgrow the sheet's
-  // fixed 640px height. Scroll rather than clip, so the lower cards stay
-  // reachable instead of silently falling off the bottom edge. min-height: 0
-  // is what lets a flex child shrink below its content height at all, and
-  // max-height pins it to the row since core's .flexrow doesn't stretch us.
-  min-height: 0;
-  max-height: 100%;
-  overflow-y: auto;
 
   .profile-img {
     flex: 0 0 360px;

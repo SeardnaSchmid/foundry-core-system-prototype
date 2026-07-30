@@ -1,8 +1,6 @@
 {{!-- Paper doll: the Unterkleidung as a base layer above four zone rows,
-mirroring the Rüstungen table's hit locations (Kopf, Torso, Arme, Beine).
-`compact` renders the sidebar variant, which drops the per-zone value read-out
-to fit the 300px column; the Items tab passes it falsey for the full view. --}}
-<div class='paperdoll card {{#if compact}}paperdoll-compact{{/if}}'>
+mirroring the Rüstungen table's hit locations (Kopf, Torso, Arme, Beine). --}}
+<div class='paperdoll card'>
 
   {{!-- The viewBox is cropped to the drawing's actual bounds (x 22-98,
   y 4-160, plus a stroke's worth of margin) rather than a round 120x178 canvas,

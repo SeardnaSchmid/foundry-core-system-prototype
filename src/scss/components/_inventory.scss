@@ -1,8 +1,6 @@
-// Equipment views: the armour paper doll and the Trageslots grid. Both are
-// rendered twice — a compact variant in the 300px sidebar (visible on every
-// tab) and a labelled, full-width variant in the equipment tab — so nearly
-// everything here is sized off the shared variant and then tightened under
-// .paperdoll-compact / .slot-grid-compact.
+// Equipment views: the armour paper doll and the Trageslots grid. Both live in
+// the Inventar tab, above the flat item list, and size themselves off its full
+// width — the 300px sidebar carries only the used/capacity tile.
 
 // Worn zones read as "protected", empty ones as an invitation to fill them.
 $c-zone-filled: #7f9a62;
@@ -334,102 +332,4 @@ $c-armor-warning: #7a2028;
   font-weight: normal;
   color: $c-tan;
   border: 1px solid $c-beige;
-}
-
-/* -------------------------------------------- */
-/*  Sidebar variants                            */
-/* -------------------------------------------- */
-
-// The sidebar is a fixed 300px column, so both views drop to icons and
-// shorter rows there; the labelled versions live in the equipment tab.
-.paperdoll-compact {
-  gap: 6px;
-  padding: 6px 8px;
-
-  .paperdoll-figure {
-    width: 48px;
-  }
-
-  .paperdoll-zones {
-    gap: 3px;
-  }
-
-  .armor-row {
-    gap: 5px;
-    min-height: 0;
-    padding: 2px 4px;
-    border-radius: 4px;
-    font-size: var(--font-size-10, 10px);
-  }
-
-  .armor-icon {
-    width: 16px;
-    height: 16px;
-  }
-
-  // At 300px there is no room for three value pairs beside a name, and the
-  // full read-out is one tab away.
-  .armor-values {
-    display: none;
-  }
-
-  .armor-warning {
-    font-size: var(--font-size-10, 10px);
-  }
-}
-
-.slot-grid-compact {
-  padding: 6px 8px;
-
-  .slot-grid-header {
-    gap: 6px;
-    margin-bottom: 6px;
-    font-size: var(--font-size-11, 11px);
-  }
-
-  .slot-grid-count {
-    font-size: var(--font-size-12, 12px);
-
-    strong {
-      font-size: var(--font-size-14, 14px);
-    }
-  }
-
-  .slot-badge {
-    padding: 1px 8px;
-    font-size: var(--font-size-10, 10px);
-  }
-
-  .slot-grid {
-    gap: 3px;
-  }
-
-  .slot-cell {
-    gap: 3px;
-    min-height: 22px;
-    padding: 0 4px;
-    border-radius: 4px;
-    font-size: var(--font-size-10, 10px);
-  }
-
-  // Names would be ellipsed to nothing in a 1-slot cell this narrow; the
-  // icon plus the item's tooltip carries the identity instead. The drag grip
-  // and the raster footnote go with them — at this width the icon is the
-  // whole cell.
-  .slot-name,
-  .slot-grip,
-  .slot-grid-note {
-    display: none;
-  }
-
-  .slot-icon {
-    width: 16px;
-    height: 16px;
-  }
-
-  .slot-locked i {
-    top: 3px;
-    left: 4px;
-    font-size: var(--font-size-10, 10px);
-  }
 }

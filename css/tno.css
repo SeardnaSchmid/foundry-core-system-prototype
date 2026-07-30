@@ -276,9 +276,6 @@
   font-size: var(--font-size-13, 13px);
   white-space: nowrap;
 }
-.tno form.character {
-  min-height: 0;
-}
 .tno .sheet-columns {
   flex: 1;
   min-height: 0;
@@ -290,9 +287,6 @@
   width: 300px;
   gap: 8px;
   align-items: stretch;
-  min-height: 0;
-  max-height: 100%;
-  overflow-y: auto;
 }
 .tno .sidebar .profile-img {
   flex: 0 0 360px;
@@ -1897,80 +1891,6 @@
   font-weight: normal;
   color: #444;
   border: 1px solid #b5b3a4;
-}
-.tno {
-  /* -------------------------------------------- */
-  /*  Sidebar variants                            */
-  /* -------------------------------------------- */
-}
-.tno .paperdoll-compact {
-  gap: 6px;
-  padding: 6px 8px;
-}
-.tno .paperdoll-compact .paperdoll-figure {
-  width: 48px;
-}
-.tno .paperdoll-compact .paperdoll-zones {
-  gap: 3px;
-}
-.tno .paperdoll-compact .armor-row {
-  gap: 5px;
-  min-height: 0;
-  padding: 2px 4px;
-  border-radius: 4px;
-  font-size: var(--font-size-10, 10px);
-}
-.tno .paperdoll-compact .armor-icon {
-  width: 16px;
-  height: 16px;
-}
-.tno .paperdoll-compact .armor-values {
-  display: none;
-}
-.tno .paperdoll-compact .armor-warning {
-  font-size: var(--font-size-10, 10px);
-}
-.tno .slot-grid-compact {
-  padding: 6px 8px;
-}
-.tno .slot-grid-compact .slot-grid-header {
-  gap: 6px;
-  margin-bottom: 6px;
-  font-size: var(--font-size-11, 11px);
-}
-.tno .slot-grid-compact .slot-grid-count {
-  font-size: var(--font-size-12, 12px);
-}
-.tno .slot-grid-compact .slot-grid-count strong {
-  font-size: var(--font-size-14, 14px);
-}
-.tno .slot-grid-compact .slot-badge {
-  padding: 1px 8px;
-  font-size: var(--font-size-10, 10px);
-}
-.tno .slot-grid-compact .slot-grid {
-  gap: 3px;
-}
-.tno .slot-grid-compact .slot-cell {
-  gap: 3px;
-  min-height: 22px;
-  padding: 0 4px;
-  border-radius: 4px;
-  font-size: var(--font-size-10, 10px);
-}
-.tno .slot-grid-compact .slot-name,
-.tno .slot-grid-compact .slot-grip,
-.tno .slot-grid-compact .slot-grid-note {
-  display: none;
-}
-.tno .slot-grid-compact .slot-icon {
-  width: 16px;
-  height: 16px;
-}
-.tno .slot-grid-compact .slot-locked i {
-  top: 3px;
-  left: 4px;
-  font-size: var(--font-size-10, 10px);
 }
 .tno .effects .item .effect-source,
 .tno .effects .item .effect-duration,
