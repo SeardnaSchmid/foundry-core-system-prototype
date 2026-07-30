@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.25.2](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.25.1...v0.25.2) (2026-07-30)
+
+
+### Bug Fixes
+
+* **actor-sheet:** restore the tab rail clipped by the V2 window frame ([78c30eb](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/78c30ebb99d3d1dce96e4c9a7d6c2f20e4a9ee2d))
+
 ## [0.25.1](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.25.0...v0.25.1) (2026-07-30)
 
 
