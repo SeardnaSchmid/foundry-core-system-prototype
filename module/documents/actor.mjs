@@ -116,6 +116,12 @@ export class TnoActor extends Actor {
     // Starts off by populating the roll data with a shallow copy of `this.system`
     const data = { ...this.system };
 
+    // The combat tracker rolls TNO.initiativeFormula ("1d10 + @derived.initiative")
+    // for *every* combatant, but only characters compute `derived` — an NPC (or a
+    // character whose preparation was cut short) would leave the term unresolved
+    // and the initiative roll would throw. Fall back to a flat 0 bonus instead.
+    data.derived = { initiative: 0, ...data.derived };
+
     // Prepare character roll data.
     this._getCharacterRollData(data);
     this._getNpcRollData(data);

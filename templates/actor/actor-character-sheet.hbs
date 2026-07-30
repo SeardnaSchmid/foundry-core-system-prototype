@@ -16,8 +16,10 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
         <img class="profile-img" src="{{actor.img}}" data-edit="img" data-action="editImage" title="{{actor.name}}" height="360" width="300"/>
 
         <div class="lozenges flexrow portrait-overlay">
-          {{!-- Initiative wird gewürfelt mit Initiativegrundwert+1d10. --}}
-          <a class="lozenge rollable" data-roll="1d10 + @derived.initiative" data-label="{{localize 'TNO.Derived.Initiative'}}" title="{{localize 'TNO.DerivedHint.Initiative'}}">
+          {{!-- Initiative wird gewürfelt mit Initiativegrundwert+1d10. The
+          formula comes from CONFIG.TNO so this lozenge and Foundry's combat
+          tracker always roll the same thing. --}}
+          <a class="lozenge rollable" data-roll="{{config.initiativeFormula}}" data-label="{{localize 'TNO.Derived.Initiative'}}" title="{{localize 'TNO.DerivedHint.Initiative'}}">
             <span class="lozenge-value">{{system.derived.initiative}}<small>+1d10</small></span>
             <span class="lozenge-label">{{localize "TNO.DerivedShort.Initiative"}}</span>
           </a>

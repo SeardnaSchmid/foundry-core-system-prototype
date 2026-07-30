@@ -55,17 +55,28 @@ both document types ([`tno.mjs:59-68`](../../../module/tno.mjs)):
 `Actors.registerSheet('tno', TnoActorSheet, { makeDefault: true })`,
 `Items.registerSheet('tno', TnoItemSheet, { makeDefault: true })`.
 
-## Known tripwire: the combat initiative formula
+## The combat initiative formula
 
-`CONFIG.Combat.initiative` ([`tno.mjs:44-47`](../../../module/tno.mjs)) is
-set to `'1d20 + @abilities.dex.mod'`. **No `mod` field is ever computed
-anywhere in the live actor** — `system.abilities.<key>` only ever has
-`base`, `value`, `xp` (see [data-schema.md](data-schema.md)). This is
-leftover from Foundry's stock "Simple System" tutorial template (a
-D&D-style ability modifier), never adapted when TNO's own attribute system
-was built. `@abilities.dex.mod` currently evaluates to `undefined`/`0` in
-any formula that uses it. The system's actual per-character initiative
-value is `system.derived.initiative` (see
-[data-schema.md](data-schema.md)), which this `CONFIG.Combat.initiative`
-formula does not use. Treat this as a live bug, not a documented feature —
-do not copy this pattern.
+`CONFIG.Combat.initiative` ([`tno.mjs`](../../../module/tno.mjs)) takes its
+formula from `TNO.initiativeFormula`
+([`config.mjs`](../../../module/helpers/config.mjs)), currently
+`'1d10 + @derived.initiative'` — the rules' "Initiativegrundwert + 1d10".
+The character sheet's Initiative lozenge renders the same constant into its
+`data-roll` attribute (via `context.config` in
+[`actor-character-sheet.hbs`](../../../templates/actor/actor-character-sheet.hbs)),
+so rolling from the sheet and rolling from the combat tracker are the same
+roll by construction. Change the formula in `config.mjs` only; do not
+hard-code it in either place.
+
+`decimals` is `0`: the formula yields integers and ties are resolved by the
+tracker's own ordering rather than a fractional tie-break term.
+
+Only `character` actors compute `system.derived`, so
+[`TnoActor#getRollData`](../../../module/documents/actor.mjs) defaults
+`derived.initiative` to `0`; without it an NPC's initiative roll would fail
+on the unresolved term.
+
+Historical note: this used to be Foundry's stock Simple System template
+value, `'1d20 + @abilities.dex.mod'`, referencing a `mod` field TNO never
+computes (`system.abilities.<key>` only has `base`, `value`, `xp` — see
+[data-schema.md](data-schema.md)). That was a live bug; it is now fixed.

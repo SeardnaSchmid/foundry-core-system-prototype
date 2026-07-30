@@ -38,12 +38,14 @@ Hooks.once('init', function () {
   CONFIG.TNO = TNO;
 
   /**
-   * Set an initiative formula for the system
-   * @type {String}
+   * The combat tracker rolls exactly what the character sheet's Initiative
+   * lozenge rolls — the derived Initiative value plus 1d10 — by sharing the
+   * one formula in TNO.initiativeFormula. Integer results, hence 0 decimals;
+   * ties are broken by the tracker's own ordering, not by a fractional term.
    */
   CONFIG.Combat.initiative = {
-    formula: '1d20 + @abilities.dex.mod',
-    decimals: 2,
+    formula: TNO.initiativeFormula,
+    decimals: 0,
   };
 
   // Define custom Document classes
