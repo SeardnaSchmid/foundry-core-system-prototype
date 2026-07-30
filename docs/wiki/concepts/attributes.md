@@ -3,7 +3,7 @@ type: concept
 title: Attributes
 description: The 12 primary attributes, their layout, and the derived values computed from them.
 tags: [attributes, abilities, derived-values]
-resource: [module/helpers/config.mjs, module/documents/actor.mjs]
+resource: [module/helpers/config.mjs, module/helpers/attributes.mjs, module/documents/actor.mjs]
 spec: docs/design/character-sheet-prd.md
 related: [architecture/data-schema, concepts/heatmap, concepts/advancement]
 ---
@@ -54,3 +54,15 @@ detect Beweglichkeit (mobility) damage.
   `value` back to `base`.
 - **Advancement**: raising `base` costs XP — see
   [advancement.md](advancement.md).
+
+## Moving `base` without losing the temp modifier
+
+A temporary modifier lives as the gap between `value` and `base`, so every
+write that changes `base` routes the new `value` through
+`tempValueForBase()`
+([`module/helpers/attributes.mjs`](../../../module/helpers/attributes.mjs)),
+which carries that gap along and clamps to the temp range (`TEMP_MIN` 0 –
+`TEMP_MAX` 20; base range `BASE_MIN` 1 – `BASE_MAX` 10, all exported from
+the same module). A character at base 4 lowered to 2 who advances to base 5
+ends up at temp 3 — advancement no longer heals the penalty. Only the
+explicit `.heatmap-delta` reset clears the gap.

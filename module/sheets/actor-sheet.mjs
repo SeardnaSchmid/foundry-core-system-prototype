@@ -9,14 +9,13 @@ import { TnoHeatmapLab } from '../apps/heatmap-lab.mjs';
 import { TnoCustomSkillDialog } from '../apps/custom-skill-dialog.mjs';
 import { TNO_ADVANTAGE, rollTno } from '../helpers/dice.mjs';
 import { getSkillDefinitions, getSkillDefinition } from '../helpers/skills.mjs';
-
-// Value ranges from the "Attribut-Heatmap" spec: Basiswert (base) is the
-// trained/leveled rating, Temp-Wert (value) is the current, independently
-// adjustable play value shown large in "temp" mode.
-const BASE_MIN = 1;
-const BASE_MAX = 10;
-const TEMP_MIN = 0;
-const TEMP_MAX = 20;
+import {
+  BASE_MIN,
+  BASE_MAX,
+  TEMP_MIN,
+  TEMP_MAX,
+  tempValueForBase,
+} from '../helpers/attributes.mjs';
 
 /**
  * Case/diacritic-insensitive subsequence fuzzy match: true if every
@@ -651,7 +650,9 @@ export class TnoActorSheet extends ActorSheet {
       const next = Math.clamp(ability.base + delta, BASE_MIN, BASE_MAX);
       await this.actor.update({
         [`system.abilities.${key}.base`]: next,
-        [`system.abilities.${key}.value`]: next,
+        // Keep any temporary modifier instead of snapping the temp value onto
+        // the new base.
+        [`system.abilities.${key}.value`]: tempValueForBase(ability, next),
       });
     }
   }

@@ -36,6 +36,7 @@ Entry point, no exports (side-effecting init). See
 | File | Exports | Responsibility |
 | --- | --- | --- |
 | `config.mjs` | `TNO` | All game constants (`CONFIG.TNO`) — see [attributes.md](../concepts/attributes.md), [skills.md](../concepts/skills.md) |
+| `attributes.mjs` | `BASE_MIN`, `BASE_MAX`, `TEMP_MIN`, `TEMP_MAX`, `tempValueForBase` | Attribute base/temp value ranges and temp-modifier-preserving base changes — see [attributes.md](../concepts/attributes.md) |
 | `dice.mjs` | `TNO_ADVANTAGE*`, `describeAdvantage`, `dieCountFor`, `pickCountingDie`, `criticalResultFor`, `rollTno`, `rollTnoBase`, `startTrialError`, `rerollTrialError`, `retry`, `postMortem`, `claimXp` | Roll mechanic + edge actions — see [dice-resolution.md](../concepts/dice-resolution.md), [edge-pool.md](../concepts/edge-pool.md) |
 | `chat.mjs` | `registerChatListeners` | Post-roll edge action UI — see [edge-pool.md](../concepts/edge-pool.md) |
 | `heatmap.mjs` | gradient constants, `HEATMAP_QUICK_PRESETS`, `DEFAULT_HEATMAP_CONFIG`, `setActiveHeatmapConfig`, `getActiveHeatmapConfig`, `colorForValue`, `colorForCritical` | See [heatmap.md](../concepts/heatmap.md) |

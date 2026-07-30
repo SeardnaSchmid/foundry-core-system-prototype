@@ -1,3 +1,5 @@
+import { tempValueForBase } from '../helpers/attributes.mjs';
+
 const SKILL_MIN = 0;
 const ATTRIBUTE_MIN = 1;
 const RANK_MAX = 10;
@@ -159,11 +161,12 @@ export class TnoAdvanceDialog extends FormApplication {
   async _persist() {
     const { rank, xp } = this.object;
     if (this.type === 'attribute') {
-      // Advancement raises the trained base value; the current (temp) value is
-      // refreshed to match, mirroring the base stepper on the sheet.
+      // Advancement raises the trained base value; the current (temp) value
+      // moves with it but keeps any temporary modifier, mirroring the base
+      // stepper on the sheet.
       await this.actor.update({
         [`system.abilities.${this.key}.base`]: rank,
-        [`system.abilities.${this.key}.value`]: rank,
+        [`system.abilities.${this.key}.value`]: tempValueForBase(this.actor.system.abilities?.[this.key], rank),
         [`system.abilities.${this.key}.xp`]: xp,
       });
     } else {
