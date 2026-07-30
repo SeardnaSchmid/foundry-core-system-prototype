@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.24.7](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.24.6...v0.24.7) (2026-07-30)
+
+
+### Bug Fixes
+
+* **attributes:** keep temporary modifiers when the base value changes ([dda23fc](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/dda23fcf19a20de17b74e26cd412c8160b23428a))
+
 ## [0.24.6](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.24.5...v0.24.6) (2026-07-25)
 
 ## [0.24.5](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.24.4...v0.24.5) (2026-07-25)
