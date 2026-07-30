@@ -8,6 +8,14 @@
 // ApplicationV2 makes `.window-content` the sheet's <form> element, so the root
 // flex layout that used to sit on the template's own <form> lives here now.
 .tno.sheet.actor {
+  // The tab rail hangs past the sheet's right edge (`.tabs-right` in
+  // components/_forms.scss). ApplicationV2's frame clips its own box
+  // (`.application { overflow: hidden }`), which V1's `.window-app` did not —
+  // after the V2 migration that swallowed the rail entirely, leaving the sheet
+  // with no visible tab navigation. Un-clipping the frame is what lets the rail
+  // show again; the scrollable regions inside keep their own overflow.
+  overflow: visible;
+
   .window-content {
     display: flex;
     // The tab rail is absolutely positioned past the sheet's right edge, so the

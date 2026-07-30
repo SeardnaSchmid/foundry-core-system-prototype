@@ -5,6 +5,9 @@
   font-family: "Roboto", sans-serif;
 }
 
+.tno.sheet.actor {
+  overflow: visible;
+}
 .tno.sheet.actor .window-content {
   display: flex;
   overflow: visible;
