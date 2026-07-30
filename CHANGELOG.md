@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.25.1](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.25.0...v0.25.1) (2026-07-30)
+
+
+### Bug Fixes
+
+* **combat:** use the sheet's initiative formula in the combat tracker ([ac2dcee](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/ac2dcee8b84b23eaed1ba7002115bffcd8895b90))
+
 # [0.25.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.24.7...v0.25.0) (2026-07-30)
 
 
