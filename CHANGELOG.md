@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.25.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.24.7...v0.25.0) (2026-07-30)
+
+
+### Features
+
+* **actor-sheet:** migrate to ApplicationV2 for native detach ([f1e495a](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/f1e495a86e3bca0e4c7781d5eb7221ab81e2b236)), closes [ApplicationV2#changeTab](https://github.com/ApplicationV2/issues/changeTab)
+
 ## [0.24.7](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.24.6...v0.24.7) (2026-07-30)
 
 
