@@ -57,7 +57,7 @@
     "SkillsTitle": "Fertigkeiten",
     "AttributesTitle": "Attribute",
     "MovementChipHint": "Bewegungsreichweite: Kriechen | Gehen | Sprinten.",
-    "EdgePipHint": "Edge-Vorrat auf {value} setzen — Klick auf den letzten gefüllten Punkt leert ihn.",
+    "EdgePipHint": "Edge-Vorrat Anzeige (schreibgeschützt)",
     "BasicsSplitterHint": "Ziehen, um die Spalten zu verschieben. Doppelklick setzt die Aufteilung zurück.",
     "TabBasics": "Grundlagen",
     "TabDescription": "Beschreibung",

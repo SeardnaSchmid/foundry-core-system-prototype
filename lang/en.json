@@ -57,7 +57,7 @@
     "SkillsTitle": "Skills",
     "AttributesTitle": "Attributes",
     "MovementChipHint": "Movement range: crawl | walk | sprint.",
-    "EdgePipHint": "Set the edge reserve to {value} — click the last filled pip to empty it.",
+    "EdgePipHint": "Edge reserve indicator (read-only)",
     "BasicsSplitterHint": "Drag to move the column divider. Double-click resets the split.",
     "TabBasics": "Basics",
     "TabDescription": "Description",

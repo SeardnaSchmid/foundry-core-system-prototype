@@ -774,16 +774,8 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       }).render(true);
     }, editable);
 
-    // Edge pool, set from the banner chip's pip row. Clicking a pip sets the
-    // reserve to it; clicking the last *filled* one empties that pip instead,
-    // which is the only way the row can reach 0 — otherwise the lowest
-    // reachable value would be 1.
-    this.#delegate('click', '.edge-pip', (event, target) => {
-      event.preventDefault();
-      const value = Number(target.dataset.value) || 0;
-      const current = this.actor.system.derived?.edgePool ?? 0;
-      this.#setEdgePool(value === current ? value - 1 : value);
-    }, editable);
+    // Edge pool is now set via the input field instead of clicking pips.
+    // The pips are read-only display, input goes through .edge-pool-input.
 
     // Add Inventory Item
     this.#delegate('click', '.item-create', (event, target) => {

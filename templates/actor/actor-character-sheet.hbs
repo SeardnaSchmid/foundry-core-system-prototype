@@ -44,7 +44,7 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
         <span class="chip-label">{{localize "TNO.DerivedShort.EdgePool"}}</span>
         <span class="edge-pips">
           {{#each edgePips as |pip|}}
-          <a class="edge-pip{{#if pip.filled}} filled{{/if}}" data-value="{{pip.value}}" title="{{localize 'TNO.EdgePipHint' value=pip.value}}"></a>
+          <span class="edge-pip{{#if pip.filled}} filled{{/if}}" title="{{localize 'TNO.EdgePipHint' value=pip.value}}"></span>
           {{/each}}
         </span>
         <span class="chip-value">{{system.derived.edgePool}}<span class="chip-value-max">/{{system.derived.edgePoolMax}}</span></span>

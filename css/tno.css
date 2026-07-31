@@ -282,10 +282,10 @@
   grid-template-columns: 144px minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr);
   align-items: end;
-  flex: 0 0 96px;
-  height: 96px;
-  padding: 8px 12px 6px;
-  margin: -16px -16px 40px;
+  flex: 0 0 108px;
+  height: 108px;
+  padding: 12px 16px 2px;
+  margin: -16px -16px 30px;
   border-bottom: 1px solid #b5b3a4;
   border-radius: 0;
   background: linear-gradient(180deg, rgba(25, 24, 19, 0.14) 0%, rgba(25, 24, 19, 0.04) 100%);
@@ -348,12 +348,8 @@
 .tno .chip-sense:hover .chip-icon {
   color: #fff;
 }
-.tno .chip-edge {
-  border-color: #b8860b;
-  background: rgba(184, 134, 11, 0.14);
-}
 .tno .chip-edge .chip-label {
-  color: #b8860b;
+  color: #444;
 }
 .tno .chip-edge .chip-value-max {
   font-size: var(--font-size-11, 11px);
@@ -362,7 +358,7 @@
 }
 .tno .chip-edge .chip-info {
   font-size: var(--font-size-10, 10px);
-  color: #b8860b;
+  color: #444;
   opacity: 0.7;
 }
 .tno .edge-pips {
@@ -387,8 +383,8 @@
 }
 .tno .banner-portrait {
   position: absolute;
-  left: 10px;
-  top: 10px;
+  left: 4px;
+  top: 4px;
   width: 124px;
   height: 124px;
   border: 2px solid #444;
@@ -443,10 +439,10 @@
 .tno .banner-identity {
   grid-column: 2;
   grid-row: 2;
-  align-self: end;
+  align-self: start;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 1px;
   min-width: 0;
 }
@@ -454,18 +450,19 @@
   margin: 0;
   padding: 0;
   border: none;
-  font-size: var(--font-size-20, 20px);
+  font-size: 36px;
   line-height: 1;
 }
 .tno .banner-identity h1.charname input {
-  width: 100%;
-  height: 28px;
+  width: auto;
+  max-width: 100%;
+  height: 44px;
   margin: 0;
   padding: 0 2px;
   border: none;
   background: transparent;
   font-family: "Roboto", sans-serif;
-  font-size: var(--font-size-20, 20px);
+  font-size: 36px;
   font-weight: bold;
   box-shadow: none;
   transition: box-shadow 0.15s ease;
