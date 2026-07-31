@@ -7,8 +7,7 @@ tags: [build, test, release, ci]
 
 # Build, test, and release
 
-Full release procedure: [`AGENTS.md`](../../../AGENTS.md). This page is
-just the command reference.
+Command reference, CI wiring, and the full release procedure.
 
 ## Commands
 
@@ -24,6 +23,19 @@ just the command reference.
 
 There is no bundler and no linter (`eslint`/`prettier`) in this repo —
 `module/**/*.mjs` ships as-authored.
+
+## Release procedure
+
+When instructed to perform or prepare a release:
+
+1. **Check compatibility.** If updating Foundry compatibility, explicitly
+   confirm or update `compatibility.verified` (and optionally
+   `compatibility.minimum`) in `system.json`.
+2. **Run `npm run release`.** This runs `docs:check`, bumps the version in
+   `package.json` and `system.json`, updates `CHANGELOG.md`, creates a
+   `chore: release vX.Y.Z` commit, tags it, and pushes.
+3. **Do not touch the `download` URL** in `system.json` by hand — the GitHub
+   release workflow rewrites it on tag push.
 
 ## CI
 
