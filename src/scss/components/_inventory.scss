@@ -263,10 +263,16 @@ $c-armor-warning: #7a2028;
   font-weight: bold;
   cursor: grab;
 
+  // Load past the budget. These cells are not slots — the character has none
+  // left — so they read as a warning rather than as a variation on a filled
+  // cell: solid, saturated, light text. With the locked-cell tail gone this
+  // colour break is the only thing marking where capacity ended, so it has to
+  // carry that on its own.
   &.over-capacity {
     border-color: $c-armor-warning;
-    border-style: dashed;
-    background: rgba($c-armor-warning, 0.08);
+    background: $c-armor-warning;
+    color: $c-white;
+    cursor: default;
   }
 }
 
@@ -274,20 +280,10 @@ $c-armor-warning: #7a2028;
   border: 1px dashed $c-beige;
 }
 
-// The tail of the last row: raster cells past the character's capacity, so
-// they are neither free nor fillable.
-.slot-locked {
-  border: 1px solid $c-beige;
-  background: rgba($c-beige, 0.35);
-  cursor: not-allowed;
-
-  i {
-    position: absolute;
-    top: 5px;
-    left: 7px;
-    font-size: var(--font-size-11, 11px);
-    color: $c-advance;
-  }
+.slot-overflow-icon {
+  flex: 0 0 auto;
+  font-size: var(--font-size-12, 12px);
+  color: $c-white;
 }
 
 // The affordance that says "these cells can be rearranged"; muted, since the
@@ -307,12 +303,24 @@ $c-armor-warning: #7a2028;
   color: $c-tan;
   font-weight: normal;
   font-variant-numeric: tabular-nums;
+
+  // On the solid warning fill the muted tan drops below contrast, so the
+  // multiplier borrows the cell's own text colour instead.
+  .over-capacity & {
+    color: inherit;
+    opacity: 0.85;
+  }
 }
 
 .slot-grid-note {
   margin: 8px 0 0;
   font-size: var(--font-size-11, 11px);
   color: $c-beige;
+}
+
+.slot-grid-overflow-note {
+  color: $c-armor-warning;
+  font-weight: bold;
 }
 
 // Zero-slot items (Geld, Papiere, Krimskrams) never occupy a cell, so they

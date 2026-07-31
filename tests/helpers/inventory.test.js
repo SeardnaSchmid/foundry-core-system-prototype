@@ -4,6 +4,7 @@ import {
   resolveArmor,
   itemSlotCost,
   buildSlotGrid,
+  isStowed,
   CARRY_THRESHOLDS,
 } from '../../module/helpers/inventory.mjs';
 
@@ -12,6 +13,9 @@ const gear = (_id, slots, quantity = 1) => ({ _id, type: 'item', system: { slots
 
 /** Shorthand for an armour piece. */
 const armor = (_id, system) => ({ _id, type: 'armor', system: { quantity: 1, ...system } });
+
+/** Take an item off the character without removing it from their list. */
+const stowed = (item) => ({ ...item, system: { ...item.system, carried: false } });
 
 describe('itemSlotCost', () => {
   it('multiplies slots by quantity', () => {
@@ -24,6 +28,21 @@ describe('itemSlotCost', () => {
 
   it('degrades a non-numeric field to zero rather than NaN', () => {
     expect(itemSlotCost({ system: { slots: 'heavy', quantity: 2 } })).toBe(0);
+  });
+
+  it('never lets armour cost nothing, however it was authored', () => {
+    // Armour is not Krimskrams: off the body it is either carried and taking
+    // up room, or not there at all. A piece saved at 0 still costs its slot.
+    expect(itemSlotCost(armor('helm', { slots: 0 }))).toBe(1);
+    expect(itemSlotCost(armor('plates', { slots: 0, quantity: 3 }))).toBe(3);
+  });
+
+  it('leaves armour above the floor at its authored cost', () => {
+    expect(itemSlotCost(armor('suit', { slots: 3 }))).toBe(3);
+  });
+
+  it('still lets ordinary gear be a zero-slot trinket', () => {
+    expect(itemSlotCost(gear('coin', 0))).toBe(0);
   });
 });
 
@@ -107,16 +126,76 @@ describe('buildSlotGrid', () => {
     expect(trinkets.map((t) => t._id)).toEqual(['coin']);
   });
 
-  it('flags blocks that start past capacity without dropping them', () => {
-    const { blocks, empty } = buildSlotGrid([sorted('a', 4, 10), sorted('b', 2, 20)], {}, 4);
-    expect(blocks.map((b) => b.over)).toEqual([false, true]);
+  it('moves a block that does not fit whole into the overflow', () => {
+    const { blocks, overflow, empty } = buildSlotGrid([sorted('a', 4, 10), sorted('b', 2, 20)], {}, 4);
+    expect(blocks.map((b) => b.item._id)).toEqual(['a']);
+    expect(overflow.map((b) => b.item._id)).toEqual(['b']);
     expect(empty).toBe(0);
+  });
+
+  it('overflows a block that only straddles the boundary', () => {
+    // 5 of 6 slots are spoken for, so a 2-slot block has nowhere whole to sit:
+    // half an item cannot occupy a slot the character does not have.
+    const { blocks, overflow, empty } = buildSlotGrid([sorted('a', 5, 10), sorted('b', 2, 20)], {}, 6);
+    expect(blocks.map((b) => b.item._id)).toEqual(['a']);
+    expect(overflow.map((b) => b.item._id)).toEqual(['b']);
+    expect(empty).toBe(1);
+  });
+
+  it('keeps later gear behind an overflowing block even when a gap remains', () => {
+    // 'c' would fit in the two slots 'b' left free, but letting it jump the
+    // queue would silently reorder the player's list against its sort order.
+    const items = [sorted('a', 4, 10), sorted('b', 4, 20), sorted('c', 2, 30)];
+    const { blocks, overflow } = buildSlotGrid(items, {}, 6);
+    expect(blocks.map((b) => b.item._id)).toEqual(['a']);
+    expect(overflow.map((b) => b.item._id)).toEqual(['b', 'c']);
+  });
+
+  it('reports no overflow while everything fits', () => {
+    expect(buildSlotGrid([gear('a', 4)], {}, 10).overflow).toEqual([]);
   });
 
   it('omits worn armour from the carry grid', () => {
     const items = [armor('helm', { slots: 2 }), gear('a', 1)];
     const { blocks } = buildSlotGrid(items, { head: 'helm' }, 10);
     expect(blocks.map((b) => b.item._id)).toEqual(['a']);
+  });
+
+  it('gives unworn armour a cell instead of dropping it among the trinkets', () => {
+    const items = [armor('helm', { slots: 0 }), gear('coin', 0)];
+    const { blocks, trinkets } = buildSlotGrid(items, {}, 10);
+    expect(blocks.map((b) => [b.item._id, b.span])).toEqual([['helm', 1]]);
+    expect(trinkets.map((t) => t._id)).toEqual(['coin']);
+  });
+
+  it('omits stowed gear from the grid and its trinkets', () => {
+    const items = [stowed(gear('a', 2)), stowed(gear('coin', 0)), gear('b', 1)];
+    const { blocks, trinkets } = buildSlotGrid(items, {}, 10);
+    expect(blocks.map((b) => b.item._id)).toEqual(['b']);
+    expect(trinkets).toEqual([]);
+  });
+});
+
+describe('stowed gear', () => {
+  it('costs no slots', () => {
+    expect(computeCarry([stowed(gear('a', 4)), gear('b', 1)], {}, true, 10).used).toBe(1);
+  });
+
+  it('is reported as stowed only when the flag is explicitly false', () => {
+    expect(isStowed(stowed(gear('a', 1)))).toBe(true);
+    expect(isStowed(gear('a', 1))).toBe(false);
+  });
+
+  it('keeps counting for items authored before the flag existed', () => {
+    // No `carried` key at all — the pre-flag shape — must behave exactly as it
+    // always did, which is what lets this ship without a migration step.
+    const legacy = { _id: 'old', type: 'item', system: { slots: 3, quantity: 1 } };
+    expect(computeCarry([legacy], {}, true, 10).used).toBe(3);
+  });
+
+  it('stows armour as readily as gear', () => {
+    const items = [stowed(armor('helm', { slots: 2 }))];
+    expect(computeCarry(items, {}, true, 10).used).toBe(0);
   });
 });
 

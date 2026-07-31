@@ -114,6 +114,7 @@
       "templates": ["base"],
       "quantity": 1,
       "slots": 0,
+      "carried": true,
       "formula": "d20 + @str.value"
     },
     "feature": {
@@ -126,7 +127,8 @@
     "armor": {
       "templates": ["base"],
       "quantity": 1,
-      "slots": 0,
+      "slots": 1,
+      "carried": true,
       "zone": "torso",
       "sv": 0,
       "rh": 0,

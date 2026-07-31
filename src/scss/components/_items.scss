@@ -67,15 +67,35 @@
     }
   }
 
-  // Control Buttons
+  // Control Buttons. Wide enough for three: the carry/stow toggle now sits
+  // alongside edit and delete.
   .item-controls {
     display: flex;
-    flex: 0 0 100px;
+    flex: 0 0 130px;
     justify-content: flex-end;
+    align-items: center;
     a {
       font-size: 12px;
       text-align: center;
       margin: 0 6px;
+    }
+  }
+
+  // Worn gear has no carry/stow toggle — the paper doll owns that state — so
+  // this is a marker, not a control, and is muted to read as non-clickable.
+  .item-state {
+    margin: 0 6px;
+    font-size: 12px;
+    color: $c-beige;
+    cursor: help;
+  }
+
+  // Owned but not on the character: still administrable, but it costs no slots
+  // and appears in no other view, so the row recedes rather than disappears.
+  .item-stowed {
+    .item-name,
+    .item-formula {
+      opacity: 0.55;
     }
   }
 

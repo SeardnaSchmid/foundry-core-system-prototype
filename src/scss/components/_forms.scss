@@ -429,6 +429,12 @@ $portrait-frame-cut: 14% 0%, 86% 0%, 100% 9%, 100% 100%, 0% 100%, 0% 9%;
   // Establish a bounded height so the tab body below can own its own scroll
   // instead of letting content push the whole window past its edge.
   min-height: 0;
+  // `min-height` alone does not bound us: core's `.flexrow` on .sheet-columns
+  // is `flex-wrap: wrap`, and in a wrapping container the flex line takes its
+  // cross size from content, so `align-items: stretch` stretches us to the
+  // *line* rather than to the (bounded) container. Without this the column
+  // grows to its tallest tab and hangs out past the window frame.
+  max-height: 100%;
 }
 
 .sheet-tabs {
@@ -452,6 +458,14 @@ $portrait-frame-cut: 14% 0%, 86% 0%, 100% 9%, 100% 100%, 0% 100%, 0% 9%;
 .sheet-body .tab,
 .sheet-body .tab .editor {
   height: 100%;
+}
+
+// The Inventar tab stacks the paper doll, the Trageslots raster and the flat
+// item list, which together outgrow the body long before the list itself does.
+// It scrolls as one region — .sheet-body only clips — so the sections below the
+// fold stay reachable instead of being silently cut off.
+.sheet-body .tab.items {
+  overflow-y: auto;
 }
 
 // Active basics tab: grows to fill the body (flex:1) and lays its content out

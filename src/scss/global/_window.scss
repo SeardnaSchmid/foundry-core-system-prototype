@@ -21,6 +21,14 @@
     // The tab rail is absolutely positioned past the sheet's right edge, so the
     // content box must not clip it (see `.tabs-right` in components/_forms.scss).
     overflow: visible;
+    // `overflow: visible` means this box no longer scrolls, so it has to be
+    // bounded instead — otherwise it grows to its content and spills past the
+    // window frame onto the canvas. Core already gives us `flex: 1`, but a flex
+    // child's default `min-height: auto` refuses to shrink below its content,
+    // so the height is only really pinned once this is 0. The Inventar tab is
+    // what made it visible: paper doll + Trageslots raster above the item list
+    // is the first tab tall enough to overflow a 640px sheet.
+    min-height: 0;
   }
 
   // The actor type is pushed onto the app's classes by

@@ -21,11 +21,6 @@ import { buildSlotGrid, ARMOR_ADDON_ZONES, wornItemIds } from '../helpers/invent
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
 
-// Columns in the Trageslots raster. Purely a layout number, but the template
-// needs it to pad the final row with locked cells, so it has to stay in step
-// with `--slot-columns` in _inventory.scss.
-const SLOT_GRID_COLUMNS = 5;
-
 /**
  * Case/diacritic-insensitive subsequence fuzzy match: true if every
  * character of `query` appears in `text`, in order, possibly with gaps
@@ -410,9 +405,19 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     const armory = [];
 
+    // Which items are on the body. Worn gear is exempt from the slot economy
+    // and its state belongs to the paper doll, so those rows show a static
+    // marker instead of a carry/stow toggle. NPCs have no equipment store, so
+    // this is simply empty for them.
+    const worn = wornItemIds(this.actor.system.equipment);
+
     // Iterate through items, allocating to containers
     for (let i of context.items) {
       i.img = i.img || Item.DEFAULT_ICON;
+      // The two flags the inventory list rows branch on. `carried` is only
+      // ever meaningful while the item is not worn.
+      i.isWorn = worn.has(i._id);
+      i.isStowed = i.system?.carried === false;
       // Append to gear.
       if (i.type === 'item') {
         gear.push(i);
@@ -438,6 +443,12 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     context.features = features;
     context.spells = spells;
     context.armory = armory;
+
+    // The flat administrative list covers everything the inventory rules touch,
+    // armour included: a piece that is neither worn nor carried appears in no
+    // other view, so leaving it out of the list would strand it entirely. Both
+    // buckets are already in `sort` order, so a single merge keeps them so.
+    context.inventory = [...gear, ...armory].sort((a, b) => (a.sort || 0) - (b.sort || 0));
 
     if (context.actor.type === 'character') this._prepareEquipment(context);
   }
@@ -480,24 +491,23 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const capacity = derived.carrySlots ?? 0;
     const grid = buildSlotGrid(this.actor.items.contents, equipment, capacity);
     const used = derived.carrySlotsUsed ?? 0;
+
+    // A stack's multiplier is only worth the pixels when there is more than
+    // one of it; Handlebars can't compare inline, so decide it here.
+    const withQty = (block) => ({ ...block, showQty: block.quantity > 1 });
+
     context.slotGrid = {
       ...grid,
-      // A stack's multiplier is only worth the pixels when there is more than
-      // one of it; Handlebars can't compare inline, so decide it here.
-      blocks: grid.blocks.map((block) => ({ ...block, showQty: block.quantity > 1 })),
+      blocks: grid.blocks.map(withQty),
+      overflow: grid.overflow.map(withQty),
       // Handlebars has no "repeat n times", so the free-cell count becomes a
       // list the template can simply iterate.
       emptyCells: Array.from({ length: grid.empty }, (_, i) => i),
-      // The raster is a fixed number of columns wide, so a capacity that isn't
-      // a multiple of it leaves a tail of cells the character doesn't actually
-      // have. They are rendered as locked so every row keeps its full width.
-      lockedCells: Array.from(
-        { length: (SLOT_GRID_COLUMNS - (capacity % SLOT_GRID_COLUMNS)) % SLOT_GRID_COLUMNS },
-        (_, i) => i,
-      ),
       used,
       capacity,
       over: used > capacity,
+      // How far past the budget the load runs, for the over-capacity read-out.
+      excess: Math.max(0, used - capacity),
       state: derived.carryState ?? 'ok',
     };
   }
@@ -662,6 +672,16 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     this.#delegate('click', '.item-delete', (event, target) => {
       const li = target.closest('.item');
       this.actor.items.get(li.dataset.itemId)?.delete();
+    }, editable);
+
+    // Carry or stow an item. Stowed gear stays on the character's list but is
+    // not on them, so it leaves the Trageslots grid and costs no slots. Worn
+    // gear has no toggle at all — the paper doll owns that state.
+    this.#delegate('click', '.item-carry-toggle', (event, target) => {
+      event.preventDefault();
+      const item = this.actor.items.get(target.closest('.item')?.dataset.itemId);
+      if (!item) return;
+      item.update({ 'system.carried': item.system.carried === false });
     }, editable);
 
     // Equipment: click an empty paper doll zone to pick armour for it, click

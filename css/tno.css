@@ -12,6 +12,7 @@
 .tno.sheet.actor .window-content {
   display: flex;
   overflow: visible;
+  min-height: 0;
 }
 .tno.sheet.actor.character .window-content {
   flex-direction: column;
@@ -507,6 +508,7 @@
   flex: 1;
   min-width: 0;
   min-height: 0;
+  max-height: 100%;
 }
 .tno .sheet-tabs {
   flex: 0;
@@ -521,6 +523,9 @@
 .tno .sheet-body .tab,
 .tno .sheet-body .tab .editor {
   height: 100%;
+}
+.tno .sheet-body .tab.items {
+  overflow-y: auto;
 }
 .tno .sheet-body .tab.basics.active {
   display: flex;
@@ -1602,13 +1607,24 @@
 }
 .tno .items-list .item-controls {
   display: flex;
-  flex: 0 0 100px;
+  flex: 0 0 130px;
   justify-content: flex-end;
+  align-items: center;
 }
 .tno .items-list .item-controls a {
   font-size: 12px;
   text-align: center;
   margin: 0 6px;
+}
+.tno .items-list .item-state {
+  margin: 0 6px;
+  font-size: 12px;
+  color: #b5b3a4;
+  cursor: help;
+}
+.tno .items-list .item-stowed .item-name,
+.tno .items-list .item-stowed .item-formula {
+  opacity: 0.55;
 }
 .tno .items-list .item {
   align-items: center;
@@ -1841,23 +1857,17 @@
 }
 .tno .slot-filled.over-capacity {
   border-color: #7a2028;
-  border-style: dashed;
-  background: rgba(122, 32, 40, 0.08);
+  background: #7a2028;
+  color: #fff;
+  cursor: default;
 }
 .tno .slot-empty {
   border: 1px dashed #b5b3a4;
 }
-.tno .slot-locked {
-  border: 1px solid #b5b3a4;
-  background: rgba(181, 179, 164, 0.35);
-  cursor: not-allowed;
-}
-.tno .slot-locked i {
-  position: absolute;
-  top: 5px;
-  left: 7px;
-  font-size: var(--font-size-11, 11px);
-  color: #b8860b;
+.tno .slot-overflow-icon {
+  flex: 0 0 auto;
+  font-size: var(--font-size-12, 12px);
+  color: #fff;
 }
 .tno .slot-grip {
   flex: 0 0 auto;
@@ -1873,10 +1883,18 @@
   font-weight: normal;
   font-variant-numeric: tabular-nums;
 }
+.over-capacity .tno .slot-qty {
+  color: inherit;
+  opacity: 0.85;
+}
 .tno .slot-grid-note {
   margin: 8px 0 0;
   font-size: var(--font-size-11, 11px);
   color: #b5b3a4;
+}
+.tno .slot-grid-overflow-note {
+  color: #7a2028;
+  font-weight: bold;
 }
 .tno .slot-trinkets {
   display: flex;

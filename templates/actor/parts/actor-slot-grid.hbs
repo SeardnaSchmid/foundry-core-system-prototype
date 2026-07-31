@@ -3,7 +3,13 @@ derived on every render from the items' existing sort order — nothing about
 the arrangement is stored — so reordering is purely a view concern.
 
 Worn clothing and armour never appear here: "Von den Inventarregeln
-ausgenommen sind Kleidung und Rüstung welche der Charakter am Leib trägt". --}}
+ausgenommen sind Kleidung und Rüstung welche der Charakter am Leib trägt".
+Neither does stowed gear (`system.carried` false) — the character owns it,
+but it is not on them.
+
+The grid holds exactly as many cells as the character has slots; there is no
+padding out to the raster width. Anything past the budget keeps running on in
+the same grid, marked over capacity. --}}
 <div class='slot-grid-block card'>
 
   <div class='slot-grid-header'>
@@ -50,19 +56,28 @@ ausgenommen sind Kleidung und Rüstung welche der Charakter am Leib trägt". --}
       <div class='slot-cell slot-empty'></div>
     {{/each}}
 
-    {{!-- The grid is a fixed-width raster, so a capacity that isn't a multiple
-    of the column count leaves a tail of cells that are not slots at all. They
-    are drawn as locked rather than omitted, so every row stays the same width
-    and the remainder reads as "not yours" instead of "free". --}}
-    {{#each slotGrid.lockedCells}}
-      <div class='slot-cell slot-locked' title='{{localize "TNO.Inventory.LockedHint" capacity=../slotGrid.capacity}}'>
-        <i class='fas fa-lock'></i>
+    {{!-- Past the budget. The grid simply keeps running: cells up to capacity
+    are the slots the character has, and these are the load that no longer fits
+    in them, marked as over capacity rather than drawn as if they were slots.
+    A block lands here as soon as it does not fit whole — half an item cannot
+    sit in a slot the character does not have. --}}
+    {{#each slotGrid.overflow as |block|}}
+      <div class='slot-cell slot-filled over-capacity'
+           style='--slot-span: {{block.span}}'
+           data-item-id='{{block.item._id}}'
+           title='{{block.item.name}} · {{block.span}} · {{localize "TNO.Inventory.OverflowHint"}}'>
+        <i class='fas fa-triangle-exclamation slot-overflow-icon'></i>
+        <img class='slot-icon' src='{{block.item.img}}' width='20' height='20' alt=''/>
+        <span class='slot-name'>{{block.item.name}}</span>
+        {{#if block.showQty}}<span class='slot-qty'>×{{block.quantity}}</span>{{/if}}
       </div>
     {{/each}}
   </div>
 
-  {{#if slotGrid.lockedCells.length}}
-    <p class='slot-grid-note'>{{localize 'TNO.Inventory.LockedHint' capacity=slotGrid.capacity}}</p>
+  {{#if slotGrid.overflow.length}}
+    <p class='slot-grid-note slot-grid-overflow-note'>
+      {{localize 'TNO.Inventory.Overflow' excess=slotGrid.excess}}
+    </p>
   {{/if}}
 
   {{!-- Geld, Papiere, Krimskrams: nominally 0 slots, so they get chips rather
