@@ -428,12 +428,18 @@
   align-items: stretch;
 }
 
-// The attribute matrix and skills header stay fixed here; only
-// .skill-groups-scroll inside flexes and scrolls.
+// The attribute matrix and skill cards scroll together as one region. Both
+// stay pinned at the top only if they fit the available height; once the
+// column is squeezed, the entire section scrolls.
 .basics-main {
   flex: var(--basics-split) 1 0;
   min-width: 0;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba($c-dark, 0.3) transparent;
 }
 
 // The grabbable strip between the columns. It replaces the old flex gap and

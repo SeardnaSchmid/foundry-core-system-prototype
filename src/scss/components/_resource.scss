@@ -606,18 +606,12 @@ button:focus-visible {
   }
 }
 
-// Scroll region for the skill cards: takes the leftover height in the basics
-// tab's flex column and owns the vertical overflow, so the attribute matrix
-// and skills header stay pinned while a long list scrolls here (finding #6).
+// Container for the skill cards. Scrolling is now on `.basics-main` above,
+// so the entire column (attributes + skills) scrolls together, not just skills.
 .skill-groups-scroll {
-  flex: 1 1 0;
+  flex: 1 1 auto;
   min-height: 0;
-  overflow-y: auto;
   margin: 0 0 4px;
-
-  // Thin scrollbar tinted to the parchment so it doesn't read as chrome.
-  scrollbar-width: thin;
-  scrollbar-color: rgba($c-dark, 0.3) transparent;
 }
 
 // Balanced multi-column flow (not flex-wrap): the browser divides the cards
