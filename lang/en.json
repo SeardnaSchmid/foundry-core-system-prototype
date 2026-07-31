@@ -56,6 +56,9 @@
     "XpTotalSkillsHint": "pt = sum of all skill ranks. xp = total experience invested in skills.",
     "SkillsTitle": "Skills",
     "AttributesTitle": "Attributes",
+    "MovementChipHint": "Movement range: crawl | walk | sprint.",
+    "EdgePipHint": "Set the edge reserve to {value} — click the last filled pip to empty it.",
+    "BasicsSplitterHint": "Drag to move the column divider. Double-click resets the split.",
     "TabBasics": "Basics",
     "TabDescription": "Description",
     "BiographyPlaceholder": "Write your character's story, notes, and background here…",
@@ -412,6 +415,7 @@
     },
     "TabEffects": "Effects",
     "Armor": {
+      "WornTitle": "Worn",
       "Zones": "Armour zones",
       "FigureAlt": "Silhouette with the armoured zones highlighted",
       "Values": "Armour Values",
@@ -456,6 +460,7 @@
       "CrawlOnlyHint": "With every slot filled the character can only crawl.",
       "NoContainer": "No Bag",
       "NoContainerHint": "Without a bag or backpack there is no slot budget — the character's hands are full.",
+      "Trinkets": "No slots",
       "TrinketsHint": "Money, papers and odds and ends cost no slots.",
       "Overflow": "Overloaded: {excess} slot(s) more than the character can carry.",
       "OverflowHint": "No longer fits in the carry slots — costs movement.",
@@ -472,6 +477,16 @@
         "3": "Large items, heavy weapons, toolboxes, oxygen tanks",
         "4": "Backpack-sized items, welding gear, tents, parachutes"
       }
+    },
+    "Weapons": {
+      "Title": "Weapons",
+      "Name": "Name",
+      "Dice": "Dice",
+      "Damage": "Damage",
+      "Range": "Range",
+      "Pending": "not yet implemented",
+      "PendingHint": "There is no weapon item type yet, and how a weapon is readied is still an open rules question. The block reserves its place in the layout.",
+      "EmptyHint": "Weapons are not modelled yet — carried gear lives in the carry slots above and on the Inventory tab."
     }
   },
 

@@ -69,12 +69,12 @@ button:focus-visible {
   // Mobile-first: .attribute-table's base rules are the narrowest layout
   // (fluid columns, row-header column and column-header row both dropped).
   // Ascending @container (min-width) tiers below add richness back in as
-  // the container grows — thead, then fixed 150px columns, then finally the
-  // row-header column once there's room for all of it (see the exact
-  // footprint math on .attribute-table below). overflow-x is a defensive
-  // fallback only: it's inert while columns are fluid and only matters if
-  // the fixed-width tiers ever get squeezed by something unforeseen (zoom,
-  // a future column-count change) — the per-cell tooltip carries the row ·
+  // the container grows — thead, then full-size cell chrome, then finally
+  // the row-header column once there's room for all of it (see the exact
+  // footprint math on .attribute-table below). The columns stay fluid at
+  // every tier, so the matrix always spans the whole width this card is
+  // given. overflow-x is a defensive fallback only: it only matters below
+  // the table's 500px min-width — the per-cell tooltip carries the row ·
   // column axis as a further belt-and-braces fallback (see actor-sheet.mjs).
   container-type: inline-size;
   overflow-x: auto;
@@ -407,21 +407,24 @@ button:focus-visible {
     }
   }
 
-  // Once there's room for the matrix's fixed footprint without the row
+  // Once there's room for the matrix's comfortable footprint without the row
   // header — 3×150px data columns + 4×4px border-spacing gaps (columns+1
-  // gaps under border-collapse: separate) = 466px, plus a cushion — switch
-  // from fluid columns back to the fixed 150px layout and restore full-size
-  // cell chrome.
+  // gaps under border-collapse: separate) = 466px, plus a cushion — restore
+  // the full-size cell chrome. The columns stay fluid rather than pinning to
+  // 150px: the matrix takes the whole width the column gives it and the tiles
+  // grow with it, which is what makes dragging the Basics splitter (see
+  // `.basics-splitter` in components/_forms.scss) worth doing. 150px is only
+  // the floor now, held by the table's min-width.
   @container (min-width: 481px) {
     &.heatmap {
       table-layout: fixed;
-      width: max-content;
+      width: 100%;
       min-width: 500px;
       border-spacing: 4px;
 
       thead th,
       td.heatmap-cell {
-        width: 150px;
+        width: auto;
       }
 
       .heatmap-cell {

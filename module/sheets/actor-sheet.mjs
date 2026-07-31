@@ -22,6 +22,16 @@ const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
 
 /**
+ * The Basics tab's column split, as the left (attributes/skills) column's share
+ * of the row. The bounds stop either side from being dragged shut, which would
+ * leave no handle wide enough to drag back out. Exported because
+ * `tno.mjs` registers the `basicsSplit` client setting with this default.
+ */
+export const BASICS_SPLIT_DEFAULT = 0.4;
+const BASICS_SPLIT_MIN = 0.2;
+const BASICS_SPLIT_MAX = 0.8;
+
+/**
  * Case/diacritic-insensitive subsequence fuzzy match: true if every
  * character of `query` appears in `text`, in order, possibly with gaps
  * (e.g. "schl" matches "Schleichen", "sch" matches "Scharfschütze").
@@ -76,9 +86,12 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   /** @override */
   static DEFAULT_OPTIONS = {
     classes: ['tno', 'sheet', 'actor'],
-    // The slimmed attribute matrix no longer forces a 1200px sheet; 1000px
-    // fits the compact matrix plus the three skill columns comfortably.
-    position: { width: 1000, height: 640 },
+    // The Basics tab is two columns wide now: the attribute matrix plus three
+    // skill columns on the left (which together want ~620px before the matrix
+    // drops its row-header column and the skill flow drops to two columns),
+    // and the equipment column on the right. The height covers the banner plus
+    // that right column's three stacked blocks without an immediate scroll.
+    position: { width: 1270, height: 720 },
     window: { resizable: true },
     // V1 sheets submitted on every field change; keep that, since the sheet has
     // no save button.
@@ -379,6 +392,16 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     context.skillXpTotal = context.skillGroups.reduce((sum, group) => sum + group.totalXp, 0);
     context.skillRankTotal = context.skillGroups.reduce((sum, group) => sum + group.totalRank, 0);
     context.totalXpSpent = context.attributeGrid.totalXp + context.skillXpTotal;
+
+    // The edge reserve as a pip row for the banner chip: one pip per point of
+    // the maximum, filled up to the current pool. Built here rather than in the
+    // template because Handlebars has no "repeat n times".
+    const edgeMax = this.actor.system.derived?.edgePoolMax ?? 0;
+    const edgeNow = this.actor.system.derived?.edgePool ?? 0;
+    context.edgePips = Array.from({ length: edgeMax }, (_, i) => ({
+      value: i + 1,
+      filled: i < edgeNow,
+    }));
   }
 
   /**
@@ -500,6 +523,12 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       ...grid,
       blocks: grid.blocks.map(withQty),
       overflow: grid.overflow.map(withQty),
+      // Zero-slot items get no cell, but they still stack — loose change is the
+      // likeliest thing on the sheet to be counted — so they are reshaped into
+      // the same {item, quantity} block the cells use and carry the same
+      // multiplier. `buildSlotGrid` stays free of view concerns and hands back
+      // the bare items.
+      trinkets: grid.trinkets.map((item) => withQty({ item, quantity: Number(item.system?.quantity) || 1 })),
       // Handlebars has no "repeat n times", so the free-cell count becomes a
       // list the template can simply iterate.
       emptyCells: Array.from({ length: grid.empty }, (_, i) => i),
@@ -534,6 +563,60 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       if (requireEditable && !this.isEditable) return;
       handler(event, target);
     });
+  }
+
+  /**
+   * Set the problem-solving edge reserve, clamped to 0..max. Stored as "spent"
+   * (max minus the wanted value) since the pool itself is derived, recomputed
+   * from `problemSolving.spent`. Any manual change — up or down — happens
+   * outside the dedicated actions (Insight, Post-mortem), so it is announced in
+   * chat too.
+   * @param {number} value  The reserve the character should be left with
+   * @private
+   */
+  #setEdgePool(value) {
+    const max = this.actor.system.derived?.edgePoolMax ?? 0;
+    const current = this.actor.system.derived?.edgePool ?? 0;
+    const next = Math.clamp(value, 0, max);
+    if (next === current) return;
+
+    this.actor.update({ 'system.problemSolving.spent': max - next });
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: game.i18n.format('TNO.Chat.EdgeSpent', {
+        name: this.actor.name,
+        from: current,
+        to: next,
+        max,
+      }),
+    });
+  }
+
+  /**
+   * Paint the Basics tab's column split. The ratio goes into a CSS custom
+   * property rather than inline widths, so the two columns keep the grow
+   * factors the stylesheet gives them (see `.basics-columns`) and the split
+   * survives a window resize as a proportion.
+   * @param {number} [ratio]  Left column's share; defaults to the stored one
+   * @private
+   */
+  _applyColumnSplit(ratio = game.settings.get('tno', 'basicsSplit')) {
+    const columns = this.element.querySelector('.basics-columns');
+    if (!columns) return;
+    const clamped = Math.clamp(ratio, BASICS_SPLIT_MIN, BASICS_SPLIT_MAX);
+    columns.style.setProperty('--basics-split', String(clamped));
+  }
+
+  /**
+   * Apply a split and remember it. Client-scoped, so it follows the player
+   * across every character sheet they open rather than living on the actor.
+   * @param {number} ratio
+   * @private
+   */
+  #storeColumnSplit(ratio) {
+    const clamped = Math.clamp(ratio, BASICS_SPLIT_MIN, BASICS_SPLIT_MAX);
+    this._applyColumnSplit(clamped);
+    game.settings.set('tno', 'basicsSplit', clamped);
   }
 
   /** @inheritDoc */
@@ -581,6 +664,60 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     this.#delegate('input', '.skill-search-input', (event, target) => {
       this._skillSearch = target.value;
       this._applySkillFilter();
+    });
+
+    // Drag the Basics tab's column divider. Pointer capture keeps the move and
+    // release events on the handle itself, so the drag needs no listeners on
+    // `document` — which a detached sheet would bind to the wrong window.
+    // Purely a display preference, so read-only sheets can drag it too.
+    this.#delegate('pointerdown', '.basics-splitter', (event, target) => {
+      event.preventDefault();
+      const columns = target.parentElement;
+      // Everything the two columns can actually share: the handle's own strip
+      // is not up for grabs, so the ratio is measured against the rest.
+      const track = columns.clientWidth - target.offsetWidth;
+      if (track <= 0) return;
+
+      // Measured from where inside the handle the pointer went down, so the
+      // divider does not jump to centre itself under the cursor.
+      const origin = columns.getBoundingClientRect().left;
+      const grab = event.clientX - target.getBoundingClientRect().left;
+      const ratioAt = (clientX) => Math.clamp(
+        (clientX - grab - origin) / track, BASICS_SPLIT_MIN, BASICS_SPLIT_MAX
+      );
+
+      const onMove = (moveEvent) => this._applyColumnSplit(ratioAt(moveEvent.clientX));
+      const onEnd = (endEvent) => {
+        target.removeEventListener('pointermove', onMove);
+        target.removeEventListener('pointerup', onEnd);
+        target.removeEventListener('pointercancel', onEnd);
+        target.classList.remove('dragging');
+        this.#storeColumnSplit(ratioAt(endEvent.clientX));
+      };
+
+      target.classList.add('dragging');
+      target.setPointerCapture(event.pointerId);
+      target.addEventListener('pointermove', onMove);
+      target.addEventListener('pointerup', onEnd);
+      target.addEventListener('pointercancel', onEnd);
+    });
+
+    // Double-click resets the split, which is the only way back once a column
+    // has been dragged to one of its bounds and lost its proportions.
+    this.#delegate('dblclick', '.basics-splitter', (event) => {
+      event.preventDefault();
+      this.#storeColumnSplit(BASICS_SPLIT_DEFAULT);
+    });
+
+    // The keyboard equivalents, since the handle is a focusable separator.
+    this.#delegate('keydown', '.basics-splitter', (event) => {
+      const step = { ArrowLeft: -0.02, ArrowRight: 0.02 }[event.key];
+      if (step === undefined && event.key !== 'Home') return;
+      event.preventDefault();
+      const current = game.settings.get('tno', 'basicsSplit');
+      this.#storeColumnSplit(step === undefined
+        ? BASICS_SPLIT_DEFAULT
+        : Math.clamp(current + step, BASICS_SPLIT_MIN, BASICS_SPLIT_MAX));
     });
 
     // -------------------------------------------------------------
@@ -637,29 +774,15 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       }).render(true);
     }, editable);
 
-    // Edge pool: editable directly, clamped to
-    // 0..max. Stored as "spent" (max minus the edited value) since the
-    // pool itself is derived, recomputed from problemSolving.spent. Any
-    // manual edit — up or down — happens outside the dedicated actions
-    // (Insight, Post-mortem), so it's announced in chat too.
-    this.#delegate('change', '.reserve-value-input', (event, target) => {
-      const max = this.actor.system.derived?.edgePoolMax ?? 0;
+    // Edge pool, set from the banner chip's pip row. Clicking a pip sets the
+    // reserve to it; clicking the last *filled* one empties that pip instead,
+    // which is the only way the row can reach 0 — otherwise the lowest
+    // reachable value would be 1.
+    this.#delegate('click', '.edge-pip', (event, target) => {
+      event.preventDefault();
+      const value = Number(target.dataset.value) || 0;
       const current = this.actor.system.derived?.edgePool ?? 0;
-      const value = Math.clamp(Number(target.value) || 0, 0, max);
-      target.value = value;
-      this.actor.update({ 'system.problemSolving.spent': max - value });
-
-      if (value !== current) {
-        ChatMessage.create({
-          speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-          content: game.i18n.format('TNO.Chat.EdgeSpent', {
-            name: this.actor.name,
-            from: current,
-            to: value,
-            max,
-          }),
-        });
-      }
+      this.#setEdgePool(value === current ? value - 1 : value);
     }, editable);
 
     // Add Inventory Item
@@ -725,6 +848,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     this._makeKeyboardAccessible();
     this._applySkillFilter();
+    this._applyColumnSplit();
   }
 
   /**

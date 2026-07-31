@@ -2,9 +2,9 @@
   font-family: $font-primary;
 }
 
-// Shared by item sheets and the NPC sheet, which still lay the portrait out
-// inline next to the name (unlike the character sheet, which moves the
-// portrait into .sidebar below and only puts the name in here).
+// Item sheets and the NPC sheet, which lay the portrait out inline next to the
+// name. The character sheet has no .sheet-header at all — its portrait, name
+// and meta chips live in .sheet-banner below.
 .sheet-header {
   flex: 0 auto;
   overflow: hidden;
@@ -58,108 +58,10 @@
       }
     }
   }
-
-  // Total-XP badge riding at the right edge of the character sheet's name
-  // band. Scoped to this variant (via align-self, not a shared align-items)
-  // so the item/NPC sheets that also use .sheet-header are untouched. The
-  // charname's flex:1 already pushes it to the right; margin-left:auto keeps
-  // that true even if the name is empty.
-  .xp-badge-total {
-    align-self: center;
-    margin-left: auto;
-    padding: 3px 8px;
-    font-size: var(--font-size-13, 13px);
-    white-space: nowrap;
-  }
 }
 
-// Below the name header, the sheet splits into a fixed-width left sidebar
-// (portrait + derived meta stats) and the tab content on the right,
-// mirroring the reference dnd5e sheet's layout. The sidebar stays outside
-// .sheet-body so it remains visible across tabs.
-.sheet-columns {
-  flex: 1;
-  min-height: 0;
-  gap: 12px;
-  // Core's `.flexrow` sets `align-items: center`, which leaves both columns at
-  // their content height instead of the row's. .sheet-main has to fill it, or
-  // .sheet-body is too short for .skill-groups-scroll to get any height at all
-  // and the whole skill list collapses out of view.
-  align-items: stretch;
-}
-
-.sidebar {
-  flex: 0 0 300px;
-  width: 300px;
-  gap: 8px;
-  align-items: stretch;
-
-  .profile-img {
-    flex: 0 0 360px;
-    width: 100%;
-    height: 360px;
-    min-height: 360px;
-    max-height: 360px;
-    object-fit: cover;
-    object-position: top center;
-    border-radius: 4px;
-  }
-}
-
-// Positioning context for the roll lozenges overlaid on the portrait's
-// bottom edge (see .portrait-overlay). flex: 0 0 360px keeps it the same
-// fixed height the bare portrait used to occupy.
-//
-// Also doubles as the portrait's angled-corner metal frame: a gradient
-// background clipped to a hex/shield polygon, padded so it shows through as
-// a border ring around the image (which is clipped to a matching, slightly
-// smaller polygon below). Bottom corners stay square so the existing
-// lozenges overlay still reads against a flat edge.
-$portrait-frame-cut: 14% 0%, 86% 0%, 100% 9%, 100% 100%, 0% 100%, 0% 9%;
-.portrait-wrap {
-  position: relative;
-  flex: 0 0 360px;
-  padding: 4px;
-  background: linear-gradient(135deg, #8b8d8f 0%, #4a4c4e 45%, #2b2c2d 70%, $c-advance 100%);
-  clip-path: polygon(#{$portrait-frame-cut});
-  box-shadow: 0 1px 3px rgba($c-black, 0.5), inset 0 0 0 1px rgba($c-white, 0.15);
-
-  .profile-img {
-    flex: none;
-    clip-path: polygon(#{$portrait-frame-cut});
-  }
-
-  // Corner rivets: small metallic dots painted at each cut-corner vertex of
-  // the frame polygon above, via background gradients rather than extra
-  // markup. pointer-events: none (and no clip-path of its own) keeps this
-  // layer from ever blocking clicks on the image (data-edit="img") or the
-  // lozenges overlay beneath it.
-  &::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background-image:
-      radial-gradient(circle at 14% 3%, #e8d9a0 0 2px, rgba($c-black, 0.6) 3px, transparent 4px),
-      radial-gradient(circle at 86% 3%, #e8d9a0 0 2px, rgba($c-black, 0.6) 3px, transparent 4px),
-      radial-gradient(circle at 2% 9%, #e8d9a0 0 2px, rgba($c-black, 0.6) 3px, transparent 4px),
-      radial-gradient(circle at 98% 9%, #e8d9a0 0 2px, rgba($c-black, 0.6) 3px, transparent 4px);
-  }
-}
-
-.portrait-overlay {
-  position: absolute;
-  left: 6px;
-  right: 6px;
-  bottom: 6px;
-}
-
-.sidebar-stats {
-  gap: 8px;
-}
-
-// Shared bordered "box" treatment for grouped sections — the sidebar's meta
-// stat groups, the attribute table, and each skill category — echoing the
+// Shared bordered "box" treatment for grouped sections — the attribute table,
+// each skill category, and the Basics tab's equipment blocks — echoing the
 // reference dnd5e sheet's boxed layout (minus its ornate SVG filigree
 // corners, which would be a lot of extra markup for very little payoff
 // here).
@@ -170,270 +72,303 @@ $portrait-frame-cut: 14% 0%, 86% 0%, 100% 9%, 100% 100%, 0% 100%, 0% 9%;
   box-shadow: 0 1px 2px rgba($c-dark, 0.15);
 }
 
-.resource-group {
+// Character sheet banner: one horizontal band carrying the portrait, the name
+// and the three meta chips, replacing the left-docked sidebar. Fixed height, so
+// the band never grows with a long name.
+//
+// A grid rather than four absolutely-placed boxes: the chips and the name share
+// the band's right-hand column, and the name field is full-width, so with
+// absolute placement its (transparent) box would reach up under the chips and
+// swallow clicks on their bottom edge. Two rows make that impossible.
+//
+// The portrait is the one exception — it deliberately hangs past the bottom
+// edge, which no in-flow child can do — so it stays absolute and the first grid
+// column reserves its lane. margin-bottom is the clearance that keeps the tab
+// body out from under it, which is why it isn't the usual small gap.
+//
+// The band is full-bleed: the negative side and top margins cancel core's 16px
+// `.window-content` padding, so it meets the window frame on three sides while
+// the rest of the sheet keeps that gutter. Its own padding is what holds the
+// chips off the frame, and the top corners are square because the window header
+// now sits directly on them.
+.sheet-banner {
+  position: relative;
+  display: grid;
+  grid-template-columns: 144px minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  align-items: end;
+  flex: 0 0 96px;
+  height: 96px;
+  padding: 8px 12px 6px;
+  margin: -16px -16px 40px;
+  border-bottom: 1px solid $c-beige;
+  border-radius: 0;
+  background: linear-gradient(180deg, rgba($c-dark, 0.14) 0%, rgba($c-dark, 0.04) 100%);
+}
+
+.banner-chips {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
   display: flex;
-  flex: 0 0 auto;
-  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 6px;
+}
+
+// Pill-shaped meta chips, mirroring the reference dnd5e sheet's Initiative/
+// Speed/Proficiency lozenge row — opaque, so they stay legible against the
+// banner's gradient.
+.banner-chip {
+  display: flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 8px;
-}
-
-// Pill-shaped stat badges, used for the sidebar's "roll" stats (Initiative,
-// Sixth Sense) — mirroring the reference dnd5e sheet's Initiative/Speed/
-// Proficiency lozenge row.
-.lozenges {
-  flex: 0 0 auto;
-  gap: 6px;
-}
-
-.lozenge {
-  flex: 1;
-  // Label and value sit side-by-side on one line so the pill is only as tall
-  // as the text (~22px) instead of stacking into a chunky two-line badge —
-  // these carry a single number each and don't need the height.
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: baseline;
-  gap: 6px;
-  min-width: 0;
-  padding: 4px 10px;
+  min-height: 26px;
+  padding: 3px 10px;
   border: 1px solid $c-beige;
   border-radius: 999px;
-  background: $c-faint;
-  box-shadow: 0 1px 2px rgba($c-dark, 0.15);
+  background: rgba($c-white, 0.72);
   text-decoration: none;
   color: inherit;
-  cursor: pointer;
-  transition: background 0.15s ease;
+  white-space: nowrap;
 
-  &:hover {
-    background: $c-tan;
-
-    .lozenge-value,
-    .lozenge-label {
-      color: $c-white;
-    }
+  .chip-icon {
+    font-size: var(--font-size-11, 11px);
+    color: $c-tan;
   }
 
-  .lozenge-value {
-    font-size: var(--font-size-14, 14px);
-    font-weight: bold;
-    line-height: 1;
-
-    small {
-      margin-left: 2px;
-      font-size: var(--font-size-10, 10px);
-      font-weight: normal;
-      opacity: 0.75;
-    }
-  }
-
-  .lozenge-label {
+  .chip-label {
     font-size: var(--font-size-9, 9px);
     text-transform: uppercase;
     letter-spacing: 0.03em;
     color: $c-tan;
   }
-}
 
-.movement-group {
-  gap: 10px;
-  // Flex-wrap on .resource-group with no grow on the tiles left them packed
-  // to the left with dead space trailing in the card. Each tile now claims
-  // an even share of the row instead.
-  flex-wrap: nowrap;
-
-  .movement-tile {
-    display: flex;
-    flex: 1 1 0;
-    flex-direction: column;
-    align-items: center;
-    min-width: 44px;
-    padding: 3px 4px;
-    border-radius: 4px;
-  }
-
-  // Carry capacity is a different metric from the three movement speeds
-  // beside it (distance vs. inventory slots); a hairline separator — the
-  // same treatment .reserve-pool uses against its solve-tiles — keeps that
-  // distinction readable now that all four tiles are equal width.
-  .carry-slots-tile {
-    margin-left: 2px;
-    padding-left: 10px;
-    border-left: 1px solid $c-beige;
-  }
-
-  .movement-value {
+  .chip-value {
+    font-size: var(--font-size-14, 14px);
     font-weight: bold;
-    font-size: var(--font-size-16, 16px);
     line-height: 1;
-  }
-
-  .movement-label {
-    font-size: var(--font-size-10, 10px);
-    text-transform: uppercase;
-    color: $c-tan;
+    font-variant-numeric: tabular-nums;
   }
 }
 
-.problem-solving-group {
-  gap: 10px;
-  flex-wrap: nowrap;
-
-  // Reserve and both solve-tiles now share the row evenly (see
-  // .movement-group above for the same fix) rather than sitting left-packed
-  // with the card's remaining width left empty.
-  .reserve-pool {
-    display: flex;
-    flex: 1 1 0;
-    flex-direction: column;
-    align-items: center;
-    // Top-anchored to match .solve-tile's flex-start, so the reserve's
-    // value sits on the same row as the tiles beside it.
-    justify-content: flex-start;
-    min-width: 44px;
-    // Top/bottom padding matches .movement-tile's 3px so the two rows'
-    // tiles start from the same baseline.
-    padding: 3px 8px 3px 0;
-    border-right: 1px solid $c-beige;
+// Crawl | walk | sprint. Each number carries its own tooltip, so they are
+// separated by a quiet rule rather than run together as one figure.
+.chip-movement {
+  .chip-move {
+    font-size: var(--font-size-14, 14px);
+    font-weight: bold;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
   }
 
-  .reserve-value {
-    font-weight: bold;
-    font-size: var(--font-size-16, 16px);
-    line-height: 1;
+  .chip-sep {
+    font-size: var(--font-size-12, 12px);
+    color: $c-beige;
   }
+}
 
-  .reserve-value-input {
-    width: 22px;
-    // Browser UA styling gives number inputs extra intrinsic height beyond
-    // their line-height (26px rendered vs. the 16px .solve-tile-value sits
-    // at) — pin it explicitly so the reserve tile isn't taller than its
-    // siblings for no visual reason.
-    height: var(--font-size-16, 16px);
-    padding: 0;
-    border: none;
-    background: transparent;
-    text-align: right;
-    font-weight: bold;
-    // Matches the surrounding "/5" text and the movement/solve tiles'
-    // 16px value size — this input previously sat a size smaller, so the
-    // editable "3" looked shrunk next to its own "/5" suffix.
-    font-size: var(--font-size-16, 16px);
-    line-height: 1;
-    color: inherit;
+.chip-sense {
+  cursor: pointer;
+  transition: background 0.15s ease;
 
-    &::-webkit-inner-spin-button,
-    &::-webkit-outer-spin-button {
-      margin: 0;
+  &:hover {
+    background: $c-tan;
+    color: $c-white;
+
+    .chip-icon {
+      color: $c-white;
     }
   }
-
-  .reserve-label {
-    // Matches .solve-tile-label's fixed 2-line height so "RESERVE" lines up
-    // with the (sometimes 2-line) tile labels beside it.
-    min-height: calc(var(--font-size-10, 10px) * 1.2 * 2);
-    text-align: center;
-    font-size: var(--font-size-10, 10px);
-    line-height: 1.2;
-    text-transform: uppercase;
-    color: $c-tan;
-  }
-
-  .solve-tile {
-    position: relative;
-    display: flex;
-    flex: 1 1 0;
-    flex-direction: column;
-    align-items: center;
-    // Anchored to the top (rather than centered) so the value sits on the
-    // same row across all tiles regardless of whether its label below wraps
-    // to one line ("FIND FLAW") or two ("ANALYZE FLAW", "IDEA BONUS") — see
-    // .solve-tile-label's matching min-height.
-    justify-content: flex-start;
-    min-width: 44px;
-    // Top/bottom padding matches .movement-tile's 3px so the two rows'
-    // tiles start from the same baseline.
-    padding: 3px 6px;
-    border-radius: 4px;
-    text-decoration: none;
-    color: inherit;
-  }
-
-  .solve-tile-value {
-    // A 3-column grid (prefix / number / suffix) rather than centering the
-    // whole "≤35"/"+3"/"5×" string as one block: text-align:center on the
-    // full string still lets a one-sided affix pull the actual digit off
-    // the tile's true midline (prefixed values read right-shifted, the
-    // suffixed value reads left-shifted). Pinning the number to the middle
-    // column and letting the flanking columns absorb the affix keeps every
-    // tile's digit on the same vertical line regardless of which affix (or
-    // none) it carries.
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-    align-items: baseline;
-    width: 100%;
-    font-weight: bold;
-    font-size: var(--font-size-16, 16px);
-    line-height: 1;
-  }
-
-  .solve-tile-number {
-    grid-column: 2;
-    justify-self: center;
-  }
-
-  // The "<=", "+" and "×" affixes read as units/qualifiers around the
-  // number, not part of the value itself — kept lighter and smaller so
-  // the number stays the visual anchor of the tile.
-  .solve-tile-affix {
-    grid-column: 1;
-    justify-self: end;
-    font-weight: normal;
-    font-size: var(--font-size-11, 11px);
-    line-height: 1.2;
-    opacity: 0.6;
-  }
-
-  .solve-tile-suffix {
-    grid-column: 3;
-    justify-self: start;
-    margin-left: 1px;
-  }
-
-  .solve-tile-label {
-    // Fixed to 2 lines' worth of height so 1-line labels ("FIND FLAW") and
-    // 2-line labels ("ANALYZE FLAW", "IDEA BONUS") occupy the same vertical
-    // space, keeping every tile's value row aligned. Centered explicitly
-    // (rather than relying on the flex parent's align-items:center, which
-    // only centers the label's box) so the shorter of its two wrapped
-    // words — e.g. "IDEA" under "BONUS" — centers under the longer one
-    // instead of sitting flush against the box's left edge.
-    min-height: calc(var(--font-size-10, 10px) * 1.2 * 2);
-    text-align: center;
-    font-size: var(--font-size-10, 10px);
-    line-height: 1.2;
-    text-transform: uppercase;
-    color: $c-tan;
-  }
-
 }
 
-// .sheet-main is the tab-content column inside .sheet-columns, next to
-// .sidebar.
+// The one chip that is a control rather than a read-out, so it carries the
+// "spend a resource" gold the rest of the problem-solving UI uses.
+.chip-edge {
+  border-color: $c-advance;
+  background: rgba($c-advance, 0.14);
+
+  .chip-label {
+    color: $c-advance;
+  }
+
+  .chip-value-max {
+    font-size: var(--font-size-11, 11px);
+    font-weight: normal;
+    color: $c-tan;
+  }
+
+  // Says "there is more behind this tooltip" — the three derived edge
+  // thresholds (Fehler Analysieren, Ideen Bonus, Trial & error) are display
+  // values that none of the sheet's actions read from, so they live in the
+  // chip's title rather than as tiles of their own.
+  .chip-info {
+    font-size: var(--font-size-10, 10px);
+    color: $c-advance;
+    opacity: 0.7;
+  }
+}
+
+.edge-pips {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+// One diamond per point of the maximum. Rotated squares rather than a glyph so
+// filled and empty are the same shape at the same size.
+.edge-pip {
+  width: 8px;
+  height: 8px;
+  border: 1px solid $c-advance;
+  background: transparent;
+  transform: rotate(45deg);
+  cursor: pointer;
+
+  &.filled {
+    background: $c-advance;
+  }
+
+  &:hover,
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba($c-advance, 0.35);
+  }
+}
+
+// Anchored to the banner's top-left corner with the same 10px inset on both
+// sides, and overhanging the bottom edge by 38px the way a portrait plate sits
+// proud of a header band. .sheet-banner's margin-bottom reserves the room.
+.banner-portrait {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  width: 124px;
+  height: 124px;
+  border: 2px solid $c-tan;
+  border-radius: 5px;
+  overflow: hidden;
+  background: $c-faint;
+  box-shadow: 0 1px 4px rgba($c-black, 0.35);
+
+  .profile-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: none;
+    object-fit: cover;
+    object-position: top center;
+  }
+}
+
+// Initiative as an opaque strip across the portrait's bottom edge, so it stays
+// readable on any uploaded image.
+.portrait-init {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 5px;
+  padding: 2px 0;
+  background: rgba($c-dark, 0.78);
+  text-decoration: none;
+  color: $c-faint;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba($c-dark, 0.92);
+    color: $c-white;
+  }
+
+  .init-label {
+    font-size: var(--font-size-9, 9px);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .init-value {
+    font-size: var(--font-size-13, 13px);
+    font-weight: bold;
+    line-height: 1;
+
+    small {
+      margin-left: 2px;
+      font-size: var(--font-size-9, 9px);
+      font-weight: normal;
+      opacity: 0.75;
+    }
+  }
+}
+
+// Sits to the right of the portrait, bottom-aligned with it: the name on top,
+// the XP read-out as a quiet subtitle beneath.
+.banner-identity {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: end;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 1px;
+  min-width: 0;
+
+  h1.charname {
+    margin: 0;
+    padding: 0;
+    border: none;
+    // Core's <h1> is 48px, which would set a line box taller than the input
+    // inside it and push the subtitle out of the band. The input carries the
+    // display size itself (below).
+    font-size: var(--font-size-20, 20px);
+    line-height: 1;
+
+    // Read as a title, not a form field: no box at rest, an underline hint on
+    // hover, and a stronger underline while focused (i.e. while editing).
+    input {
+      width: 100%;
+      height: 28px;
+      margin: 0;
+      padding: 0 2px;
+      border: none;
+      background: transparent;
+      font-family: $font-primary;
+      font-size: var(--font-size-20, 20px);
+      font-weight: bold;
+      // Core gives inputs an inset glow, which across a field this wide reads
+      // as a stray rule under the name rather than as a text box.
+      box-shadow: none;
+      transition: box-shadow 0.15s ease;
+
+      &:hover {
+        box-shadow: inset 0 -1px 0 $c-beige;
+      }
+
+      &:focus {
+        box-shadow: inset 0 -2px 0 $c-tan;
+        outline: none;
+      }
+    }
+  }
+}
+
+.banner-subtitle {
+  padding-left: 4px;
+  font-size: var(--font-size-11, 11px);
+  color: $c-tan;
+  opacity: 0.75;
+}
+
+// .sheet-main is the tab-content column on the NPC sheet, next to its header.
 .sheet-main {
   flex: 1;
   min-width: 0;
   // Establish a bounded height so the tab body below can own its own scroll
-  // instead of letting content push the whole window past its edge.
+  // instead of letting content push the whole window past its edge. `min-height`
+  // alone does not bound a flex child whose line takes its cross size from
+  // content, so the cap is spelled out as well.
   min-height: 0;
-  // `min-height` alone does not bound us: core's `.flexrow` on .sheet-columns
-  // is `flex-wrap: wrap`, and in a wrapping container the flex line takes its
-  // cross size from content, so `align-items: stretch` stretches us to the
-  // *line* rather than to the (bounded) container. Without this the column
-  // grows to its tallest tab and hangs out past the window frame.
   max-height: 100%;
 }
 
@@ -460,27 +395,127 @@ $portrait-frame-cut: 14% 0%, 86% 0%, 100% 9%, 100% 100%, 0% 100%, 0% 9%;
   height: 100%;
 }
 
-// The Inventar tab stacks the paper doll, the Trageslots raster and the flat
-// item list, which together outgrow the body long before the list itself does.
-// It scrolls as one region — .sheet-body only clips — so the sections below the
-// fold stay reachable instead of being silently cut off.
+// The Inventar tab's flat item list can run long. It scrolls as one region —
+// .sheet-body only clips — so rows below the fold stay reachable instead of
+// being silently cut off.
 .sheet-body .tab.items {
   overflow-y: auto;
 }
 
-// Active basics tab: grows to fill the body (flex:1) and lays its content out
-// as a flex column. The attribute matrix and skills header stay fixed; only
-// .skill-groups-scroll flexes and scrolls.
+// Active basics tab: grows to fill the body (flex:1) so the two columns inside
+// it get a bounded height to scroll within.
 .sheet-body .tab.basics.active {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
+}
 
-  > section {
-    flex: 1 1 auto;
-    min-height: 0;
+// Attributes and skills on the left, everything on the character's body on the
+// right. Both columns own their own scrolling, so a long skill list and a full
+// pack never push each other around.
+//
+// The two shares are grow factors off a zero basis rather than widths, so the
+// splitter's own strip is subtracted before the ratio is applied and the
+// columns keep their proportions when the window is resized. `--basics-split`
+// is the left column's share; the sheet writes it per render from the
+// `basicsSplit` client setting and again live while the handle is dragged.
+.basics-columns {
+  --basics-split: 0.4;
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  align-items: stretch;
+}
+
+// The attribute matrix and skills header stay fixed here; only
+// .skill-groups-scroll inside flexes and scrolls.
+.basics-main {
+  flex: var(--basics-split) 1 0;
+  min-width: 0;
+  min-height: 0;
+}
+
+// The grabbable strip between the columns. It replaces the old flex gap and
+// .basics-aside's dashed border: the rule is drawn on the handle itself so the
+// line the user aims at is the line that moves.
+.basics-splitter {
+  flex: 0 0 13px;
+  position: relative;
+  align-self: stretch;
+  cursor: col-resize;
+  touch-action: none;
+
+  // The visible hairline, centred in the wider hit area — 13px is comfortable
+  // to grab, 1px would not be.
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 6px;
+    width: 1px;
+    background: $c-beige;
+    transition: background 0.15s ease, box-shadow 0.15s ease;
   }
+
+  &:hover::before,
+  &:focus-visible::before,
+  &.dragging::before {
+    background: $c-tan;
+    box-shadow: 0 0 0 1px rgba($c-tan, 0.4);
+  }
+
+  &:focus-visible {
+    outline: none;
+  }
+}
+
+.basics-aside {
+  flex: calc(1 - var(--basics-split)) 1 0;
+  min-width: 0;
+  min-height: 0;
+  gap: 8px;
+  padding: 0 2px 0 6px;
+  overflow-y: auto;
+
+  // Thin scrollbar tinted to the parchment, matching .skill-groups-scroll.
+  scrollbar-width: thin;
+  scrollbar-color: rgba($c-dark, 0.3) transparent;
+
+  // The Trageslots raster is five columns wide when it has the Inventar tab's
+  // full width; in this column that leaves cells too narrow for an item's icon
+  // and name, so it drops to four. The count is purely a view concern —
+  // `buildSlotGrid` counts slots, not columns — so nothing else moves.
+  --slot-columns: 4;
+
+  // Both equipment blocks size their padding for a full-width tab; tighten it
+  // here so the armour rows keep room for their RH/RW/RA read-outs.
+  .paperdoll,
+  .slot-grid-block {
+    padding: 10px;
+  }
+
+  .paperdoll {
+    gap: 10px;
+  }
+
+  .paperdoll-figure {
+    width: 84px;
+  }
+}
+
+// Caption above the paper doll — the Trageslots and weapons blocks carry their
+// own headers, so this is the only block that needs one.
+.aside-title {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+  border: none;
+  font-size: var(--font-size-12, 12px);
+  line-height: 1;
+  text-transform: uppercase;
+  color: $c-dark;
 }
 
 // Vertical icon-only tab rail docked outside the sheet's right edge, styled

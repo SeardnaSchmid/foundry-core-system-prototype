@@ -1,119 +1,88 @@
 {{!-- ApplicationV2 renders this part straight into `.window-content`, which is
 itself the sheet's <form> element — hence no <form> wrapper here. --}}
-  <div class="sheet-columns flexrow">
 
-    {{!-- Sidebar: portrait plus all derived meta stats, docked to the left
-    and visible across every tab, mirroring the reference dnd5e sheet's
-    layout. --}}
-    <aside class="sidebar flexcol">
-      {{!-- Initiative and Sixth Sense are the sidebar's two "roll" stats, so
-      they sit as pill/lozenge chips overlaid on the portrait's bottom edge
-      (mirroring the reference dnd5e sheet's Initiative/Speed/Proficiency
-      lozenges) — this reclaims the vertical space a separate row above the
-      meta cards used to take. The lozenges are opaque, so they stay legible
-      on any uploaded portrait. --}}
-      <div class="portrait-wrap">
-        <img class="profile-img" src="{{actor.img}}" data-edit="img" data-action="editImage" title="{{actor.name}}" height="360" width="300"/>
+  {{!-- Banner: the portrait, the character's name and the three at-a-glance
+  chips, in one band above the tab body rather than a left-docked sidebar. The
+  sidebar's tile stacks are gone with it: movement collapses into one chip, the
+  carry read-out is the Trageslots header's job, and the problem-solving
+  thresholds live in the edge chip's tooltip — see the Basics tab below for
+  where the equipment views moved. The portrait deliberately overhangs the
+  band's bottom edge; `.sheet-body` reserves the height it needs. --}}
+  <header class="sheet-banner">
 
-        <div class="lozenges flexrow portrait-overlay">
-          {{!-- Initiative wird gewürfelt mit Initiativegrundwert+1d10. The
-          formula comes from CONFIG.TNO so this lozenge and Foundry's combat
-          tracker always roll the same thing. --}}
-          <a class="lozenge rollable" data-roll="{{config.initiativeFormula}}" data-label="{{localize 'TNO.Derived.Initiative'}}" title="{{localize 'TNO.DerivedHint.Initiative'}}">
-            <span class="lozenge-value">{{system.derived.initiative}}<small>+1d10</small></span>
-            <span class="lozenge-label">{{localize "TNO.DerivedShort.Initiative"}}</span>
-          </a>
+    <div class="banner-chips">
 
-          {{!-- Sechster Sinn wird mit dem regulären 3d20-Wurf gegen den Wert selbst gewürfelt, ohne Mods/Advantage. --}}
-          <a class="lozenge rollable" data-roll-type="sixthSense" data-label="{{localize 'TNO.Derived.SixthSense'}}" title="{{localize 'TNO.Derived.SixthSense'}}: {{localize 'TNO.DerivedHint.SixthSense'}}">
-            <span class="lozenge-value">{{system.derived.sixthSense}}</span>
-            <span class="lozenge-label">{{localize "TNO.DerivedShort.SixthSense"}}</span>
-          </a>
-        </div>
+      {{!-- Bewegungsreichweiten sind reine Anzeigewerte, kein Wurf — drei
+      Zahlen mit je eigenem Tooltip, in aufsteigender Reichweite. --}}
+      <div class="banner-chip chip-movement" title="{{localize 'TNO.MovementChipHint'}}">
+        <i class="fa-solid fa-shoe-prints chip-icon"></i>
+        <span class="chip-move" title="{{localize 'TNO.Derived.MovementCrawl'}} — {{localize 'TNO.DerivedHint.MovementCrawl'}}">{{system.derived.movementCrawl}}</span>
+        <span class="chip-sep">|</span>
+        <span class="chip-move" title="{{localize 'TNO.Derived.MovementWalk'}} — {{localize 'TNO.DerivedHint.MovementWalk'}}">{{system.derived.movementWalk}}</span>
+        <span class="chip-sep">|</span>
+        <span class="chip-move" title="{{localize 'TNO.Derived.MovementSprint'}} — {{localize 'TNO.DerivedHint.MovementSprint'}}">{{system.derived.movementSprint}}</span>
       </div>
 
-      <div class="sidebar-stats flexcol">
+      {{!-- Sechster Sinn wird mit dem regulären 3d20-Wurf gegen den Wert selbst gewürfelt, ohne Mods/Advantage. --}}
+      <a class="banner-chip chip-sense rollable" data-roll-type="sixthSense" data-label="{{localize 'TNO.Derived.SixthSense'}}" title="{{localize 'TNO.Derived.SixthSense'}} — {{localize 'TNO.DerivedHint.SixthSense'}}">
+        <i class="fa-solid fa-eye chip-icon"></i>
+        <span class="chip-value">{{system.derived.sixthSense}}</span>
+      </a>
 
-        {{!-- Bewegungsreichweiten sind reine Anzeigewerte, kein Wurf. --}}
-        <div class="resource-group card movement-group">
-          <div class="movement-tile" title="{{localize 'TNO.Derived.MovementCrawl'}}: {{localize 'TNO.DerivedHint.MovementCrawl'}}">
-            <span class="movement-value">{{system.derived.movementCrawl}}</span>
-            <label class="movement-label">{{localize "TNO.DerivedShort.MovementCrawl"}}</label>
-          </div>
-          <div class="movement-tile" title="{{localize 'TNO.Derived.MovementWalk'}}: {{localize 'TNO.DerivedHint.MovementWalk'}}">
-            <span class="movement-value">{{system.derived.movementWalk}}</span>
-            <label class="movement-label">{{localize "TNO.DerivedShort.MovementWalk"}}</label>
-          </div>
-          <div class="movement-tile" title="{{localize 'TNO.Derived.MovementSprint'}}: {{localize 'TNO.DerivedHint.MovementSprint'}}">
-            <span class="movement-value">{{system.derived.movementSprint}}</span>
-            <label class="movement-label">{{localize "TNO.DerivedShort.MovementSprint"}}</label>
-          </div>
-          <div class="movement-tile carry-slots-tile" title="{{localize 'TNO.Derived.CarrySlots'}}: {{localize 'TNO.DerivedHint.CarrySlots'}}">
-            <span class="movement-value">{{system.derived.carrySlotsUsed}}/{{system.derived.carrySlots}}</span>
-            <label class="movement-label">{{localize "TNO.DerivedShort.CarrySlots"}}</label>
-          </div>
-        </div>
-
-        {{!-- Problemlösen: Vorrat zeigt den aktuell verbleibenden Punktestand
-        an (Maximalwert minus Verbrauch) und ist direkt editierbar, geclampt
-        auf 0..Maximalwert. Alle vier Tiles daneben sind reine Anzeigewerte
-        im selben Stil wie die Bewegungsreichweiten (movement-tile) — keins
-        davon ist mehr klickbar. "Idee haben" ist ein Pre-Edge und lebt als
-        Toggle im Würfel-Dialog selbst (TnoRollDialog); "Fehler finden",
-        "Neuer Versuch" und "Fehler Analysieren" sind Post-Edges und leben
-        auf der Wurf-Karte einer fehlgeschlagenen Probe im Chat (siehe
-        chat.mjs), da "Fehler Analysieren" seit v1.7 an den konkreten
-        Fehlschlag gekoppelt ist (sperrt dessen XP-Anspruch). "Neuer
-        Versuch" wird hier bewusst nicht gezeigt: ohne attributabhängigen
-        Schwellenwert (fixer Punktkosten-Edge) bringt ein Anzeigewert dafür
-        nichts. --}}
-        <div class="resource-group card problem-solving-group">
-          {{!-- Tooltips read "Short Label — mechanic", not the old "Long
-          Title: mechanic" (which doubled up on punctuation once the hint
-          itself used a colon). The short label already matches the tile's
-          on-screen caption, so hovering confirms what you're looking at
-          before explaining how it works. --}}
-          <div class="reserve-pool" title="{{localize 'TNO.DerivedShort.EdgePool'}} — {{localize 'TNO.DerivedHint.EdgePool'}}">
-            <span class="reserve-value">
-              <input type="number" class="reserve-value-input" value="{{system.derived.edgePool}}" min="0" max="{{system.derived.edgePoolMax}}"/>/{{system.derived.edgePoolMax}}
-            </span>
-            <label class="reserve-label">{{localize "TNO.DerivedShort.EdgePool"}}</label>
-          </div>
-          <div class="solve-tile" title="{{localize 'TNO.DerivedShort.PostMortem'}} — {{localize 'TNO.DerivedHint.PostMortem'}}">
-            <span class="solve-tile-value"><span class="solve-tile-affix">&le;</span><span class="solve-tile-number">{{system.derived.postMortem}}</span></span>
-            <label class="solve-tile-label">{{localize "TNO.DerivedShort.PostMortem"}}</label>
-          </div>
-          <div class="solve-tile" title="{{localize 'TNO.DerivedShort.Insight'}} — {{localize 'TNO.DerivedHint.Insight'}}">
-            <span class="solve-tile-value"><span class="solve-tile-affix">+</span><span class="solve-tile-number">{{system.derived.insight}}</span></span>
-            <label class="solve-tile-label">{{localize "TNO.DerivedShort.Insight"}}</label>
-          </div>
-          <div class="solve-tile" title="{{localize 'TNO.DerivedShort.TrialError'}} — {{localize 'TNO.DerivedHint.TrialError'}}">
-            <span class="solve-tile-value"><span class="solve-tile-number">{{system.derived.trialErrorMax}}</span><span class="solve-tile-affix solve-tile-suffix">{{localize "TNO.UnitRep"}}</span></span>
-            <label class="solve-tile-label">{{localize "TNO.DerivedShort.TrialError"}}</label>
-          </div>
-        </div>
-
+      {{!-- Problemlösen. Der Vorrat ist die einzige Zahl, die hier gesetzt
+      wird — als Pip-Reihe statt als Zahlenfeld: ein Klick setzt den Vorrat auf
+      diesen Pip, ein Klick auf den letzten gefüllten leert ihn. Die drei
+      abgeleiteten Schwellenwerte (Fehler Analysieren, Ideen Bonus, Trial &
+      error) sind reine Anzeigewerte und stehen im Tooltip, da keiner von ihnen
+      von hier aus ausgelöst wird: "Idee haben" lebt als Toggle im
+      Würfel-Dialog (TnoRollDialog), "Fehler finden" und "Fehler Analysieren"
+      auf der Wurf-Karte eines Fehlschlags im Chat (siehe chat.mjs). --}}
+      <div class="banner-chip chip-edge" title="{{localize 'TNO.DerivedShort.EdgePool'}} — {{localize 'TNO.DerivedHint.EdgePool'}}
+{{localize 'TNO.DerivedShort.PostMortem'}} ≤{{system.derived.postMortem}} — {{localize 'TNO.DerivedHint.PostMortem'}}
+{{localize 'TNO.DerivedShort.Insight'}} +{{system.derived.insight}} — {{localize 'TNO.DerivedHint.Insight'}}
+{{localize 'TNO.DerivedShort.TrialError'}} {{system.derived.trialErrorMax}}{{localize 'TNO.UnitRep'}} — {{localize 'TNO.DerivedHint.TrialError'}}">
+        <span class="chip-label">{{localize "TNO.DerivedShort.EdgePool"}}</span>
+        <span class="edge-pips">
+          {{#each edgePips as |pip|}}
+          <a class="edge-pip{{#if pip.filled}} filled{{/if}}" data-value="{{pip.value}}" title="{{localize 'TNO.EdgePipHint' value=pip.value}}"></a>
+          {{/each}}
+        </span>
+        <span class="chip-value">{{system.derived.edgePool}}<span class="chip-value-max">/{{system.derived.edgePoolMax}}</span></span>
+        <i class="fa-solid fa-circle-info chip-info"></i>
       </div>
-    </aside>
 
-    <div class="sheet-main flexcol">
+    </div>
 
-  {{!-- Sheet Header: name band spanning only the main columns (2-4/4),
-  not the sidebar. The total XP spent across attributes + skills rides at the
-  band's right edge as a badge — this is the value's home (it used to hang as
-  an orphaned footer line under the sidebar) and it fills what was otherwise a
-  near-empty row holding a single-word name. --}}
-  <header class="sheet-header">
-    <h1 class="charname"><input name="name" type="text" value="{{actor.name}}" placeholder="Name"/></h1>
-    <span class="xp-badge xp-badge-total" title="{{localize 'TNO.XpTotalAllHint'}}">{{totalXpSpent}} XP</span>
+    {{!-- Initiative wird gewürfelt mit Initiativegrundwert+1d10. The formula
+    comes from CONFIG.TNO so this caption and Foundry's combat tracker always
+    roll the same thing. It sits as an opaque strip across the portrait's
+    bottom edge, so it stays legible on any uploaded image. --}}
+    <div class="banner-portrait">
+      <img class="profile-img" src="{{actor.img}}" data-edit="img" data-action="editImage" title="{{actor.name}}" height="104" width="104"/>
+      <a class="portrait-init rollable" data-roll="{{config.initiativeFormula}}" data-label="{{localize 'TNO.Derived.Initiative'}}" title="{{localize 'TNO.Derived.Initiative'}} — {{localize 'TNO.DerivedHint.Initiative'}}">
+        <span class="init-label">{{localize "TNO.DerivedShort.Initiative"}}</span>
+        <span class="init-value">{{system.derived.initiative}}<small>+1d10</small></span>
+      </a>
+    </div>
+
+    {{!-- Name plus the one subtitle line the sheet has data for: the total XP
+    spent across attributes and skills. --}}
+    <div class="banner-identity">
+      <h1 class="charname"><input name="name" type="text" value="{{actor.name}}" placeholder="Name"/></h1>
+      <span class="banner-subtitle" title="{{localize 'TNO.XpTotalAllHint'}}">{{totalXpSpent}} {{localize "TNO.UnitXp"}}</span>
+    </div>
+
   </header>
 
   {{!-- Sheet Body --}}
   <section class="sheet-body">
 
-    {{!-- Basics Tab --}}
+    {{!-- Basics Tab: attributes and skills on the left, everything the
+    character has on them on the right. --}}
     <div class="tab basics {{tabs.basics.cssClass}}" data-group="primary" data-tab="basics">
-      <section class="flexcol">
+      <div class="basics-columns">
+
+      <section class="basics-main flexcol">
 
         {{!-- Primary attributes, laid out as a heatmap: one column per category
         (körperlich/sozial/geistig) and one row per attribute pairing,
@@ -158,9 +127,8 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
                   <a class="heatmap-stepper" data-key="{{cell.key}}" data-action="decrement" title="{{localize 'TNO.AttributeDecrease'}}" style="background:{{cell.stepperBg}}; border-color:{{cell.stepperBorder}}; color:{{cell.stepperColor}};">−</a>
                   {{!-- Modified attributes read as "base → effective" (e.g.
                   6→4) so the direction of the change is explicit and never
-                  gets misread as an x/y progress ratio like the sidebar's
-                  reserve/carry tiles. The effective (temp) value stays the
-                  emphasised one on the right. --}}
+                  gets misread as an x/y progress ratio. The effective (temp)
+                  value stays the emphasised one on the right. --}}
                   <span class="heatmap-value-pair">
                     {{#if cell.hasDelta}}<span class="heatmap-base inactive" title="{{cell.baseHint}}">{{cell.baseValue}}</span><span class="heatmap-arrow">→</span>{{/if}}<span class="heatmap-temp active" title="{{cell.tempHint}}">{{cell.tempValue}}</span>
                   </span>
@@ -247,6 +215,26 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
         </div>
 
       </section>
+
+      {{!-- Drag handle between the two columns. A real element rather than a
+      CSS border so it can be grabbed; the ratio it sets is a client setting,
+      so each player keeps their own split across sheets and sessions. --}}
+      <div class="basics-splitter" role="separator" aria-orientation="vertical" tabindex="0"
+           title="{{localize 'TNO.BasicsSplitterHint'}}"></div>
+
+      {{!-- What the character has on them: worn armour, carried gear, and the
+      weapons they can bring to bear. The Inventar tab keeps the flat
+      administrative list — creating, editing and deleting items — but these two
+      views answer "what am I wearing / hauling right now?", which is a question
+      asked mid-roll, so they sit beside the attributes instead of a tab away. --}}
+      <aside class="basics-aside flexcol">
+        <h3 class="aside-title">{{localize "TNO.Armor.WornTitle"}}</h3>
+        {{> "systems/tno/templates/actor/parts/actor-paperdoll.hbs"}}
+        {{> "systems/tno/templates/actor/parts/actor-slot-grid.hbs"}}
+        {{> "systems/tno/templates/actor/parts/actor-weapons.hbs"}}
+      </aside>
+
+      </div>
     </div>
 
     {{!-- Biography Tab --}}
@@ -263,10 +251,6 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
     </div>
 
   </section>
-
-    </div>
-
-  </div>
 
   {{!-- Sheet Tab Navigation, docked as a vertical icon rail along the right
   edge, mirroring the reference dnd5e sheet's tab layout. Each item also

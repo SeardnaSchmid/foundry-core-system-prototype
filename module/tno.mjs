@@ -2,7 +2,7 @@
 import { TnoActor } from './documents/actor.mjs';
 import { TnoItem } from './documents/item.mjs';
 // Import sheet classes.
-import { TnoActorSheet } from './sheets/actor-sheet.mjs';
+import { TnoActorSheet, BASICS_SPLIT_DEFAULT } from './sheets/actor-sheet.mjs';
 import { TnoItemSheet } from './sheets/item-sheet.mjs';
 // Import helper/utility classes and constants.
 import { preloadHandlebarsTemplates } from './helpers/templates.mjs';
@@ -39,7 +39,7 @@ Hooks.once('init', function () {
 
   /**
    * The combat tracker rolls exactly what the character sheet's Initiative
-   * lozenge rolls — the derived Initiative value plus 1d10 — by sharing the
+   * caption rolls — the derived Initiative value plus 1d10 — by sharing the
    * one formula in TNO.initiativeFormula. Integer results, hence 0 decimals;
    * ties are broken by the tracker's own ordering, not by a fractional term.
    */
@@ -84,6 +84,12 @@ Hooks.once('init', function () {
   game.settings.register('tno', 'heatmapLowCurve', { scope: 'client', config: false, type: Number, default: DEFAULT_HEATMAP_CONFIG.lowCurve });
   game.settings.register('tno', 'heatmapHighCurve', { scope: 'client', config: false, type: Number, default: DEFAULT_HEATMAP_CONFIG.highCurve });
   game.settings.register('tno', 'heatmapCritical', { scope: 'client', config: false, type: String, default: DEFAULT_HEATMAP_CONFIG.critical });
+
+  // Where the character sheet's Basics tab splits between the attribute/skill
+  // column and the equipment column, as the left column's share of the row.
+  // Client-scoped and hidden: it is dragged on the sheet itself (see the
+  // splitter handling in sheets/actor-sheet.mjs), never typed into a form.
+  game.settings.register('tno', 'basicsSplit', { scope: 'client', config: false, type: Number, default: BASICS_SPLIT_DEFAULT });
 
   game.settings.registerMenu('tno', 'heatmapLabMenu', {
     name: 'TNO.Settings.HeatmapPreset.Name',
