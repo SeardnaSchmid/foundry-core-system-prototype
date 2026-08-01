@@ -2,10 +2,11 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "foundry-redirect",
-      "runtimeExecutable": "node",
-      "runtimeArgs": ["/home/schmida/dev/git/foundry-joster-system/.claude/redirect-server.mjs"],
-      "port": 4173
+      "name": "foundry",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "serve"],
+      "port": 30000
     }
-  ]
+  ],
+  "autoVerify": true
 }
