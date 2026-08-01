@@ -139,8 +139,9 @@ make derived data circular. Callers that need the item look it up from
 `equipment` themselves — which is exactly what `_prepareEquipment()` in the
 actor sheet does.
 
-Armour is put on by dragging it onto its zone and taken off with the row's `x` —
-see [Moving things between the two views](#moving-things-between-the-two-views).
+Armour is put on by dragging it onto its zone and taken off by dragging the row
+back into the carry grid, or with the row's `x` — see
+[Moving things between the two views](#moving-things-between-the-two-views).
 
 ## The two views
 
@@ -170,19 +171,31 @@ changes state**:
   rest of the arrangement alone.
 - **Cell onto a paper doll zone** wears the piece. A zone only takes armour
   authored for that Stelle; a mismatch says which zone the piece belongs to
-  rather than failing silently. While a piece is in flight its zone lights up
-  (`armor-drop-target`, set in `_onDragStart`), so the target is visible before
-  the player lets go.
+  rather than failing silently. While a piece is in flight its zone lights up —
+  the row as `armor-drop-target` and the silhouette's shapes as
+  `zone-drop-target`, both set in `_onDragStart` — so the target is visible
+  before the player lets go, and the shape under the pointer goes solid
+  (`drop-onto`).
+- **A worn row back onto the carry grid** takes the piece off: the mirror of the
+  gesture that put it on, so the way back is not a different kind of act. The
+  unequip lands before any sort, since a worn piece is not in the carry list to
+  sort against; dropped on the free tail it also sorts to the end, dropped
+  anywhere else in the grid it simply rejoins the list where it already sat.
+  While a worn piece is in flight the whole grid block lights up
+  (`carry-drop-target`) rather than a cell — coming off the body is not a drop
+  at a position.
 
 **An empty zone is a drop target and nothing else.** Clicking one used to offer
 to author a piece on the spot, which conjured armour out of an empty doll —
-wearing something is a state change on gear already in hand. Taking a piece off
-is still a click (the `x`), since there is nothing to drag it from.
+wearing something is a state change on gear already in hand.
 
-Clicking a cell or a trinket opens that item's own sheet. With the doll gone
-drag-only, that is the only path left to a carried item's data from this view,
-so the cells are promoted into the keyboard tab order along with the sheet's
-other custom chips (`_makeKeyboardAccessible`).
+Clicking a cell, a trinket or a worn row opens that item's own sheet — the doll
+row is the only place a worn piece appears, so without it equipping something
+would make it uneditable. The row hands the click over when it landed on the
+`x`, so taking a piece off does not also open the sheet behind it. With the doll
+gone drag-only, clicking is the only path left to a carried item's data from
+this view, so the cells are promoted into the keyboard tab order along with the
+sheet's other custom chips (`_makeKeyboardAccessible`).
 
 New gear is authored through one dialog (`_promptCreateItem`, opened by the
 `+` in the grid header and by the Inventar tab's single create control): the

@@ -14,8 +14,14 @@ the same grid, marked over capacity. --}}
 
   <div class='slot-grid-header'>
     <span class='slot-grid-title'>{{localize 'TNO.Inventory.CarrySlots'}}</span>
+    {{!-- Used over capacity. The three parts are separate elements because they
+    rank differently — the figure the player tracks, the separator, the limit
+    behind it — and the container is a flex row, so the newlines between them
+    collapse away rather than becoming spaces around the slash. --}}
     <span class='slot-grid-count'>
-      <strong class='{{#if slotGrid.over}}over-capacity{{/if}}'>{{slotGrid.used}}</strong>/{{slotGrid.capacity}}
+      <strong{{#if slotGrid.over}} class='over-capacity'{{/if}}>{{slotGrid.used}}</strong>
+      <span class='slot-grid-sep' aria-hidden='true'>/</span>
+      <span class='slot-grid-max'>{{slotGrid.capacity}}</span>
     </span>
 
     {{!-- What the load costs in movement is shown on the movement chip in the

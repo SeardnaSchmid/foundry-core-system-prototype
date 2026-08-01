@@ -52,11 +52,11 @@ box. --}}
 
     {{!-- The Unterkleidung is not a hit location: it applies in all four
     zones at once, so it leads the list rather than sitting among them. --}}
-    <div class='armor-row armor-suit {{#unless paperdoll.suit}}armor-empty{{/unless}}'
+    <div class='armor-row armor-suit {{#if paperdoll.suit}}draggable{{else}}armor-empty{{/if}}'
          data-zone='suit'
-         title='{{localize "TNO.Armor.SuitHint"}}{{#unless paperdoll.suit}} — {{localize "TNO.Armor.DropHint"}}{{/unless}}'>
+         {{#if paperdoll.suit}}data-item-id='{{paperdoll.suit.id}}' draggable='true'{{/if}}
+         title='{{localize "TNO.Armor.SuitHint"}} — {{#if paperdoll.suit}}{{localize "TNO.Armor.WornHint"}}{{else}}{{localize "TNO.Armor.DropHint"}}{{/if}}'>
       {{#if paperdoll.suit}}
-        <img class='armor-icon' src='{{paperdoll.suit.img}}' width='16' height='16' alt=''/>
         <span class='armor-name'>{{paperdoll.suit.name}}</span>
         <span class='armor-values'>
           <span class='armor-value' title='{{localize "TNO.Armor.Rw"}}'>
@@ -75,10 +75,10 @@ box. --}}
     </div>
 
     {{#each paperdoll.zones as |z|}}
-      <div class='armor-row {{#unless z.item}}armor-empty{{/unless}}' data-zone='{{z.zone}}'
-           {{#unless z.item}}title='{{localize "TNO.Armor.DropHint"}}'{{/unless}}>
+      <div class='armor-row {{#if z.item}}draggable{{else}}armor-empty{{/if}}' data-zone='{{z.zone}}'
+           {{#if z.item}}data-item-id='{{z.item.id}}' draggable='true'{{/if}}
+           title='{{#if z.item}}{{localize "TNO.Armor.WornHint"}}{{else}}{{localize "TNO.Armor.DropHint"}}{{/if}}'>
         {{#if z.item}}
-          <img class='armor-icon' src='{{z.item.img}}' width='16' height='16' alt=''/>
           <span class='armor-name'>{{localize z.label}} · {{z.item.name}}</span>
           {{!-- Effective values, already layered with the Unterkleidung in
           prepareDerivedData: RH from the addon alone, RW and RA summed. --}}
@@ -130,8 +130,13 @@ box. --}}
   cell: costing nothing to carry does not make it a different kind of thing,
   it can still be opened, sorted and worn. --}}
   {{#if slotGrid.trinkets.length}}
-    <div class='slot-trinkets' data-tooltip-html='{{localize "TNO.Inventory.TrinketsHint"}}'>
-      <span class='slot-trinkets-label'>{{localize 'TNO.Inventory.Trinkets'}}</span>
+    <div class='slot-trinkets'>
+      {{!-- The explanation hangs off the label rather than the whole block: the
+      items below carry their own tooltips, and a container-wide one only ever
+      showed in the gaps between them. --}}
+      <span class='slot-trinkets-label'
+            data-tooltip-html='{{localize "TNO.Inventory.TrinketsHint"}}'
+            data-tooltip-direction='LEFT'>{{localize 'TNO.Inventory.Trinkets'}}</span>
       {{#each slotGrid.trinkets as |trinket|}}
         <span class='slot-trinket draggable' data-item-id='{{trinket.item._id}}'
               data-tooltip-html='{{trinket.tip}}' data-tooltip-direction='UP'>

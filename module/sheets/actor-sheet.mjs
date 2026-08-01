@@ -1000,10 +1000,21 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // those two views is a real item, so a click has to reach its sheet —
     // otherwise gear that is neither worn nor in the flat list is only
     // draggable, never editable.
-    this.#delegate('click', '.slot-cell[data-item-id], .slot-trinket', (event, target) => {
-      event.preventDefault();
-      this.actor.items.get(target.dataset.itemId)?.sheet.render(true);
-    });
+    // A worn piece is reachable the same way: the paper doll row is the only
+    // place it appears once it is on the body, so without this a piece of
+    // armour becomes uneditable the moment it is equipped. The unequip x sits
+    // inside that row and has its own handler — both would fire on one click,
+    // so the row hands that case over rather than opening a sheet behind the
+    // piece being taken off.
+    this.#delegate(
+      'click',
+      '.slot-cell[data-item-id], .slot-trinket, .armor-row[data-item-id]',
+      (event, target) => {
+        if (event.target.closest('.armor-unequip')) return;
+        event.preventDefault();
+        this.actor.items.get(target.dataset.itemId)?.sheet.render(true);
+      }
+    );
 
     // Equipment: the x on a filled paper doll zone takes the piece off, which
     // hands it back to the carry budget. Putting a piece *on* is drag-only
@@ -1064,9 +1075,28 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       editable
     );
 
+    // The doll's half of the same question. `armor-drop-target` from dragstart
+    // says which zone *could* take the piece; this says the pointer is on it
+    // now, so releasing here does something. Both halves of the doll answer —
+    // the shapes carry `data-zone` as well as the rows, and `closest` walks a
+    // limb's rect up to the group that holds the zone.
+    this.#delegate(
+      'dragover',
+      '.paperdoll [data-zone]',
+      (event, target) => {
+        event.preventDefault();
+        this.#clearDropMarkers();
+        const source = this.#dragging;
+        if (source?.type !== 'armor') return;
+        if (source.system.zone !== target.dataset.zone) return;
+        target.classList.add('drop-onto');
+      },
+      editable
+    );
+
     // Leaving the grid entirely has to clear the marker; moving between cells
     // does not, since the next `dragover` clears and re-marks anyway.
-    this.#delegate('dragleave', '.slot-grid, .slot-trinkets, .items-list', (event, target) => {
+    this.#delegate('dragleave', '.slot-grid, .slot-trinkets, .items-list, .paperdoll', (event, target) => {
       if (target.contains(event.relatedTarget)) return;
       this.#clearDropMarkers();
     });
@@ -1209,17 +1239,30 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // Both the zone rows and the silhouette's shapes carry `data-zone`, so
     // either half of the doll takes the drop.
     const zoneEl = event.target?.closest?.('[data-zone]');
+    const carryArea = event.target?.closest?.('.slot-grid, .slot-trinkets, .items-list');
     const emptyCell = event.target?.closest?.('.slot-empty');
-    if (!zoneEl && !emptyCell) return super._onDrop(event);
+    if (!zoneEl && !carryArea) return super._onDrop(event);
 
     const item = await Item.implementation.fromDropData(data);
     if (!item) return;
 
-    if (emptyCell) {
-      // Only meaningful for gear the actor already has; anything from outside
-      // is core's business to import first.
+    // Dropped back among the carried gear. Taking a piece off by dragging it
+    // there is the mirror of putting it on by dragging it to the doll — the x
+    // on the row is the same act, but a player who learned to equip by dragging
+    // has no reason to expect the way back to be a different gesture. The
+    // unequip has to land before any sort: while the piece is worn it is not in
+    // the carry list at all, so sorting it against that list first would order
+    // something that is not yet there.
+    if (!zoneEl) {
       if (item.parent !== this.actor) return super._onDrop(event);
-      return this._sortItemToEnd(item);
+      const wornZone = this.#wornZone(item.id);
+      if (wornZone) await this._setEquippedArmor(wornZone, null);
+      // The free tail has no neighbour to sort against, so it means "put this
+      // last" — for a piece just taken off as much as for anything else.
+      if (emptyCell) return this._sortItemToEnd(item);
+      // A piece that was worn has no place in the old list to sort against, so
+      // it simply rejoins it; anything already carried sorts as before.
+      return wornZone ? undefined : super._onDrop(event);
     }
 
     const zone = zoneEl.dataset.zone;
@@ -1244,6 +1287,20 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         : (await this.actor.createEmbeddedDocuments('Item', [item.toObject()]))[0];
 
     return this._setEquippedArmor(zone, owned.id);
+  }
+
+  /**
+   * Which paper doll zone is currently holding this item, if any. The map is
+   * keyed by zone rather than by item, so the way back is a search — but it is
+   * a search over five entries, and keeping the single zone→id direction is
+   * what stops two pieces from both claiming one location.
+   * @param {string} itemId
+   * @returns {string|null}
+   * @private
+   */
+  #wornZone(itemId) {
+    const equipment = this.actor.system.equipment ?? {};
+    return Object.keys(equipment).find((zone) => equipment[zone] === itemId) ?? null;
   }
 
   /**
@@ -1346,17 +1403,39 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     }
     this.element.classList.add('dragging-item');
 
-    const row =
-      item.type === 'armor'
-        ? this.element.querySelector(`.armor-row[data-zone="${item.system.zone}"]`)
-        : null;
+    // Which way this drag can go decides what lights up. A piece still in the
+    // carry slots is on its way onto the body, so the doll answers; a piece
+    // already worn is on its way off, so the carry grid does. Marking both at
+    // once would offer the player a move they cannot make in that direction.
+    const worn = this.#wornZone(item.id);
+    const zone = !worn && item.type === 'armor' ? item.system.zone : null;
+    const row = zone ? this.element.querySelector(`.armor-row[data-zone="${zone}"]`) : null;
     row?.classList.add('armor-drop-target');
+
+    const grid = worn ? this.element.querySelector('.slot-grid-block') : null;
+    grid?.classList.add('carry-drop-target');
+
+    // The same invitation on the silhouette. The row says which zone in words;
+    // the figure says where it is on the body, and the piece is dragged towards
+    // the picture as often as towards the row. The Unterkleidung is not a hit
+    // location — it covers all four at once — so it lights every shape rather
+    // than looking for a `suit` shape that does not exist.
+    const shapes = zone
+      ? this.element.querySelectorAll(
+          zone === 'suit'
+            ? '.paperdoll-figure .zone'
+            : `.paperdoll-figure .zone[data-zone="${zone}"]`
+        )
+      : [];
+    for (const shape of shapes) shape.classList.add('zone-drop-target');
 
     dragged.addEventListener(
       'dragend',
       () => {
         this.#dragging = null;
         row?.classList.remove('armor-drop-target');
+        grid?.classList.remove('carry-drop-target');
+        for (const shape of shapes) shape.classList.remove('zone-drop-target');
         this.element.classList.remove('dragging-item');
         this.#clearDropMarkers();
         for (const el of this.element.querySelectorAll('.slot-dragging')) {
@@ -1374,8 +1453,10 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    * @private
    */
   #clearDropMarkers() {
-    for (const el of this.element.querySelectorAll('.drop-before, .drop-after, .drop-into')) {
-      el.classList.remove('drop-before', 'drop-after', 'drop-into');
+    for (const el of this.element.querySelectorAll(
+      '.drop-before, .drop-after, .drop-into, .drop-onto'
+    )) {
+      el.classList.remove('drop-before', 'drop-after', 'drop-into', 'drop-onto');
     }
   }
 
