@@ -1,8 +1,41 @@
+import { wornItemIds } from '../helpers/inventory.mjs';
+
 /**
  * Extend the basic Item with some very simple modifications.
  * @extends {Item}
  */
 export class TnoItem extends Item {
+  /**
+   * Whether the character this item belongs to is currently wearing it. Worn
+   * gear is the one state the item itself cannot speak for: the zone map lives
+   * on the actor, because only a single map can stop two chest pieces from both
+   * claiming `torso`.
+   * @returns {boolean}
+   * @see wornItemIds
+   */
+  get isWorn() {
+    return wornItemIds(this.parent?.system?.equipment).has(this.id);
+  }
+
+  /**
+   * Ask before deleting, then delete. Lives on the document rather than in
+   * either sheet because both the actor's inventory list and the item's own
+   * sheet offer the same irreversible action and must phrase it identically —
+   * and because the name has to be escaped before it goes into the dialog's
+   * HTML body, which is easy to forget at one of two call sites.
+   * @returns {Promise<TnoItem|void>} The deleted item, or nothing if cancelled.
+   */
+  async confirmDelete() {
+    const confirmed = await foundry.applications.api.DialogV2.confirm({
+      window: { title: game.i18n.localize('TNO.Item.DeleteTitle') },
+      content: game.i18n.format('TNO.Item.DeleteConfirm', {
+        name: foundry.utils.escapeHTML(this.name),
+      }),
+    });
+    if (!confirmed) return;
+    return this.delete();
+  }
+
   /**
    * Augment the basic Item data model with additional dynamic data.
    */

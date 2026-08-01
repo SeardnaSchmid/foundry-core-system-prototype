@@ -352,6 +352,10 @@
       "Item": "Item Sheet"
     },
     "Item": {
+      "Delete": "Delete item",
+      "DeleteTitle": "Delete item",
+      "DeleteConfirm": "Permanently delete <strong>{name}</strong>? This cannot be undone.",
+      "DeleteWornHint": "Worn on the body — take it off on the paper doll before it can be deleted.",
       "Spell": {
         "SpellLVL": "Level {level} Spells",
         "AddLVL": "Add LVL {level}"

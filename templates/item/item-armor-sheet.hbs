@@ -98,6 +98,8 @@ what the character wears is exempt. --}}
       {{#ifEquals system.zone 'suit'}}
         <p class='hint'>{{localize 'TNO.Armor.SuitNoRhHint'}}</p>
       {{/ifEquals}}
+
+      {{> "systems/tno/templates/item/parts/item-delete.hbs"}}
     </div>
 
     {{! Effects Tab }}

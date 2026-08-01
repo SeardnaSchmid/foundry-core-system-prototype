@@ -15,7 +15,12 @@ $c-ready: #1f6b3a;
 // taken away. Shared rather than per-component because the same load shows up
 // in two places at once — the carry grid and the banner's movement chip — and
 // they have to read as one state.
-$c-warning: #7a2028;
+//
+// Used at full strength for text and borders, and at 35% alpha wherever it is
+// a fill — a solid block of it at this saturation swallowed the cell it was
+// marking, so the fill is a wash the parchment still shows through and the
+// full-strength border is what draws the edge.
+$c-warning: #b3212b;
 
 // The "actionable / ready to buy the next rank" accent, shared by the
 // attribute heatmap XP badges + bar, the skill XP text, and the skill advance

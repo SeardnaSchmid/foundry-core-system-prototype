@@ -114,8 +114,8 @@
   grid-template-rows: minmax(0, 1fr);
   align-items: start;
   column-gap: 16px;
-  flex: 0 0 108px;
-  height: 108px;
+  flex: 0 0 130px;
+  height: 130px;
   padding: 12px 16px 2px;
   // The bottom margin is the portrait's overhang plus a 10px breath: the
   // portrait bottom sits at inset + height, and everything past this band's
@@ -233,18 +233,23 @@
   // This is where the carry grid's "Kein Sprint" / "Nur Kriechen" badges went:
   // the consequence belongs on the figure it takes away.
   //
-  // The mark is a red *wash behind* the figure rather than red ink in it: at
-  // this size a recoloured digit reads as a different kind of number, while a
-  // tinted patch reads as something laid over one — which is what a lost tier
-  // is. The digit keeps the ink of the two beside it, so the three still scan
-  // as one row.
+  // The mark is a patch laid over the figure, not red ink in it: at this size a
+  // recoloured digit reads as a different kind of number, while a filled patch
+  // reads as something covering one — which is what a lost tier is.
+  //
+  // $c-warning at 35% with light text, exactly as an over-capacity carry cell
+  // is painted. The two are usually the same state seen twice — load past the
+  // budget is what takes the tier away — so the alpha has to match: a solid
+  // patch here would have read as a stronger warning than the one next to it
+  // rather than the same one.
   .chip-move.move-blocked {
     padding: 1px 5px;
     border-radius: 5px;
-    background: rgba($c-warning, 0.5);
+    background: rgba($c-warning, 0.35);
+    color: $c-white;
     text-decoration: line-through;
     text-decoration-thickness: 2px;
-    text-decoration-color: rgba($c-warning, 0.75);
+    text-decoration-color: rgba($c-white, 0.8);
   }
 
   .chip-sep {

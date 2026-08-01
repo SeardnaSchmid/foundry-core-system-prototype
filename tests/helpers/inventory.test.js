@@ -132,29 +132,48 @@ describe('buildSlotGrid', () => {
     expect(trinkets.map((t) => t._id)).toEqual(['coin']);
   });
 
-  it('moves a block that does not fit whole into the overflow', () => {
+  it('moves a block with no slot left to start on into the overflow', () => {
     const { blocks, overflow, empty } = buildSlotGrid([sorted('a', 4, 10), sorted('b', 2, 20)], {}, 4);
     expect(blocks.map((b) => b.item._id)).toEqual(['a']);
     expect(overflow.map((b) => b.item._id)).toEqual(['b']);
     expect(empty).toBe(0);
   });
 
-  it('overflows a block that only straddles the boundary', () => {
-    // 5 of 6 slots are spoken for, so a 2-slot block has nowhere whole to sit:
-    // half an item cannot occupy a slot the character does not have.
+  it('lets a block straddle the boundary rather than holding its slot open', () => {
+    // 5 of 6 slots are spoken for. The 2-slot block starts on the one slot that
+    // is left, so it is packed there and only its second cell reads as overload
+    // — pushing it out whole would strand slot 6 empty for good.
     const { blocks, overflow, empty } = buildSlotGrid([sorted('a', 5, 10), sorted('b', 2, 20)], {}, 6);
-    expect(blocks.map((b) => b.item._id)).toEqual(['a']);
-    expect(overflow.map((b) => b.item._id)).toEqual(['b']);
-    expect(empty).toBe(1);
+    expect(blocks.map((b) => b.item._id)).toEqual(['a', 'b']);
+    expect(overflow).toEqual([]);
+    expect(empty).toBe(0);
   });
 
-  it('keeps later gear behind an overflowing block even when a gap remains', () => {
-    // 'c' would fit in the two slots 'b' left free, but letting it jump the
-    // queue would silently reorder the player's list against its sort order.
+  it('says in cells where a straddling block is cut', () => {
+    const { blocks } = buildSlotGrid([sorted('a', 5, 10), sorted('b', 2, 20)], {}, 6);
+    expect(blocks.map((b) => [b.item._id, b.inside, b.outside])).toEqual([
+      ['a', 5, 0],
+      ['b', 1, 1],
+    ]);
+  });
+
+  it('reports no free cells once a block straddles the boundary', () => {
+    // The budget is spoken for even though only part of 'b' sits inside it, so
+    // the grid must not offer a free cell that no longer exists.
+    expect(buildSlotGrid([sorted('a', 5, 10), sorted('b', 3, 20)], {}, 6).empty).toBe(0);
+  });
+
+  it('keeps later gear behind a straddling block even when a gap remains', () => {
+    // 'b' straddles, so it is packed and cut. 'c' would fit in the slots 'b'
+    // spills past, but letting it jump the queue would silently reorder the
+    // player's list against its sort order.
     const items = [sorted('a', 4, 10), sorted('b', 4, 20), sorted('c', 2, 30)];
     const { blocks, overflow } = buildSlotGrid(items, {}, 6);
-    expect(blocks.map((b) => b.item._id)).toEqual(['a']);
-    expect(overflow.map((b) => b.item._id)).toEqual(['b', 'c']);
+    expect(blocks.map((b) => [b.item._id, b.inside, b.outside])).toEqual([
+      ['a', 4, 0],
+      ['b', 2, 2],
+    ]);
+    expect(overflow.map((b) => b.item._id)).toEqual(['c']);
   });
 
   it('reports no overflow while everything fits', () => {

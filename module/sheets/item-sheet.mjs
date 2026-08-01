@@ -71,6 +71,14 @@ export class TnoItemSheet extends ItemSheet {
     // Prepare active effects for easier access
     context.effects = prepareActiveEffectCategories(this.item.effects);
 
+    // Whether this sheet may offer to delete its own item. Worn gear is held
+    // back: the actor's `system.equipment` addresses the piece by id, and
+    // deleting it out from under the paper doll would leave a zone pointing at
+    // nothing. Taking it off is one click and hands it back to the carry grid,
+    // so the sheet says that rather than showing a control that would refuse.
+    context.isWorn = this.item.isWorn;
+    context.canDelete = this.isEditable && !context.isWorn;
+
     return context;
   }
 
@@ -89,5 +97,10 @@ export class TnoItemSheet extends ItemSheet {
     html.on('click', '.effect-control', (ev) =>
       onManageActiveEffect(ev, this.item)
     );
+
+    // Delete this item, with the same confirmation the actor's inventory list
+    // uses. Foundry closes the sheet once the document is gone, so there is
+    // nothing to tear down here.
+    html.on('click', '.item-self-delete', () => this.item.confirmDelete());
   }
 }

@@ -36,70 +36,51 @@ the same grid, marked over capacity. --}}
     {{/if}}
   </div>
 
-  {{!-- `draggable` is the class core's DragDrop binds, which is what puts the
-  item on the drag payload: without it a cell drags as an empty ghost. Dragging
-  a cell onto another sorts the list (core's _onSortItem), onto a free cell
-  moves it to the end, and armour dragged onto its paper doll zone is worn. --}}
+  {{!-- One cell per slot the load costs, in one flat run: what fits, then what
+  spills past the budget, then — only when nothing spilled — the free cells.
+  A multi-slot item is several adjacent cells joined by CSS rather than one
+  element spanning columns, so it can wrap mid-item instead of jumping to the
+  next row and holding the columns behind it open.
+
+  `draggable` is the class core's DragDrop binds, which is what puts the item
+  on the drag payload: without it a cell drags as an empty ghost. Every cell of
+  a block carries the id so it can be grabbed and dropped onto along its whole
+  length; `_onSortItem` is overridden to fold the repeats back into one
+  sibling. Dragging a cell onto another sorts the list, onto a free cell moves
+  it to the end, and armour dragged onto its paper doll zone is worn. --}}
   <div class='slot-grid'>
-    {{#each slotGrid.blocks as |block|}}
-      <div class='slot-cell slot-filled draggable {{#if block.over}}over-capacity{{/if}}'
-           style='--slot-span: {{block.span}}'
-           data-item-id='{{block.item._id}}'
-           title='{{block.item.name}} · {{block.span}} — {{localize "TNO.Inventory.CellHint"}}'>
-        <i class='fas fa-grip-vertical slot-grip'></i>
-        <img class='slot-icon' src='{{block.item.img}}' width='20' height='20' alt=''/>
-        <span class='slot-name'>{{block.item.name}}</span>
-        {{#if block.showQty}}<span class='slot-qty'>×{{block.quantity}}</span>{{/if}}
+    {{#each slotGrid.cells as |cell|}}
+      <div class='slot-cell slot-filled draggable{{#if cell.over}} over-capacity{{/if}}{{#if cell.first}} slot-first{{/if}}{{#unless cell.last}} slot-joined{{/unless}}'
+           style='--slot-run: {{cell.span}}'
+           data-item-id='{{cell.item._id}}'
+           data-tooltip-html='{{cell.tip}}'
+           data-tooltip-direction='UP'>
+        {{#if cell.first}}
+          <i class='fas fa-grip-vertical slot-grip'></i>
+          {{#if cell.over}}<i class='fas fa-triangle-exclamation slot-overflow-icon'></i>{{/if}}
+          <img class='slot-icon' src='{{cell.item.img}}' width='16' height='16' alt=''/>
+          <span class='slot-name'>{{cell.item.name}}</span>
+          {{#if cell.showQty}}<span class='slot-qty'>×{{cell.quantity}}</span>{{/if}}
+        {{/if}}
       </div>
     {{/each}}
 
     {{#each slotGrid.emptyCells}}
-      <div class='slot-cell slot-empty' title='{{localize "TNO.Inventory.EmptyCellHint"}}'></div>
-    {{/each}}
-
-    {{!-- Past the budget. The grid simply keeps running: cells up to capacity
-    are the slots the character has, and these are the load that no longer fits
-    in them, marked as over capacity rather than drawn as if they were slots.
-    A block lands here as soon as it does not fit whole — half an item cannot
-    sit in a slot the character does not have. --}}
-    {{#each slotGrid.overflow as |block|}}
-      <div class='slot-cell slot-filled draggable over-capacity'
-           style='--slot-span: {{block.span}}'
-           data-item-id='{{block.item._id}}'
-           title='{{block.item.name}} · {{block.span}} · {{localize "TNO.Inventory.OverflowHint"}}'>
-        <i class='fas fa-triangle-exclamation slot-overflow-icon'></i>
-        <img class='slot-icon' src='{{block.item.img}}' width='20' height='20' alt=''/>
-        <span class='slot-name'>{{block.item.name}}</span>
-        {{#if block.showQty}}<span class='slot-qty'>×{{block.quantity}}</span>{{/if}}
-      </div>
+      <div class='slot-cell slot-empty'
+           data-tooltip-html='{{localize "TNO.Inventory.EmptyCellHint"}}'
+           data-tooltip-direction='UP'></div>
     {{/each}}
   </div>
 
-  {{#if slotGrid.overflow.length}}
+  {{!-- Keyed off the budget, not off `overflow`: a block that merely straddles
+  the boundary is packed rather than pushed out, so the load can run over
+  capacity with nothing in `overflow` at all — which is precisely when this
+  needs saying. --}}
+  {{#if slotGrid.over}}
     <p class='slot-grid-note slot-grid-overflow-note'>
       {{localize 'TNO.Inventory.Overflow' excess=slotGrid.excess}}
     </p>
   {{/if}}
 
-  {{!-- Geld, Papiere, Krimskrams: nominally 0 slots, so they get a band rather
-  than cells they would otherwise occupy at zero width. It is deliberately half
-  a cell tall and labelled — the height says "less than a slot" before the label
-  is read, and the enclosure keeps it part of the same bag instead of trailing
-  off below the card as loose text. --}}
-  {{#if slotGrid.trinkets.length}}
-    <div class='slot-trinkets' title='{{localize "TNO.Inventory.TrinketsHint"}}'>
-      <span class='slot-trinkets-label'>{{localize 'TNO.Inventory.Trinkets'}}</span>
-      {{!-- Same interactions as a cell: these are items too, they just cost
-      nothing to carry. --}}
-      {{#each slotGrid.trinkets as |trinket|}}
-        <span class='slot-trinket draggable' data-item-id='{{trinket.item._id}}'
-              title='{{trinket.item.name}} — {{localize "TNO.Inventory.CellHint"}}'>
-          <img src='{{trinket.item.img}}' width='14' height='14' alt=''/>
-          <span class='slot-trinket-name'>{{trinket.item.name}}</span>
-          {{#if trinket.showQty}}<span class='slot-qty'>×{{trinket.quantity}}</span>{{/if}}
-        </span>
-      {{/each}}
-    </div>
-  {{/if}}
 
 </div>

@@ -189,12 +189,18 @@ export function computeCarry(items, equipment, hasContainer, capacity) {
  * floors it at one cell, so a piece that is not worn is always visibly taking
  * up room rather than riding along free among the loose change.
  *
- * Gear is split into what fits and what does not. A block only stays inside
- * the budget if it fits there *whole*: an item straddling the boundary has
- * overflowed, because a slot the character does not have cannot hold half of
- * it. Once one item overflows, every later item follows it out even where a
- * gap remains — otherwise a small item would jump ahead of a large one it was
- * sorted behind, and the grid would silently reorder the player's list.
+ * Gear is split into what fits and what does not, and a block is allowed to
+ * *straddle* the boundary: as long as its first cell lands on a slot the
+ * character has, it is packed, and only the cells past the budget read as
+ * overload. Holding the whole block back would leave the slots before it
+ * standing empty — a gap the player cannot fill and did not ask for — so the
+ * split is drawn through the item instead. `inside` and `outside` say where
+ * that cut falls, in cells.
+ *
+ * A straddling block still pushes the cursor past `capacity`, so every later
+ * item lands in `overflow` on its own: nothing is ever pulled forward into a
+ * leftover slot, because doing so would jump a small item ahead of a large one
+ * it was sorted behind and silently reorder the player's list.
  *
  * The two arrays are meant to render as one continuous grid: `blocks`, then
  * `empty` free cells, then `overflow` styled as over capacity. So the cells up
@@ -205,6 +211,8 @@ export function computeCarry(items, equipment, hasContainer, capacity) {
  * @param {Object} equipment  actor.system.equipment.
  * @param {number} capacity  carrySlots.
  * @returns {{blocks: Array<Object>, overflow: Array<Object>, trinkets: Array<Object>, empty: number}}
+ *   `blocks` entries carry `{item, span, quantity, inside, outside}`; `overflow`
+ *   entries `{item, span, quantity}`, being wholly past the budget.
  */
 export function buildSlotGrid(items, equipment, capacity) {
   const carried = carriedGear(items, equipment).sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
@@ -221,13 +229,19 @@ export function buildSlotGrid(items, equipment, capacity) {
       continue;
     }
 
-    const block = { item, span, quantity: num(item.system?.quantity ?? 1) };
-    if (overflow.length === 0 && cursor + span <= capacity) {
-      blocks.push(block);
-      cursor += span;
-    } else {
-      overflow.push(block);
+    const quantity = num(item.system?.quantity ?? 1);
+
+    // No slot left to start on: the block is wholly out. Once anything has
+    // straddled, `cursor` is already past `capacity`, which is what keeps the
+    // rest of the list out here behind it.
+    if (cursor >= capacity) {
+      overflow.push({ item, span, quantity });
+      continue;
     }
+
+    const inside = Math.min(span, capacity - cursor);
+    blocks.push({ item, span, quantity, inside, outside: span - inside });
+    cursor += span;
   }
 
   return { blocks, overflow, trinkets, empty: Math.max(0, capacity - cursor) };

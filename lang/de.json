@@ -352,6 +352,10 @@
       "Item": "Gegenstandsbogen"
     },
     "Item": {
+      "Delete": "Gegenstand löschen",
+      "DeleteTitle": "Gegenstand löschen",
+      "DeleteConfirm": "<strong>{name}</strong> endgültig löschen? Das lässt sich nicht rückgängig machen.",
+      "DeleteWornHint": "Wird am Leib getragen — erst an der Puppe ablegen, dann lässt es sich löschen.",
       "Spell": {
         "SpellLVL": "Zauber Stufe {level}",
         "AddLVL": "Stufe {level} hinzufügen"

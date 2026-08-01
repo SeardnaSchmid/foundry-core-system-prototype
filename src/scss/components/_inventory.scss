@@ -23,7 +23,7 @@ $c-zone-suited-stroke: #8ba06f;
 // $c-warning from utils/_colors.scss — the same red marks the movement tiers
 // that load takes away on the banner chip, and the two have to match.
 
-// The zero-slot band. Tinted off the card's own parchment rather than given a
+// The zero-slot column. Tinted off the card's own parchment rather than given a
 // colour of its own: it is an aside, and any hue here would claim a meaning the
 // grid's greens and warning red have already spoken for.
 $c-trinket-bg: rgba($c-dark, 0.05);
@@ -33,10 +33,14 @@ $c-trinket-border: rgba($c-dark, 0.14);
 // invisible. This label carries the meaning of the whole band, so it has to
 // stay readable while still ranking below the item names in $c-tan.
 $c-trinket-label: rgba($c-dark, 0.55);
-$c-trinket-separator: rgba($c-dark, 0.32);
 
+// Figure, then the worn zones. A grid rather than a flex row because the split
+// between the zones and the zero-slot pocket is a fixed proportion of what is
+// left after the figure, and fractions state that directly — the figure's track
+// sizes to its own width first, and 3fr/1fr divides the remainder.
 .paperdoll {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   // Never squeezed by the equipment column's scroll container: the card is as
   // tall as its five rows, and the column scrolls instead.
   flex: 0 0 auto;
@@ -47,8 +51,12 @@ $c-trinket-separator: rgba($c-dark, 0.32);
   padding: 14px 16px;
 }
 
+// The zero-slot column, present only when something is in it.
+.paperdoll.has-loose {
+  grid-template-columns: auto minmax(0, 3fr) minmax(0, 1fr);
+}
+
 .paperdoll-figure {
-  flex: 0 0 auto;
   width: 110px;
   height: auto;
 
@@ -85,7 +93,6 @@ $c-trinket-separator: rgba($c-dark, 0.32);
 
 .paperdoll-zones {
   display: flex;
-  flex: 1;
   min-width: 0;
   flex-direction: column;
   gap: 6px;
@@ -281,30 +288,38 @@ $c-trinket-separator: rgba($c-dark, 0.32);
   margin-left: 0;
 }
 
-// One column per slot. The grid is derived from the item list on every
-// render, so a block simply spans as many columns as it costs.
+// One column per slot, one cell per slot. A multi-slot item is a run of
+// adjacent cells rather than one spanning element: a grid item cannot wrap, so
+// spanning made a wide block jump to the next row and hold the columns behind
+// it open — a gap the player could not fill. Joining the run visually gets the
+// same read without that.
 .slot-grid {
+  --slot-gap: 6px;
+
   display: grid;
   grid-template-columns: repeat(var(--slot-columns, 5), minmax(0, 1fr));
-  gap: 8px;
+  gap: var(--slot-gap);
+  // Bounds both things a run is allowed to push past its own cell: the welded
+  // edge of a run that wraps, and a label spilling across the cells behind it.
+  // Either way the raster's outer edge is where it stops.
+  overflow: hidden;
 }
 
 .slot-cell {
   position: relative;
   display: flex;
   align-items: center;
-  // A block is as wide as it is expensive, so its contents are centred rather
-  // than left-aligned — otherwise a 3-slot item's label floats far from the
-  // cell it visually belongs to.
-  justify-content: center;
-  gap: 8px;
-  min-height: 48px;
-  padding: 0 10px;
+  // Content sits at the start of a run rather than centred in its first cell:
+  // the icon marks where the item begins, and the label reads on from there
+  // across the rest of the run.
+  justify-content: flex-start;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 6px;
   border-radius: 8px;
   font-size: var(--font-size-13, 13px);
   white-space: nowrap;
   overflow: hidden;
-  grid-column: span min(var(--slot-span, 1), var(--slot-columns, 5));
 }
 
 .slot-filled {
@@ -315,14 +330,55 @@ $c-trinket-separator: rgba($c-dark, 0.32);
 
   // Load past the budget. These cells are not slots — the character has none
   // left — so they read as a warning rather than as a variation on a filled
-  // cell: solid, saturated, light text. With the locked-cell tail gone this
-  // colour break is the only thing marking where capacity ended, so it has to
-  // carry that on its own. Still grabbable: dragging is how an overflowed item
-  // is sorted back into the budget, so denying it would strand it out here.
+  // cell: red, light text, and a full-strength border around a 35% wash. With
+  // the locked-cell tail gone this colour break is the only thing marking where
+  // capacity ended, so it has to carry that on its own — hence the border stays
+  // opaque even though the fill does not. Still grabbable: dragging is how an
+  // overflowed item is sorted back into the budget, so denying it would strand
+  // it out here.
   &.over-capacity {
     border-color: $c-warning;
-    background: $c-warning;
+    background: rgba($c-warning, 0.35);
     color: $c-white;
+  }
+}
+
+// Weld a run into one surface: every cell but the last drops its right edge and
+// the rounding on that side, and the cell after it does the same on its left.
+// A run that wraps therefore reads as two joined stretches rather than one
+// impossible rectangle, which is honest about where the item actually sits.
+.slot-cell.slot-joined {
+  border-right: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  // Close the gutter so the two cells meet, without disturbing the column
+  // raster the gap defines.
+  margin-right: calc(-1 * var(--slot-gap));
+  padding-right: calc(var(--slot-gap) + 6px);
+}
+
+.slot-cell.slot-joined + .slot-cell {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+// Only the first cell of a run carries the icon and name, but the run is what
+// the item visually occupies, so the label is allowed out of that one cell and
+// across the rest of it. `--slot-run` bounds it: past the run's own width it is
+// clipped like any other cell's content, so it can never run into the next
+// item. A single-cell item has no run to spill into and keeps the default clip.
+.slot-cell.slot-first.slot-joined {
+  overflow: visible;
+
+  .slot-name {
+    // Opt out of flex sizing: as a shrinkable flex item the label would be
+    // squeezed back into this one cell and ellipsised there, wasting the rest
+    // of the run. At its natural width it overflows the cell instead — which
+    // the rule above permits — and `max-width` stops it at the end of the run,
+    // so it can never reach the next item.
+    flex: 0 0 auto;
+    width: max-content;
+    max-width: calc(var(--slot-run, 1) * (100% + var(--slot-gap)) - var(--slot-gap));
   }
 }
 
@@ -330,18 +386,134 @@ $c-trinket-separator: rgba($c-dark, 0.32);
   border: 1px dashed $c-beige;
 }
 
+// ---------------------------------------------------------------------------
+// Drag feedback. Two separate questions: what is being moved, and where it will
+// land. The first dims the source so it reads as lifted out; the second draws a
+// caret on the edge the item will be inserted at.
+//
+// The side is not decorative — `_onSortItem` sorts by direction of travel, so
+// the caret is drawn from the same `#sortsBefore` the sort uses. A caret that
+// promised the other side would be worse than none.
+
+.slot-dragging {
+  opacity: 0.4;
+}
+
+// Only worth showing the free tail as a target while something is actually in
+// flight; the rest of the time a dashed cell is quiet enough.
+.dragging-item .slot-empty {
+  border-color: $c-zone-filled;
+}
+
+.slot-empty.drop-into {
+  border-style: solid;
+  border-color: $c-zone-filled;
+  background: $c-zone-filled-bg;
+}
+
+// The caret lies against the edge the item will be inserted at, so its
+// orientation follows the run it marks: the carry raster runs across, so the
+// caret is a vertical bar on a side; the zero-slot column and the Inventar
+// tab's list both stack downwards, so there it lies flat along a horizontal
+// edge. Drawn inside the element rather than in the gutter — `.slot-grid` clips
+// its overflow, and a marker in a gap would be the first thing lost.
+.slot-cell.drop-before::after,
+.slot-cell.drop-after::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: 2px;
+  background: $c-dark;
+}
+
+.slot-cell.drop-before::after {
+  left: 0;
+}
+
+.slot-cell.drop-after::after {
+  right: 0;
+}
+
+// On the solid warning fill a dark caret disappears; borrow the cell's own
+// text colour, as the quantity multiplier already does.
+.slot-cell.over-capacity.drop-before::after,
+.slot-cell.over-capacity.drop-after::after {
+  background: $c-white;
+}
+
+.items-list .item.drop-before,
+.items-list .item.drop-after {
+  position: relative;
+}
+
+.items-list .item.drop-before::after,
+.items-list .item.drop-after::after,
+.slot-trinket.drop-before::after,
+.slot-trinket.drop-after::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 2px;
+  background: $c-dark;
+}
+
+.items-list .item.drop-before::after,
+.slot-trinket.drop-before::after {
+  top: 0;
+}
+
+.items-list .item.drop-after::after,
+.slot-trinket.drop-after::after {
+  bottom: 0;
+}
+
 .slot-overflow-icon {
   flex: 0 0 auto;
-  font-size: var(--font-size-12, 12px);
+  font-size: var(--font-size-11, 11px);
   color: $c-white;
 }
 
-// The affordance that says "these cells can be rearranged"; muted, since the
-// item's own icon and name are what identify the block.
-.slot-grip {
+.slot-icon {
   flex: 0 0 auto;
+}
+
+// The affordance that says "these cells can be rearranged". With equipping now
+// drag-only it is the only thing that says so, so it stays — but at four
+// columns it was eating a cell's width to repeat what the whole grid already
+// implies. It now takes no layout width at all: it sits over the item's own
+// icon and trades places with it on hover, which puts the affordance exactly
+// where the hand already is.
+.slot-grip {
+  position: absolute;
+  // Matches the cell's own left padding, so the grip lands on the icon.
+  left: 6px;
+  top: 50%;
+  width: 16px;
+  transform: translateY(-50%);
+  text-align: center;
   font-size: var(--font-size-11, 11px);
-  color: $c-beige;
+  color: $c-tan;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.slot-cell:hover,
+.slot-cell:focus-visible {
+  .slot-grip {
+    opacity: 1;
+  }
+
+  .slot-icon {
+    opacity: 0;
+  }
+}
+
+.over-capacity .slot-grip {
+  color: $c-white;
 }
 
 .slot-name {
@@ -373,51 +545,52 @@ $c-trinket-separator: rgba($c-dark, 0.32);
   font-weight: bold;
 }
 
-// Zero-slot items (Geld, Papiere, Krimskrams) never occupy a cell, so they get
-// a band under the grid instead. Half a filled cell tall on purpose: the height
-// is the argument, saying "less than one slot" before the label is read. It is
-// recessed rather than raised — a pocket sewn into the card, belonging to the
-// same bag but sitting outside the budget, so it never competes with the raster
-// that carries the actual capacity.
+// Zero-slot items (Geld, Papiere, Krimskrams) never occupy a cell in the carry
+// raster, so they get the quarter-width column beside the worn zones. Listed
+// downwards, not across: the column is as tall as the five zone rows, which is
+// height these short names cost nothing to use, whereas width in this aside is
+// the scarce thing. Recessed rather than raised — a pocket sewn into the card,
+// belonging to the same kit but sitting outside the budget, so it never
+// competes with the raster that carries the actual capacity.
 .slot-trinkets {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 2px 10px;
-  margin-top: 8px;
-  padding: 3px 10px;
-  min-height: 24px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 3px;
+  padding: 6px 8px;
   border: 1px solid $c-trinket-border;
   border-radius: 8px;
   background: $c-trinket-bg;
+  // The column is stretched to the card's height; the list starts at the top of
+  // it rather than floating in the middle.
+  justify-content: flex-start;
 }
 
 .slot-trinkets-label {
   flex: 0 0 auto;
+  margin-bottom: 1px;
   font-size: var(--font-size-11, 11px);
   color: $c-trinket-label;
 }
 
-// Flat text, not a chip: these are contents, and the old bordered pill sat
-// directly above the sheet's own buttons where it read as one.
+// Flat text, not a chip: these are contents, and a bordered pill at this size
+// would read as a button.
 .slot-trinket {
-  display: inline-flex;
+  // Anchors the drop caret, which is drawn as an inset pseudo-element.
+  position: relative;
+  display: flex;
   align-items: center;
   gap: 4px;
-  font-size: var(--font-size-12, 12px);
+  min-width: 0;
+  font-size: var(--font-size-11, 11px);
+  white-space: nowrap;
   color: $c-tan;
   // Same handling as a cell: costing no slot does not make it a different kind
   // of thing — it can still be opened, sorted and worn.
   cursor: grab;
 
-  // With no chip outline left, adjacent names would run together. Spelled out
-  // rather than written as `& + &`: this file is nested under `.tno`, so `&`
-  // carries that ancestor and the sibling half would compile to a selector
-  // that can never match.
-  + .slot-trinket::before {
-    content: '·';
-    margin-right: 6px;
-    color: $c-trinket-separator;
+  img {
+    flex: 0 0 auto;
   }
 }
 

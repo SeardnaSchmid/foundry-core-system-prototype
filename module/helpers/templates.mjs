@@ -15,6 +15,7 @@ export const preloadHandlebarsTemplates = async function () {
     'systems/tno/templates/actor/parts/actor-weapons.hbs',
     // Item partials
     'systems/tno/templates/item/parts/item-effects.hbs',
+    'systems/tno/templates/item/parts/item-delete.hbs',
     // Apps
     'systems/tno/templates/apps/roll-dialog.hbs',
     'systems/tno/templates/apps/parts/advantage-picker.hbs',

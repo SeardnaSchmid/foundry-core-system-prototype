@@ -16,7 +16,12 @@ import {
   TEMP_MAX,
   tempValueForBase,
 } from '../helpers/attributes.mjs';
-import { buildSlotGrid, ARMOR_ADDON_ZONES, wornItemIds } from '../helpers/inventory.mjs';
+import {
+  buildSlotGrid,
+  itemSlotCost,
+  ARMOR_ADDON_ZONES,
+  wornItemIds,
+} from '../helpers/inventory.mjs';
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -97,6 +102,15 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // no save button.
     form: { submitOnChange: true },
   };
+
+  /**
+   * The item currently being dragged, or null. `dragover` cannot read the drag
+   * payload — the DataTransfer is in protected mode until the drop — so the
+   * item is stashed at `dragstart` and read back to decide which side of a
+   * hovered target the drop indicator belongs on.
+   * @type {Item|null}
+   */
+  #dragging = null;
 
   /**
    * ApplicationV2 owns the form element, so the actor-type class the template's
@@ -563,14 +577,32 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     context.slotGrid = {
       ...grid,
-      blocks: grid.blocks.map(withQty),
-      overflow: grid.overflow.map(withQty),
+      // One cell per slot consumed, rather than one element spanning several
+      // columns. A spanning block cannot wrap, so in the four-column sidebar a
+      // wide item jumped to the next row and held the columns behind it open —
+      // the very gap the packing rule exists to avoid. Expanded into siblings
+      // it wraps like anything else, and the split through a straddling block
+      // falls cleanly between two cells instead of having to be painted across
+      // one. Blocks and overflow are one list because they never coexist with
+      // free cells: anything straddling pushes the cursor past capacity, so
+      // `empty` is 0 exactly when `overflow` is non-empty.
+      cells: [
+        ...grid.blocks.flatMap((block) => this.#slotCells(block, block.inside)),
+        ...grid.overflow.flatMap((block) => this.#slotCells(block, 0)),
+      ],
       // Zero-slot items get no cell, but they still stack — loose change is the
       // likeliest thing on the sheet to be counted — so they are reshaped into
       // the same {item, quantity} block the cells use and carry the same
       // multiplier. `buildSlotGrid` stays free of view concerns and hands back
       // the bare items.
-      trinkets: grid.trinkets.map((item) => withQty({ item, quantity: Number(item.system?.quantity) || 1 })),
+      trinkets: grid.trinkets.map((item) => {
+        const quantity = Number(item.system?.quantity) || 1;
+        return withQty({
+          item,
+          quantity,
+          tip: `${this.#slotStats(item, quantity)}<br>${game.i18n.localize('TNO.Inventory.CellHint')}`,
+        });
+      }),
       // Handlebars has no "repeat n times", so the free-cell count becomes a
       // list the template can simply iterate.
       emptyCells: Array.from({ length: grid.empty }, (_, i) => i),
@@ -581,6 +613,98 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       excess: Math.max(0, used - capacity),
       state: derived.carryState ?? 'ok',
     };
+  }
+
+  /**
+   * Expand one packed block into the individual cells it occupies, so the grid
+   * is a flat run of single-slot cells the raster can wrap freely.
+   *
+   * `inside` is how many of them still fall within the budget; everything from
+   * there on reads as overload. An overflow block passes 0, which marks the
+   * whole run.
+   *
+   * Only the first cell carries the icon and name — the rest are the same item
+   * continuing — but every cell carries the item id, so a wide block can be
+   * grabbed or dropped onto anywhere along its length. `_onSortItem` is
+   * overridden to cope with the repeated id that implies.
+   *
+   * @param {{item: Item, span: number, quantity: number}} block
+   * @param {number} inside  Cells of this block that fit the budget.
+   * @returns {Array<object>}
+   * @private
+   */
+  #slotCells(block, inside) {
+    const stats = this.#slotStats(block.item, block.quantity);
+    const insideTip = `${stats}<br>${game.i18n.localize('TNO.Inventory.CellHint')}`;
+    const overTip = `${stats}<br>${game.i18n.localize('TNO.Inventory.OverflowHint')}`;
+
+    return Array.from({ length: block.span }, (_, index) => {
+      const over = index >= inside;
+      return {
+        item: block.item,
+        tip: over ? overTip : insideTip,
+        over,
+        first: index === 0,
+        last: index === block.span - 1,
+        // Only the first cell renders the label, so it has to know how many
+        // cells it may run across before it is clipped.
+        span: block.span,
+        quantity: block.quantity,
+        showQty: block.quantity > 1,
+      };
+    });
+  }
+
+  /**
+   * The stat block a carry cell or trinket shows on hover and on focus, as the
+   * HTML core's TooltipManager renders from `data-tooltip-html`.
+   *
+   * Assembled here rather than in the template because the sheet registers only
+   * `toLowerCase` and `ifEquals` as Handlebars helpers, and this needs to branch
+   * on the item type. There is deliberately no weight: the rules price gear in
+   * slots, and no weight field exists to show.
+   *
+   * Armour is read from `system`, never `system.derived`: a piece in the carry
+   * grid is being hauled rather than worn, so what it is worth is what the piece
+   * itself says, not what it would contribute layered into a zone.
+   *
+   * Every interpolated field is escaped — the string is rendered as HTML, and
+   * names and the weapon free-text fields are all user-authored.
+   *
+   * @param {Item} item
+   * @param {number} quantity
+   * @returns {string}
+   * @private
+   */
+  #slotStats(item, quantity) {
+    const esc = foundry.utils.escapeHTML;
+    const loc = (key) => game.i18n.localize(key);
+
+    const summary = [loc(`TYPES.Item.${item.type}`), `${loc('TNO.Inventory.Slots')} ${itemSlotCost(item)}`];
+    if (quantity > 1) summary.push(`×${quantity}`);
+
+    const lines = [`<strong>${esc(item.name)}</strong>`, summary.join(' · ')];
+
+    if (item.type === 'armor') {
+      const zone = CONFIG.TNO.armorZones[item.system?.zone];
+      const values = ['rh', 'rw', 'ra'].map(
+        (key) => `${loc(`TNO.Armor.${key.capitalize()}Short`)} ${Number(item.system?.[key]) || 0}`
+      );
+      lines.push([...(zone ? [loc(zone)] : []), ...values].join(' · '));
+    } else if (item.type === 'weapon') {
+      // Free text for now, and usually only partly filled in, so an empty
+      // field is left out rather than shown as a blank label.
+      const values = [
+        ['TNO.Weapons.Dice', 'dice'],
+        ['TNO.Weapons.Damage', 'damage'],
+        ['TNO.Weapons.Range', 'range'],
+      ]
+        .filter(([, field]) => item.system?.[field])
+        .map(([label, field]) => `${loc(label)} ${esc(item.system[field])}`);
+      if (values.length) lines.push(values.join(' · '));
+    }
+
+    return lines.join('<br>');
   }
 
   /* -------------------------------------------- */
@@ -665,10 +789,11 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   async _onFirstRender(context, options) {
     await super._onFirstRender(context, options);
 
-    // Custom clickable chips (anchors without `href`, plus `.skill-info`) are
-    // promoted to real keyboard targets in _onRender; this forwards their
-    // Enter/Space to the same click listeners bound below.
-    this.#delegate('keydown', 'a:not([href]), .skill-info', (event, target) => {
+    // Custom clickable chips (anchors without `href`, plus `.skill-info` and
+    // the carry grid's cells) are promoted to real keyboard targets in
+    // _onRender; this forwards their Enter/Space to the same click listeners
+    // bound below.
+    this.#delegate('keydown', 'a:not([href]), .skill-info, .slot-cell, .slot-trinket', (event, target) => {
       if (event.key !== 'Enter' && event.key !== ' ') return;
       event.preventDefault();
       target.click();
@@ -843,10 +968,13 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     }, editable);
 
     // Delete Inventory Item. Deleting the embedded document re-renders the
-    // sheet on its own, so the row does not need to be removed by hand.
+    // sheet on its own, so the row does not need to be removed by hand. The
+    // confirmation is the item's own, shared with the delete control on its
+    // sheet: the same irreversible act should not be one click here and two
+    // there.
     this.#delegate('click', '.item-delete', (event, target) => {
       const li = target.closest('.item');
-      this.actor.items.get(li.dataset.itemId)?.delete();
+      this.actor.items.get(li.dataset.itemId)?.confirmDelete();
     }, editable);
 
     // Carry or stow an item. Stowed gear stays on the character's list but is
@@ -904,6 +1032,44 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     this.#delegate('click', '.rollable', (event, target) => {
       this._onRoll(event, target);
     }, editable);
+
+    // Say where a dragged item will land before it is dropped. The side is not
+    // a matter of where in the cell the pointer is: core sorts by *direction of
+    // travel* — backwards through the list drops before, forwards drops after —
+    // so the marker reads the same `#sortsBefore` the sort itself does.
+    this.#delegate(
+      'dragover',
+      '.slot-grid [data-item-id], .slot-trinkets [data-item-id], .items-list [data-item-id], .slot-empty',
+      (event, target) => {
+        event.preventDefault();
+        this.#clearDropMarkers();
+        const source = this.#dragging;
+        if (!source) return;
+
+        // The free tail sorts to the end rather than against a neighbour, so it
+        // marks itself as a container instead of taking a side.
+        if (target.classList.contains('slot-empty')) return target.classList.add('drop-into');
+
+        const targetItem = this.actor.items.get(target.dataset.itemId);
+        if (!targetItem || targetItem.id === source.id) return;
+
+        // A multi-slot item is a run of cells, but it sorts as one thing, so
+        // the marker belongs on the edge of the run — not on whichever cell the
+        // pointer happens to be over.
+        const before = this.#sortsBefore(source, targetItem);
+        const run = this.element.querySelectorAll(`.slot-grid [data-item-id="${targetItem.id}"]`);
+        const edge = run.length ? run[before ? 0 : run.length - 1] : target;
+        edge.classList.add(before ? 'drop-before' : 'drop-after');
+      },
+      editable
+    );
+
+    // Leaving the grid entirely has to clear the marker; moving between cells
+    // does not, since the next `dragover` clears and re-marks anyway.
+    this.#delegate('dragleave', '.slot-grid, .slot-trinkets, .items-list', (event, target) => {
+      if (target.contains(event.relatedTarget)) return;
+      this.#clearDropMarkers();
+    });
   }
 
   /** @inheritDoc */
@@ -931,9 +1097,12 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   _makeKeyboardAccessible() {
     // The carry grid's cells are divs, and with equipping gone drag-only they
     // are the only way left to reach a carried item's own sheet — so they have
-    // to be reachable without a mouse.
+    // to be reachable without a mouse. Only the first cell of a run takes the
+    // stop: the others are the same item continuing, and tabbing through a
+    // four-slot item four times to reach the next one is worse than not
+    // reaching its tail at all.
     const targets = this.element.querySelectorAll(
-      'a:not([href]), .skill-info, .slot-cell[data-item-id], .slot-trinket'
+      'a:not([href]), .skill-info, .slot-cell.slot-first, .slot-trinket'
     );
     for (const el of targets) {
       if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
@@ -1091,11 +1260,74 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   }
 
   /**
+   * @override
+   * Sort a carried item against its neighbours.
+   *
+   * Core's version is almost right, but it collects siblings by reading
+   * `data-item-id` off every child of the drop target's parent — and the carry
+   * grid renders one cell *per slot*, so a multi-slot item answers to that id
+   * several times over. Handing core the same document three times makes it
+   * compare that item's sort against itself, find no gap, and fall through to
+   * reindexing everything, which emits several updates for one id: the last
+   * one silently wins and the item lands on the wrong side of the drop. Folding
+   * the repeats back into one entry is the whole of the fix.
+   *
+   * `sortBefore` is passed explicitly rather than left to core's inference so
+   * the drop indicator can be drawn from the same call (see `#sortsBefore`) —
+   * a marker promising one side over a handler that picks the other is worse
+   * than no marker at all.
+   */
+  _onSortItem(event, item) {
+    const source = this.actor.items.get(item.id);
+    const dropTarget = event.target?.closest?.('[data-item-id]');
+    if (!source || !dropTarget) return;
+
+    const target = this.actor.items.get(dropTarget.dataset.itemId);
+    if (!target || source.id === target.id) return;
+
+    const seen = new Set([source.id]);
+    const siblings = [];
+    for (const element of dropTarget.parentElement.children) {
+      const id = element.dataset.itemId;
+      if (!id || seen.has(id)) continue;
+      seen.add(id);
+      const sibling = this.actor.items.get(id);
+      if (sibling) siblings.push(sibling);
+    }
+
+    const sortUpdates = foundry.utils.performIntegerSort(source, {
+      target,
+      siblings,
+      sortBefore: this.#sortsBefore(source, target),
+    });
+    const updateData = sortUpdates.map((u) => ({ ...u.update, _id: u.target.id }));
+
+    return this.actor.updateEmbeddedDocuments('Item', updateData);
+  }
+
+  /**
+   * Which side of `target` a dropped `source` lands on. Mirrors the rule core
+   * infers when `sortBefore` is left out: dragging an item backwards through
+   * the list puts it before what it was dropped on, dragging it forwards puts
+   * it after. Named so the drop indicator and the sort itself read from one
+   * place and cannot drift apart.
+   * @param {Item} source
+   * @param {Item} target
+   * @returns {boolean}
+   * @private
+   */
+  #sortsBefore(source, target) {
+    return (source.sort || 0) > (target.sort || 0);
+  }
+
+  /**
    * @inheritDoc
-   * Mark the paper doll zone a dragged piece of armour belongs to while the
-   * drag is in flight. With equipping now drag-only, an empty zone has to say
-   * that it is a target before the player lets go — otherwise the only way to
-   * discover the interaction is to try it.
+   * Mark up the sheet for the duration of a drag: the piece being moved dims,
+   * the sheet root says a drag is in flight so drop targets can light up only
+   * while one is, and armour additionally marks the paper doll zone it belongs
+   * to. With equipping drag-only, an empty zone has to say that it is a target
+   * before the player lets go — otherwise the only way to discover the
+   * interaction is to try it.
    */
   async _onDragStart(event) {
     // Read before awaiting: `currentTarget` is only valid while the event is
@@ -1104,14 +1336,47 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     await super._onDragStart(event);
 
     const item = this.actor.items.get(dragged?.dataset?.itemId);
-    if (item?.type !== 'armor') return;
+    if (!item) return;
 
-    const row = this.element.querySelector(`.armor-row[data-zone="${item.system.zone}"]`);
-    if (!row) return;
-    row.classList.add('armor-drop-target');
-    dragged.addEventListener('dragend', () => row.classList.remove('armor-drop-target'), {
-      once: true,
-    });
+    this.#dragging = item;
+    // Every cell of a multi-slot item is the same item, so the whole run dims
+    // rather than just the cell that happened to be grabbed.
+    for (const el of this.element.querySelectorAll(`[data-item-id="${item.id}"]`)) {
+      el.classList.add('slot-dragging');
+    }
+    this.element.classList.add('dragging-item');
+
+    const row =
+      item.type === 'armor'
+        ? this.element.querySelector(`.armor-row[data-zone="${item.system.zone}"]`)
+        : null;
+    row?.classList.add('armor-drop-target');
+
+    dragged.addEventListener(
+      'dragend',
+      () => {
+        this.#dragging = null;
+        row?.classList.remove('armor-drop-target');
+        this.element.classList.remove('dragging-item');
+        this.#clearDropMarkers();
+        for (const el of this.element.querySelectorAll('.slot-dragging')) {
+          el.classList.remove('slot-dragging');
+        }
+      },
+      { once: true }
+    );
+  }
+
+  /**
+   * Take every drop marker back off. Called on each `dragover` before the
+   * current target is marked, and once more when the drag ends — a `dragleave`
+   * alone cannot be trusted to fire for the element the pointer left.
+   * @private
+   */
+  #clearDropMarkers() {
+    for (const el of this.element.querySelectorAll('.drop-before, .drop-after, .drop-into')) {
+      el.classList.remove('drop-before', 'drop-after', 'drop-into');
+    }
   }
 
   /**
