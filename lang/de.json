@@ -304,6 +304,8 @@
       "MovementSprint": "3×Beweglichkeit",
       "MovementCrawl": "1",
       "CarrySlots": "2×Stärke+Beweglichkeit",
+      "NoSprint": "Kein Sprint — entweder ist die Hälfte der Trageslots belegt oder die Beweglichkeit ist beschädigt.",
+      "CrawlOnly": "Nur noch Kriechen — alle Trageslots sind belegt.",
       "SixthSense": "(Sinnesschärfe+Menschenkenntnis+Untersuchen)/3",
       "Insight": "Gib 1 Edge-Punkt aus, um diesen Wert zu deinem Wurfergebnis zu addieren. Wert: (Intelligenz+Wissen)/2, aufgerundet.",
       "TrialError": "Kostenlos nutzbar, für bis zu so viele Wiederholungen wie diesen Wert (nur ohne Zeitdruck). Wert: (Intelligenz+Willenskraft)/2, aufgerundet.",
@@ -422,11 +424,9 @@
       "FigureAlt": "Silhouette mit hervorgehobenen Rüstungszonen",
       "Values": "Rüstungswerte",
       "Empty": "leer",
-      "Equip": "Anlegen",
-      "EquipTitle": "Rüstung anlegen",
       "Unequip": "Ablegen",
-      "CreateForZone": "Keine mitgeführte Rüstung passt auf die Stelle {zone}. Jetzt eine anlegen?",
-      "NewForZone": "Neue Rüstung · {zone}",
+      "DropHint": "Rüstung aus den Trageslots hierher ziehen, um sie anzulegen.",
+      "WrongZone": "{item} ist Rüstung für die Stelle {zone}.",
       "Sv": "Stärkevorraussetzung (SV)",
       "SvHint": "Unter dieser Stärke erhält jeder Beweglichkeitswurf eine Malusstufe.",
       "SvPenalty": "Stärke {str} < SV {sv} · Malusstufe auf Beweglichkeit",
@@ -454,12 +454,16 @@
     "Inventory": {
       "CarrySlots": "Trageslots",
       "Slots": "Inventarslots",
+      "Quantity": "Menge",
       "SlotsHint": "0 Krimskrams · 1 klein · 2 mittel · 3 groß · 4 rucksackgroß",
       "SlotsCarriedArmorHint": "Zählt nur, solange die Rüstung mitgeführt und nicht getragen wird — mindestens 1.",
-      "NoSprint": "Kein Sprint",
-      "NoSprintHint": "Ab der Hälfte der Inventarslots kann der Charakter nicht mehr sprinten.",
-      "CrawlOnly": "Nur Kriechen",
-      "CrawlOnlyHint": "Sind alle Inventarslots belegt, kann der Charakter nur noch kriechen.",
+      "Add": "Gegenstand hinzufügen",
+      "AddHint": "Gegenstand, Rüstung oder Waffe hinzufügen",
+      "AddTitle": "Zum Inventar hinzufügen",
+      "AddType": "Art",
+      "AddName": "Name",
+      "CellHint": "Klicken zum Öffnen · ziehen zum Sortieren oder auf das Paperdoll zum Anlegen",
+      "EmptyCellHint": "Freier Slot — hierher ziehen, um den Gegenstand ans Ende zu stellen.",
       "NoContainer": "Keine Tasche",
       "NoContainerHint": "Ohne Tasche oder Rucksack gibt es keine Slotrechnung — die Hände sind belegt.",
       "Trinkets": "Ohne Slot",
@@ -486,9 +490,11 @@
       "Dice": "Würfel",
       "Damage": "Schaden",
       "Range": "Reichweite",
+      "Values": "Waffenwerte",
+      "FieldsHint": "Vorerst Freitext: die Waffenregeln sind noch nicht geschrieben, hier wird also nichts gewürfelt oder gerechnet.",
       "Pending": "noch nicht umgesetzt",
-      "PendingHint": "Es gibt noch keinen Item-Typ „Waffe“, und wie eine Waffe bereitgemacht wird, ist als Regelfrage offen. Der Block hält seinen Platz im Layout frei.",
-      "EmptyHint": "Waffen sind noch nicht abgebildet — mitgeführte Ausrüstung steht oben in den Trageslots und im Inventar-Tab."
+      "PendingHint": "Den Item-Typ „Waffe“ gibt es, aber wie eine Waffe bereitgemacht wird, ist als Regelfrage offen — deshalb steht hier noch nichts. Der Block hält seinen Platz im Layout frei.",
+      "EmptyHint": "Eine Waffe ist vorerst mitgeführte Ausrüstung wie jede andere: sie steht oben in den Trageslots und im Inventar-Tab."
     }
   },
 
@@ -501,7 +507,8 @@
       "item": "Gegenstand",
       "feature": "Merkmal",
       "spell": "Zauber",
-      "armor": "Rüstung"
+      "armor": "Rüstung",
+      "weapon": "Waffe"
     }
   }
 }

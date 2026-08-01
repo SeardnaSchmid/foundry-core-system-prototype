@@ -373,6 +373,14 @@
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
+.tno .chip-movement .chip-move.move-blocked {
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: rgba(122, 32, 40, 0.16);
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  text-decoration-color: rgba(122, 32, 40, 0.75);
+}
 .tno .chip-movement .chip-sep {
   font-size: var(--font-size-12, 12px);
   color: #b5b3a4;
@@ -1859,10 +1867,12 @@
   border-color: #b5b3a4;
   background: none;
   color: #444;
-  cursor: pointer;
 }
-.tno .armor-row.armor-empty:hover {
+.tno .armor-row.armor-drop-target {
+  border-style: dashed;
   border-color: #b8860b;
+  background: rgba(184, 134, 11, 0.1);
+  color: #191813;
 }
 .tno .armor-row.armor-suit {
   margin-bottom: 4px;
@@ -1956,13 +1966,27 @@
   border-radius: 999px;
   font-size: var(--font-size-12, 12px);
   color: #fff;
-  background: #b8860b;
-}
-.tno .slot-badge.badge-crawl-only {
-  background: #7a2028;
-}
-.tno .slot-badge.badge-no-container {
   background: #444;
+}
+.tno .slot-grid-header .inventory-add {
+  margin-left: auto;
+  align-self: center;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid #b5b3a4;
+  border-radius: 6px;
+  color: #444;
+  cursor: pointer;
+}
+.tno .slot-grid-header .inventory-add:hover {
+  border-color: #b8860b;
+  color: #b8860b;
+}
+.tno .slot-grid-header .slot-badge + .inventory-add {
+  margin-left: 0;
 }
 .tno .slot-grid {
   display: grid;
@@ -1993,7 +2017,6 @@
   border-color: #7a2028;
   background: #7a2028;
   color: #fff;
-  cursor: default;
 }
 .tno .slot-empty {
   border: 1px dashed #b5b3a4;
@@ -2053,6 +2076,7 @@
   gap: 4px;
   font-size: var(--font-size-12, 12px);
   color: #444;
+  cursor: grab;
 }
 .tno .slot-trinket + .slot-trinket::before {
   content: "·";

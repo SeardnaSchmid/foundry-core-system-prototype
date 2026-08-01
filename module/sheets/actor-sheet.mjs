@@ -422,6 +422,19 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     context.edgePips = Array.from({ length: edgeMax }, (_, i) => ({
       filled: i < edgeNow,
     }));
+
+    // Which movement tiers the character has lost, for the banner's movement
+    // chip. The load's consequence is shown on the number it takes away rather
+    // than as a badge over the carry grid: what a player wants to know is
+    // "how far can I move", and a struck-through figure answers that where the
+    // figure already is. Sprinting has two independent blockers — a damaged
+    // Beweglichkeit or a load at half the budget — and `canSprint` already
+    // folds both together.
+    const derived = this.actor.system.derived ?? {};
+    context.movement = {
+      sprintBlocked: derived.canSprint === false,
+      walkBlocked: derived.carryState === 'crawlOnly',
+    };
   }
 
   /**
@@ -447,6 +460,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     };
 
     const armory = [];
+    const weapons = [];
 
     // Which items are on the body. Worn gear is exempt from the slot economy
     // and its state belongs to the paper doll, so those rows show a static
@@ -473,6 +487,12 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       else if (i.type === 'armor') {
         armory.push(i);
       }
+      // Weapons are gear the slot economy already accounts for; the Waffen
+      // block that will list them by readiness is not designed yet, so for now
+      // this bucket only feeds the flat list and the carry grid.
+      else if (i.type === 'weapon') {
+        weapons.push(i);
+      }
       // Append to spells.
       else if (i.type === 'spell') {
         if (i.system.spellLevel != undefined) {
@@ -486,12 +506,14 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     context.features = features;
     context.spells = spells;
     context.armory = armory;
+    context.weapons = weapons;
 
     // The flat administrative list covers everything the inventory rules touch,
-    // armour included: a piece that is neither worn nor carried appears in no
-    // other view, so leaving it out of the list would strand it entirely. Both
-    // buckets are already in `sort` order, so a single merge keeps them so.
-    context.inventory = [...gear, ...armory].sort((a, b) => (a.sort || 0) - (b.sort || 0));
+    // armour and weapons included: a piece that is neither worn nor carried
+    // appears in no other view, so leaving it out of the list would strand it
+    // entirely. The buckets are already in `sort` order, so a single merge
+    // keeps them so.
+    context.inventory = [...gear, ...armory, ...weapons].sort((a, b) => (a.sort || 0) - (b.sort || 0));
 
     if (context.actor.type === 'character') this._prepareEquipment(context);
   }
@@ -837,16 +859,30 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       item.update({ 'system.carried': item.system.carried === false });
     }, editable);
 
-    // Equipment: click an empty paper doll zone to pick armour for it, click
-    // the x on a filled one to take it off. Drag-and-drop onto the doll is
-    // supported too (see _onDrop), but a click path has to exist as well —
-    // dragging is unreliable in Firefox and impossible on touch.
+    // Author a new item from the carry grid (or the Inventar tab's list). One
+    // dialog for all three physical types rather than a create control per
+    // type: the type is a choice inside the act of adding something, not three
+    // separate acts.
+    this.#delegate('click', '.inventory-add', (event, target) => {
+      event.preventDefault();
+      this._promptCreateItem();
+    }, editable);
+
+    // Open an item from the carry grid or the zero-slot band. Everything in
+    // those two views is a real item, so a click has to reach its sheet —
+    // otherwise gear that is neither worn nor in the flat list is only
+    // draggable, never editable.
+    this.#delegate('click', '.slot-cell[data-item-id], .slot-trinket', (event, target) => {
+      event.preventDefault();
+      this.actor.items.get(target.dataset.itemId)?.sheet.render(true);
+    });
+
+    // Equipment: the x on a filled paper doll zone takes the piece off, which
+    // hands it back to the carry budget. Putting a piece *on* is drag-only
+    // (see _onDrop) — a zone is a drop target, never a create button.
     this.#delegate('click', '.armor-unequip', (event, target) => {
       event.preventDefault();
       this._setEquippedArmor(target.dataset.zone, null);
-    }, editable);
-    this.#delegate('click', '.armor-row.armor-empty', (event, target) => {
-      this._promptEquipArmor(target.dataset.zone);
     }, editable);
 
     // Active Effect management
@@ -893,7 +929,12 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    * @private
    */
   _makeKeyboardAccessible() {
-    const targets = this.element.querySelectorAll('a:not([href]), .skill-info');
+    // The carry grid's cells are divs, and with equipping gone drag-only they
+    // are the only way left to reach a carried item's own sheet — so they have
+    // to be reachable without a mouse.
+    const targets = this.element.querySelectorAll(
+      'a:not([href]), .skill-info, .slot-cell[data-item-id], .slot-trinket'
+    );
     for (const el of targets) {
       if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
       if (!el.hasAttribute('role')) el.setAttribute('role', 'button');
@@ -922,86 +963,109 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   }
 
   /**
-   * Ask which piece of armour to put in a zone. Only armour the actor already
-   * carries is offered — equipping is a state change on gear in hand, not a
-   * way to conjure it — and only pieces authored for this zone, since the
-   * Rüstungen table binds each piece to a Stelle.
+   * Ask what to add to the inventory: which of the three physical item types,
+   * and under what name. Both answers are things only the player knows, and
+   * neither is worth a second dialog — everything else about the item (slots,
+   * armour values, weapon figures) is authored on the item sheet, which opens
+   * straight afterwards.
    *
-   * With nothing to offer, the click becomes an explicit offer to author a
-   * piece for this zone instead of a dead end: an empty doll would otherwise
-   * send the player off to the items list to create armour and set its zone by
-   * hand before the doll could do anything at all.
-   *
-   * @param {string} zone  A key of CONFIG.TNO.armorZones.
+   * Feature and spell are deliberately absent: they are not objects, cost no
+   * slots, and are created from their own lists.
    * @private
    */
-  async _promptEquipArmor(zone) {
-    const worn = wornItemIds(this.actor.system.equipment);
-    const zoneLabel = game.i18n.localize(CONFIG.TNO.armorZones[zone]);
-    const candidates = this.actor.items.filter(
-      (item) => item.type === 'armor' && item.system.zone === zone && !worn.has(item.id)
-    );
-
-    if (!candidates.length) {
-      const confirmed = await foundry.applications.api.DialogV2.confirm({
-        window: { title: game.i18n.localize('TNO.Armor.EquipTitle') },
-        content: `<p>${game.i18n.format('TNO.Armor.CreateForZone', { zone: zoneLabel })}</p>`,
-        rejectClose: false,
-      });
-      if (!confirmed) return;
-
-      // Authored for this zone from the start, so it lands in the slot the
-      // player clicked rather than the schema's default one.
-      const [created] = await this.actor.createEmbeddedDocuments('Item', [
-        {
-          name: game.i18n.format('TNO.Armor.NewForZone', { zone: zoneLabel }),
-          type: 'armor',
-          system: { zone },
-        },
-      ]);
-      await this._setEquippedArmor(zone, created.id);
-      // Straight into the values — a piece with RH/RW/RA all 0 is the one
-      // thing the player certainly still has to fill in.
-      return created.sheet.render(true);
-    }
-
-    // A single candidate has no decision to make, so skip the dialog.
-    if (candidates.length === 1) return this._setEquippedArmor(zone, candidates[0].id);
-
-    const options = candidates
-      .map((item) => `<option value="${item.id}">${foundry.utils.escapeHTML(item.name)}</option>`)
+  async _promptCreateItem() {
+    const types = ['item', 'armor', 'weapon'];
+    const options = types
+      .map((type) => `<option value="${type}">${game.i18n.localize(`TYPES.Item.${type}`)}</option>`)
       .join('');
 
-    const itemId = await foundry.applications.api.DialogV2.prompt({
-      window: { title: game.i18n.localize('TNO.Armor.EquipTitle') },
-      content: `<div class="form-group"><label>${zoneLabel}</label><select name="itemId">${options}</select></div>`,
+    const result = await foundry.applications.api.DialogV2.prompt({
+      window: { title: game.i18n.localize('TNO.Inventory.AddTitle') },
+      content: `
+        <div class="form-group">
+          <label>${game.i18n.localize('TNO.Inventory.AddType')}</label>
+          <select name="type">${options}</select>
+        </div>
+        <div class="form-group">
+          <label>${game.i18n.localize('TNO.Inventory.AddName')}</label>
+          <input type="text" name="name" autofocus/>
+        </div>`,
       ok: {
-        label: game.i18n.localize('TNO.Armor.Equip'),
-        callback: (event, button) => button.form.elements.itemId.value,
+        label: game.i18n.localize('TNO.Inventory.Add'),
+        callback: (event, button) => ({
+          type: button.form.elements.type.value,
+          name: button.form.elements.name.value.trim(),
+        }),
       },
       rejectClose: false,
     });
+    if (!result) return;
 
-    if (itemId) return this._setEquippedArmor(zone, itemId);
+    const created = await Item.create(
+      {
+        // An empty field is a player who means "just add one" — the type's own
+        // name is a better placeholder than an empty item nobody can find.
+        name: result.name || game.i18n.localize(`TYPES.Item.${result.type}`),
+        type: result.type,
+      },
+      { parent: this.actor }
+    );
+
+    // Straight into the item's own values: a fresh piece of armour or a weapon
+    // is all zeroes and blanks, which is exactly what still has to be filled in.
+    return created?.sheet.render(true);
   }
 
   /**
    * @override
-   * Intercept drops onto a paper doll zone so armour can be equipped by
-   * dragging. Anything else — and any drop that is not armour authored for
-   * the zone it landed on — falls through to core's handling, which is what
-   * still creates the item when it comes from a compendium or another actor.
+   * Route drops that land on one of the sheet's own equipment surfaces:
+   *
+   *  - **A paper doll zone** equips armour authored for that Stelle. This is
+   *    the only way to put a piece on — a zone is a drop target, never a
+   *    create button — so a piece the actor does not own yet is created first,
+   *    which is what makes dragging from a compendium work.
+   *  - **A free carry cell** moves an item to the end of the list, so gear can
+   *    be dragged into the gap at the end of the grid and not just onto
+   *    another block.
+   *
+   * Everything else falls through to core, whose `_onDropItem` sorts an item
+   * the actor already owns against whichever `[data-item-id]` element it landed
+   * on — which is what makes the grid, the zero-slot band and the flat list
+   * re-orderable without a sort handler of our own.
    */
   async _onDrop(event) {
-    const zoneEl = event.target?.closest?.('[data-zone]');
-    if (!zoneEl) return super._onDrop(event);
-
-    const data = TextEditor.getDragEventData(event);
+    const data = foundry.applications.ux.TextEditor.implementation.getDragEventData(event);
     if (data?.type !== 'Item') return super._onDrop(event);
 
+    // Both the zone rows and the silhouette's shapes carry `data-zone`, so
+    // either half of the doll takes the drop.
+    const zoneEl = event.target?.closest?.('[data-zone]');
+    const emptyCell = event.target?.closest?.('.slot-empty');
+    if (!zoneEl && !emptyCell) return super._onDrop(event);
+
     const item = await Item.implementation.fromDropData(data);
+    if (!item) return;
+
+    if (emptyCell) {
+      // Only meaningful for gear the actor already has; anything from outside
+      // is core's business to import first.
+      if (item.parent !== this.actor) return super._onDrop(event);
+      return this._sortItemToEnd(item);
+    }
+
     const zone = zoneEl.dataset.zone;
-    if (item?.type !== 'armor' || item.system.zone !== zone) return super._onDrop(event);
+    if (item.type !== 'armor') return;
+    // The Rüstungen table binds each piece to a Stelle, so a zone only takes
+    // what was authored for it. Silently ignoring the drop would read as the
+    // doll being broken, so say which zone the piece belongs to instead.
+    if (item.system.zone !== zone) {
+      return ui.notifications.warn(
+        game.i18n.format('TNO.Armor.WrongZone', {
+          item: item.name,
+          zone: game.i18n.localize(CONFIG.TNO.armorZones[item.system.zone] ?? item.system.zone),
+        })
+      );
+    }
 
     // Dropping armour the actor does not own yet has to create it first;
     // `parent` being this actor is what distinguishes the two cases.
@@ -1011,6 +1075,43 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         : (await this.actor.createEmbeddedDocuments('Item', [item.toObject()]))[0];
 
     return this._setEquippedArmor(zone, owned.id);
+  }
+
+  /**
+   * Move an item past everything else the actor owns. Dropping into the free
+   * tail of the grid has no neighbour to sort against, and "after the last
+   * one" is the only reading that leaves the rest of the arrangement alone.
+   * @param {Item} item
+   * @private
+   */
+  async _sortItemToEnd(item) {
+    const last = Math.max(0, ...this.actor.items.map((i) => i.sort ?? 0));
+    if (item.sort === last) return;
+    return item.update({ sort: last + CONST.SORT_INTEGER_DENSITY });
+  }
+
+  /**
+   * @inheritDoc
+   * Mark the paper doll zone a dragged piece of armour belongs to while the
+   * drag is in flight. With equipping now drag-only, an empty zone has to say
+   * that it is a target before the player lets go — otherwise the only way to
+   * discover the interaction is to try it.
+   */
+  async _onDragStart(event) {
+    // Read before awaiting: `currentTarget` is only valid while the event is
+    // being dispatched, and the await hands control back after that.
+    const dragged = event.currentTarget;
+    await super._onDragStart(event);
+
+    const item = this.actor.items.get(dragged?.dataset?.itemId);
+    if (item?.type !== 'armor') return;
+
+    const row = this.element.querySelector(`.armor-row[data-zone="${item.system.zone}"]`);
+    if (!row) return;
+    row.classList.add('armor-drop-target');
+    dragged.addEventListener('dragend', () => row.classList.remove('armor-drop-target'), {
+      once: true,
+    });
   }
 
   /**

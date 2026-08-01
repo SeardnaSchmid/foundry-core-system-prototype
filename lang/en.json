@@ -304,6 +304,8 @@
       "MovementSprint": "3×Agility",
       "MovementCrawl": "1",
       "CarrySlots": "2×Strength+Agility",
+      "NoSprint": "No sprinting — either half the carry slots are in use, or Agility is damaged.",
+      "CrawlOnly": "Crawling only — every carry slot is in use.",
       "SixthSense": "(Perception+Empathy+Investigation)/3",
       "Insight": "Spend 1 edge point to add this value to your roll result. Value: (Intelligence+Knowledge)/2, rounded up.",
       "TrialError": "Free to use, for up to this many rerolls (only without time pressure). Value: (Intelligence+Willpower)/2, rounded up.",
@@ -422,11 +424,9 @@
       "FigureAlt": "Silhouette with the armoured zones highlighted",
       "Values": "Armour Values",
       "Empty": "empty",
-      "Equip": "Wear",
-      "EquipTitle": "Wear armour",
       "Unequip": "Take off",
-      "CreateForZone": "No carried armour fits the {zone} location. Create one now?",
-      "NewForZone": "New Armour · {zone}",
+      "DropHint": "Drag a piece of armour here from the carry slots to wear it.",
+      "WrongZone": "{item} is armour for the {zone} location.",
       "Sv": "Strength Req. (SV)",
       "SvHint": "Below this Strength, every Agility roll takes one penalty step.",
       "SvPenalty": "Strength {str} < SV {sv} · one penalty step on Agility",
@@ -454,12 +454,16 @@
     "Inventory": {
       "CarrySlots": "Carry Slots",
       "Slots": "Slots",
+      "Quantity": "Quantity",
       "SlotsHint": "0 trinkets · 1 small · 2 medium · 3 large · 4 backpack-sized",
       "SlotsCarriedArmorHint": "Only counts while the armour is carried rather than worn — one at the least.",
-      "NoSprint": "No Sprint",
-      "NoSprintHint": "At half the slots or more the character can no longer sprint.",
-      "CrawlOnly": "Crawl Only",
-      "CrawlOnlyHint": "With every slot filled the character can only crawl.",
+      "Add": "Add item",
+      "AddHint": "Add an item, a piece of armour or a weapon",
+      "AddTitle": "Add to inventory",
+      "AddType": "Type",
+      "AddName": "Name",
+      "CellHint": "Click to open · drag to sort, or onto the paper doll to wear",
+      "EmptyCellHint": "Free slot — drop an item here to move it to the end.",
       "NoContainer": "No Bag",
       "NoContainerHint": "Without a bag or backpack there is no slot budget — the character's hands are full.",
       "Trinkets": "No slots",
@@ -486,9 +490,11 @@
       "Dice": "Dice",
       "Damage": "Damage",
       "Range": "Range",
+      "Values": "Weapon Values",
+      "FieldsHint": "Free text for now: the weapon rules are not written yet, so nothing here is rolled or calculated.",
       "Pending": "not yet implemented",
-      "PendingHint": "There is no weapon item type yet, and how a weapon is readied is still an open rules question. The block reserves its place in the layout.",
-      "EmptyHint": "Weapons are not modelled yet — carried gear lives in the carry slots above and on the Inventory tab."
+      "PendingHint": "Weapons exist as an item type, but how one is readied is still an open rules question — so nothing is listed here yet. The block reserves its place in the layout.",
+      "EmptyHint": "A weapon is carried gear like any other for now: it lives in the carry slots above and on the Inventory tab."
     }
   },
 
@@ -501,7 +507,8 @@
       "item": "Item",
       "feature": "Feature",
       "spell": "Spell",
-      "armor": "Armour"
+      "armor": "Armour",
+      "weapon": "Weapon"
     }
   }
 }

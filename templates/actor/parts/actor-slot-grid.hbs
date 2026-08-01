@@ -18,33 +18,34 @@ the same grid, marked over capacity. --}}
       <strong class='{{#if slotGrid.over}}over-capacity{{/if}}'>{{slotGrid.used}}</strong>/{{slotGrid.capacity}}
     </span>
 
-    {{!-- One badge per movement consequence. "Keine Tasche" is its own state
-    rather than a load level: without a container there is no slot economy at
-    all, the character just has their hands full. --}}
+    {{!-- What the load costs in movement is shown on the movement chip in the
+    banner, struck through the tier it takes away — the question it answers is
+    "how far can I move", so it belongs on the numbers, not over the bag.
+    "Keine Tasche" stays here: it is not a load level but the reason this whole
+    budget reads 0, and nowhere else says so. --}}
     {{#ifEquals slotGrid.state 'noContainer'}}
       <span class='slot-badge badge-no-container' title='{{localize "TNO.Inventory.NoContainerHint"}}'>
         {{localize 'TNO.Inventory.NoContainer'}}
       </span>
     {{/ifEquals}}
-    {{#ifEquals slotGrid.state 'noSprint'}}
-      <span class='slot-badge badge-no-sprint' title='{{localize "TNO.Inventory.NoSprintHint"}}'>
-        {{localize 'TNO.Inventory.NoSprint'}}
-      </span>
-    {{/ifEquals}}
-    {{#ifEquals slotGrid.state 'crawlOnly'}}
-      <span class='slot-badge badge-crawl-only' title='{{localize "TNO.Inventory.CrawlOnlyHint"}}'>
-        {{localize 'TNO.Inventory.CrawlOnly'}}
-      </span>
-    {{/ifEquals}}
+
+    {{#if @root.editable}}
+      <a class='inventory-add' title='{{localize "TNO.Inventory.AddHint"}}'>
+        <i class='fas fa-plus'></i>
+      </a>
+    {{/if}}
   </div>
 
+  {{!-- `draggable` is the class core's DragDrop binds, which is what puts the
+  item on the drag payload: without it a cell drags as an empty ghost. Dragging
+  a cell onto another sorts the list (core's _onSortItem), onto a free cell
+  moves it to the end, and armour dragged onto its paper doll zone is worn. --}}
   <div class='slot-grid'>
     {{#each slotGrid.blocks as |block|}}
-      <div class='slot-cell slot-filled {{#if block.over}}over-capacity{{/if}}'
+      <div class='slot-cell slot-filled draggable {{#if block.over}}over-capacity{{/if}}'
            style='--slot-span: {{block.span}}'
            data-item-id='{{block.item._id}}'
-           draggable='true'
-           title='{{block.item.name}} · {{block.span}}'>
+           title='{{block.item.name}} · {{block.span}} — {{localize "TNO.Inventory.CellHint"}}'>
         <i class='fas fa-grip-vertical slot-grip'></i>
         <img class='slot-icon' src='{{block.item.img}}' width='20' height='20' alt=''/>
         <span class='slot-name'>{{block.item.name}}</span>
@@ -53,7 +54,7 @@ the same grid, marked over capacity. --}}
     {{/each}}
 
     {{#each slotGrid.emptyCells}}
-      <div class='slot-cell slot-empty'></div>
+      <div class='slot-cell slot-empty' title='{{localize "TNO.Inventory.EmptyCellHint"}}'></div>
     {{/each}}
 
     {{!-- Past the budget. The grid simply keeps running: cells up to capacity
@@ -62,7 +63,7 @@ the same grid, marked over capacity. --}}
     A block lands here as soon as it does not fit whole — half an item cannot
     sit in a slot the character does not have. --}}
     {{#each slotGrid.overflow as |block|}}
-      <div class='slot-cell slot-filled over-capacity'
+      <div class='slot-cell slot-filled draggable over-capacity'
            style='--slot-span: {{block.span}}'
            data-item-id='{{block.item._id}}'
            title='{{block.item.name}} · {{block.span}} · {{localize "TNO.Inventory.OverflowHint"}}'>
@@ -88,8 +89,11 @@ the same grid, marked over capacity. --}}
   {{#if slotGrid.trinkets.length}}
     <div class='slot-trinkets' title='{{localize "TNO.Inventory.TrinketsHint"}}'>
       <span class='slot-trinkets-label'>{{localize 'TNO.Inventory.Trinkets'}}</span>
+      {{!-- Same interactions as a cell: these are items too, they just cost
+      nothing to carry. --}}
       {{#each slotGrid.trinkets as |trinket|}}
-        <span class='slot-trinket' data-item-id='{{trinket.item._id}}'>
+        <span class='slot-trinket draggable' data-item-id='{{trinket.item._id}}'
+              title='{{trinket.item.name}} — {{localize "TNO.Inventory.CellHint"}}'>
           <img src='{{trinket.item.img}}' width='14' height='14' alt=''/>
           <span class='slot-trinket-name'>{{trinket.item.name}}</span>
           {{#if trinket.showQty}}<span class='slot-qty'>×{{trinket.quantity}}</span>{{/if}}

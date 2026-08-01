@@ -16,7 +16,7 @@ related: [reference/module-map]
 | `actor/actor-character-sheet.hbs` | `TnoActorSheet` (type `character`) |
 | `actor/actor-npc-sheet.hbs` | `TnoActorSheet` (type `npc`) |
 | `actor/parts/actor-items.hbs`, `actor-features.hbs`, `actor-spells.hbs`, `actor-effects.hbs` | Included by the actor sheet templates above |
-| `actor/parts/actor-paperdoll.hbs`, `actor-slot-grid.hbs` | The two equipment views — see [inventory.md](../concepts/inventory.md). Included twice: full-width from `actor-items.hbs`, and again from the character sheet's sidebar with `compact=true` |
+| `actor/parts/actor-paperdoll.hbs`, `actor-slot-grid.hbs`, `actor-weapons.hbs` | The equipment column in the character sheet's Basics tab — see [inventory.md](../concepts/inventory.md). `actor-weapons.hbs` is a reserved layout holding its place: there is no readiness model to list weapons by yet |
 | `apps/roll-dialog.hbs` | `TnoRollDialog` |
 | `apps/base-roll-dialog.hbs` | `TnoBaseRollDialog` |
 | `apps/parts/advantage-picker.hbs` | Included by both roll dialogs, via `roll-dialog-shared.mjs` |
@@ -26,7 +26,7 @@ related: [reference/module-map]
 | `apps/custom-skills-overview.hbs` | `TnoCustomSkillsOverview` |
 | `chat/roll-card.hbs` | `rollTno()` / `rollTnoBase()` in `dice.mjs` — see [dice-resolution.md](../concepts/dice-resolution.md) |
 | `chat/edge-panel.hbs`, `chat/parts/trial-error-tracker.hbs` | `chat.mjs`'s `renderEdgeSection()` — see [edge-pool.md](../concepts/edge-pool.md) |
-| `item/item-sheet.hbs`, `item-item-sheet.hbs`, `item-feature-sheet.hbs`, `item-spell-sheet.hbs`, `item-armor-sheet.hbs` | `TnoItemSheet`, resolved per item type |
+| `item/item-sheet.hbs`, `item-item-sheet.hbs`, `item-feature-sheet.hbs`, `item-spell-sheet.hbs`, `item-armor-sheet.hbs`, `item-weapon-sheet.hbs` | `TnoItemSheet`, resolved per item type |
 | `item/parts/item-effects.hbs` | Included by all item sheet templates |
 
 All of the above are preloaded by

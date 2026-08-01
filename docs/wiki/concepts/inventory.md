@@ -51,6 +51,7 @@ without a game world (`tests/helpers/inventory.test.js`).
 | Export | Responsibility |
 | --- | --- |
 | `ARMOR_ADDON_ZONES` | The four hit locations (`head`, `torso`, `arms`, `legs`). `suit` is deliberately absent — it is not a hit location, it applies in all four at once |
+| `CARRIED_ITEM_TYPES` | The types the slot economy applies to: `item`, `armor`, `weapon`. `feature` and `spell` are not objects and never appear in the grid or the sum |
 | `CARRY_THRESHOLDS` | The fractions of capacity at which movement degrades |
 | `wornItemIds(equipment)` | The id set currently on the body, used to exclude worn gear from the carry sum |
 | `isStowed(item)` | Whether an item is off the character entirely — `system.carried === false` |
@@ -92,10 +93,24 @@ Two consequences are worth knowing before changing anything here:
 - **`used` is never clamped to `capacity`.** Going over is legal and simply
   degrades movement, so the UI shows 12/10 rather than refusing the item.
 
+**A weapon is gear like any other here.** The Richtwert table prices weapons by
+size alongside everything else, so a carried weapon costs its slots. Whether one
+is *readied* is a separate question the rules have not answered yet, and it is
+deliberately not modelled by exempting weapons from the budget — see the Waffen
+block in [ui-surfaces.md](../reference/ui-surfaces.md), which reserves its place
+in the layout and lists nothing.
+
 Load states come from `CARRY_THRESHOLDS`: at half capacity or more,
 `noSprint`; once the budget is full, `crawlOnly`. `derived.canSprint`
 therefore has two independent blockers — a damaged Beweglichkeit *or* a
 load at/over half.
+
+**Where the load state is shown is the banner, not the bag.** The movement chip
+strikes through the tier the load takes away (sprint for `noSprint`, walk as
+well for `crawlOnly`), because the question a player is asking is "how far can I
+move" and the answer belongs on the figure that changes. The carry grid's header
+keeps only `noContainer`, which is not a movement state but the reason the whole
+budget reads 0.
 
 > **Open rules question:** the half-capacity rule is the one bit still in
 > question — Ojster said he removed the "halbieren" clause as confusing,
@@ -124,6 +139,9 @@ make derived data circular. Callers that need the item look it up from
 `equipment` themselves — which is exactly what `_prepareEquipment()` in the
 actor sheet does.
 
+Armour is put on by dragging it onto its zone and taken off with the row's `x` —
+see [Moving things between the two views](#moving-things-between-the-two-views).
+
 ## The two views
 
 Both are **derived on every render, never stored** — see
@@ -134,6 +152,42 @@ for the UX spec.
 The slot grid packs blocks in the items' existing `sort` order, so
 reordering is purely a view concern and a player's arrangement never needs
 persisting.
+
+### Moving things between the two views
+
+Both views are drag surfaces, and between them **drag is the only way gear
+changes state**:
+
+- **Cell onto cell** re-sorts the list. Core's `ActorSheetV2#_onSortItem` does
+  the whole job — it sorts a dropped item against whichever `[data-item-id]`
+  element it landed on — so the grid, the zero-slot band and the flat list are
+  all re-orderable without a sort handler of this system's own. What the cells
+  need from us is the `draggable` **class**: that is the selector core's
+  `DragDrop` binds, and without it a cell drags as an empty ghost.
+- **Cell onto a free cell** sorts the item past everything else
+  (`_sortItemToEnd`) — dropping into the tail of the grid has no neighbour to
+  sort against, and "after the last one" is the only reading that leaves the
+  rest of the arrangement alone.
+- **Cell onto a paper doll zone** wears the piece. A zone only takes armour
+  authored for that Stelle; a mismatch says which zone the piece belongs to
+  rather than failing silently. While a piece is in flight its zone lights up
+  (`armor-drop-target`, set in `_onDragStart`), so the target is visible before
+  the player lets go.
+
+**An empty zone is a drop target and nothing else.** Clicking one used to offer
+to author a piece on the spot, which conjured armour out of an empty doll —
+wearing something is a state change on gear already in hand. Taking a piece off
+is still a click (the `x`), since there is nothing to drag it from.
+
+Clicking a cell or a trinket opens that item's own sheet. With the doll gone
+drag-only, that is the only path left to a carried item's data from this view,
+so the cells are promoted into the keyboard tab order along with the sheet's
+other custom chips (`_makeKeyboardAccessible`).
+
+New gear is authored through one dialog (`_promptCreateItem`, opened by the
+`+` in the grid header and by the Inventar tab's single create control): the
+type is a field inside the act of adding something, not a control per type —
+which is what the old two-control header could not survive a third type of.
 
 **The grid holds exactly as many cells as the character has slots.** There is
 no padding out to the raster width — a capacity of 6 in a five-wide grid simply

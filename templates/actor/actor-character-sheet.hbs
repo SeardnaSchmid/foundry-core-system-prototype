@@ -13,14 +13,17 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
     <div class="banner-chips">
 
       {{!-- Bewegungsreichweiten sind reine Anzeigewerte, kein Wurf — drei
-      Zahlen mit je eigenem Tooltip, in aufsteigender Reichweite. --}}
+      Zahlen mit je eigenem Tooltip, in aufsteigender Reichweite. Eine Stufe,
+      die Last oder Beweglichkeitsschaden gekostet haben, wird hier
+      durchgestrichen statt über dem Trageslot-Block als Badge geführt: die
+      Frage ist "wie weit komme ich", und die Antwort steht an der Zahl. --}}
       <div class="banner-chip chip-movement" title="{{localize 'TNO.MovementChipHint'}}">
         <i class="fa-solid fa-shoe-prints chip-icon"></i>
         <span class="chip-move" title="{{localize 'TNO.Derived.MovementCrawl'}} — {{localize 'TNO.DerivedHint.MovementCrawl'}}">{{system.derived.movementCrawl}}</span>
         <span class="chip-sep">|</span>
-        <span class="chip-move" title="{{localize 'TNO.Derived.MovementWalk'}} — {{localize 'TNO.DerivedHint.MovementWalk'}}">{{system.derived.movementWalk}}</span>
+        <span class="chip-move{{#if movement.walkBlocked}} move-blocked{{/if}}" title="{{localize 'TNO.Derived.MovementWalk'}} — {{#if movement.walkBlocked}}{{localize 'TNO.DerivedHint.CrawlOnly'}}{{else}}{{localize 'TNO.DerivedHint.MovementWalk'}}{{/if}}">{{system.derived.movementWalk}}</span>
         <span class="chip-sep">|</span>
-        <span class="chip-move" title="{{localize 'TNO.Derived.MovementSprint'}} — {{localize 'TNO.DerivedHint.MovementSprint'}}">{{system.derived.movementSprint}}</span>
+        <span class="chip-move{{#if movement.sprintBlocked}} move-blocked{{/if}}" title="{{localize 'TNO.Derived.MovementSprint'}} — {{#if movement.sprintBlocked}}{{localize 'TNO.DerivedHint.NoSprint'}}{{else}}{{localize 'TNO.DerivedHint.MovementSprint'}}{{/if}}">{{system.derived.movementSprint}}</span>
       </div>
 
       {{!-- Sechster Sinn wird mit dem regulären 3d20-Wurf gegen den Wert selbst gewürfelt, ohne Mods/Advantage. --}}

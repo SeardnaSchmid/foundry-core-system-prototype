@@ -87,6 +87,20 @@ export function isStowed(item) {
 }
 
 /**
+ * The item types the slot economy applies to: physical things a character can
+ * pick up. `feature` and `spell` are not objects at all, so they never appear
+ * in the grid or the sum.
+ *
+ * A weapon is gear like any other here — the Inventarregeln's Richtwert table
+ * prices weapons by size along with everything else ("einhändige Waffen",
+ * "zweihändige Waffen", "schwere Waffen"). Whether a weapon is *readied* is a
+ * separate, still-undesigned question, and deliberately not modelled by
+ * exempting it from the budget.
+ * @type {Array<string>}
+ */
+export const CARRIED_ITEM_TYPES = ['item', 'armor', 'weapon'];
+
+/**
  * The gear that actually presses on the slot budget: everything the character
  * owns, minus what they are wearing (exempt by rule) and minus what is stowed
  * away (not on them at all).
@@ -98,7 +112,7 @@ function carriedGear(items, equipment) {
   const worn = wornItemIds(equipment);
   return (items ?? []).filter(
     (item) =>
-      (item.type === 'item' || item.type === 'armor') &&
+      CARRIED_ITEM_TYPES.includes(item.type) &&
       !worn.has(item._id ?? item.id) &&
       !isStowed(item),
   );

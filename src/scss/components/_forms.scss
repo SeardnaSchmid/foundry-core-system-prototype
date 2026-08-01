@@ -227,6 +227,26 @@
     font-variant-numeric: tabular-nums;
   }
 
+  // A tier the character has lost — to load, or to a damaged Beweglichkeit.
+  // Struck through rather than hidden or greyed: the number is still the range
+  // this character would have, and what changed is that they may not use it.
+  // This is where the carry grid's "Kein Sprint" / "Nur Kriechen" badges went:
+  // the consequence belongs on the figure it takes away.
+  //
+  // The mark is a red *wash behind* the figure rather than red ink in it: at
+  // this size a recoloured digit reads as a different kind of number, while a
+  // tinted patch reads as something laid over one — which is what a lost tier
+  // is. The digit keeps the ink of the two beside it, so the three still scan
+  // as one row.
+  .chip-move.move-blocked {
+    padding: 1px 5px;
+    border-radius: 5px;
+    background: rgba($c-warning, 0.16);
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+    text-decoration-color: rgba($c-warning, 0.75);
+  }
+
   .chip-sep {
     font-size: var(--font-size-12, 12px);
     color: $c-beige;

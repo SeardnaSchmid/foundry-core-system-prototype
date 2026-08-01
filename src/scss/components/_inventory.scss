@@ -19,9 +19,9 @@ $c-zone-bare-stroke: #85877f;
 // armoured — it is the pale step between grey and green.
 $c-zone-suited: #cadcbb;
 $c-zone-suited-stroke: #8ba06f;
-// Reused for both the SV shortfall warning and the over-capacity load state:
-// in each case a rule is actively working against the character.
-$c-armor-warning: #7a2028;
+// The SV shortfall warning and the over-capacity load state both use the shared
+// $c-warning from utils/_colors.scss — the same red marks the movement tiers
+// that load takes away on the banner chip, and the two have to match.
 
 // The zero-slot band. Tinted off the card's own parchment rather than given a
 // colour of its own: it is an aside, and any hue here would claim a meaning the
@@ -102,16 +102,22 @@ $c-trinket-separator: rgba($c-dark, 0.32);
   background: $c-zone-filled-bg;
   font-size: var(--font-size-13, 13px);
 
+  // An empty zone is a drop target, not a button — no pointer cursor, since
+  // there is nothing to click. It only lights up while a piece of armour that
+  // belongs here is actually in flight (`armor-drop-target`, set on dragstart),
+  // so the invitation appears exactly when it can be taken up.
   &.armor-empty {
     border-style: dashed;
     border-color: $c-beige;
     background: none;
     color: $c-tan;
-    cursor: pointer;
+  }
 
-    &:hover {
-      border-color: $c-advance;
-    }
+  &.armor-drop-target {
+    border-style: dashed;
+    border-color: $c-advance;
+    background: rgba($c-advance, 0.1);
+    color: $c-dark;
   }
 
   // The Unterkleidung is a layer under everything else rather than a hit
@@ -177,7 +183,7 @@ $c-trinket-separator: rgba($c-dark, 0.32);
   color: $c-tan;
 
   &:hover {
-    color: $c-armor-warning;
+    color: $c-warning;
   }
 }
 
@@ -185,7 +191,7 @@ $c-trinket-separator: rgba($c-dark, 0.32);
   margin-top: 6px;
   font-size: var(--font-size-12, 12px);
   font-weight: bold;
-  color: $c-armor-warning;
+  color: $c-warning;
 
   i {
     margin-right: 6px;
@@ -225,11 +231,15 @@ $c-trinket-separator: rgba($c-dark, 0.32);
     // Over budget is legal — it just costs movement — so this is a warning
     // colour, never a blocked state.
     &.over-capacity {
-      color: $c-armor-warning;
+      color: $c-warning;
     }
   }
 }
 
+// Only "Keine Tasche" is left here: the load's movement consequences moved onto
+// the banner's movement chip, where they strike through the tier they take
+// away. This one is not a movement state but the reason the whole budget reads
+// 0, so it stays with the number it explains.
 .slot-badge {
   @extend %stat-chip;
   margin-left: auto;
@@ -237,15 +247,38 @@ $c-trinket-separator: rgba($c-dark, 0.32);
   border-radius: 999px;
   font-size: var(--font-size-12, 12px);
   color: $c-white;
-  background: $c-advance;
+  background: $c-tan;
+}
 
-  &.badge-crawl-only {
-    background: $c-armor-warning;
-  }
+// Authoring a new item from the block that shows what the character is hauling.
+// Only the icon here — the header is a title, a number and a badge already, and
+// the same control carries its full label on the Inventar tab, where it sits in
+// a row of labelled controls. Pushed to the far right by `margin-left: auto`,
+// unless the "no bag" badge already claimed it and it follows the badge.
+.slot-grid-header .inventory-add {
+  margin-left: auto;
+  align-self: center;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid $c-beige;
+  border-radius: 6px;
+  color: $c-tan;
+  cursor: pointer;
 
-  &.badge-no-container {
-    background: $c-tan;
+  &:hover {
+    border-color: $c-advance;
+    color: $c-advance;
   }
+}
+
+// Spelled out rather than nested as `.slot-badge + &`: this file is nested
+// under `.tno`, so `&` carries that ancestor and the sibling half would compile
+// to a selector that can never match.
+.slot-grid-header .slot-badge + .inventory-add {
+  margin-left: 0;
 }
 
 // One column per slot. The grid is derived from the item list on every
@@ -284,12 +317,12 @@ $c-trinket-separator: rgba($c-dark, 0.32);
   // left — so they read as a warning rather than as a variation on a filled
   // cell: solid, saturated, light text. With the locked-cell tail gone this
   // colour break is the only thing marking where capacity ended, so it has to
-  // carry that on its own.
+  // carry that on its own. Still grabbable: dragging is how an overflowed item
+  // is sorted back into the budget, so denying it would strand it out here.
   &.over-capacity {
-    border-color: $c-armor-warning;
-    background: $c-armor-warning;
+    border-color: $c-warning;
+    background: $c-warning;
     color: $c-white;
-    cursor: default;
   }
 }
 
@@ -336,7 +369,7 @@ $c-trinket-separator: rgba($c-dark, 0.32);
 }
 
 .slot-grid-overflow-note {
-  color: $c-armor-warning;
+  color: $c-warning;
   font-weight: bold;
 }
 
@@ -373,6 +406,9 @@ $c-trinket-separator: rgba($c-dark, 0.32);
   gap: 4px;
   font-size: var(--font-size-12, 12px);
   color: $c-tan;
+  // Same handling as a cell: costing no slot does not make it a different kind
+  // of thing — it can still be opened, sorted and worn.
+  cursor: grab;
 
   // With no chip outline left, adjacent names would run together. Spelled out
   // rather than written as `& + &`: this file is nested under `.tno`, so `&`

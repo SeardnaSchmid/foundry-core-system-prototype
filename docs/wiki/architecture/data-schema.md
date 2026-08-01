@@ -37,12 +37,17 @@ in Foundry v14+.
   - `character.hasContainer` — whether the character carries a bag or
     backpack. Without one there is no slot economy at all.
   - `npc.cr` — challenge rating; XP is derived from it (`cr² × 100`).
-- **Item types:** `item`, `feature`, `spell`, `armor`. All extend `base`
-  (`description`).
+- **Item types:** `item`, `feature`, `spell`, `armor`, `weapon`. All extend
+  `base` (`description`).
   - `item` additionally has `quantity`, `slots`, `formula` (an optional
     roll formula evaluated by `Item#roll()`).
   - `armor` has `quantity`, `slots`, `zone` (which Stelle it is authored
     for, `suit` included), `sv`, `rh`, `rw`, `ra`.
+  - `weapon` has `quantity`, `slots`, and `dice`, `damage`, `range` — the
+    three columns the Waffen block reserves, all **free-text strings**. The
+    weapon rules are not written yet, so nothing here is rolled or computed;
+    the type exists so a weapon can be owned, carried and priced in slots
+    like the object it is. See [inventory.md](../concepts/inventory.md).
 
 Item types are declared in `template.json`, which Foundry reads **at
 startup** — adding a type needs a server restart, not just a reload, or

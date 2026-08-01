@@ -60,6 +60,12 @@ describe('computeCarry', () => {
     expect(computeCarry(items, {}, true, capacity).used).toBe(2);
   });
 
+  it('counts a weapon like any other piece of gear', () => {
+    // Readiness is a separate, still-undesigned question; being carried is not.
+    const items = [{ _id: 'rifle', type: 'weapon', system: { slots: 2, quantity: 1 } }];
+    expect(computeCarry(items, {}, true, capacity).used).toBe(2);
+  });
+
   it('exempts worn armour from the slot budget', () => {
     const items = [armor('helm', { slots: 2, rh: 5 }), gear('a', 1)];
     const equipment = { head: 'helm' };

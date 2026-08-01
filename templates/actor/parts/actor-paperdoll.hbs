@@ -1,5 +1,10 @@
 {{!-- Paper doll: the Unterkleidung as a base layer above four zone rows,
-mirroring the Rüstungen table's hit locations (Kopf, Torso, Arme, Beine). --}}
+mirroring the Rüstungen table's hit locations (Kopf, Torso, Arme, Beine).
+
+An empty row is a drop target and nothing else: a piece is worn by dragging it
+from the carry grid onto its zone (see `_onDrop`). Clicking one used to offer to
+author a piece on the spot, which conjured gear out of an empty doll — wearing
+something is a state change on gear already in hand. --}}
 <div class='paperdoll card'>
 
   {{!-- The viewBox is cropped to the drawing's actual bounds (x 22-98,
@@ -41,7 +46,7 @@ mirroring the Rüstungen table's hit locations (Kopf, Torso, Arme, Beine). --}}
     zones at once, so it leads the list rather than sitting among them. --}}
     <div class='armor-row armor-suit {{#unless paperdoll.suit}}armor-empty{{/unless}}'
          data-zone='suit'
-         title='{{localize "TNO.Armor.SuitHint"}}'>
+         title='{{localize "TNO.Armor.SuitHint"}}{{#unless paperdoll.suit}} — {{localize "TNO.Armor.DropHint"}}{{/unless}}'>
       {{#if paperdoll.suit}}
         <img class='armor-icon' src='{{paperdoll.suit.img}}' width='16' height='16' alt=''/>
         <span class='armor-name'>{{paperdoll.suit.name}}</span>
@@ -63,7 +68,8 @@ mirroring the Rüstungen table's hit locations (Kopf, Torso, Arme, Beine). --}}
     </div>
 
     {{#each paperdoll.zones as |z|}}
-      <div class='armor-row {{#unless z.item}}armor-empty{{/unless}}' data-zone='{{z.zone}}'>
+      <div class='armor-row {{#unless z.item}}armor-empty{{/unless}}' data-zone='{{z.zone}}'
+           {{#unless z.item}}title='{{localize "TNO.Armor.DropHint"}}'{{/unless}}>
         {{#if z.item}}
           <img class='armor-icon' src='{{z.item.img}}' width='16' height='16' alt=''/>
           <span class='armor-name'>{{localize z.label}} · {{z.item.name}}</span>

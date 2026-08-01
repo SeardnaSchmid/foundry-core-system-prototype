@@ -105,7 +105,7 @@
     }
   },
   "Item": {
-    "types": ["item", "feature", "spell", "armor"],
+    "types": ["item", "feature", "spell", "armor", "weapon"],
     "templates": {
       "base": {
         "description": ""
@@ -135,6 +135,15 @@
       "rh": 0,
       "rw": 0,
       "ra": 0
+    },
+    "weapon": {
+      "templates": ["base"],
+      "quantity": 1,
+      "slots": 1,
+      "carried": true,
+      "dice": "",
+      "damage": "",
+      "range": ""
     }
   }
 }

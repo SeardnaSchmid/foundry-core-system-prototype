@@ -2,9 +2,7 @@
 items. The paper doll and the Trageslots grid used to sit above it and now live
 in the character sheet's Basics tab, beside the attributes — they answer "what
 am I wearing / hauling right now?", which is asked mid-roll, not while
-bookkeeping. `paperdoll` still gates the armour create control below, since it
-is the flag that says "this actor has an equipment store" (NPCs share this
-partial and have none). --}}
+bookkeeping. --}}
 <ol class='items-list'>
   <li class='item flexrow items-header'>
     {{!-- Column captions only make sense once there are rows to label; while
@@ -15,27 +13,13 @@ partial and have none). --}}
     <div class='item-formula'>{{localize 'Roll Formula'}}</div>
     {{/if}}
     <div class='item-controls'>
-      {{!-- Armour needs its own control: it is a distinct item type with the
-      zone/RH/RW/RA fields, and without a way to create one here the paper doll
-      can never be filled — equipping only ever offers gear the actor already
-      owns. --}}
-      {{#if paperdoll}}
-        <a
-          class='item-control item-create'
-          title='{{localize "DOCUMENT.Create" type=(localize "TYPES.Item.armor")}}'
-          data-type='armor'
-        >
-          <i class='fas fa-shield-halved'></i>
-          {{localize 'DOCUMENT.New' type=(localize 'TYPES.Item.armor')}}
-        </a>
-      {{/if}}
-      <a
-        class='item-control item-create'
-        title='{{localize "DOCUMENT.Create" type='Item'}}'
-        data-type='item'
-      >
+      {{!-- One control for all three physical types. The type used to be a
+      control each — one per type the inventory rules touch — which does not
+      survive a third type; it is a field in the add dialog now, the same one
+      the carry grid's "+" opens. --}}
+      <a class='item-control inventory-add' title='{{localize "TNO.Inventory.AddHint"}}'>
         <i class='fas fa-plus'></i>
-        {{localize 'DOCUMENT.New' type='item'}}
+        {{localize 'TNO.Inventory.Add'}}
       </a>
     </div>
   </li>
