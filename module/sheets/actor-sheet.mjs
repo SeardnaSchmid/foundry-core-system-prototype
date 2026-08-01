@@ -27,7 +27,7 @@ const { ActorSheetV2 } = foundry.applications.sheets;
  * leave no handle wide enough to drag back out. Exported because
  * `tno.mjs` registers the `basicsSplit` client setting with this default.
  */
-export const BASICS_SPLIT_DEFAULT = 0.4;
+export const BASICS_SPLIT_DEFAULT = 0.5;
 const BASICS_SPLIT_MIN = 0.2;
 const BASICS_SPLIT_MAX = 0.8;
 
@@ -393,13 +393,33 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     context.skillRankTotal = context.skillGroups.reduce((sum, group) => sum + group.totalRank, 0);
     context.totalXpSpent = context.attributeGrid.totalXp + context.skillXpTotal;
 
+    // What the character has earned, as opposed to what they have committed.
+    // Every attribute and skill carries XP banked toward its *next* rank; that
+    // XP is earned but not yet converted, so the rank-cost sums above miss it
+    // entirely — a rank-0 skill holding 2 XP costs 0 spent but is still 2 XP
+    // the character earned. Acquired is therefore spent plus everything still
+    // banked, and it only ever rises: spending banked XP on a rank moves the
+    // same points from one side of the sum to the other.
+    //
+    // Summed from the same view models the totals above use, so a skill counts
+    // here exactly when it counts there. The category filter is applied to the
+    // DOM, not to `skillGroups`, so this sees every skill regardless of it.
+    context.attributeXpBanked = rows
+      .flat()
+      .reduce((sum, key) => sum + (abilities[key]?.xp ?? 0), 0);
+    context.skillXpBanked = context.skillGroups.reduce(
+      (sum, group) => sum + group.skills.reduce((s, skill) => s + (skill.xp ?? 0), 0),
+      0
+    );
+    context.totalXpUnspent = context.attributeXpBanked + context.skillXpBanked;
+    context.totalXpAcquired = context.totalXpSpent + context.totalXpUnspent;
+
     // The edge reserve as a pip row for the banner chip: one pip per point of
     // the maximum, filled up to the current pool. Built here rather than in the
     // template because Handlebars has no "repeat n times".
     const edgeMax = this.actor.system.derived?.edgePoolMax ?? 0;
     const edgeNow = this.actor.system.derived?.edgePool ?? 0;
     context.edgePips = Array.from({ length: edgeMax }, (_, i) => ({
-      value: i + 1,
       filled: i < edgeNow,
     }));
   }
@@ -723,6 +743,24 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // -------------------------------------------------------------
     // Everything below here only acts on an editable sheet.
     const editable = { requireEditable: true };
+
+    // The banner's edge-reserve field. It carries no `name`, so the form never
+    // submits it — the pool is derived and would be recomputed away. This
+    // inverts the typed reserve back into the stored `spent` instead. A blank
+    // or non-numeric entry means "no change", so the render restores the old
+    // number rather than reading as a zero the player never asked for.
+    this.#delegate('change', '.chip-value-input', (event, target) => {
+      const typed = Number(target.value);
+      if (target.value.trim() === '' || !Number.isFinite(typed)) {
+        this.render();
+        return;
+      }
+      this.#setEdgePool(typed);
+      // #setEdgePool no-ops when the clamped value matches the current pool, in
+      // which case no update fires and nothing re-renders — so an out-of-range
+      // entry would otherwise sit in the box looking accepted.
+      this.render();
+    }, editable);
 
     // Heatmap +/- steppers: adjust temp (value) by default, or base while
     // holding Shift, since base is the rarer, more deliberate change.

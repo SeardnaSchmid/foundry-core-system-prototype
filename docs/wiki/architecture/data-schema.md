@@ -17,7 +17,10 @@ in Foundry v14+.
 ## `template.json`
 
 - **Actor types:** `character`, `npc`. Both extend the shared `base`
-  template (just `biography`).
+  template (`biography` and `role`, both free text). Only the character sheet
+  surfaces `role`, in its banner subtitle. Both are **flavour fields with no
+  mechanical role** — the system models no class or profession, and nothing
+  reads either one when resolving a roll or computing a derived value.
   - `character.abilities.<key>` — `{ base, value, xp }` for each of the 12
     keys in `CONFIG.TNO.abilities` (see
     [attributes.md](../concepts/attributes.md)).

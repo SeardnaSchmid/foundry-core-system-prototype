@@ -3,7 +3,8 @@
     "types": ["character", "npc"],
     "templates": {
       "base": {
-        "biography": ""
+        "biography": "",
+        "role": ""
       }
     },
     "character": {
@@ -113,7 +114,7 @@
     "item": {
       "templates": ["base"],
       "quantity": 1,
-      "slots": 0,
+      "slots": 1,
       "carried": true,
       "formula": "d20 + @str.value"
     },

@@ -76,10 +76,12 @@
 // and the three meta chips, replacing the left-docked sidebar. Fixed height, so
 // the band never grows with a long name.
 //
-// A grid rather than four absolutely-placed boxes: the chips and the name share
-// the band's right-hand column, and the name field is full-width, so with
-// absolute placement its (transparent) box would reach up under the chips and
-// swallow clicks on their bottom edge. Two rows make that impossible.
+// A grid rather than four absolutely-placed boxes: the name field's box is
+// transparent, so with absolute placement it would reach under the chips and
+// swallow clicks on them. The three lanes make that impossible — the name can
+// only ever grow into its own column, and it yields that column's width to the
+// chips (`auto`) before it starts truncating, so the two never overlap however
+// long the name gets.
 //
 // The portrait is the one exception — it deliberately hangs past the bottom
 // edge, which no in-flow child can do — so it stays absolute and the first grid
@@ -92,22 +94,40 @@
 // chips off the frame, and the top corners are square because the window header
 // now sits directly on them.
 .sheet-banner {
+  // 4:3 landscape. The portrait is absolutely placed, so these drive both its
+  // own box and the grid lane reserved for it.
+  --portrait-w: 215px;
+  --portrait-h: 161px;
+  --portrait-inset: 4px;
+
   position: relative;
   display: grid;
-  grid-template-columns: 144px minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 1fr);
-  align-items: end;
+  // Portrait lane, name, chips — one row, so the name's box top and the chip
+  // row start on the same line instead of the name sitting under them. The
+  // first track ends exactly where the portrait does: the portrait starts 4px
+  // from the frame but the track starts at the 16px padding edge, so the track
+  // is short by that 12px difference.
+  grid-template-columns:
+    calc(var(--portrait-w) - (16px - var(--portrait-inset)))
+    minmax(0, 1fr)
+    auto;
+  grid-template-rows: minmax(0, 1fr);
+  align-items: start;
+  column-gap: 16px;
   flex: 0 0 108px;
   height: 108px;
   padding: 12px 16px 2px;
-  margin: -16px -16px 30px;
+  // The bottom margin is the portrait's overhang plus a 10px breath: the
+  // portrait bottom sits at inset + height, and everything past this band's
+  // own height hangs over the tab body, which must be pushed clear of it.
+  margin: -16px -16px calc(var(--portrait-inset) + var(--portrait-h) - 108px + 10px);
   border-bottom: 1px solid $c-beige;
   border-radius: 0;
   background: linear-gradient(180deg, rgba($c-dark, 0.14) 0%, rgba($c-dark, 0.04) 100%);
 }
 
 .banner-chips {
-  grid-column: 2;
+  grid-column: 3;
   grid-row: 1;
   justify-self: end;
   display: flex;
@@ -144,10 +164,56 @@
   }
 
   .chip-value {
+    display: flex;
+    align-items: baseline;
     font-size: var(--font-size-14, 14px);
     font-weight: bold;
     line-height: 1;
     font-variant-numeric: tabular-nums;
+  }
+}
+
+// The editable reserve, sized to its digits so the chip does not jump between
+// a one- and two-digit pool. Reads as the number it replaces until hovered.
+.chip-value-input {
+  width: 2ch;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: 1;
+  color: inherit;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  box-shadow: none;
+  transition: box-shadow 0.15s ease;
+
+  // Spinners would not fit the pill and would cover the digits at this size.
+  appearance: textfield;
+  -moz-appearance: textfield;
+
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    appearance: none;
+    margin: 0;
+  }
+
+  &:hover:not(:disabled) {
+    box-shadow: inset 0 -1px 0 $c-tan;
+  }
+
+  &:focus {
+    box-shadow: inset 0 -2px 0 $c-advance;
+    outline: none;
+  }
+
+  &:disabled {
+    color: inherit;
+    opacity: 1;
   }
 }
 
@@ -212,22 +278,20 @@
 
 // One diamond per point of the maximum. Rotated squares rather than a glyph so
 // filled and empty are the same shape at the same size.
+//
+// Purely a read-out: the pips are set from the chip's number field, never by
+// clicking them, so they carry no pointer cursor and no hover or focus
+// treatment — anything that lit up on hover would advertise a click that does
+// nothing.
 .edge-pip {
   width: 8px;
   height: 8px;
   border: 1px solid $c-advance;
   background: transparent;
   transform: rotate(45deg);
-  cursor: pointer;
 
   &.filled {
     background: $c-advance;
-  }
-
-  &:hover,
-  &:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 2px rgba($c-advance, 0.35);
   }
 }
 
@@ -236,10 +300,10 @@
 // .sheet-banner's margin-bottom reserves the room.
 .banner-portrait {
   position: absolute;
-  left: 4px;
-  top: 4px;
-  width: 124px;
-  height: 124px;
+  left: var(--portrait-inset);
+  top: var(--portrait-inset);
+  width: var(--portrait-w);
+  height: var(--portrait-h);
   border: 2px solid $c-tan;
   border-radius: 5px;
   overflow: hidden;
@@ -298,11 +362,17 @@
   }
 }
 
-// Sits to the right of the portrait, top-aligned: the name prominently at top,
-// the XP read-out as a quiet subtitle beneath.
+// Sits to the right of the portrait in the band's middle lane, sharing row 1
+// with the chips: the name prominently at top, the XP read-out as a quiet
+// subtitle beneath.
 .banner-identity {
+  // One knob for the headline, since the h1 and the input inside it have to
+  // carry the same size for the field to read as the title rather than as a
+  // box laid over it.
+  --banner-name-size: 46px;
+
   grid-column: 2;
-  grid-row: 2;
+  grid-row: 1;
   align-self: start;
   display: flex;
   flex-direction: column;
@@ -315,7 +385,7 @@
     padding: 0;
     border: none;
     // Large, dominant headline that commands the banner space.
-    font-size: 36px;
+    font-size: var(--banner-name-size);
     line-height: 1;
 
     // Read as a title, not a form field: no box at rest, an underline hint on
@@ -323,14 +393,17 @@
     input {
       width: auto;
       max-width: 100%;
-      height: 44px;
+      // Just enough over the em box for descenders. Any taller and the input
+      // centres the text well below the chips it is meant to line up with.
+      height: calc(var(--banner-name-size) + 6px);
       margin: 0;
       padding: 0 2px;
       border: none;
       background: transparent;
       font-family: $font-primary;
-      font-size: 36px;
+      font-size: var(--banner-name-size);
       font-weight: bold;
+      line-height: 1;
       // Core gives inputs an inset glow, which across a field this wide reads
       // as a stray rule under the name rather than as a text box.
       box-shadow: none;
@@ -348,11 +421,80 @@
   }
 }
 
+// The role line: a free-text field that takes the lane, with the computed XP
+// read-out pinned to its end.
 .banner-subtitle {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   padding-left: 4px;
   font-size: var(--font-size-11, 11px);
   color: $c-tan;
+}
+
+// Styled as a subtitle rather than a form field, matching the name above it:
+// no box at rest, an underline hint on hover, a stronger one while editing.
+.banner-role {
+  // Hugs its own text so the XP read-out that follows sits right at the end of
+  // what was typed rather than floating at the far side of the lane. Falls back
+  // to the input's default ~20ch on engines without it, which still reads fine.
+  field-sizing: content;
+  flex: 0 1 auto;
+  // Core styles inputs at `width: 100%`, which pins the box and leaves
+  // `field-sizing` with nothing to do — the name field above needs the same
+  // override for the same reason.
+  width: auto;
+  min-width: 6ch;
+  max-width: 100%;
+  height: auto;
+  margin: 0;
+  padding: 0 2px;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: 1.3;
+  color: $c-tan;
+  box-shadow: none;
+  transition: box-shadow 0.15s ease;
+
+  &::placeholder {
+    color: $c-tan;
+    opacity: 0.5;
+    font-style: italic;
+  }
+
+  &:hover:not(:disabled) {
+    box-shadow: inset 0 -1px 0 $c-beige;
+  }
+
+  &:focus {
+    box-shadow: inset 0 -2px 0 $c-tan;
+    outline: none;
+  }
+}
+
+// Never shrinks — the role field yields width first, so the XP stays whole.
+.banner-xp {
+  flex: 0 0 auto;
   opacity: 0.75;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+// The acquired total, quieter than the spent figure beside it — same
+// figure-over-limit reading as the edge chip's `chip-value-max`.
+.banner-xp-total {
+  opacity: 0.65;
+}
+
+// The separator earns its place only once there is a role to separate from,
+// which `:placeholder-shown` detects without the template branching on it.
+// Deliberately not nested under `.banner-xp`: `&` there resolves to the full
+// `.tno .banner-xp`, which would compile the combinator to `+ .tno .banner-xp`
+// and match nothing.
+.banner-role:not(:placeholder-shown) + .banner-xp::before {
+  content: '· ';
 }
 
 // .sheet-main is the tab-content column on the NPC sheet, next to its header.
@@ -416,7 +558,9 @@
 // is the left column's share; the sheet writes it per render from the
 // `basicsSplit` client setting and again live while the handle is dragged.
 .basics-columns {
-  --basics-split: 0.4;
+  // Keep in step with BASICS_SPLIT_DEFAULT in sheets/actor-sheet.mjs — this is
+  // only the pre-script fallback; the sheet overwrites it per render.
+  --basics-split: 0.5;
   display: flex;
   flex: 1 1 auto;
   min-height: 0;

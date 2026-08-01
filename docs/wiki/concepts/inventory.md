@@ -71,12 +71,17 @@ into `system.derived` — see
 quantity`, where `slots` runs 0–4 (0 = Geld/Papiere/Krimskrams, 4 =
 rucksackgroß; the per-value hints are `TNO.Inventory.SlotHint.*`).
 
+New gear is authored at **1 slot**, not 0: an ordinary object takes up room,
+and the zero-slot tier is the narrow exception for loose change and paperwork.
+Defaulting to 0 meant every item a GM created was free until someone
+remembered to type a number, which quietly emptied the budget.
+
 **Armour is floored at one slot per piece** (`MIN_ARMOR_SLOTS`). Off the body,
 a piece is either carried and visibly taking up room or not there at all —
 there is no third way for a breastplate to be free, and the zero-slot tier is
 explicitly Krimskrams, which armour is not. The floor sits in `itemSlotCost`
 rather than only in the schema default so armour authored at 0 under the old
-default still costs its slot instead of slipping into the trinket chips.
+default still costs its slot instead of slipping into the zero-slot band.
 
 Two consequences are worth knowing before changing anything here:
 

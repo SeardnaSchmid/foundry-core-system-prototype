@@ -1,6 +1,7 @@
 // Equipment views: the armour paper doll and the Trageslots grid. Both live in
-// the Inventar tab, above the flat item list, and size themselves off its full
-// width — the 300px sidebar carries only the used/capacity tile.
+// the Basics tab's right-hand column (`.basics-aside` in components/_forms.scss),
+// which is where their narrower padding, smaller figure and four-column raster
+// come from — the rules here are the full-width base those overrides trim.
 
 // Worn zones read as "protected", empty ones as an invitation to fill them.
 $c-zone-filled: #7f9a62;
@@ -22,8 +23,23 @@ $c-zone-suited-stroke: #8ba06f;
 // in each case a rule is actively working against the character.
 $c-armor-warning: #7a2028;
 
+// The zero-slot band. Tinted off the card's own parchment rather than given a
+// colour of its own: it is an aside, and any hue here would claim a meaning the
+// grid's greens and warning red have already spoken for.
+$c-trinket-bg: rgba($c-dark, 0.05);
+$c-trinket-border: rgba($c-dark, 0.14);
+// Muted ink rather than $c-beige: the beige used elsewhere for secondary text
+// sits on the card, and against this tinted band it drops to roughly 1.1:1 —
+// invisible. This label carries the meaning of the whole band, so it has to
+// stay readable while still ranking below the item names in $c-tan.
+$c-trinket-label: rgba($c-dark, 0.55);
+$c-trinket-separator: rgba($c-dark, 0.32);
+
 .paperdoll {
   display: flex;
+  // Never squeezed by the equipment column's scroll container: the card is as
+  // tall as its five rows, and the column scrolls instead.
+  flex: 0 0 auto;
   gap: 14px;
   // Stretch rather than centre, so the figure column is as tall as the stack
   // of zone rows beside it and the silhouette can scale to match.
@@ -177,6 +193,7 @@ $c-armor-warning: #7a2028;
 }
 
 .slot-grid-block {
+  flex: 0 0 auto;
   padding: 14px 16px;
 }
 
@@ -323,21 +340,52 @@ $c-armor-warning: #7a2028;
   font-weight: bold;
 }
 
-// Zero-slot items (Geld, Papiere, Krimskrams) never occupy a cell, so they
-// trail the grid as chips instead.
+// Zero-slot items (Geld, Papiere, Krimskrams) never occupy a cell, so they get
+// a band under the grid instead. Half a filled cell tall on purpose: the height
+// is the argument, saying "less than one slot" before the label is read. It is
+// recessed rather than raised — a pocket sewn into the card, belonging to the
+// same bag but sitting outside the budget, so it never competes with the raster
+// that carries the actual capacity.
 .slot-trinkets {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 6px;
+  gap: 2px 10px;
+  margin-top: 8px;
+  padding: 3px 10px;
+  min-height: 24px;
+  border: 1px solid $c-trinket-border;
+  border-radius: 8px;
+  background: $c-trinket-bg;
 }
 
+.slot-trinkets-label {
+  flex: 0 0 auto;
+  font-size: var(--font-size-11, 11px);
+  color: $c-trinket-label;
+}
+
+// Flat text, not a chip: these are contents, and the old bordered pill sat
+// directly above the sheet's own buttons where it read as one.
 .slot-trinket {
-  @extend %stat-chip;
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  font-weight: normal;
+  gap: 4px;
+  font-size: var(--font-size-12, 12px);
   color: $c-tan;
-  border: 1px solid $c-beige;
+
+  // With no chip outline left, adjacent names would run together. Spelled out
+  // rather than written as `& + &`: this file is nested under `.tno`, so `&`
+  // carries that ancestor and the sibling half would compile to a selector
+  // that can never match.
+  + .slot-trinket::before {
+    content: '·';
+    margin-right: 6px;
+    color: $c-trinket-separator;
+  }
+}
+
+.slot-trinket-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

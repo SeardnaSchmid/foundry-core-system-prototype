@@ -44,10 +44,22 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
         <span class="chip-label">{{localize "TNO.DerivedShort.EdgePool"}}</span>
         <span class="edge-pips">
           {{#each edgePips as |pip|}}
-          <span class="edge-pip{{#if pip.filled}} filled{{/if}}" title="{{localize 'TNO.EdgePipHint' value=pip.value}}"></span>
+          {{!-- No per-pip tooltip: five identical hints inside one chip fight
+          the chip's own tooltip for the same hover. What the pips mean is the
+          chip's job to explain. --}}
+          <span class="edge-pip{{#if pip.filled}} filled{{/if}}"></span>
           {{/each}}
         </span>
-        <span class="chip-value">{{system.derived.edgePool}}<span class="chip-value-max">/{{system.derived.edgePoolMax}}</span></span>
+        {{!-- The reserve is editable here, but deliberately carries no `name`:
+        `system.derived.edgePool` is recomputed from `problemSolving.spent` on
+        every prepareDerivedData, so a form-bound write would be discarded. The
+        sheet's change handler inverts it back to `spent` instead. --}}
+        <span class="chip-value">
+          <input class="chip-value-input" type="number" min="0" max="{{system.derived.edgePoolMax}}" step="1"
+                 value="{{system.derived.edgePool}}" title="{{localize 'TNO.EdgeValueHint'}}"
+                 {{#unless editable}}disabled{{/unless}} />
+          <span class="chip-value-max">/{{system.derived.edgePoolMax}}</span>
+        </span>
         <i class="fa-solid fa-circle-info chip-info"></i>
       </div>
 
@@ -58,18 +70,36 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
     roll the same thing. It sits as an opaque strip across the portrait's
     bottom edge, so it stays legible on any uploaded image. --}}
     <div class="banner-portrait">
-      <img class="profile-img" src="{{actor.img}}" data-edit="img" data-action="editImage" title="{{actor.name}}" height="104" width="104"/>
+      <img class="profile-img" src="{{actor.img}}" data-edit="img" data-action="editImage" title="{{actor.name}}" height="161" width="215"/>
       <a class="portrait-init rollable" data-roll="{{config.initiativeFormula}}" data-label="{{localize 'TNO.Derived.Initiative'}}" title="{{localize 'TNO.Derived.Initiative'}} — {{localize 'TNO.DerivedHint.Initiative'}}">
         <span class="init-label">{{localize "TNO.DerivedShort.Initiative"}}</span>
         <span class="init-value">{{system.derived.initiative}}<small>+1d10</small></span>
       </a>
     </div>
 
-    {{!-- Name plus the one subtitle line the sheet has data for: the total XP
-    spent across attributes and skills. --}}
+    {{!-- Name, then a subtitle line the player owns: a free-text profession or
+    role, with the total XP spent across attributes and skills at the end of
+    that same line.
+
+    `system.role` is flavour text and nothing else. The system has no concept of
+    a class or profession — no roll, derived value, or gate reads this field, and
+    none should start to: it is the player's space to say who their character is.
+    Anything that ought to have mechanical weight belongs in skills or an item.
+
+    The XP beside it is a computed read-out, so it sits outside the input; the
+    field hugs its own text (see `field-sizing` in _forms.scss) so the figure
+    trails the role rather than floating at the far side of the lane. --}}
     <div class="banner-identity">
       <h1 class="charname"><input name="name" type="text" value="{{actor.name}}" placeholder="Name"/></h1>
-      <span class="banner-subtitle" title="{{localize 'TNO.XpTotalAllHint'}}">{{totalXpSpent}} {{localize "TNO.UnitXp"}}</span>
+      <div class="banner-subtitle">
+        <input class="banner-role" name="system.role" type="text" value="{{system.role}}"
+               placeholder="{{localize 'TNO.RolePlaceholder'}}" title="{{localize 'TNO.RoleHint'}}" />
+        {{!-- Spent over acquired, dimming the total the way the edge chip dims
+        its maximum: the left figure is what has been committed to ranks, the
+        right what the character has earned all told. They close the gap only
+        when nothing is left banked. --}}
+        <span class="banner-xp" title="{{localize 'TNO.XpTotalAllHint' spent=totalXpSpent acquired=totalXpAcquired unspent=totalXpUnspent}}">{{totalXpSpent}}<span class="banner-xp-total">/{{totalXpAcquired}}</span> {{localize "TNO.UnitXp"}}</span>
+      </div>
     </div>
 
   </header>

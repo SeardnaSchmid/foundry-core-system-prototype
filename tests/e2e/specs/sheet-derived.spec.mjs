@@ -50,20 +50,22 @@ test('the character sheet renders the derived values', async ({ world }) => {
   const { id } = await createCharacter(world.page, { abilities: ABILITIES });
   const sheet = await openSheet(world.page, id);
 
-  // Initiative is rendered as "<value><small>+1d10</small>", because it is
-  // rolled as initiative + 1d10.
-  await expect(sheet.locator('.lozenge[data-roll*="derived.initiative"] .lozenge-value')).toHaveText(
+  // Initiative is rendered as "<value><small>+1d10</small>" in the banner's
+  // portrait caption, because it is rolled as initiative + 1d10.
+  await expect(sheet.locator('.portrait-init[data-roll*="derived.initiative"] .init-value')).toHaveText(
     '7+1d10'
   );
-  await expect(sheet.locator('.lozenge[data-roll-type="sixthSense"] .lozenge-value')).toHaveText('5');
+  await expect(sheet.locator('.chip-sense .chip-value')).toHaveText('5');
 
-  const movement = sheet.locator('.movement-group .movement-value');
-  await expect(movement).toHaveText(['1', '7', '21', '0/17']);
+  // Crawl | walk | sprint, in one banner chip.
+  await expect(sheet.locator('.chip-movement .chip-move')).toHaveText(['1', '7', '21']);
 
-  // The edge pool is an editable input showing what is left, capped at the max.
-  const reserve = sheet.locator('.reserve-value-input');
-  await expect(reserve).toHaveValue('7');
-  await expect(reserve).toHaveAttribute('max', '7');
+  // Carry capacity is the Trageslots header's read-out, not a chip of its own.
+  await expect(sheet.locator('.slot-grid-count')).toHaveText('0/17');
+
+  // The edge pool is a pip per point of the max, filled up to what is left.
+  await expect(sheet.locator('.edge-pip')).toHaveCount(7);
+  await expect(sheet.locator('.edge-pip.filled')).toHaveCount(7);
 
   expect(world.errors, 'no uncaught page errors while rendering the sheet').toEqual([]);
 });

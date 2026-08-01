@@ -4,7 +4,7 @@ export const TNO = {};
 
 /**
  * The single initiative formula for the system: "Initiative wird gewürfelt
- * mit Initiativegrundwert+1d10". Both the sheet's Initiative lozenge (via
+ * mit Initiativegrundwert+1d10". Both the sheet's Initiative caption (via
  * `context.config` in the character template) and Foundry's combat tracker
  * (via `CONFIG.Combat.initiative` in tno.mjs) read it from here, so the
  * tracker can never drift away from what the sheet rolls.

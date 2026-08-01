@@ -80,13 +80,19 @@ the same grid, marked over capacity. --}}
     </p>
   {{/if}}
 
-  {{!-- Geld, Papiere, Krimskrams: nominally 0 slots, so they get chips rather
-  than cells they would otherwise occupy at zero width. --}}
+  {{!-- Geld, Papiere, Krimskrams: nominally 0 slots, so they get a band rather
+  than cells they would otherwise occupy at zero width. It is deliberately half
+  a cell tall and labelled — the height says "less than a slot" before the label
+  is read, and the enclosure keeps it part of the same bag instead of trailing
+  off below the card as loose text. --}}
   {{#if slotGrid.trinkets.length}}
     <div class='slot-trinkets' title='{{localize "TNO.Inventory.TrinketsHint"}}'>
-      {{#each slotGrid.trinkets as |item|}}
-        <span class='slot-trinket' data-item-id='{{item._id}}'>
-          <img src='{{item.img}}' width='14' height='14' alt=''/>{{item.name}}
+      <span class='slot-trinkets-label'>{{localize 'TNO.Inventory.Trinkets'}}</span>
+      {{#each slotGrid.trinkets as |trinket|}}
+        <span class='slot-trinket' data-item-id='{{trinket.item._id}}'>
+          <img src='{{trinket.item.img}}' width='14' height='14' alt=''/>
+          <span class='slot-trinket-name'>{{trinket.item.name}}</span>
+          {{#if trinket.showQty}}<span class='slot-qty'>×{{trinket.quantity}}</span>{{/if}}
         </span>
       {{/each}}
     </div>

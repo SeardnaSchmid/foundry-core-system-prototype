@@ -1,0 +1,31 @@
+{{!-- Waffen: reserved layout, no data behind it yet.
+
+The system has no `weapon` item type — item, feature, spell and armor are the
+four in `template.json` — and no readiness state, so there is nothing to list
+here and nothing to roll. The block ships as the empty column headers plus a
+hint saying so, rather than being left out: the Basics tab's right column is
+laid out around three blocks, and an absent third one would silently change the
+column's proportions the moment weapons land.
+
+Do not fill this in from `inventory` — a carried item is not a readied weapon,
+and conflating the two is exactly the design question that is still open. --}}
+<div class='weapons-block card'>
+
+  <div class='weapons-header'>
+    <span class='weapons-title'>{{localize 'TNO.Weapons.Title'}}</span>
+    <span class='weapons-pending' title='{{localize "TNO.Weapons.PendingHint"}}'>
+      {{localize 'TNO.Weapons.Pending'}}
+    </span>
+  </div>
+
+  <div class='weapons-table'>
+    <div class='weapons-row weapons-columns'>
+      <span class='weapon-name'>{{localize 'TNO.Weapons.Name'}}</span>
+      <span class='weapon-cell'>{{localize 'TNO.Weapons.Dice'}}</span>
+      <span class='weapon-cell'>{{localize 'TNO.Weapons.Damage'}}</span>
+      <span class='weapon-cell'>{{localize 'TNO.Weapons.Range'}}</span>
+    </div>
+    <p class='weapons-empty'>{{localize 'TNO.Weapons.EmptyHint'}}</p>
+  </div>
+
+</div>

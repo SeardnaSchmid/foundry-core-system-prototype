@@ -1,12 +1,10 @@
-{{!-- The two visual views sit above the flat list, which stays as the
-administrative surface for creating, editing and deleting items. Both are
-character-only — this partial is shared with the NPC sheet, which has neither
-an equipment store nor a derived slot budget. --}}
-{{#if paperdoll}}
-  {{> "systems/tno/templates/actor/parts/actor-paperdoll.hbs"}}
-  {{> "systems/tno/templates/actor/parts/actor-slot-grid.hbs"}}
-{{/if}}
-
+{{!-- The flat administrative surface: creating, editing, deleting and stowing
+items. The paper doll and the Trageslots grid used to sit above it and now live
+in the character sheet's Basics tab, beside the attributes — they answer "what
+am I wearing / hauling right now?", which is asked mid-roll, not while
+bookkeeping. `paperdoll` still gates the armour create control below, since it
+is the flag that says "this actor has an equipment store" (NPCs share this
+partial and have none). --}}
 <ol class='items-list'>
   <li class='item flexrow items-header'>
     {{!-- Column captions only make sense once there are rows to label; while

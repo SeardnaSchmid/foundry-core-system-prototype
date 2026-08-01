@@ -171,7 +171,7 @@ export function computeCarry(items, equipment, hasContainer, capacity) {
  *
  * Zero-slot items (Geld, Papiere, Krimskrams) get no cell at all — they would
  * otherwise render as a zero-width block — and are returned separately for the
- * template to show as chips. Armour can never land there: `MIN_ARMOR_SLOTS`
+ * template to show as its own band. Armour can never land there: `MIN_ARMOR_SLOTS`
  * floors it at one cell, so a piece that is not worn is always visibly taking
  * up room rather than riding along free among the loose change.
  *

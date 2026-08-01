@@ -2,7 +2,7 @@
  * Combat tracker initiative.
  *
  * The tracker must roll the same thing the character sheet's Initiative
- * lozenge rolls — TNO.initiativeFormula, "1d10 + @derived.initiative" — rather
+ * caption rolls — TNO.initiativeFormula, "1d10 + @derived.initiative" — rather
  * than a formula of its own. That wiring only exists once Foundry has built a
  * real Combat with a real Combatant, so it cannot be unit tested.
  */
@@ -46,11 +46,11 @@ test('the tracker rolls 1d10 plus the derived initiative value', async ({ world 
   expect(initiative).toBeLessThanOrEqual(17);
 });
 
-test('the sheet lozenge and the tracker share one formula', async ({ world }) => {
+test('the sheet portrait caption and the tracker share one formula', async ({ world }) => {
   const { id } = await createCharacter(world.page, { abilities: ABILITIES });
   const sheet = await openSheet(world.page, id);
 
-  const sheetFormula = await sheet.locator('.lozenge.rollable[data-roll]').first().getAttribute('data-roll');
+  const sheetFormula = await sheet.locator('.portrait-init.rollable[data-roll]').first().getAttribute('data-roll');
   const configured = await world.page.evaluate(() => CONFIG.Combat.initiative.formula);
 
   expect(sheetFormula).toBe(configured);
