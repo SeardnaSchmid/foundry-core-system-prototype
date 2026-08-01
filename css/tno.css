@@ -649,7 +649,6 @@
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(25, 24, 19, 0.3) transparent;
-  --slot-columns: 4;
 }
 .tno .basics-aside .paperdoll,
 .tno .basics-aside .slot-grid-block {

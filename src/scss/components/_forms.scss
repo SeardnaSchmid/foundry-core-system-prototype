@@ -653,12 +653,6 @@
   scrollbar-width: thin;
   scrollbar-color: rgba($c-dark, 0.3) transparent;
 
-  // The Trageslots raster is five columns wide when it has the Inventar tab's
-  // full width; in this column that leaves cells too narrow for an item's icon
-  // and name, so it drops to four. The count is purely a view concern —
-  // `buildSlotGrid` counts slots, not columns — so nothing else moves.
-  --slot-columns: 4;
-
   // Both equipment blocks size their padding for a full-width tab; tighten it
   // here so the armour rows keep room for their RH/RW/RA read-outs.
   .paperdoll,
