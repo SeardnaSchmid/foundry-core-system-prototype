@@ -1,5 +1,24 @@
 # Changelog
 
+# [0.26.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.25.2...v0.26.0) (2026-08-01)
+
+
+### Bug Fixes
+
+* CLAUDE.md großschreiben, damit Claude Code die Regeln lädt ([12334fa](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/12334fa44206d7563f6903dceee80b80ba5a5f05))
+* **sheet:** align skill search field with the filter buttons ([4c18b95](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/4c18b958ff90aae2314e8f7b418b1b9a2f53b6d3))
+
+
+### Features
+
+* **inventory:** drag armour off the doll, brighter slot read-out ([244c333](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/244c333c300c20b09ec0775a72a47449e2112a88))
+* **inventory:** drag-only equipping, sortable carry slots, weapon type ([5e3fc5e](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/5e3fc5e6131c1353dfc1b3fafe0553391c6294ca))
+* **inventory:** drei Zustände für Gegenstände und ein ehrliches Slotraster ([6a07c1f](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/6a07c1fee662b284fd3e1d364e0480334c6e8806))
+* **inventory:** straddling blocks, item self-delete, warning wash ([7cb5968](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/7cb59684cb841d9b8baf7fd3debc52ec436c1827)), closes [#b3212b](https://github.com/SeardnaSchmid/foundry-core-system-prototype/issues/b3212b)
+* **sheet:** drei Zonenzustände auf dem Paperdoll ([43b7de3](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/43b7de3e47c46dfddaca5dac0f8778ef74b2e95b))
+* **sheet:** resizable Basics tab columns with draggable splitter ([570d46a](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/570d46a662ecf0a8c6ecfa34579bdbb9e96e7e0a))
+* **sheet:** Trageslots-Raster und Rüstungs-Paperdoll ([ab92078](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/ab92078fee3f7276eff62825007ddf5e272fd58b))
+
 ## [0.25.2](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.25.1...v0.25.2) (2026-07-30)
 
 
