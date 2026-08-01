@@ -560,14 +560,30 @@ button:focus-visible {
 .skill-search-input {
   flex: 0 0 auto;
   width: 70px;
+  // Foundry core gives text inputs a 32px line-height, which would leave this
+  // field half again as tall as the filter group next to it. Box it by hand
+  // from the same numbers as .skill-filter-btn — a 1.25em line inside 4px of
+  // vertical padding — so the two controls end up exactly the same height.
   height: auto;
   margin: 0;
-  padding: 3px 7px;
+  padding: 4px 7px;
   border: 1px solid $c-beige;
   border-radius: 3px;
   background: transparent;
   font-size: var(--font-size-10, 10px);
-  transition: width 0.15s ease;
+  line-height: 1.25;
+  color: $c-tan;
+  transition: width 0.15s ease, border-color 0.1s ease;
+
+  &::placeholder {
+    color: $c-tan;
+    opacity: 0.5;
+    font-style: italic;
+  }
+
+  &:hover {
+    border-color: $c-tan;
+  }
 
   &:focus {
     width: 150px;

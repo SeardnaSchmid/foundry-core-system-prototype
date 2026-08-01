@@ -1276,12 +1276,22 @@
   width: 70px;
   height: auto;
   margin: 0;
-  padding: 3px 7px;
+  padding: 4px 7px;
   border: 1px solid #b5b3a4;
   border-radius: 3px;
   background: transparent;
   font-size: var(--font-size-10, 10px);
-  transition: width 0.15s ease;
+  line-height: 1.25;
+  color: #444;
+  transition: width 0.15s ease, border-color 0.1s ease;
+}
+.tno .skill-search-input::placeholder {
+  color: #444;
+  opacity: 0.5;
+  font-style: italic;
+}
+.tno .skill-search-input:hover {
+  border-color: #444;
 }
 .tno .skill-search-input:focus {
   width: 150px;
