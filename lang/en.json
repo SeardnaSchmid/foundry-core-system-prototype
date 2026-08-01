@@ -342,7 +342,7 @@
       "SummaryPostMortemNoRefund": "Failure Analysis — no refund · XP forfeited",
       "SummaryRetry": "Retried — 1 edge spent · XP forfeited",
       "PostMortemTitle": "Edge — Failure Analysis",
-      "PostMortemContent": "<p>You try to analyze what went wrong. Succeed, and your edge reserve refills by <strong>1 point</strong>.</p><p><strong>Either way, this failure's XP is forfeited</strong> — the moment you attempt the analysis, that XP is gone, whether you succeed or fail.</p><p>Check with your GM first that this fits: the mechanic is meant only for failures with a <strong>real, noticeable consequence</strong> — not every botched roll in the middle of the fray.</p>"
+      "PostMortemContent": "<p>You try to analyze what went wrong. Succeed, and your edge reserve refills by <strong>1 point</strong>.</p><p><strong>Either way, this failure's XP is forfeited</strong> — the moment you attempt the analysis, that XP is gone, whether you succeed or fail.</p><p><strong>The mechanic is meant only for failures with a real, noticeable consequence.</strong> Check with your GM first that this fits — not every botched roll in the middle of the fray.</p>"
     },
     "Chat": {
       "EdgeSpent": "{name} manually edited the edge reserve: {from}/{max} → {to}/{max}."
@@ -390,7 +390,7 @@
       "FindFlawReroll": "Reroll ({remaining} left)",
       "FindFlawRemaining": "{remaining} of {max} rerolls left",
       "FindFlawSucceeded": "Success!",
-      "FindFlawExhausted": "No luck",
+      "FindFlawExhausted": "No luck — exhausted or frustrated",
       "NewAttemptCounts": "Retried — this result stands",
       "XpClaimed": "Lesson learned: {label} +1",
       "BaseDiceTitle": "Base Dice",

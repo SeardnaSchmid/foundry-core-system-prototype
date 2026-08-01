@@ -37,6 +37,10 @@ Hooks.once('init', function () {
   // Add custom constants for configuration.
   CONFIG.TNO = TNO;
 
+  // Core's default hover delay (500ms) reads as sluggish for a sheet this
+  // dense with data-tooltip attributes; cut it down so tooltips feel snappy.
+  TooltipManager.TOOLTIP_ACTIVATION_MS = 150;
+
   /**
    * The combat tracker rolls exactly what the character sheet's Initiative
    * caption rolls — the derived Initiative value plus 1d10 — by sharing the

@@ -277,7 +277,7 @@
       "MovementWalk": "Bewegungsreichweite (Gehen)",
       "MovementSprint": "Bewegungsreichweite (Sprinten)",
       "MovementCrawl": "Bewegungsreichweite (Kriechen)",
-      "CarrySlots": "Trageslots",
+      "CarrySlots": "Inventarslots",
       "SixthSense": "Sechster Sinn",
       "Insight": "Edge: Ideen Bonus",
       "TrialError": "Edge: Trial & error",
@@ -290,7 +290,7 @@
       "MovementWalk": "Gehen",
       "MovementSprint": "Sprint",
       "MovementCrawl": "Kriechen",
-      "CarrySlots": "Trageslots",
+      "CarrySlots": "Inventarslots",
       "SixthSense": "6. Sinn",
       "Insight": "Ideen Bonus",
       "TrialError": "Max Wiederholen",
@@ -304,8 +304,8 @@
       "MovementSprint": "3×Beweglichkeit",
       "MovementCrawl": "1",
       "CarrySlots": "2×Stärke+Beweglichkeit",
-      "NoSprint": "Kein Sprint — entweder ist die Hälfte der Trageslots belegt oder die Beweglichkeit ist beschädigt.",
-      "CrawlOnly": "Nur noch Kriechen — alle Trageslots sind belegt.",
+      "NoSprint": "Kein Sprint — entweder ist die Hälfte der Inventarslots belegt oder die Beweglichkeit ist beschädigt.",
+      "CrawlOnly": "Nur noch Kriechen — alle Inventarslots sind belegt.",
       "SixthSense": "(Sinnesschärfe+Menschenkenntnis+Untersuchen)/3",
       "Insight": "Gib 1 Edge-Punkt aus, um diesen Wert zu deinem Wurfergebnis zu addieren. Wert: (Intelligenz+Wissen)/2, aufgerundet.",
       "TrialError": "Kostenlos nutzbar, für bis zu so viele Wiederholungen wie diesen Wert (nur ohne Zeitdruck). Wert: (Intelligenz+Willenskraft)/2, aufgerundet.",
@@ -342,7 +342,7 @@
       "SummaryPostMortemNoRefund": "Fehler Analyse — keine Rückerstattung · XP verwirkt",
       "SummaryRetry": "Neuer Versuch — 1 Edge ausgegeben · XP verwirkt",
       "PostMortemTitle": "Edge — Fehler Analyse",
-      "PostMortemContent": "<p>Du versuchst zu analysieren, was schiefgelaufen ist. Gelingt der Wurf, füllt sich dein Edge-Vorrat um <strong>1 Punkt</strong> auf.</p><p><strong>So oder so verwirkst du die XP</strong> dieses Fehlschlags — sobald du die Analyse versuchst, ist die XP weg, egal ob du erfolgreich bist oder nicht.</p><p>Kläre vorher mit deinem Spielleiter ab, ob das hier passt: Die Mechanik ist nur gedacht für Fehlschläge mit einer <strong>echten, spürbaren Konsequenz</strong> — nicht für jeden verpatzten Wurf mitten im Getümmel.</p>"
+      "PostMortemContent": "<p>Du versuchst zu analysieren, was schiefgelaufen ist. Gelingt der Wurf, füllt sich dein Edge-Vorrat um <strong>1 Punkt</strong> auf.</p><p><strong>So oder so verwirkst du die XP</strong> dieses Fehlschlags — sobald du die Analyse versuchst, ist die XP weg, egal ob du erfolgreich bist oder nicht.</p><p><strong>Die Mechanik ist nur für Fehlschläge mit echten, spürbaren Konsequenzen gedacht.</strong> Kläre vorher mit deinem Spielleiter ab, ob die Situation passt — nicht für jeden verpatzten Wurf mitten im Getümmel.</p>"
     },
     "Chat": {
       "EdgeSpent": "{name} hat den Edge-Vorrat manuell bearbeitet: {from}/{max} → {to}/{max}."
@@ -390,7 +390,7 @@
       "FindFlawReroll": "Nochmal würfeln ({remaining} übrig)",
       "FindFlawRemaining": "Noch {remaining} von {max} Wiederholungen übrig",
       "FindFlawSucceeded": "Erfolg!",
-      "FindFlawExhausted": "Kein Glück",
+      "FindFlawExhausted": "Kein Glück — erschöpft oder frustriert",
       "NewAttemptCounts": "Neuer Versuch — dieses Ergebnis zählt",
       "XpClaimed": "Lehrgeld: {label} +1",
       "BaseDiceTitle": "Basiswürfel",
@@ -419,13 +419,13 @@
     },
     "TabEffects": "Effekte",
     "Armor": {
-      "WornTitle": "Am Leib",
+      "WornTitle": "Inventar & Ausrüstung",
       "Zones": "Rüstungszonen",
       "FigureAlt": "Silhouette mit hervorgehobenen Rüstungszonen",
       "Values": "Rüstungswerte",
       "Empty": "leer",
       "Unequip": "Ablegen",
-      "DropHint": "Rüstung aus den Trageslots hierher ziehen, um sie anzulegen.",
+      "DropHint": "Rüstung aus den Inventarslots hierher ziehen, um sie anzulegen.",
       "WrongZone": "{item} ist Rüstung für die Stelle {zone}.",
       "Sv": "Stärkevorraussetzung (SV)",
       "SvHint": "Unter dieser Stärke erhält jeder Beweglichkeitswurf eine Malusstufe.",
@@ -452,7 +452,7 @@
       }
     },
     "Inventory": {
-      "CarrySlots": "Trageslots",
+      "CarrySlots": "Inventarslots",
       "Slots": "Inventarslots",
       "Quantity": "Menge",
       "SlotsHint": "0 Krimskrams · 1 klein · 2 mittel · 3 groß · 4 rucksackgroß",
@@ -469,7 +469,7 @@
       "Trinkets": "Ohne Slot",
       "TrinketsHint": "Geld, Papiere und Krimskrams kosten keine Inventarslots.",
       "Overflow": "Überlast: {excess} Slot(s) mehr, als der Charakter tragen kann.",
-      "OverflowHint": "Passt nicht mehr in die Trageslots — kostet Bewegung.",
+      "OverflowHint": "Passt nicht mehr in die Inventarslots — kostet Bewegung.",
       "Carried": "Mitgeführt",
       "Stowed": "Verstaut",
       "Worn": "Getragen",
@@ -494,7 +494,7 @@
       "FieldsHint": "Vorerst Freitext: die Waffenregeln sind noch nicht geschrieben, hier wird also nichts gewürfelt oder gerechnet.",
       "Pending": "noch nicht umgesetzt",
       "PendingHint": "Den Item-Typ „Waffe“ gibt es, aber wie eine Waffe bereitgemacht wird, ist als Regelfrage offen — deshalb steht hier noch nichts. Der Block hält seinen Platz im Layout frei.",
-      "EmptyHint": "Eine Waffe ist vorerst mitgeführte Ausrüstung wie jede andere: sie steht oben in den Trageslots und im Inventar-Tab."
+      "EmptyHint": "Eine Waffe ist vorerst mitgeführte Ausrüstung wie jede andere: sie steht oben in den Inventarslots und im Inventar-Tab."
     }
   },
 
