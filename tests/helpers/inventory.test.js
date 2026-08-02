@@ -4,7 +4,6 @@ import {
   resolveArmor,
   itemSlotCost,
   buildSlotGrid,
-  isStowed,
   CARRY_THRESHOLDS,
 } from '../../module/helpers/inventory.mjs';
 
@@ -13,9 +12,6 @@ const gear = (_id, slots, quantity = 1) => ({ _id, type: 'item', system: { slots
 
 /** Shorthand for an armour piece. */
 const armor = (_id, system) => ({ _id, type: 'armor', system: { quantity: 1, ...system } });
-
-/** Take an item off the character without removing it from their list. */
-const stowed = (item) => ({ ...item, system: { ...item.system, carried: false } });
 
 describe('itemSlotCost', () => {
   it('multiplies slots by quantity', () => {
@@ -43,6 +39,17 @@ describe('itemSlotCost', () => {
 
   it('still lets ordinary gear be a zero-slot trinket', () => {
     expect(itemSlotCost(gear('coin', 0))).toBe(0);
+  });
+
+  // The floor follows the armour *role*, not the legacy item type, so a plain
+  // item that has taken the role on is held to it too.
+  it('applies the floor to anything wearing the armour role', () => {
+    const bracer = { _id: 'bracer', type: 'item', system: { roles: { armor: true }, slots: 0 } };
+    expect(itemSlotCost(bracer)).toBe(1);
+  });
+
+  it('still recognises armour authored before roles existed', () => {
+    expect(itemSlotCost({ _id: 'old', type: 'armor', system: { slots: 0 } })).toBe(1);
   });
 });
 
@@ -193,35 +200,6 @@ describe('buildSlotGrid', () => {
     expect(trinkets.map((t) => t._id)).toEqual(['coin']);
   });
 
-  it('omits stowed gear from the grid and its trinkets', () => {
-    const items = [stowed(gear('a', 2)), stowed(gear('coin', 0)), gear('b', 1)];
-    const { blocks, trinkets } = buildSlotGrid(items, {}, 10);
-    expect(blocks.map((b) => b.item._id)).toEqual(['b']);
-    expect(trinkets).toEqual([]);
-  });
-});
-
-describe('stowed gear', () => {
-  it('costs no slots', () => {
-    expect(computeCarry([stowed(gear('a', 4)), gear('b', 1)], {}, true, 10).used).toBe(1);
-  });
-
-  it('is reported as stowed only when the flag is explicitly false', () => {
-    expect(isStowed(stowed(gear('a', 1)))).toBe(true);
-    expect(isStowed(gear('a', 1))).toBe(false);
-  });
-
-  it('keeps counting for items authored before the flag existed', () => {
-    // No `carried` key at all — the pre-flag shape — must behave exactly as it
-    // always did, which is what lets this ship without a migration step.
-    const legacy = { _id: 'old', type: 'item', system: { slots: 3, quantity: 1 } };
-    expect(computeCarry([legacy], {}, true, 10).used).toBe(3);
-  });
-
-  it('stows armour as readily as gear', () => {
-    const items = [stowed(armor('helm', { slots: 2 }))];
-    expect(computeCarry(items, {}, true, 10).used).toBe(0);
-  });
 });
 
 describe('resolveArmor', () => {

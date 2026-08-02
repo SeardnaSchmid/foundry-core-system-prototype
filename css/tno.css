@@ -1747,7 +1747,7 @@
 }
 .tno .items-list .item-controls {
   display: flex;
-  flex: 0 0 130px;
+  flex: 0 0 100px;
   justify-content: flex-end;
   align-items: center;
 }
@@ -1761,10 +1761,6 @@
   font-size: 12px;
   color: #b5b3a4;
   cursor: help;
-}
-.tno .items-list .item-stowed .item-name,
-.tno .items-list .item-stowed .item-formula {
-  opacity: 0.55;
 }
 .tno .items-list .item {
   align-items: center;
@@ -1807,9 +1803,1124 @@
   padding-left: 5px;
   text-align: left;
 }
-.tno .item-formula {
+.tno .item-roles {
   flex: 0 0 200px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
   padding: 0 8px;
+  overflow: hidden;
+}
+.tno .item-roles .item-role-tag {
+  padding: 1px 7px;
+  border: 1px solid #b5b3a4;
+  border-radius: 20px;
+  font-size: 10px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.tno.gear-dialog .chip,
+.tno.gear-dialog .use-segment,
+.tno.gear-dialog .scale-cell,
+.tno.gear-dialog .stepper-button,
+.tno.gear-dialog .gear-mode,
+.tno.gear-dialog [data-missing-field],
+.tno.gear-dialog .overview-badge.warning {
+  width: auto;
+  min-height: 0;
+  margin: 0;
+  font-family: inherit;
+  box-shadow: none;
+}
+.tno.gear-dialog .window-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+.tno.gear-dialog {
+  /* ---------------------------------------------- Head */
+}
+.tno.gear-dialog .gear-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #191813;
+}
+.tno.gear-dialog .gear-head .profile-img {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border: 1px solid #b5b3a4;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.tno.gear-dialog .gear-head .gear-name {
+  flex: 1;
+  height: 28px;
+  min-width: 0;
+  padding: 0 2px;
+  border: none;
+  background: transparent;
+  font-family: "Roboto", sans-serif;
+  font-size: 16px;
+  font-weight: bold;
+  transition: box-shadow 0.15s ease;
+}
+.tno.gear-dialog .gear-head .gear-name:hover {
+  box-shadow: inset 0 -1px 0 #b5b3a4;
+}
+.tno.gear-dialog .gear-head .gear-name:focus {
+  box-shadow: inset 0 -2px 0 #444;
+  outline: none;
+}
+.tno.gear-dialog .gear-head .gear-name.is-missing {
+  box-shadow: inset 0 -2px 0 #b3212b;
+}
+.tno.gear-dialog .gear-head .gear-keyhint {
+  flex: none;
+  font-size: 9px;
+  color: rgba(25, 24, 19, 0.5);
+  white-space: nowrap;
+}
+.tno.gear-dialog .gear-head .gear-title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: 18px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tno.gear-dialog .gear-head .gear-modes {
+  flex: none;
+  display: flex;
+  padding: 2px;
+  border: 1px solid rgba(181, 179, 164, 0.8);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.45);
+}
+.tno.gear-dialog .gear-head .gear-modes .gear-mode {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: rgba(25, 24, 19, 0.65);
+  font-size: 10px;
+}
+.tno.gear-dialog .gear-head .gear-modes .gear-mode[aria-pressed=true] {
+  background: #191813;
+  color: #fff;
+}
+.tno.gear-dialog {
+  /* ---------------------------------------------- Rows */
+}
+.tno.gear-dialog .gear-rows {
+  display: flex;
+  flex-direction: column;
+}
+.tno.gear-dialog .gear-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(181, 179, 164, 0.6);
+}
+.tno.gear-dialog .gear-row:last-child {
+  border-bottom: none;
+}
+.tno.gear-dialog .gear-row.gear-row-top {
+  align-items: flex-start;
+}
+.tno.gear-dialog .gear-row.gear-row-top .gear-label {
+  padding-top: 4px;
+}
+.tno.gear-dialog .gear-row.is-missing > .gear-label {
+  color: #b3212b;
+}
+.tno.gear-dialog .gear-label {
+  flex: 0 0 96px;
+  width: 96px;
+  font-size: 10px;
+  line-height: 1.2;
+  color: rgba(25, 24, 19, 0.6);
+}
+.tno.gear-dialog .gear-ctl {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.tno.gear-dialog {
+  /* ---------------------------------------------- Fields */
+}
+.tno.gear-dialog .field {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  height: 24px;
+  padding: 0 6px;
+  border: 1px solid #191813;
+  border-radius: 4px;
+  background: #fff;
+  overflow: hidden;
+}
+.tno.gear-dialog .field .cap {
+  flex: 0 1 auto;
+  font-size: 8px;
+  letter-spacing: 0.04em;
+  color: rgba(25, 24, 19, 0.55);
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.tno.gear-dialog .field .val {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tno.gear-dialog .field .unit {
+  flex: none;
+  padding: 0 6px 0 3px;
+  font-size: 10px;
+  color: rgba(25, 24, 19, 0.65);
+}
+.tno.gear-dialog .field input,
+.tno.gear-dialog .field select {
+  min-width: 0;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: #191813;
+  font-variant-numeric: tabular-nums;
+}
+.tno.gear-dialog .field input[type=number],
+.tno.gear-dialog .field select[type=number] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.tno.gear-dialog .field input[type=number]::-webkit-inner-spin-button, .tno.gear-dialog .field input[type=number]::-webkit-outer-spin-button,
+.tno.gear-dialog .field select[type=number]::-webkit-inner-spin-button,
+.tno.gear-dialog .field select[type=number]::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+.tno.gear-dialog .field input,
+.tno.gear-dialog .field select {
+  flex: 1;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  text-align: right;
+}
+.tno.gear-dialog .field input:focus,
+.tno.gear-dialog .field select:focus {
+  outline: none;
+  box-shadow: none;
+}
+.tno.gear-dialog .field > .cap + input,
+.tno.gear-dialog .field > .cap + select,
+.tno.gear-dialog .field > select + input {
+  border-left: 1px solid rgba(181, 179, 164, 0.55);
+  padding-left: 5px;
+}
+.tno.gear-dialog .field > input:focus,
+.tno.gear-dialog .field > select:focus {
+  background: rgba(47, 107, 255, 0.06);
+}
+.tno.gear-dialog .field select {
+  text-align: left;
+}
+.tno.gear-dialog .field:focus-within {
+  border-color: #2f6bff;
+}
+.tno.gear-dialog .field.is-missing {
+  border-color: #b3212b;
+}
+.tno.gear-dialog .field.field-wide {
+  flex: 2;
+}
+.tno.gear-dialog .field.field-wide input {
+  text-align: left;
+}
+.tno.gear-dialog .field.field-fv {
+  flex: 2.8;
+}
+.tno.gear-dialog .field.field-fv select {
+  flex: 1;
+}
+.tno.gear-dialog .field.field-fv .rank {
+  flex: 0 0 28px;
+  text-align: center;
+}
+.tno.gear-dialog .field.na {
+  border-style: dashed;
+  border-color: #b5b3a4;
+  background: repeating-linear-gradient(45deg, rgba(181, 179, 164, 0.25) 0 5px, transparent 5px 10px);
+}
+.tno.gear-dialog .field.na .val {
+  font-size: 10px;
+  font-style: italic;
+  color: rgba(25, 24, 19, 0.45);
+}
+.tno.gear-dialog .field.slot-readout .val {
+  font-style: normal;
+}
+.tno.gear-dialog .split {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  height: 24px;
+  border: 1px solid #191813;
+  border-radius: 4px;
+  background: #fff;
+  overflow: hidden;
+}
+.tno.gear-dialog .split .cap {
+  flex: none;
+  padding: 0 5px;
+  font-size: 8px;
+  color: rgba(25, 24, 19, 0.55);
+  text-transform: uppercase;
+}
+.tno.gear-dialog .split .unit {
+  flex: none;
+  padding: 0 7px;
+  border-left: 1px solid rgba(181, 179, 164, 0.8);
+  font-size: 10px;
+  color: rgba(25, 24, 19, 0.65);
+}
+.tno.gear-dialog .split input,
+.tno.gear-dialog .split select {
+  min-width: 0;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: #191813;
+  font-variant-numeric: tabular-nums;
+}
+.tno.gear-dialog .split input[type=number],
+.tno.gear-dialog .split select[type=number] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.tno.gear-dialog .split input[type=number]::-webkit-inner-spin-button, .tno.gear-dialog .split input[type=number]::-webkit-outer-spin-button,
+.tno.gear-dialog .split select[type=number]::-webkit-inner-spin-button,
+.tno.gear-dialog .split select[type=number]::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+.tno.gear-dialog .split input,
+.tno.gear-dialog .split select {
+  flex: 1;
+  height: 100%;
+  padding: 0 4px;
+  border: none;
+  border-left: 1px solid rgba(181, 179, 164, 0.8);
+  background: transparent;
+  font-size: 12px;
+  text-align: center;
+}
+.tno.gear-dialog .split input:focus,
+.tno.gear-dialog .split select:focus {
+  outline: none;
+  background: rgba(47, 107, 255, 0.06);
+}
+.tno.gear-dialog .split:focus-within {
+  border-color: #2f6bff;
+}
+.tno.gear-dialog .stepper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  height: 24px;
+  border: 1px solid #191813;
+  border-radius: 4px;
+  background: #fff;
+  overflow: hidden;
+}
+.tno.gear-dialog .stepper .cap {
+  flex: none;
+  padding: 0 5px;
+  font-size: 8px;
+  color: rgba(25, 24, 19, 0.55);
+  text-transform: uppercase;
+}
+.tno.gear-dialog .stepper input {
+  min-width: 0;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: #191813;
+  font-variant-numeric: tabular-nums;
+}
+.tno.gear-dialog .stepper input[type=number] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.tno.gear-dialog .stepper input[type=number]::-webkit-inner-spin-button, .tno.gear-dialog .stepper input[type=number]::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+.tno.gear-dialog .stepper input {
+  flex: 1;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  text-align: center;
+}
+.tno.gear-dialog .stepper input:focus {
+  outline: none;
+  background: rgba(47, 107, 255, 0.06);
+}
+.tno.gear-dialog .stepper .stepper-button {
+  flex: 0 0 20px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px solid rgba(181, 179, 164, 0.8);
+  font-size: 12px;
+  line-height: 1;
+  color: rgba(25, 24, 19, 0.7);
+  cursor: pointer;
+}
+.tno.gear-dialog .stepper .stepper-button:first-child {
+  border-left: none;
+  border-right: 1px solid rgba(181, 179, 164, 0.8);
+}
+.tno.gear-dialog .stepper .stepper-button:hover {
+  background: rgba(181, 179, 164, 0.4);
+  color: #191813;
+}
+.tno.gear-dialog .stepper:focus-within {
+  border-color: #2f6bff;
+}
+.tno.gear-dialog .coverage-bar {
+  flex: 1;
+  height: 6px;
+  border: 1px solid #191813;
+  border-radius: 4px;
+  background: linear-gradient(to right, #191813 0 var(--coverage, 0%), transparent var(--coverage, 0%));
+}
+.tno.gear-dialog {
+  /* ---------------------------------------------- Choices */
+}
+.tno.gear-dialog .chips {
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.tno.gear-dialog .chip {
+  background: transparent;
+  padding: 4px 9px;
+  border: 1px solid #b5b3a4;
+  border-radius: 20px;
+  font-size: 10px;
+  line-height: 1;
+  color: rgba(25, 24, 19, 0.6);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tno.gear-dialog .chip:hover {
+  border-color: #191813;
+  color: #191813;
+}
+.tno.gear-dialog .chip[aria-pressed=true], .tno.gear-dialog .chip[aria-checked=true] {
+  border-color: #191813;
+  background: #191813;
+  color: #fff;
+}
+.tno.gear-dialog .segments {
+  display: flex;
+  border: 1px solid #191813;
+  border-radius: 5px;
+  overflow: hidden;
+}
+.tno.gear-dialog .segments .use-segment {
+  flex: 1;
+  padding: 4px 0;
+  border-left: 1px solid #191813;
+  font-size: 10px;
+  line-height: 1.4;
+  text-align: center;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.tno.gear-dialog .segments .use-segment:first-child {
+  border-left: none;
+}
+.tno.gear-dialog .segments .use-segment:hover {
+  background: rgba(181, 179, 164, 0.4);
+}
+.tno.gear-dialog .segments .use-segment[aria-checked=true] {
+  background: #191813;
+  color: #fff;
+}
+.tno.gear-dialog .scale {
+  gap: 3px;
+}
+.tno.gear-dialog .scale .scale-cell {
+  flex: 1;
+  min-width: 0;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #191813;
+  border-radius: 4px;
+  background: #fff;
+  font-size: 10px;
+  cursor: pointer;
+}
+.tno.gear-dialog .scale .scale-cell:hover {
+  background: rgba(181, 179, 164, 0.4);
+}
+.tno.gear-dialog .scale .scale-cell[aria-checked=true] {
+  background: #191813;
+  color: #fff;
+}
+.tno.gear-dialog .scale .scale-cell:focus-visible {
+  outline: 2px solid #2f6bff;
+  outline-offset: 1px;
+}
+.tno.gear-dialog .stack {
+  gap: 4px;
+}
+.tno.gear-dialog .stack .stack-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+.tno.gear-dialog .stack .stack-field input {
+  min-width: 0;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: #191813;
+  font-variant-numeric: tabular-nums;
+}
+.tno.gear-dialog .stack .stack-field input[type=number] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.tno.gear-dialog .stack .stack-field input[type=number]::-webkit-inner-spin-button, .tno.gear-dialog .stack .stack-field input[type=number]::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+.tno.gear-dialog .stack .stack-field input {
+  width: 100%;
+  height: 24px;
+  padding: 0;
+  border: 1px solid #191813;
+  border-radius: 4px;
+  background: #fff;
+  font-size: 11px;
+  text-align: center;
+}
+.tno.gear-dialog .stack .stack-field input:focus {
+  border-color: #2f6bff;
+  background: rgba(47, 107, 255, 0.06);
+  outline: none;
+}
+.tno.gear-dialog .stack .stack-field .cap {
+  font-size: 8px;
+  color: rgba(25, 24, 19, 0.55);
+  text-transform: uppercase;
+}
+.tno.gear-dialog {
+  /* ---------------------------------------------- Blocks */
+  /* ---------------------------------------------- Overview */
+}
+.tno.gear-dialog .gear-overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+  padding: 4px 0 2px;
+}
+.tno.gear-dialog .overview-badges,
+.tno.gear-dialog .overview-wide {
+  grid-column: 1/-1;
+}
+.tno.gear-dialog .overview-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 4px;
+}
+.tno.gear-dialog .overview-actions > button,
+.tno.gear-dialog .overview-actions .overview-ammo {
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 5px 9px;
+  border: 1px solid rgba(25, 24, 19, 0.65);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.55);
+  color: #191813;
+  font-family: inherit;
+  font-size: 10px;
+}
+.tno.gear-dialog .overview-actions > button:hover:not(:disabled),
+.tno.gear-dialog .overview-actions .overview-ammo:hover:not(:disabled) {
+  background: rgba(181, 179, 164, 0.35);
+}
+.tno.gear-dialog .overview-actions > button:disabled,
+.tno.gear-dialog .overview-actions .overview-ammo:disabled {
+  opacity: 0.45;
+}
+.tno.gear-dialog .overview-actions .overview-ammo {
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.tno.gear-dialog .overview-actions .overview-ammo strong {
+  min-width: 30px;
+  text-align: center;
+}
+.tno.gear-dialog .overview-actions .overview-ammo .stepper-button {
+  width: 26px;
+  height: 27px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+.tno.gear-dialog .overview-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.tno.gear-dialog .overview-badge {
+  padding: 3px 8px;
+  border: 1px solid rgba(181, 179, 164, 0.85);
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.5);
+  color: rgba(25, 24, 19, 0.7);
+  font-size: 9px;
+}
+.tno.gear-dialog .overview-badge.role {
+  border-color: #191813;
+  color: #191813;
+}
+.tno.gear-dialog .overview-badge.state.worn, .tno.gear-dialog .overview-badge.state.carried {
+  background: rgba(47, 107, 255, 0.09);
+}
+.tno.gear-dialog .overview-badge.warning {
+  border-color: #b3212b;
+  background: rgba(179, 33, 43, 0.08);
+  color: #b3212b;
+  cursor: pointer;
+}
+.tno.gear-dialog .overview-card {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(181, 179, 164, 0.75);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.38);
+}
+.tno.gear-dialog .overview-card > header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(181, 179, 164, 0.55);
+}
+.tno.gear-dialog .overview-card > header h2 {
+  margin: 0;
+  font-size: 13px;
+}
+.tno.gear-dialog .overview-card > header span,
+.tno.gear-dialog .overview-card > header strong {
+  color: rgba(25, 24, 19, 0.58);
+  font-size: 10px;
+  font-weight: normal;
+}
+.tno.gear-dialog .overview-card p {
+  margin: 5px 0;
+}
+.tno.gear-dialog .overview-empty,
+.tno.gear-dialog .overview-note,
+.tno.gear-dialog .overview-card small {
+  color: rgba(25, 24, 19, 0.5);
+  font-size: 9px;
+}
+.tno.gear-dialog .range-chart {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+  height: 92px;
+  padding-top: 4px;
+}
+.tno.gear-dialog .range-cycle > .range-band {
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr auto auto;
+  align-items: end;
+  min-width: 0;
+  text-align: center;
+}
+.tno.gear-dialog .range-cycle > .range-band::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  border-top: 1px solid rgba(25, 24, 19, 0.3);
+}
+.tno.gear-dialog .range-cycle > .range-band .range-bar {
+  z-index: 1;
+  justify-self: stretch;
+  height: var(--magnitude);
+  max-height: 35px;
+  margin: 0 4px 2px;
+  border-radius: 4px 4px 0 0;
+  background: rgba(25, 24, 19, 0.28);
+}
+.tno.gear-dialog .range-cycle > .range-band.positive .range-bar {
+  background: rgba(62, 126, 55, 0.65);
+}
+.tno.gear-dialog .range-cycle > .range-band.negative .range-bar {
+  background: rgba(179, 33, 43, 0.58);
+  transform: translateY(34px);
+}
+.tno.gear-dialog .range-cycle > .range-band.unavailable .range-bar {
+  height: 3px;
+  background: rgba(25, 24, 19, 0.15);
+}
+.tno.gear-dialog .range-cycle > .range-band strong,
+.tno.gear-dialog .range-cycle > .range-band small {
+  z-index: 2;
+}
+.tno.gear-dialog .range-cycle > .range-band strong {
+  font-size: 11px;
+}
+.tno.gear-dialog .range-cycle > .range-band small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tno.gear-dialog .penetration-axis {
+  display: flex;
+  gap: 4px;
+  min-height: 42px;
+}
+.tno.gear-dialog .penetration-segment {
+  flex: var(--segment-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  border-radius: 6px;
+  background: rgba(25, 24, 19, 0.1);
+  font-size: 10px;
+}
+.tno.gear-dialog .penetration-segment.equal {
+  flex-grow: 1;
+  background: rgba(47, 107, 255, 0.18);
+  font-weight: bold;
+}
+.tno.gear-dialog .overview-scale {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+.tno.gear-dialog .overview-scale-cell {
+  padding: 6px 0;
+  border-radius: 4px;
+  background: rgba(25, 24, 19, 0.08);
+  font-size: 10px;
+  text-align: center;
+}
+.tno.gear-dialog .overview-scale-cell[aria-current=true] {
+  background: #191813;
+  color: #fff;
+}
+.tno.gear-dialog .stat-summary dl,
+.tno.gear-dialog .armor-values {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5px;
+  margin: 0;
+}
+.tno.gear-dialog .stat-summary dl div,
+.tno.gear-dialog .armor-values div {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.55);
+}
+.tno.gear-dialog .stat-summary dl dt,
+.tno.gear-dialog .armor-values dt {
+  color: rgba(25, 24, 19, 0.5);
+  font-size: 9px;
+}
+.tno.gear-dialog .stat-summary dl dd,
+.tno.gear-dialog .armor-values dd {
+  margin: 0;
+  font-size: 10px;
+}
+.tno.gear-dialog .armor-zone-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 9px;
+}
+.tno.gear-dialog .armor-zone-summary span {
+  display: flex;
+  gap: 5px;
+  padding: 4px 7px;
+  border-radius: 4px;
+  background: rgba(47, 107, 255, 0.1);
+  font-size: 10px;
+}
+.tno.gear-dialog .armor-values {
+  grid-template-columns: repeat(3, 1fr);
+}
+.tno.gear-dialog .overview-coverage {
+  display: block;
+  height: 6px;
+  margin-top: 8px;
+  border-radius: 5px;
+  background: rgba(25, 24, 19, 0.12);
+  overflow: hidden;
+}
+.tno.gear-dialog .overview-coverage i {
+  display: block;
+  width: var(--coverage);
+  height: 100%;
+  background: #191813;
+}
+.tno.gear-dialog .slot-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.tno.gear-dialog .slot-preview span,
+.tno.gear-dialog .slot-preview b {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+  background: rgba(47, 107, 255, 0.32);
+  font-size: 9px;
+}
+.tno.gear-dialog .strength-profile.unmet {
+  border-color: rgba(179, 33, 43, 0.6);
+}
+.tno.gear-dialog .overview-description {
+  min-height: 44px;
+  max-height: 180px;
+  line-height: 1.45;
+  overflow-y: auto;
+}
+.tno.gear-dialog .overview-description > :first-child {
+  margin-top: 0;
+}
+.tno.gear-dialog .overview-description > :last-child {
+  margin-bottom: 0;
+}
+.tno.gear-dialog .memo-wrap {
+  flex: 1;
+  min-width: 0;
+}
+.tno.gear-dialog .memo {
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+  height: 240px;
+  max-height: 70vh;
+  border: 1px solid #b5b3a4;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.9);
+  overflow: hidden;
+  resize: vertical;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.tno.gear-dialog .memo:hover {
+  border-color: rgba(25, 24, 19, 0.65);
+}
+.tno.gear-dialog .memo:focus-within {
+  border-color: #2f6bff;
+  box-shadow: 0 0 0 1px rgba(47, 107, 255, 0.18);
+}
+.tno.gear-dialog .memo .editor-menu {
+  flex: 0 0 auto;
+  min-height: 32px;
+  padding: 3px 7px;
+  border-bottom: 1px solid rgba(181, 179, 164, 0.65);
+  background: rgba(181, 179, 164, 0.18);
+}
+.tno.gear-dialog .memo .editor-content {
+  flex: 1;
+  min-height: 150px;
+  padding: 9px 11px;
+  background: rgba(255, 255, 255, 0.72);
+  line-height: 1.45;
+  cursor: text;
+  overflow-y: auto;
+}
+.tno.gear-dialog .memo .ProseMirror {
+  min-height: 142px;
+}
+.tno.gear-dialog .memo .ProseMirror:focus {
+  outline: none;
+}
+.tno.gear-dialog .memo-help {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  margin: 5px 2px 0;
+  font-size: 9px;
+  line-height: 1.35;
+  color: rgba(25, 24, 19, 0.5);
+}
+.tno.gear-dialog .memo-help i {
+  flex: none;
+  font-size: 9px;
+}
+.tno.gear-dialog .gear-hint {
+  margin: 0 0 8px 106px;
+  font-size: 10px;
+  font-style: italic;
+  color: rgba(25, 24, 19, 0.55);
+}
+.tno.gear-dialog .gear-section-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  color: rgba(25, 24, 19, 0.55);
+  font-size: 9px;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.tno.gear-dialog .gear-section-divider::before, .tno.gear-dialog .gear-section-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(25, 24, 19, 0.28);
+}
+.tno.gear-dialog .gear-property-group {
+  display: flex;
+  flex-direction: column;
+  margin: 8px 0;
+  padding: 0 10px 2px;
+  border: 1px solid rgba(181, 179, 164, 0.72);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.2);
+}
+.tno.gear-dialog .gear-property-group .gear-section-divider {
+  margin-top: -6px;
+}
+.tno.gear-dialog .gear-property-group .gear-section-divider span {
+  padding: 0 7px;
+  background: #fff;
+}
+.tno.gear-dialog .gear-property-group .gear-row:last-child {
+  border-bottom: none;
+}
+.tno.gear-dialog .gear-property-group .field-price {
+  flex: 0 1 180px;
+}
+.tno.gear-dialog .range-cycle {
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.tno.gear-dialog .range-cycle > .range-band {
+  flex: 1;
+  min-width: 0;
+  height: 62px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  margin: 0;
+  border: 1px solid rgba(25, 24, 19, 0.35);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: none;
+}
+.tno.gear-dialog .range-cycle > .range-band strong {
+  font-size: 12px;
+  line-height: 1;
+}
+.tno.gear-dialog .range-cycle > .range-band > span:last-child {
+  font-size: 9px;
+  color: rgba(25, 24, 19, 0.65);
+}
+.tno.gear-dialog .range-cycle > .range-band.negative {
+  color: #b3212b;
+  background: rgba(179, 33, 43, 0.08);
+}
+.tno.gear-dialog .range-cycle > .range-band.positive {
+  color: #2f6bff;
+  background: rgba(47, 107, 255, 0.1);
+}
+.tno.gear-dialog .range-cycle > .range-band.unavailable {
+  color: rgba(25, 24, 19, 0.45);
+  background: rgba(25, 24, 19, 0.06);
+}
+.tno.gear-dialog .range-cycle > .range-band .range-visual {
+  position: relative;
+  width: 70%;
+  height: 18px;
+}
+.tno.gear-dialog .range-cycle > .range-band .range-visual::before {
+  content: "";
+  position: absolute;
+  inset: 50% 0 auto;
+  border-top: 1px solid rgba(25, 24, 19, 0.25);
+}
+.tno.gear-dialog .range-cycle > .range-band .range-visual i {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  top: 50%;
+  border-top: 3px solid rgba(25, 24, 19, 0.65);
+  transform: translateY(-50%);
+}
+.tno.gear-dialog .range-cycle > .range-band.negative .range-visual i {
+  top: 82%;
+  border-color: #b3212b;
+}
+.tno.gear-dialog .range-cycle > .range-band.positive .range-visual i {
+  top: 18%;
+  border-color: #2f6bff;
+}
+.tno.gear-dialog .range-cycle > .range-band.unavailable .range-visual i {
+  border-top-style: dashed;
+  border-color: rgba(25, 24, 19, 0.35);
+}
+.tno.gear-dialog .range-help {
+  flex: 0 0 100%;
+  margin: 3px 2px 0;
+  font-size: 9px;
+  line-height: 1.35;
+  color: rgba(25, 24, 19, 0.58);
+}
+.tno.gear-dialog .consumable-effects {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+.tno.gear-dialog .consumable-effect {
+  display: flex;
+  align-items: stretch;
+  gap: 5px;
+}
+.tno.gear-dialog .consumable-effect textarea {
+  flex: 1;
+  min-height: 58px;
+  resize: vertical;
+}
+.tno.gear-dialog .consumable-effect button {
+  flex: 0 0 32px;
+  width: 32px;
+  margin: 0;
+  color: #b3212b;
+}
+.tno.gear-dialog .consumable-effect-add {
+  align-self: flex-start;
+  width: auto;
+  margin: 0;
+  padding: 4px 9px;
+}
+.tno.gear-dialog .empty-effect {
+  margin: 2px 0;
+  color: rgba(25, 24, 19, 0.55);
+  font-size: 10px;
+  font-style: italic;
+}
+.tno.gear-dialog {
+  /* ---------------------------------------------- Foot */
+}
+.tno.gear-dialog .gear-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 2px solid #191813;
+}
+.tno.gear-dialog .gear-foot .gear-validation {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.tno.gear-dialog .gear-foot .gear-status {
+  flex: 1;
+  cursor: pointer;
+  font-size: 10px;
+  color: rgba(25, 24, 19, 0.55);
+}
+.tno.gear-dialog .gear-foot .gear-status.is-missing {
+  color: #b3212b;
+}
+.tno.gear-dialog .gear-foot .missing-fields {
+  position: absolute;
+  z-index: 5;
+  bottom: calc(100% + 6px);
+  left: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: min(420px, 80vw);
+  padding: 8px;
+  border: 1px solid #b5b3a4;
+  border-radius: 5px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(25, 24, 19, 0.18);
+}
+.tno.gear-dialog .gear-foot .missing-fields span {
+  flex-basis: 100%;
+  color: rgba(25, 24, 19, 0.55);
+  font-size: 9px;
+}
+.tno.gear-dialog .gear-foot .missing-fields button {
+  padding: 3px 6px;
+  border: 1px solid rgba(179, 33, 43, 0.45);
+  border-radius: 4px;
+  background: rgba(179, 33, 43, 0.05);
+  color: #b3212b;
+  font-size: 9px;
+}
+.tno.gear-dialog .gear-foot .item-delete-row {
+  margin: 0;
+}
+.tno.gear-dialog .gear-foot .item-delete-hint {
+  flex: none;
+  margin: 0;
+  font-size: 10px;
 }
 .tno .paperdoll {
   display: grid;

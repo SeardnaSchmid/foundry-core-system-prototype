@@ -1,0 +1,34 @@
+{{!-- One armour piece belongs to exactly one location. Clicking the selected
+chip again clears it. --}}
+
+<div class='gear-row {{#if missing.zone}}is-missing{{/if}}' data-row='zone'>
+  <span class='gear-label'>{{localize 'TNO.Armor.Zone.Label'}}</span>
+  <div class='gear-ctl chips'>
+    {{#each zoneChips}}
+      <button type='button' class='chip zone-chip' data-zone='{{this.zone}}' aria-pressed='{{this.on}}'>
+        {{localize this.label}}
+      </button>
+    {{/each}}
+  </div>
+</div>
+
+<div class='gear-row {{#if missing.rh}}is-missing{{/if}}' data-row='rh'>
+  <span class='gear-label' title='{{localize "TNO.Armor.RhHint"}}'>{{localize 'TNO.Armor.Rh'}}</span>
+  {{> 'systems/tno/templates/item/parts/item-scale.hbs' cells=scales.rh key='rh'}}
+</div>
+
+<div class='gear-row' data-row='rw'>
+  <span class='gear-label' title='{{localize "TNO.Armor.RwHint"}}'>{{localize 'TNO.Armor.Rw'}}</span>
+  {{> 'systems/tno/templates/item/parts/item-scale.hbs' cells=scales.rw key='rw'}}
+</div>
+
+<div class='gear-row {{#if missing.ra}}is-missing{{/if}}' data-row='ra'>
+  <span class='gear-label' title='{{localize "TNO.Armor.RaHint"}}'>{{localize 'TNO.Armor.Ra'}}</span>
+  {{> 'systems/tno/templates/item/parts/item-scale.hbs' cells=scales.ra key='ra'}}
+</div>
+
+{{!-- The Unterkleidung layers under every zone at once and by rule contributes
+no Rüstungshärte, so RH on a suit is ignored wherever armour is resolved. --}}
+{{#ifEquals system.zone 'suit'}}
+  <p class='hint gear-hint'>{{localize 'TNO.Armor.SuitNoRhHint'}}</p>
+{{/ifEquals}}

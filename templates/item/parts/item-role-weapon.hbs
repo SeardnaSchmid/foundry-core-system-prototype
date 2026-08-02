@@ -1,0 +1,120 @@
+{{!-- The primary weapon category. A ranged weapon may still be used as an
+improvised melee weapon under the combat rules; that does not turn its authored
+ranged profile into a second, incomplete weapon profile. --}}
+
+<div class='gear-row' data-row='use'>
+  <span class='gear-label'>{{localize 'TNO.Weapons.Use.Label'}}</span>
+  <div class='gear-ctl segments' role='radiogroup' aria-label='{{localize "TNO.Weapons.Use.Label"}}'>
+    {{#each useSegments}}
+      <button type='button' class='use-segment' data-use='{{this.use}}' role='radio' aria-checked='{{this.on}}' tabindex='0'>
+        {{localize this.label}}
+      </button>
+    {{/each}}
+  </div>
+</div>
+
+<div class='gear-row {{#if missing.dk}}is-missing{{/if}}' data-row='dk'>
+  <span class='gear-label' title='{{localize "TNO.Weapons.DkHint"}}'>{{localize 'TNO.Weapons.Dk'}}</span>
+  {{#if melee}}
+    {{> 'systems/tno/templates/item/parts/item-scale.hbs' cells=scales.dk key='dk'}}
+  {{else}}
+    <div class='gear-ctl'>
+      <span class='field na'>
+        <span class='cap'>0–6</span>
+        <span class='val'>{{localize 'TNO.Item.NaRanged'}}</span>
+      </span>
+    </div>
+  {{/if}}
+</div>
+
+<div class='gear-row {{#if missing.range}}is-missing{{/if}}' data-row='range'>
+  <span class='gear-label' title='{{localize "TNO.Weapons.RangeHint"}}'>{{localize 'TNO.Weapons.Range'}}</span>
+  {{#if ranged}}
+    <div class='gear-ctl range-cycle' role='group' aria-label='{{localize "TNO.Weapons.Range"}}'>
+      {{#each rangeFields}}
+        <button type='button' class='range-band {{this.state}}' data-band='{{this.band}}' title='{{localize "TNO.Weapons.RangeCycleHint"}}'>
+          <span class='range-visual' aria-hidden='true'><i></i></span>
+          <strong>{{this.display}}</strong>
+          <span>{{localize this.label}}</span>
+        </button>
+      {{/each}}
+      <p class='range-help'>{{localize 'TNO.Weapons.RangeVisualHint'}}</p>
+    </div>
+  {{else}}
+    <div class='gear-ctl'>
+      {{!-- No band caption here: the five of them do not fit next to the
+      message, and the row's own label already says what is missing. --}}
+      <span class='field na' title='{{localize "TNO.Weapons.BandsShort"}}'>
+        <span class='val'>{{localize 'TNO.Item.NaMelee'}}</span>
+      </span>
+    </div>
+  {{/if}}
+</div>
+
+<div class='gear-row' data-row='ammo'>
+  <span class='gear-label' title='{{localize "TNO.Weapons.MagazineHint"}}'>{{localize 'TNO.Weapons.Magazine'}}</span>
+  {{#if ranged}}
+    <div class='gear-ctl'>
+      <span class='stepper'>
+        <button type='button' class='stepper-button' data-field='system.ammo.count' data-by='-1'>&minus;</button>
+        <input type='number' name='system.ammo.count' value='{{system.ammo.count}}' min='0' step='1' aria-label='{{localize "TNO.Weapons.LoadedAmmo"}}' />
+        <button type='button' class='stepper-button' data-field='system.ammo.count' data-by='1'>+</button>
+      </span>
+      {{!-- Free text rather than a dropdown: the handoff sources the ammunition
+      list from a rules dataset the system does not have, and an empty select
+      would be worse than a field you can type "Gauss-Zellen" into. --}}
+      <label class='field field-wide'>
+        <input type='text' name='system.ammo.type' value='{{system.ammo.type}}' placeholder='{{localize "TNO.Weapons.AmmoType"}}' />
+      </label>
+    </div>
+  {{else}}
+    <div class='gear-ctl'>
+      <span class='field na'>
+        <span class='val'>{{localize 'TNO.Item.NaMelee'}}</span>
+      </span>
+    </div>
+  {{/if}}
+</div>
+
+<div class='gear-row {{#if missing.rd}}is-missing{{/if}}{{#if missing.rb}}is-missing{{/if}}' data-row='penetration'>
+  {{#if ranged}}
+    <span class='gear-label' title='{{localize "TNO.Weapons.RdHint"}}'>{{localize 'TNO.Weapons.Rd'}}</span>
+    {{> 'systems/tno/templates/item/parts/item-scale.hbs' cells=scales.rd key='rd'}}
+  {{else}}
+    <span class='gear-label' title='{{localize "TNO.Weapons.RbHint"}}'>{{localize 'TNO.Weapons.Rb'}}</span>
+    {{> 'systems/tno/templates/item/parts/item-scale.hbs' cells=scales.rb key='rb'}}
+  {{/if}}
+</div>
+
+{{!-- Which of the two damage figures applies is decided at the table, by RD
+against the armour's RH — so both are authored side by side and neither is ever
+n/a. --}}
+<div class='gear-row {{#if missing.ss}}is-missing{{/if}}' data-row='damage'>
+  <span class='gear-label' title='{{localize "TNO.Weapons.DamageHint"}}'>{{localize 'TNO.Weapons.Damage'}}</span>
+  <div class='gear-ctl'>
+    <label class='split' title='{{localize "TNO.Weapons.SsHint"}}'>
+      <span class='cap'>{{localize 'TNO.Weapons.Ss'}}</span>
+      <input type='number' name='system.ss.count' value='{{system.ss.count}}' min='0' step='1' />
+      <span class='unit'>W</span>
+    </label>
+    <label class='split' title='{{localize "TNO.Weapons.WsHint"}}'>
+      <span class='cap'>{{localize 'TNO.Weapons.Ws'}}</span>
+      <input type='number' name='system.ws.count' value='{{system.ws.count}}' min='0' step='1' />
+      <span class='unit'>W</span>
+    </label>
+  </div>
+</div>
+
+<div class='gear-row' data-row='hh'>
+  <span class='gear-label' title='{{localize "TNO.Weapons.HhHint"}}'>{{localize 'TNO.Weapons.Hh'}}</span>
+  <div class='gear-ctl'>
+    <label class='split'>
+      <span class='cap'>{{localize 'TNO.Weapons.HhActive'}}</span>
+      <input type='number' name='system.hh.active' value='{{system.hh.active}}' min='-3' max='3' step='1' />
+      {{#if melee}}
+      <span class='cap'>{{localize 'TNO.Weapons.HhPassive'}}</span>
+      <input type='number' name='system.hh.passive' value='{{system.hh.passive}}' min='-3' max='3' step='1' />
+      {{/if}}
+    </label>
+  </div>
+</div>

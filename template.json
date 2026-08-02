@@ -109,14 +109,33 @@
     "templates": {
       "base": {
         "description": ""
+      },
+      "gear": {
+        "quantity": 1,
+        "slots": 1,
+        "sv": 0,
+        "price": null,
+        "availability": null,
+        "fv": { "skill": "", "rank": 0 },
+        "roles": { "weapon": false, "armor": false, "consumable": false },
+        "use": "melee",
+        "dk": null,
+        "range": { "sn": 0, "near": 0, "mid": 0, "far": 0, "sf": 0 },
+        "ammo": { "count": 0, "type": "" },
+        "rd": null,
+        "ss": { "count": 0 },
+        "ws": { "count": 0 },
+        "hh": { "active": 0, "passive": 0 },
+        "rb": 0,
+        "zone": null,
+        "rh": null,
+        "rw": null,
+        "ra": null,
+        "consumableEffects": []
       }
     },
     "item": {
-      "templates": ["base"],
-      "quantity": 1,
-      "slots": 1,
-      "carried": true,
-      "formula": "d20 + @str.value"
+      "templates": ["base", "gear"]
     },
     "feature": {
       "templates": ["base"]
@@ -126,24 +145,10 @@
       "spellLevel": 1
     },
     "armor": {
-      "templates": ["base"],
-      "quantity": 1,
-      "slots": 1,
-      "carried": true,
-      "zone": "torso",
-      "sv": 0,
-      "rh": 0,
-      "rw": 0,
-      "ra": 0
+      "templates": ["base", "gear"]
     },
     "weapon": {
-      "templates": ["base"],
-      "quantity": 1,
-      "slots": 1,
-      "carried": true,
-      "dice": "",
-      "damage": "",
-      "range": ""
+      "templates": ["base", "gear"]
     }
   }
 }

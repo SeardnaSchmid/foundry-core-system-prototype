@@ -39,15 +39,18 @@ in Foundry v14+.
   - `npc.cr` — challenge rating; XP is derived from it (`cr² × 100`).
 - **Item types:** `item`, `feature`, `spell`, `armor`, `weapon`. All extend
   `base` (`description`).
-  - `item` additionally has `quantity`, `slots`, `formula` (an optional
-    roll formula evaluated by `Item#roll()`).
-  - `armor` has `quantity`, `slots`, `zone` (which Stelle it is authored
-    for, `suit` included), `sv`, `rh`, `rw`, `ra`.
-  - `weapon` has `quantity`, `slots`, and `dice`, `damage`, `range` — the
-    three columns the Waffen block reserves, all **free-text strings**. The
-    weapon rules are not written yet, so nothing here is rolled or computed;
-    the type exists so a weapon can be owned, carried and priced in slots
-    like the object it is. See [inventory.md](../concepts/inventory.md).
+  - `item`, `armor` and `weapon` additionally extend **`gear`**, the shared
+    template holding every field a physical object can have — so all three
+    are identical in schema. `armor` and `weapon` are legacy: nothing
+    creates them any more and nothing reads the type for meaning. What an
+    item *is* lives in `system.roles` — one role or none, pickable and
+    correctable on the sheet rather than fixed at creation the way a type
+    is. They stay registered only because
+    a document's type is immutable after creation, and un-registering them
+    would stop every such document in a published world from loading. The
+    field table and the reasoning are in
+    [item-roles.md](../concepts/item-roles.md).
+  - `feature` has nothing beyond `base`; `spell` adds `spellLevel`.
 
 Item types are declared in `template.json`, which Foundry reads **at
 startup** — adding a type needs a server restart, not just a reload, or
@@ -81,5 +84,8 @@ rulebook's "Abgeleitete Werte bleiben gleich, auch mit temporären
 Attributen") — `canSprint` is the deliberate exception noted above.
 
 `getRollData()` additionally flattens `system.abilities.*` to the top level
-of the roll data object so formulas like `@str.mod + 4` resolve — used by
-[`Item#roll()`](../../../module/documents/item.mjs).
+of the roll data object so formulas like `@str.mod + 4` resolve — for
+inline rolls enriched out of item descriptions. `Item#roll()` itself no
+longer evaluates anything: the `system.formula` it used to run defaulted to
+`d20 + @str.value`, which contradicted the 3d20-roll-under mechanic, and it
+is gone.

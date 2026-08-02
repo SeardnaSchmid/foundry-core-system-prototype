@@ -1,11 +1,12 @@
 {{!-- Waffen: reserved layout, no data behind it yet.
 
-The system has no `weapon` item type — item, feature, spell and armor are the
-four in `template.json` — and no readiness state, so there is nothing to list
-here and nothing to roll. The block ships as the empty column headers plus a
-hint saying so, rather than being left out: the Basics tab's right column is
-laid out around three blocks, and an absent third one would silently change the
-column's proportions the moment weapons land.
+Weapons are authorable now — an item takes on the Waffe role and carries FV,
+DK, RD, SS/WS and the rest — but there is still no readiness state, so nothing
+here can say which of them is in hand, and there is nothing to roll. The block
+ships as the empty column headers plus a hint saying so, rather than being left
+out: the Basics tab's right column is laid out around three blocks, and an
+absent third one would silently change the column's proportions the moment
+weapons land.
 
 Do not fill this in from `inventory` — a carried item is not a readied weapon,
 and conflating the two is exactly the design question that is still open. --}}

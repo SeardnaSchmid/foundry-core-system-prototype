@@ -44,6 +44,16 @@ system version has advanced past what a world last recorded.
   anything — so the value carries over untouched. Idempotent: an item with
   no `weight` key is skipped, and where both keys exist the already-migrated
   `slots` wins. See [inventory.md](inventory.md).
+- **`0.27.0` — `migrateItemTypesToRoles`**: writes `system.roles` on every
+  piece of gear from the type it used to be and drops `formula`. The weapon
+  free-text trio (`dice`, `damage`,
+  `range`) is **appended to the description** rather than parsed — there is
+  no reliable reading of "2W6+3" as an SS count, a die and an RD, and
+  guessing wrong would silently mis-state a weapon at the table. Idempotent
+  by checking `item._source.system.roles`: the *source*, not the prepared
+  data, because `template.json` hands every item a default `roles` object
+  and the prepared copy would claim everything had already been done. See
+  [item-roles.md](item-roles.md).
 
 ## Adding a new step
 

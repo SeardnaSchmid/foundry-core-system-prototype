@@ -1,4 +1,5 @@
 import { wornItemIds } from '../helpers/inventory.mjs';
+import { hasRole } from '../helpers/items.mjs';
 
 /**
  * Extend the basic Item with some very simple modifications.
@@ -63,42 +64,52 @@ export class TnoItem extends Item {
   }
 
   /**
-   * Handle clickable rolls.
-   * @param {Event} event   The originating click event
-   * @private
+   * Post the item to chat. Nothing here rolls dice.
+   *
+   * An item used to carry a `system.formula`, defaulting to `d20 + @str.value`.
+   * That was Foundry boilerplate and it contradicted the system it shipped in:
+   * TNO rolls 3d20, discards the highest and the lowest, and asks you to come
+   * in *under* Attribut plus Fertigkeit. No single formula an object can hold
+   * resolves that, and the attack chain — RD against RH to pick the
+   * Schadenswert, then that against RW — is not one roll to begin with.
+   *
+   * So the item says what it is and the player picks the Probe. When the
+   * Kampfregeln are implemented this is where their entry point goes.
    */
   async roll() {
-    const item = this;
+    return ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      rollMode: game.settings.get('core', 'rollMode'),
+      flavor: this.name,
+      content: this.system.description ?? '',
+    });
+  }
 
-    // Initialize chat data.
-    const speaker = ChatMessage.getSpeaker({ actor: this.actor });
-    const rollMode = game.settings.get('core', 'rollMode');
-    const label = `[${item.type}] ${item.name}`;
-
-    // If there's no roll data, send a chat message.
-    if (!this.system.formula) {
-      ChatMessage.create({
-        speaker: speaker,
-        rollMode: rollMode,
-        flavor: label,
-        content: item.system.description ?? '',
-      });
+  /**
+   * Spend one item from the stack and announce its authored effects in chat.
+   * This does not apply a mechanical effect—the effect texts are free authoring—but it
+   * makes the one rule-backed state change the item can perform explicit.
+   */
+  async consume() {
+    if (!hasRole(this, 'consumable')) return;
+    const remaining = Math.max(0, Number(this.system.quantity) || 0);
+    if (remaining <= 0) {
+      ui.notifications.warn(game.i18n.localize('TNO.Item.Overview.NoUses'));
+      return;
     }
-    // Otherwise, create a roll and send a chat message from it.
-    else {
-      // Retrieve roll data.
-      const rollData = this.getRollData();
 
-      // Invoke the roll and submit it to chat.
-      const roll = new Roll(rollData.formula, rollData);
-      // If you need to store the value first, uncomment the next line.
-      // const result = await roll.evaluate();
-      roll.toMessage({
-        speaker: speaker,
-        rollMode: rollMode,
-        flavor: label,
-      });
-      return roll;
-    }
+    await this.update({ 'system.quantity': remaining - 1 });
+    const authored = (this.system.consumableEffects ?? [])
+      .map((effect) => String(effect?.text ?? '').trim())
+      .filter(Boolean)
+      .map((effect) => `<li>${foundry.utils.escapeHTML(effect)}</li>`)
+      .join('');
+    const summary = authored ? `<ul>${authored}</ul>` : '';
+    return ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      rollMode: game.settings.get('core', 'rollMode'),
+      flavor: game.i18n.format('TNO.Item.Overview.UsedFlavor', { name: this.name }),
+      content: `${summary}${this.system.description ?? ''}`,
+    });
   }
 }

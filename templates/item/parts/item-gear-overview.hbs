@@ -1,0 +1,178 @@
+<section class='gear-overview'>
+  <div class='overview-badges'>
+    {{#each presentation.roleLabels}}
+      <span class='overview-badge role'>{{localize this}}</span>
+    {{else}}
+      <span class='overview-badge'>{{localize 'TNO.Item.Role.Plain'}}</span>
+    {{/each}}
+    {{#if presentation.roles.weapon}}
+      <span class='overview-badge'>{{localize presentation.useLabel}}</span>
+    {{/if}}
+    {{#if presentation.ownership.label}}
+      <span class='overview-badge state {{presentation.ownership.state}}'>{{localize presentation.ownership.label}}</span>
+    {{/if}}
+    {{#if missingCount}}
+      {{#if canEdit}}
+        <button type='button' class='overview-badge warning gear-mode' data-view='edit'>
+          <i class='fa-solid fa-triangle-exclamation' aria-hidden='true'></i>
+          {{localize 'TNO.Item.MissingRequired' count=missingCount}}
+        </button>
+      {{else}}
+        <span class='overview-badge warning'><i class='fa-solid fa-triangle-exclamation' aria-hidden='true'></i>{{localize 'TNO.Item.MissingRequired' count=missingCount}}</span>
+      {{/if}}
+    {{/if}}
+  </div>
+
+  {{#if presentation.roles.weapon}}
+    {{#if ranged}}
+      <article class='overview-card overview-wide range-profile'>
+        <header>
+          <h2>{{localize 'TNO.Item.Overview.RangeProfile'}}</h2>
+          <span>{{localize 'TNO.Weapons.Range'}}</span>
+        </header>
+        <div class='range-chart'>
+          {{#each presentation.range}}
+            <div class='range-band {{this.state}}'>
+              <span class='range-bar' style='--magnitude: {{this.height}}px'></span>
+              <strong>{{#if this.available}}{{#if this.value}}{{this.value}}{{else}}0{{/if}}{{else}}—{{/if}}</strong>
+              <small>{{localize this.label}}</small>
+            </div>
+          {{/each}}
+        </div>
+      </article>
+    {{/if}}
+
+    <article class='overview-card overview-wide penetration-profile'>
+      <header>
+        <h2>{{localize 'TNO.Item.Overview.Penetration'}}</h2>
+        <span>{{presentation.penetration.label}} {{#if presentation.penetration.hasValue}}{{presentation.penetration.value}}{{else}}—{{/if}} · SS {{presentation.penetration.ss.label}} · WS {{presentation.penetration.ws.label}}</span>
+      </header>
+      {{#if presentation.penetration.hasValue}}
+        <div class='penetration-axis'>
+          {{#each presentation.penetration.segments}}
+            <span class='penetration-segment {{this.key}}' style='--segment-size: {{this.size}}'>
+              RH {{this.from}}{{#unless this.single}}–{{this.to}}{{/unless}}
+            </span>
+          {{/each}}
+        </div>
+      {{else}}
+        <p class='overview-empty'>{{localize 'TNO.Item.Overview.NoPenetration'}}</p>
+      {{/if}}
+      <p class='overview-note'>{{localize 'TNO.Item.Overview.PenetrationHint'}}</p>
+    </article>
+
+    {{#if melee}}
+      <article class='overview-card dk-profile'>
+        <header><h2>{{localize 'TNO.Weapons.Dk'}}</h2></header>
+        <div class='overview-scale'>
+          {{#each scales.dk}}
+            <span class='overview-scale-cell' aria-current='{{this.selected}}'>{{this.value}}</span>
+          {{/each}}
+        </div>
+      </article>
+    {{/if}}
+
+    <article class='overview-card stat-summary'>
+      <header><h2>{{localize 'TNO.Weapons.Values'}}</h2></header>
+      <dl>
+        <div><dt>FV</dt><dd>{{#if weaponCheck}}{{weaponCheck.label}} {{weaponCheck.value}}{{else}}—{{/if}}</dd></div>
+        <div><dt>HH</dt><dd>{{system.hh.active}}{{#if melee}} / {{system.hh.passive}}{{/if}}</dd></div>
+        {{#if ranged}}<div><dt>{{localize 'TNO.Weapons.Magazine'}}</dt><dd>{{system.ammo.count}} {{system.ammo.type}}</dd></div>{{/if}}
+      </dl>
+    </article>
+  {{/if}}
+
+  {{#if presentation.roles.armor}}
+    <article class='overview-card overview-wide armor-profile'>
+      <header><h2>{{localize 'TNO.Armor.Values'}}</h2></header>
+      <div class='armor-zone-summary'>
+        {{#each presentation.zoneLabels}}
+          <span><i class='fa-solid fa-shield-halved' aria-hidden='true'></i>{{localize this}}</span>
+        {{else}}
+          <span class='overview-empty'>{{localize 'TNO.Item.Overview.NoZones'}}</span>
+        {{/each}}
+      </div>
+      <dl class='armor-values'>
+        <div><dt>RH</dt><dd>{{#if system.rh}}{{system.rh}}{{else}}—{{/if}}</dd></div>
+        <div><dt>RW</dt><dd>{{system.rw}}</dd></div>
+        <div><dt>RA</dt><dd>{{system.ra}} / 10</dd></div>
+      </dl>
+      <span class='overview-coverage'><i style='--coverage: {{raPercent}}%'></i></span>
+    </article>
+  {{/if}}
+
+  {{#if presentation.roles.consumable}}
+    <article class='overview-card overview-wide consumable-profile'>
+      <header><h2>{{localize 'TNO.Item.Role.Consumable'}}</h2><strong>{{system.quantity}}×</strong></header>
+      {{#if consumableEffects.length}}
+        <ul>{{#each consumableEffects}}<li>{{this.text}}</li>{{/each}}</ul>
+      {{else}}
+        <p>{{localize 'TNO.Item.Overview.NoEffect'}}</p>
+      {{/if}}
+    </article>
+  {{/if}}
+
+  <article class='overview-card slot-profile'>
+    <header><h2>{{localize 'TNO.Item.Overview.Footprint'}}</h2><strong>{{presentation.slots.cost}}</strong></header>
+    <div class='slot-preview'>
+      {{#each presentation.slots.cells}}<span></span>{{/each}}
+      {{#if presentation.slots.hidden}}<b>+{{presentation.slots.hidden}}</b>{{/if}}
+    </div>
+    <p>{{presentation.slots.quantity}} × {{presentation.slots.unit}} {{localize 'TNO.Inventory.Slots'}}</p>
+    {{#if presentation.slots.contextual}}
+      <small>{{localize 'TNO.Item.Overview.OwnerSlots' used=presentation.slots.used capacity=presentation.slots.capacity}}</small>
+    {{/if}}
+  </article>
+
+  {{#if showStrength}}
+  <article class='overview-card strength-profile {{presentation.strength.status}}'>
+    <header><h2>{{localize 'TNO.Item.Overview.Requirement'}}</h2><strong>SV {{presentation.strength.required}}</strong></header>
+    {{#if presentation.strength.contextual}}
+      <p>{{localize 'TNO.Item.Overview.StrengthCompare' actual=presentation.strength.actual required=presentation.strength.required}}</p>
+      {{#if presentation.strength.required}}
+        <small>{{#if presentation.strength.met}}{{localize 'TNO.Item.Overview.RequirementMet'}}{{else}}{{localize 'TNO.Item.Overview.RequirementMissed'}}{{/if}}</small>
+      {{/if}}
+    {{else}}
+      <p>{{localize 'TNO.Item.Overview.NoOwnerContext'}}</p>
+    {{/if}}
+  </article>
+  {{/if}}
+
+  <article class='overview-card overview-wide description-profile'>
+    <header><h2>{{localize 'TNO.TabDescription'}}</h2></header>
+    <div class='overview-description'>
+      {{#if system.description}}{{{enrichedDescription}}}{{else}}<p class='overview-empty'>{{localize 'TNO.Item.Overview.NoDescription'}}</p>{{/if}}
+    </div>
+  </article>
+
+  <footer class='overview-actions overview-wide' aria-label='{{localize "TNO.Item.Overview.Actions"}}'>
+    <button type='button' class='item-post'>
+      <i class='fa-solid fa-message' aria-hidden='true'></i>{{localize 'TNO.Item.Overview.Post'}}
+    </button>
+    {{#if canWeaponCheck}}
+      <button type='button' class='item-weapon-check' title='{{localize "TNO.Item.Overview.WeaponCheckHint"}}'>
+        <i class='fa-solid fa-dice-d20' aria-hidden='true'></i>{{localize 'TNO.Item.Overview.WeaponCheck'}}
+      </button>
+    {{/if}}
+    {{#if canAdjustAmmo}}
+      <span class='overview-ammo'>
+        <button type='button' class='stepper-button' data-field='system.ammo.count' data-by='-1' title='{{localize "TNO.Item.Overview.AmmoDecrease"}}'>&minus;</button>
+        <strong>{{system.ammo.count}}</strong>
+        <button type='button' class='stepper-button' data-field='system.ammo.count' data-by='1' title='{{localize "TNO.Item.Overview.AmmoIncrease"}}'>+</button>
+      </span>
+    {{/if}}
+    {{#if canEdit}}
+      {{#if presentation.roles.consumable}}
+        <button type='button' class='item-consume' {{#unless canConsume}}disabled title='{{localize "TNO.Item.Overview.NoUses"}}'{{/unless}}>
+          <i class='fa-solid fa-flask' aria-hidden='true'></i>{{localize 'TNO.Item.Overview.Use'}}
+        </button>
+      {{/if}}
+    {{/if}}
+    {{#if canEdit}}
+      <button type='button' class='item-self-delete danger' {{#unless canDelete}}disabled title='{{localize "TNO.Item.DeleteWornHint"}}'{{/unless}}>
+        <i class='fa-solid fa-trash' aria-hidden='true'></i>{{localize 'TNO.Item.Delete'}}
+      </button>
+    {{/if}}
+  </footer>
+
+</section>

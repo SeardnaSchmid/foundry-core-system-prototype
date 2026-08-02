@@ -15,23 +15,22 @@
  *  - **Worn** lives on the actor as `system.equipment` (zone key -> item id).
  *    It has to be actor-side because the *zone* is what makes it unique —
  *    only a single map can stop two chest pieces from both claiming `torso`.
- *  - **Carried** lives on the item as `system.carried`. An item-side flag
- *    travels with the item when it moves between actors, and it gives the
- *    third state the sheet previously could not express at all: owned but
- *    stowed (in a locker, back on the ship), costing no slots while still
- *    being on the character's list.
- *
- * A missing `carried` key reads as carried, so items authored before the flag
- * existed keep costing exactly what they did — no migration step needed.
+ * Every owned physical item is carried unless it is currently worn. The rules
+ * define no third "stowed but still owned by this actor" state.
  */
+
+import { ARMOR_ZONES, ARMOR_SUIT_ZONE, GEAR_TYPES, hasRole } from './items.mjs';
 
 /**
  * The four armour addon zones, i.e. the hit locations from the Rüstungen
  * table. The Unterkleidung (`suit`) is deliberately absent: it is not a hit
  * location, it applies in all four at once.
+ *
+ * Derived from the full list rather than written out again, so the paperdoll's
+ * order and the maths here cannot drift apart.
  * @type {Array<string>}
  */
-export const ARMOR_ADDON_ZONES = ['head', 'torso', 'arms', 'legs'];
+export const ARMOR_ADDON_ZONES = ARMOR_ZONES.filter((zone) => zone !== ARMOR_SUIT_ZONE);
 
 /**
  * Fractions of the carry capacity at which movement degrades, per the
@@ -73,20 +72,6 @@ export function wornItemIds(equipment) {
 }
 
 /**
- * Whether an item is stowed rather than carried — owned by the character but
- * not on them, so it costs no Inventarslots and stays out of the grid.
- *
- * Written as "not explicitly false" rather than a truth test on purpose: items
- * created before `system.carried` existed have no such key at all, and those
- * must keep counting against the budget exactly as they always did.
- * @param {Object} item  An item document (or plain object) with `.system`.
- * @returns {boolean}
- */
-export function isStowed(item) {
-  return item?.system?.carried === false;
-}
-
-/**
  * The item types the slot economy applies to: physical things a character can
  * pick up. `feature` and `spell` are not objects at all, so they never appear
  * in the grid or the sum.
@@ -96,14 +81,17 @@ export function isStowed(item) {
  * "zweihändige Waffen", "schwere Waffen"). Whether a weapon is *readied* is a
  * separate, still-undesigned question, and deliberately not modelled by
  * exempting it from the budget.
+ *
+ * Kept as an alias of GEAR_TYPES: which *roles* a piece of gear has took over
+ * from its type everywhere else, but the slot economy never cared about the
+ * distinction — it applies to everything that is an object at all.
  * @type {Array<string>}
  */
-export const CARRIED_ITEM_TYPES = ['item', 'armor', 'weapon'];
+export const CARRIED_ITEM_TYPES = GEAR_TYPES;
 
 /**
  * The gear that actually presses on the slot budget: everything the character
- * owns, minus what they are wearing (exempt by rule) and minus what is stowed
- * away (not on them at all).
+ * owns, minus what they are wearing (exempt by rule).
  * @param {Array<Object>} items  All of the actor's items.
  * @param {Object} equipment  actor.system.equipment.
  * @returns {Array<Object>}
@@ -113,8 +101,7 @@ function carriedGear(items, equipment) {
   return (items ?? []).filter(
     (item) =>
       CARRIED_ITEM_TYPES.includes(item.type) &&
-      !worn.has(item._id ?? item.id) &&
-      !isStowed(item),
+      !worn.has(item._id ?? item.id),
   );
 }
 
@@ -138,7 +125,7 @@ const MIN_ARMOR_SLOTS = 1;
  * @returns {number}
  */
 export function itemSlotCost(item) {
-  const floor = item?.type === 'armor' ? MIN_ARMOR_SLOTS : 0;
+  const floor = hasRole(item, 'armor') ? MIN_ARMOR_SLOTS : 0;
   return Math.max(num(item?.system?.slots), floor) * num(item?.system?.quantity ?? 1);
 }
 

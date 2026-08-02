@@ -1,13 +1,13 @@
 {{!-- Deleting the item from its own sheet. Included at the foot of every item
-sheet's attributes tab, so the act sits with the item's own data rather than in
-the header, where it would be one slip away from the name field.
+sheet, so the act sits at the end of the item's own data rather than in the
+header, where it would be one slip away from the name field.
 
 Worn gear has no button at all: the actor's `system.equipment` would keep
 pointing at an id that no longer resolves, and the paper doll is where a piece
 comes off. The hint says so rather than showing a control that refuses. --}}
 {{#if canDelete}}
   <div class='item-delete-row'>
-    <a class='item-self-delete' data-action='delete' title='{{localize "TNO.Item.Delete"}}'>
+    <a class='item-self-delete' title='{{localize "TNO.Item.Delete"}}' tabindex='0'>
       <i class='fas fa-trash'></i>
       <span>{{localize 'TNO.Item.Delete'}}</span>
     </a>

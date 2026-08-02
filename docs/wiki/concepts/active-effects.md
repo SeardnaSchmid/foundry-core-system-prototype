@@ -9,10 +9,15 @@ related: [architecture/bootstrap]
 
 # Active effects
 
-[`module/helpers/effects.mjs`](../../../module/helpers/effects.mjs) is a
-thin, sheet-agnostic wrapper shared by both
-[`actor-sheet.mjs`](../../../module/sheets/actor-sheet.mjs) and
-[`item-sheet.mjs`](../../../module/sheets/item-sheet.mjs).
+[`module/helpers/effects.mjs`](../../../module/helpers/effects.mjs) is the
+small wrapper used by
+[`actor-sheet.mjs`](../../../module/sheets/actor-sheet.mjs). Active Effects
+are intentionally not exposed on item sheets. In particular, the freely
+written effects of a consumable are rule text, not Foundry Active Effects.
+
+Old or externally imported effects may still exist on item documents, but the
+system's item sheets provide no controls to view, create, edit, toggle, or
+delete them.
 
 ## `CONFIG.ActiveEffect.legacyTransferral = false`
 
@@ -34,8 +39,8 @@ effect shows under `inactive`, not `temporary`.
 
 ## Control actions
 
-`onManageActiveEffect(event, owner)` handles the `.effect-control` button
-row's `data-action`: `create` (new effect with a default aura icon, origin
-set to `owner.uuid`, seeded `duration.rounds`/`disabled` from the clicked
-category), `edit` (opens the effect's own sheet), `delete`, `toggle`
-(flips `disabled`).
+`onManageActiveEffect(event, owner)` handles the actor sheet's
+`.effect-control` button row: `create` (new effect with a default aura icon,
+origin set to `owner.uuid`, seeded `duration.rounds`/`disabled` from the
+clicked category), `edit` (opens the effect's own sheet), `delete`, and
+`toggle` (flips `disabled`).

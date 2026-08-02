@@ -67,11 +67,10 @@
     }
   }
 
-  // Control Buttons. Wide enough for three: the carry/stow toggle now sits
-  // alongside edit and delete.
+  // Edit/delete controls plus the worn marker when applicable.
   .item-controls {
     display: flex;
-    flex: 0 0 130px;
+    flex: 0 0 100px;
     justify-content: flex-end;
     align-items: center;
     a {
@@ -81,22 +80,13 @@
     }
   }
 
-  // Worn gear has no carry/stow toggle — the paper doll owns that state — so
-  // this is a marker, not a control, and is muted to read as non-clickable.
+  // Worn state belongs to the paper doll, so this is a marker rather than a
+  // second control.
   .item-state {
     margin: 0 6px;
     font-size: 12px;
     color: $c-beige;
     cursor: help;
-  }
-
-  // Owned but not on the character: still administrable, but it costs no slots
-  // and appears in no other view, so the row recedes rather than disappears.
-  .item-stowed {
-    .item-name,
-    .item-formula {
-      opacity: 0.55;
-    }
   }
 
   // Individual Item
@@ -145,9 +135,23 @@
   }
 }
 
-// Example style for Tno (can be removed if not needed).
-.item-formula {
-  
+// The inventory list's second column: what each piece is, as the roles it
+// carries. Fixed width so the controls on the right stay in one line down the
+// list even though the number of tags per row varies from none to three.
+.item-roles {
   flex: 0 0 200px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
   padding: 0 8px;
+  overflow: hidden;
+
+  .item-role-tag {
+    padding: 1px 7px;
+    border: 1px solid $c-beige;
+    border-radius: 20px;
+    font-size: 10px;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
 }

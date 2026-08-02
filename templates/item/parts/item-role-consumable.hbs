@@ -1,0 +1,19 @@
+<div class='gear-row gear-row-top {{#if missing.effects}}is-missing{{/if}}' data-row='effects'>
+  <span class='gear-label'>{{localize 'TNO.Item.Effects.Label'}}</span>
+  <div class='gear-ctl consumable-effects'>
+    {{#each consumableEffects}}
+      <div class='consumable-effect' data-effect-id='{{this.id}}'>
+        <textarea name='system.consumableEffects.{{this.index}}.text' placeholder='{{localize "TNO.Item.Effects.Placeholder"}}'>{{this.text}}</textarea>
+        <button type='button' class='consumable-effect-remove' data-effect-id='{{this.id}}' title='{{localize "TNO.Item.Effects.Remove"}}' aria-label='{{localize "TNO.Item.Effects.Remove"}}'>
+          <i class='fa-solid fa-trash' aria-hidden='true'></i>
+        </button>
+      </div>
+    {{else}}
+      <p class='empty-effect'>{{localize 'TNO.Item.Effects.Empty'}}</p>
+    {{/each}}
+    <button type='button' class='consumable-effect-add'>
+      <i class='fa-solid fa-plus' aria-hidden='true'></i>
+      {{localize 'TNO.Item.Effects.Add'}}
+    </button>
+  </div>
+</div>

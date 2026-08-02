@@ -5,7 +5,7 @@ description: The two independent equipment axes — the Trageslots budget for ca
 tags: [inventory, armor, slots, equipment, derived-data]
 resource: [module/helpers/inventory.mjs, module/documents/actor.mjs, module/sheets/actor-sheet.mjs]
 spec: docs/design/character-sheet-prd.md
-related: [concepts/attributes, reference/ui-surfaces, architecture/data-schema]
+related: [concepts/attributes, concepts/item-roles, reference/ui-surfaces, architecture/data-schema]
 ---
 
 # Inventory (carrying and wearing)
@@ -22,24 +22,12 @@ den Inventarregeln ausgenommen sind Kleidung und Rüstung welche der
 Charakter am Leib trägt"), which is why the same item can be invisible to
 one axis and decisive on the other.
 
-## Where each axis is stored
+## Where the state is stored
 
-The two axes persist in **different places, for a reason**:
-
-| State | Stored as | Why there |
-| --- | --- | --- |
-| Worn | `actor.system.equipment` — zone key -> item id | The *zone* is what makes it unique. Only an actor-side map can stop two chest pieces from both claiming `torso` |
-| Carried | `item.system.carried` — boolean | Travels with the item when it moves between actors, and needs no per-actor bookkeeping |
-
-Between them they give three states, not two: **worn**, **carried**, and
-**stowed** — owned but not on the character (in a locker, back on the ship),
-costing no slots while still appearing on their list. Stowed gear is the state
-the sheet previously could not express at all: every item an actor owned
-pressed on the budget forever.
-
-`carried` is read as "not explicitly `false`", so items authored before the
-flag existed keep costing exactly what they did and **no migration step is
-needed** — see [migrations.md](migrations.md) for when one would be.
+Worn armour lives in `actor.system.equipment` as zone key → item id. Every
+other owned physical item is carried and participates in the slot budget; the
+rules define no persisted “stowed” state. Removing an item from the character
+therefore means deleting or transferring the embedded item.
 
 ## Where the maths lives
 
@@ -51,11 +39,10 @@ without a game world (`tests/helpers/inventory.test.js`).
 | Export | Responsibility |
 | --- | --- |
 | `ARMOR_ADDON_ZONES` | The four hit locations (`head`, `torso`, `arms`, `legs`). `suit` is deliberately absent — it is not a hit location, it applies in all four at once |
-| `CARRIED_ITEM_TYPES` | The types the slot economy applies to: `item`, `armor`, `weapon`. `feature` and `spell` are not objects and never appear in the grid or the sum |
+| `CARRIED_ITEM_TYPES` | The types the slot economy applies to — an alias of `GEAR_TYPES`. `feature` and `spell` are not objects and never appear in the grid or the sum. Which *roles* a piece has took over from its type everywhere else, but not here: the budget applies to anything that is an object at all — see [item-roles.md](item-roles.md) |
 | `CARRY_THRESHOLDS` | The fractions of capacity at which movement degrades |
 | `wornItemIds(equipment)` | The id set currently on the body, used to exclude worn gear from the carry sum |
-| `isStowed(item)` | Whether an item is off the character entirely — `system.carried === false` |
-| `itemSlotCost(item)` | `slots × quantity` for one stack, floored at 1 slot per piece for armour |
+| `itemSlotCost(item)` | `slots × quantity` for one stack, floored at 1 slot per piece for anything carrying the armour role |
 | `computeCarry(items, equipment, hasContainer, capacity)` | `{ used, capacity, state }` |
 | `buildSlotGrid(items, equipment, capacity)` | `{ blocks, overflow, trinkets, empty }` — the view layout |
 | `resolveArmor(equipment, items)` | `{ zones, sv }` — effective per-zone values |
@@ -170,12 +157,13 @@ changes state**:
   sort against, and "after the last one" is the only reading that leaves the
   rest of the arrangement alone.
 - **Cell onto a paper doll zone** wears the piece. A zone only takes armour
-  authored for that Stelle; a mismatch says which zone the piece belongs to
-  rather than failing silently. While a piece is in flight its zone lights up —
-  the row as `armor-drop-target` and the silhouette's shapes as
-  `zone-drop-target`, both set in `_onDragStart` — so the target is visible
-  before the player lets go, and the shape under the pointer goes solid
-  (`drop-onto`).
+  authored for that Stelle; a mismatch says which Stellen the piece does belong
+  to rather than failing silently. A piece has one authored `system.zone`, so
+  putting it on fills that target and taking it off empties it. While
+  a piece is in flight its zone lights up — the row as
+  `armor-drop-target` and the silhouette's shapes as `zone-drop-target`, both
+  set in `_onDragStart` — so the targets are visible before the player lets go,
+  and the shape under the pointer goes solid (`drop-onto`).
 - **A worn row back onto the carry grid** takes the piece off: the mirror of the
   gesture that put it on, so the way back is not a different kind of act. The
   unequip lands before any sort, since a worn piece is not in the carry list to
@@ -198,9 +186,10 @@ this view, so the cells are promoted into the keyboard tab order along with the
 sheet's other custom chips (`_makeKeyboardAccessible`).
 
 New gear is authored through one dialog (`_promptCreateItem`, opened by the
-`+` in the grid header and by the Inventar tab's single create control): the
-type is a field inside the act of adding something, not a control per type —
-which is what the old two-control header could not survive a third type of.
+`+` in the grid header and by the Inventar tab's single create control), and it
+asks only for a name. There is nothing else to ask: everything is created as
+type `item`, and what the thing *does* is roles it takes on afterwards, on its
+own sheet — see [item-roles.md](item-roles.md).
 
 **The grid holds exactly as many cells as the character has slots.** There is
 no padding out to the raster width — a capacity of 6 in a five-wide grid simply

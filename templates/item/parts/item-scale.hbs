@@ -1,0 +1,22 @@
+{{!-- One click-scale: the closed set of steps a rules table enumerates, laid
+out as equal cells. Not a number input, because a spinner can be typed past the
+end of the table and would be claiming a range the rules do not have.
+
+Clicking the selected cell again clears the value — an unset band and a band
+set to its lowest step are different answers, and this is the only way back to
+the first one.
+
+Called as {{> item-scale cells=scales.dk key='dk'}}. --}}
+<div class='gear-ctl scale' role='radiogroup'>
+  {{#each cells}}
+    <button
+      type='button'
+      class='scale-cell'
+      data-scale='{{../key}}'
+      data-value='{{this.value}}'
+      aria-checked='{{this.selected}}'
+      role='radio'
+      tabindex='0'
+    >{{this.value}}</button>
+  {{/each}}
+</div>

@@ -22,6 +22,7 @@ import {
   ARMOR_ADDON_ZONES,
   wornItemIds,
 } from '../helpers/inventory.mjs';
+import { ITEM_ROLES, armorZones, itemRoles } from '../helpers/items.mjs';
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -473,46 +474,47 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       9: [],
     };
 
+    // Gear the item's role singles out. Disjoint from each other, since a piece
+    // has at most one role — but *not* from `gear`, which holds every object
+    // whatever it does. Only `gear` may be counted.
     const armory = [];
     const weapons = [];
 
     // Which items are on the body. Worn gear is exempt from the slot economy
     // and its state belongs to the paper doll, so those rows show a static
-    // marker instead of a carry/stow toggle. NPCs have no equipment store, so
+    // marker. NPCs have no equipment store, so
     // this is simply empty for them.
     const worn = wornItemIds(this.actor.system.equipment);
 
     // Iterate through items, allocating to containers
     for (let i of context.items) {
       i.img = i.img || Item.DEFAULT_ICON;
-      // The two flags the inventory list rows branch on. `carried` is only
-      // ever meaningful while the item is not worn.
       i.isWorn = worn.has(i._id);
-      i.isStowed = i.system?.carried === false;
-      // Append to gear.
-      if (i.type === 'item') {
-        gear.push(i);
-      }
-      // Append to features.
-      else if (i.type === 'feature') {
+
+      if (i.type === 'feature') {
         features.push(i);
+        continue;
       }
-      // Append to armour, whether it is currently worn or just hauled along.
-      else if (i.type === 'armor') {
-        armory.push(i);
+      if (i.type === 'spell') {
+        if (i.system.spellLevel != undefined) spells[i.system.spellLevel].push(i);
+        continue;
       }
+
+      // Everything else is an object, and every object is inventory. What it
+      // *does* is a matter of the roles it carries, which is a second question
+      // asked of the same item rather than a different bucket to put it in.
+      gear.push(i);
+      const roles = itemRoles(i);
+      // The flat list labels each row with what it is; the tooltip in the carry
+      // grid says the same thing at more length.
+      i.roleLabels = ITEM_ROLES.filter((role) => roles[role]).map(
+        (role) => CONFIG.TNO.itemRoles[role]
+      );
+      if (roles.armor) armory.push(i);
       // Weapons are gear the slot economy already accounts for; the Waffen
       // block that will list them by readiness is not designed yet, so for now
       // this bucket only feeds the flat list and the carry grid.
-      else if (i.type === 'weapon') {
-        weapons.push(i);
-      }
-      // Append to spells.
-      else if (i.type === 'spell') {
-        if (i.system.spellLevel != undefined) {
-          spells[i.system.spellLevel].push(i);
-        }
-      }
+      if (roles.weapon) weapons.push(i);
     }
 
     // Assign and return
@@ -525,9 +527,9 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // The flat administrative list covers everything the inventory rules touch,
     // armour and weapons included: a piece that is neither worn nor carried
     // appears in no other view, so leaving it out of the list would strand it
-    // entirely. The buckets are already in `sort` order, so a single merge
-    // keeps them so.
-    context.inventory = [...gear, ...armory, ...weapons].sort((a, b) => (a.sort || 0) - (b.sort || 0));
+    // entirely. That is just `gear` now — the role buckets are views onto it,
+    // and merging them in would list a piece once per role it has.
+    context.inventory = gear;
 
     if (context.actor.type === 'character') this._prepareEquipment(context);
   }
@@ -680,27 +682,38 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const esc = foundry.utils.escapeHTML;
     const loc = (key) => game.i18n.localize(key);
 
-    const summary = [loc(`TYPES.Item.${item.type}`), `${loc('TNO.Inventory.Slots')} ${itemSlotCost(item)}`];
+    // What the piece *is* is now the role it carries — or none, which is most
+    // of the inventory and reads fine as just the slot cost. Still built from
+    // the filtered list rather than a lookup, so a leftover double-role item
+    // names both instead of silently showing one.
+    const roles = itemRoles(item);
+    const summary = [
+      ...ITEM_ROLES.filter((role) => roles[role]).map((role) => loc(CONFIG.TNO.itemRoles[role])),
+      `${loc('TNO.Inventory.Slots')} ${itemSlotCost(item)}`,
+    ];
     if (quantity > 1) summary.push(`×${quantity}`);
 
     const lines = [`<strong>${esc(item.name)}</strong>`, summary.join(' · ')];
 
-    if (item.type === 'armor') {
-      const zone = CONFIG.TNO.armorZones[item.system?.zone];
+    if (roles.armor) {
+      const zones = armorZones(item).map((zone) => loc(CONFIG.TNO.armorZones[zone]));
       const values = ['rh', 'rw', 'ra'].map(
         (key) => `${loc(`TNO.Armor.${key.capitalize()}Short`)} ${Number(item.system?.[key]) || 0}`
       );
-      lines.push([...(zone ? [loc(zone)] : []), ...values].join(' · '));
-    } else if (item.type === 'weapon') {
-      // Free text for now, and usually only partly filled in, so an empty
-      // field is left out rather than shown as a blank label.
+      lines.push([...zones, ...values].join(' · '));
+    }
+
+    if (roles.weapon) {
+      const system = item.system ?? {};
+      const damage = (figure) =>
+        Number(figure?.count) ? `${Number(figure.count)}${esc(String(figure.die ?? ''))}` : null;
+      // Only what is filled in: a weapon halfway through being authored would
+      // otherwise show a row of blank labels.
       const values = [
-        ['TNO.Weapons.Dice', 'dice'],
-        ['TNO.Weapons.Damage', 'damage'],
-        ['TNO.Weapons.Range', 'range'],
-      ]
-        .filter(([, field]) => item.system?.[field])
-        .map(([label, field]) => `${loc(label)} ${esc(item.system[field])}`);
+        system.rd ? `${loc('TNO.Weapons.RdShort')} ${Number(system.rd)}` : null,
+        damage(system.ss) ? `${loc('TNO.Weapons.Ss')} ${damage(system.ss)}` : null,
+        damage(system.ws) ? `${loc('TNO.Weapons.Ws')} ${damage(system.ws)}` : null,
+      ].filter(Boolean);
       if (values.length) lines.push(values.join(' · '));
     }
 
@@ -977,16 +990,6 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       this.actor.items.get(li.dataset.itemId)?.confirmDelete();
     }, editable);
 
-    // Carry or stow an item. Stowed gear stays on the character's list but is
-    // not on them, so it leaves the Trageslots grid and costs no slots. Worn
-    // gear has no toggle at all — the paper doll owns that state.
-    this.#delegate('click', '.item-carry-toggle', (event, target) => {
-      event.preventDefault();
-      const item = this.actor.items.get(target.closest('.item')?.dataset.itemId);
-      if (!item) return;
-      item.update({ 'system.carried': item.system.carried === false });
-    }, editable);
-
     // Author a new item from the carry grid (or the Inventar tab's list). One
     // dialog for all three physical types rather than a create control per
     // type: the type is a choice inside the act of adding something, not three
@@ -1087,8 +1090,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         event.preventDefault();
         this.#clearDropMarkers();
         const source = this.#dragging;
-        if (source?.type !== 'armor') return;
-        if (source.system.zone !== target.dataset.zone) return;
+        if (!armorZones(source).includes(target.dataset.zone)) return;
         target.classList.add('drop-onto');
       },
       editable
@@ -1141,9 +1143,14 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   }
 
   /**
-   * Put an armour item into a paper doll zone, or clear the zone when
-   * `itemId` is null. A piece can only occupy one zone at a time, so any
-   * other zone already holding it is cleared in the same update.
+   * Put an armour item on, or take off whatever is in a paper doll zone when
+   * `itemId` is null.
+   *
+   * A piece covers whatever locations it was authored for, not just the one it
+   * was dropped on: a coverall is one garment over torso, arms and legs, so
+   * putting it on fills all three and taking it off by any one of them empties
+   * all three. Anything less would leave a zone pointing at a sleeve nobody is
+   * wearing.
    *
    * @param {string} zone  A key of CONFIG.TNO.armorZones.
    * @param {string|null} itemId
@@ -1152,66 +1159,71 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   async _setEquippedArmor(zone, itemId) {
     if (!(zone in CONFIG.TNO.armorZones)) return;
 
-    const update = { [`system.equipment.${zone}`]: itemId };
-    if (itemId) {
-      for (const [other, worn] of Object.entries(this.actor.system.equipment ?? {})) {
-        if (other !== zone && worn === itemId) update[`system.equipment.${other}`] = null;
+    const equipment = this.actor.system.equipment ?? {};
+    const update = {};
+
+    if (!itemId) {
+      const worn = equipment[zone];
+      if (!worn) return;
+      for (const [key, value] of Object.entries(equipment)) {
+        if (value === worn) update[`system.equipment.${key}`] = null;
       }
+      return this.actor.update(update);
     }
+
+    // Clear wherever the piece already sits before placing it, so a re-drop
+    // onto a different zone moves the whole garment rather than cloning it.
+    for (const [key, value] of Object.entries(equipment)) {
+      if (value === itemId) update[`system.equipment.${key}`] = null;
+    }
+
+    const covered = armorZones(this.actor.items.get(itemId));
+    for (const key of covered.length ? covered : [zone]) {
+      update[`system.equipment.${key}`] = itemId;
+    }
+
     return this.actor.update(update);
   }
 
   /**
-   * Ask what to add to the inventory: which of the three physical item types,
-   * and under what name. Both answers are things only the player knows, and
-   * neither is worth a second dialog — everything else about the item (slots,
-   * armour values, weapon figures) is authored on the item sheet, which opens
-   * straight afterwards.
+   * Ask what to add to the inventory. Only the name, now: there is one kind of
+   * physical item and what it *does* is the role it takes on, a chip on its own
+   * sheet rather than a choice that has to be made before the thing exists.
+   * Asking for a type up front got that backwards — it made the least
+   * reversible answer the first one, and most objects have no role at all.
    *
-   * Feature and spell are deliberately absent: they are not objects, cost no
-   * slots, and are created from their own lists.
+   * Feature and spell are still absent: they are not objects, cost no slots,
+   * and are created from their own lists.
    * @private
    */
   async _promptCreateItem() {
-    const types = ['item', 'armor', 'weapon'];
-    const options = types
-      .map((type) => `<option value="${type}">${game.i18n.localize(`TYPES.Item.${type}`)}</option>`)
-      .join('');
-
-    const result = await foundry.applications.api.DialogV2.prompt({
+    const name = await foundry.applications.api.DialogV2.prompt({
       window: { title: game.i18n.localize('TNO.Inventory.AddTitle') },
       content: `
-        <div class="form-group">
-          <label>${game.i18n.localize('TNO.Inventory.AddType')}</label>
-          <select name="type">${options}</select>
-        </div>
         <div class="form-group">
           <label>${game.i18n.localize('TNO.Inventory.AddName')}</label>
           <input type="text" name="name" autofocus/>
         </div>`,
       ok: {
         label: game.i18n.localize('TNO.Inventory.Add'),
-        callback: (event, button) => ({
-          type: button.form.elements.type.value,
-          name: button.form.elements.name.value.trim(),
-        }),
+        callback: (event, button) => button.form.elements.name.value.trim(),
       },
       rejectClose: false,
     });
-    if (!result) return;
+    if (name === null || name === undefined) return;
 
     const created = await Item.create(
       {
-        // An empty field is a player who means "just add one" — the type's own
-        // name is a better placeholder than an empty item nobody can find.
-        name: result.name || game.i18n.localize(`TYPES.Item.${result.type}`),
-        type: result.type,
+        // An empty field is a player who means "just add one" — a generic name
+        // is better than an empty item nobody can find again.
+        name: name || game.i18n.localize('TYPES.Item.item'),
+        type: 'item',
       },
       { parent: this.actor }
     );
 
-    // Straight into the item's own values: a fresh piece of armour or a weapon
-    // is all zeroes and blanks, which is exactly what still has to be filled in.
+    // Straight into the item's own values: a fresh item is all zeroes and
+    // blanks, which is exactly what still has to be filled in.
     return created?.sheet.render(true);
   }
 
@@ -1266,15 +1278,18 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     }
 
     const zone = zoneEl.dataset.zone;
-    if (item.type !== 'armor') return;
-    // The Rüstungen table binds each piece to a Stelle, so a zone only takes
-    // what was authored for it. Silently ignoring the drop would read as the
-    // doll being broken, so say which zone the piece belongs to instead.
-    if (item.system.zone !== zone) {
+    const covered = armorZones(item);
+    if (!covered.length) return;
+    // The Rüstungen table binds each piece to the Stellen it was made for, so a
+    // zone only takes what covers it. Silently ignoring the drop would read as
+    // the doll being broken, so say where the piece does belong instead.
+    if (!covered.includes(zone)) {
       return ui.notifications.warn(
         game.i18n.format('TNO.Armor.WrongZone', {
           item: item.name,
-          zone: game.i18n.localize(CONFIG.TNO.armorZones[item.system.zone] ?? item.system.zone),
+          zone: covered
+            .map((key) => game.i18n.localize(CONFIG.TNO.armorZones[key] ?? key))
+            .join(', '),
         })
       );
     }
@@ -1408,9 +1423,11 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // already worn is on its way off, so the carry grid does. Marking both at
     // once would offer the player a move they cannot make in that direction.
     const worn = this.#wornZone(item.id);
-    const zone = !worn && item.type === 'armor' ? item.system.zone : null;
-    const row = zone ? this.element.querySelector(`.armor-row[data-zone="${zone}"]`) : null;
-    row?.classList.add('armor-drop-target');
+    const zones = worn ? [] : armorZones(item);
+    const rows = zones.flatMap((zone) => [
+      ...this.element.querySelectorAll(`.armor-row[data-zone="${zone}"]`),
+    ]);
+    for (const row of rows) row.classList.add('armor-drop-target');
 
     const grid = worn ? this.element.querySelector('.slot-grid-block') : null;
     grid?.classList.add('carry-drop-target');
@@ -1420,20 +1437,20 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // the picture as often as towards the row. The Unterkleidung is not a hit
     // location — it covers all four at once — so it lights every shape rather
     // than looking for a `suit` shape that does not exist.
-    const shapes = zone
-      ? this.element.querySelectorAll(
-          zone === 'suit'
-            ? '.paperdoll-figure .zone'
-            : `.paperdoll-figure .zone[data-zone="${zone}"]`
-        )
-      : [];
+    const shapes = zones.flatMap((zone) => [
+      ...this.element.querySelectorAll(
+        zone === 'suit'
+          ? '.paperdoll-figure .zone'
+          : `.paperdoll-figure .zone[data-zone="${zone}"]`
+      ),
+    ]);
     for (const shape of shapes) shape.classList.add('zone-drop-target');
 
     dragged.addEventListener(
       'dragend',
       () => {
         this.#dragging = null;
-        row?.classList.remove('armor-drop-target');
+        for (const row of rows) row.classList.remove('armor-drop-target');
         grid?.classList.remove('carry-drop-target');
         for (const shape of shapes) shape.classList.remove('zone-drop-target');
         this.element.classList.remove('dragging-item');

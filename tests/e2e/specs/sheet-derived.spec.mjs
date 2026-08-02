@@ -145,8 +145,16 @@ test('worn armour is exempt from the slot budget, carried armour is not', async 
   const result = await world.page.evaluate(async (actorId) => {
     const actor = game.actors.get(actorId);
     const [helm] = await actor.createEmbeddedDocuments('Item', [
-      { name: 'Composite Helmet', type: 'armor', system: { zone: 'head', slots: 2, rh: 5, rw: 3, ra: 8 } },
-      { name: 'Spare Plates', type: 'armor', system: { zone: 'torso', slots: 3 } },
+      {
+        name: 'Composite Helmet',
+        type: 'item',
+        system: { roles: { armor: true }, zone: 'head', slots: 2, rh: 5, rw: 3, ra: 8 },
+      },
+      {
+        name: 'Spare Plates',
+        type: 'item',
+        system: { roles: { armor: true }, zone: 'torso', slots: 3 },
+      },
     ]);
 
     // Both are merely carried at this point.
@@ -168,8 +176,16 @@ test('the Unterkleidung layers under every zone without granting hardness', asyn
   const armor = await world.page.evaluate(async (actorId) => {
     const actor = game.actors.get(actorId);
     const [suit, helm] = await actor.createEmbeddedDocuments('Item', [
-      { name: 'Vacuum Suit', type: 'armor', system: { zone: 'suit', rh: 2, rw: 1, ra: 6 } },
-      { name: 'Composite Helmet', type: 'armor', system: { zone: 'head', rh: 5, rw: 3, ra: 8 } },
+      {
+        name: 'Vacuum Suit',
+        type: 'item',
+        system: { roles: { armor: true }, zone: 'suit', rh: 2, rw: 1, ra: 6 },
+      },
+      {
+        name: 'Composite Helmet',
+        type: 'item',
+        system: { roles: { armor: true }, zone: 'head', rh: 5, rw: 3, ra: 8 },
+      },
     ]);
     await actor.update({ 'system.equipment.suit': suit.id, 'system.equipment.head': helm.id });
     return foundry.utils.deepClone(actor.system.derived.armor);

@@ -1,11 +1,15 @@
 /**
- * Manage Active Effect instances through an Actor or Item Sheet via effect control buttons.
+ * Manage Active Effect instances through an Actor Sheet via effect control buttons.
  * @param {MouseEvent} event      The left-click event on the effect control
- * @param {Actor|Item} owner      The owning document which manages this effect
+ * @param {Actor} owner           The owning actor which manages this effect
  */
 export function onManageActiveEffect(event, owner) {
   event.preventDefault();
-  const a = event.currentTarget;
+  // The sheet binds this by delegation from its root element, so
+  // `currentTarget` is the sheet rather than the button that was pressed — the
+  // control has to be found from where the click actually landed. The fallback
+  // keeps a directly-bound listener working.
+  const a = event.target?.closest?.('.effect-control') ?? event.currentTarget;
   const li = a.closest('li');
   const effect = li.dataset.effectId
     ? owner.effects.get(li.dataset.effectId)
@@ -34,7 +38,7 @@ export function onManageActiveEffect(event, owner) {
 }
 
 /**
- * Prepare the data structure for Active Effects which are currently embedded in an Actor or Item.
+ * Prepare Active Effects for the actor sheet.
  * @param {ActiveEffect[]} effects    A collection or generator of Active Effect documents to prepare sheet data for
  * @return {object}                   Data for rendering
  */

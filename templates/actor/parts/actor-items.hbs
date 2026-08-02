@@ -10,7 +10,7 @@ bookkeeping. --}}
     empty-state hint below. --}}
     {{#if inventory.length}}
     <div class='item-name'>{{localize 'Name'}}</div>
-    <div class='item-formula'>{{localize 'Roll Formula'}}</div>
+    <div class='item-roles'>{{localize 'TNO.Item.Roles'}}</div>
     {{/if}}
     <div class='item-controls'>
       {{!-- One control for all three physical types. The type used to be a
@@ -29,7 +29,7 @@ bookkeeping. --}}
   {{#each inventory as |item id|}}
     {{!-- `draggable` is the selector ActorSheetV2's inherited DragDrop binds,
     which is what lets a row be dragged onto the hotbar as a macro. --}}
-    <li class='item flexrow draggable {{#if item.isStowed}}item-stowed{{/if}}' data-item-id='{{item._id}}'>
+    <li class='item flexrow draggable' data-item-id='{{item._id}}'>
       <div class='item-name'>
         <div class='item-image'>
           <a class='rollable' data-roll-type='item'>
@@ -43,22 +43,20 @@ bookkeeping. --}}
         </div>
         <h4>{{item.name}}</h4>
       </div>
-      <div class='item-formula item-prop'>{{item.system.formula}}</div>
+      {{!-- What the piece is, which is now a list rather than a single type.
+      An item with no roles at all is most of the inventory and shows nothing,
+      which is the right amount of ink for a rope. --}}
+      <div class='item-roles item-prop'>
+        {{#each item.roleLabels}}
+          <span class='item-role-tag'>{{localize this}}</span>
+        {{/each}}
+      </div>
       <div class='item-controls'>
-        {{!-- Where the item is. Worn gear is the paper doll's business — it is
-        exempt from the slot economy either way — so it shows a static marker
-        rather than a toggle that would fight the doll for the same state. --}}
+        {{!-- Worn gear is the paper doll's business and shows a static marker. --}}
         {{#if item.isWorn}}
           <span class='item-state item-state-worn' title='{{localize "TNO.Inventory.WornHint"}}'>
             <i class='fas fa-user-shield'></i>
           </span>
-        {{else}}
-          <a
-            class='item-control item-carry-toggle'
-            title='{{localize "TNO.Inventory.ToggleCarried"}} — {{#if item.isStowed}}{{localize "TNO.Inventory.StowedHint"}}{{else}}{{localize "TNO.Inventory.Slots"}}{{/if}}'
-          >
-            <i class='fas {{#if item.isStowed}}fa-box-archive{{else}}fa-person-walking-luggage{{/if}}'></i>
-          </a>
         {{/if}}
         <a
           class='item-control item-edit'

@@ -1,10 +1,11 @@
-import {
-  onManageActiveEffect,
-  prepareActiveEffectCategories,
-} from '../helpers/effects.mjs';
-
 /**
- * Extend the basic ItemSheet with some very simple modifications
+ * The sheet for items that are not objects: features and spells.
+ *
+ * Physical gear left here for the row editor in
+ * [`item-gear-sheet.mjs`](./item-gear-sheet.mjs), which is built on
+ * ApplicationV2 and knows about roles. What is left is the plain
+ * description sheet those two types have always had, and it stays
+ * on V1 because rewriting it would change nothing a player can see.
  * @extends {ItemSheet}
  */
 export class TnoItemSheet extends ItemSheet {
@@ -68,9 +69,6 @@ export class TnoItemSheet extends ItemSheet {
     // Adding a pointer to CONFIG.TNO
     context.config = CONFIG.TNO;
 
-    // Prepare active effects for easier access
-    context.effects = prepareActiveEffectCategories(this.item.effects);
-
     // Whether this sheet may offer to delete its own item. Worn gear is held
     // back: the actor's `system.equipment` addresses the piece by id, and
     // deleting it out from under the paper doll would leave a zone pointing at
@@ -92,11 +90,6 @@ export class TnoItemSheet extends ItemSheet {
     if (!this.isEditable) return;
 
     // Roll handlers, click handlers, etc. would go here.
-
-    // Active Effect management
-    html.on('click', '.effect-control', (ev) =>
-      onManageActiveEffect(ev, this.item)
-    );
 
     // Delete this item, with the same confirmation the actor's inventory list
     // uses. Foundry closes the sheet once the document is gone, so there is

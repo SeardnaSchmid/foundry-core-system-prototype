@@ -14,8 +14,12 @@ export const preloadHandlebarsTemplates = async function () {
     'systems/tno/templates/actor/parts/actor-slot-grid.hbs',
     'systems/tno/templates/actor/parts/actor-weapons.hbs',
     // Item partials
-    'systems/tno/templates/item/parts/item-effects.hbs',
     'systems/tno/templates/item/parts/item-delete.hbs',
+    'systems/tno/templates/item/parts/item-scale.hbs',
+    'systems/tno/templates/item/parts/item-role-weapon.hbs',
+    'systems/tno/templates/item/parts/item-role-armor.hbs',
+    'systems/tno/templates/item/parts/item-role-consumable.hbs',
+    'systems/tno/templates/item/parts/item-gear-overview.hbs',
     // Apps
     'systems/tno/templates/apps/roll-dialog.hbs',
     'systems/tno/templates/apps/parts/advantage-picker.hbs',

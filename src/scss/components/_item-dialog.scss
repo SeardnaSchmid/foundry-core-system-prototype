@@ -1,0 +1,1247 @@
+// The gear dialog's row editor.
+//
+// The measurements come from the wireframe and are the part of it that is
+// binding: a fixed 96px label column, 24px-tall controls, 8px of padding above
+// and below each row and 10px between a label and its controls. Everything
+// visual — the colours, the type, the corner radii — is this system's, not the
+// sketch's.
+//
+// The fixed label column is what makes the dialog scannable: whatever role an
+// item has taken on, the values start at the same x, so switching from a
+// weapon to a piece of armour moves nothing horizontally. The fixed control
+// height does the same vertically.
+
+$gear-label-width: 96px;
+$gear-control-height: 24px;
+$gear-row-gap: 10px;
+$gear-radius: 4px;
+
+// Foundry gives native inputs their own inset background and shadow. That is
+// useful for a standalone form field, but inside this dialog's compound boxes
+// it produces a second, rounded "field inside the field" (and number spinners
+// take another slice out of the already small value area). Keep the native
+// control semantics while letting the surrounding `.field`, `.split` or
+// `.stepper` draw the control.
+@mixin gear-value-input {
+  min-width: 0;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: $c-dark;
+  font-variant-numeric: tabular-nums;
+
+  &[type='number'] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+      margin: 0;
+      appearance: none;
+    }
+  }
+}
+
+// `&` rather than a bare class: this partial is imported inside `.tno`, and
+// `gear-dialog` sits on the sheet's own root element alongside `tno` rather
+// than on something inside it. A descendant selector would never match.
+&.gear-dialog {
+  // Native buttons provide keyboard semantics for every custom control. Strip
+  // Foundry's generic button chrome where the surrounding component owns it.
+  .chip,
+  .use-segment,
+  .scale-cell,
+  .stepper-button,
+  .gear-mode,
+  [data-missing-field],
+  .overview-badge.warning {
+    width: auto;
+    min-height: 0;
+    margin: 0;
+    font-family: inherit;
+    box-shadow: none;
+  }
+
+  // A form of rows wants to end where its rows do, not stretch a last row to
+  // fill a window height nobody chose.
+  .window-content {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    overflow-y: auto;
+  }
+
+  /* ---------------------------------------------- Head */
+
+  .gear-head {
+    display: flex;
+    align-items: center;
+    gap: $gear-row-gap;
+    padding-bottom: 8px;
+    border-bottom: 2px solid $c-dark;
+
+    .profile-img {
+      flex: 0 0 40px;
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      border: 1px solid $c-beige;
+      border-radius: $gear-radius;
+      cursor: pointer;
+    }
+
+    // The name reads as the dialog's title rather than as the first field, so
+    // it carries no box until it is hovered or focused — the same treatment
+    // `.sheet-header h1.charname input` gives every other document name.
+    .gear-name {
+      flex: 1;
+      height: 28px;
+      min-width: 0;
+      padding: 0 2px;
+      border: none;
+      background: transparent;
+      font-family: $font-primary;
+      font-size: 16px;
+      font-weight: bold;
+      transition: box-shadow 0.15s ease;
+
+      &:hover {
+        box-shadow: inset 0 -1px 0 $c-beige;
+      }
+
+      &:focus {
+        box-shadow: inset 0 -2px 0 $c-tan;
+        outline: none;
+      }
+
+      &.is-missing {
+        box-shadow: inset 0 -2px 0 $c-warning;
+      }
+    }
+
+    .gear-keyhint {
+      flex: none;
+      font-size: 9px;
+      color: rgba($c-dark, 0.5);
+      white-space: nowrap;
+    }
+
+    .gear-title {
+      flex: 1;
+      min-width: 0;
+      margin: 0;
+      overflow: hidden;
+      font-size: 18px;
+      line-height: 1.2;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .gear-modes {
+      flex: none;
+      display: flex;
+      padding: 2px;
+      border: 1px solid rgba($c-beige, 0.8);
+      border-radius: 6px;
+      background: rgba($c-white, 0.45);
+
+      .gear-mode {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 8px;
+        border: none;
+        border-radius: 4px;
+        background: transparent;
+        color: rgba($c-dark, 0.65);
+        font-size: 10px;
+
+        &[aria-pressed='true'] {
+          background: $c-dark;
+          color: $c-white;
+        }
+      }
+    }
+  }
+
+  /* ---------------------------------------------- Rows */
+
+  .gear-rows {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .gear-row {
+    display: flex;
+    align-items: center;
+    gap: $gear-row-gap;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba($c-beige, 0.6);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    // The description row's label sits with the first line of the editor
+    // rather than halfway down a box that grows.
+    &.gear-row-top {
+      align-items: flex-start;
+
+      .gear-label {
+        padding-top: 4px;
+      }
+    }
+
+    // A row whose required value is still blank. The label carries the mark,
+    // not the control: the control may be a ten-cell scale, and reddening all
+    // ten of them would read as ten errors.
+    &.is-missing > .gear-label {
+      color: $c-warning;
+    }
+  }
+
+  .gear-label {
+    flex: 0 0 $gear-label-width;
+    width: $gear-label-width;
+    font-size: 10px;
+    line-height: 1.2;
+    color: rgba($c-dark, 0.6);
+  }
+
+  .gear-ctl {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  /* ---------------------------------------------- Fields */
+
+  // The base control: a bordered box holding an optional short caption and one
+  // input. Captions are inside the box rather than above it so a row of four
+  // fields stays one row tall.
+  .field {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    height: $gear-control-height;
+    padding: 0 6px;
+    border: 1px solid $c-dark;
+    border-radius: $gear-radius;
+    background: $c-white;
+    overflow: hidden;
+
+    // Shrinkable, unlike the caption on a `.split` or a `.stepper`: these boxes
+    // are four to a row and the one that runs out of space should give up its
+    // caption before it truncates the value.
+    .cap {
+      flex: 0 1 auto;
+      font-size: 8px;
+      letter-spacing: 0.04em;
+      color: rgba($c-dark, 0.55);
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .val {
+      flex: 1;
+      min-width: 0;
+      font-size: 11px;
+      text-align: right;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .unit {
+      flex: none;
+      padding: 0 6px 0 3px;
+      font-size: 10px;
+      color: rgba($c-dark, 0.65);
+    }
+
+    input,
+    select {
+      @include gear-value-input;
+      flex: 1;
+      height: 100%;
+      padding: 0;
+      border: none;
+      background: transparent;
+      font-size: 12px;
+      text-align: right;
+
+      &:focus {
+        outline: none;
+        box-shadow: none;
+      }
+    }
+
+    // Captions and values belong to one box, but a quiet rule makes the value
+    // area easy to acquire with the pointer and lines figures up across rows.
+    > .cap + input,
+    > .cap + select,
+    > select + input {
+      border-left: 1px solid rgba($c-beige, 0.55);
+      padding-left: 5px;
+    }
+
+    > input:focus,
+    > select:focus {
+      background: rgba($c-primary, 0.06);
+    }
+
+    select {
+      text-align: left;
+    }
+
+    &:focus-within {
+      border-color: $c-primary;
+    }
+
+    &.is-missing {
+      border-color: $c-warning;
+    }
+
+    // Free text rather than a figure, so it reads from the left like prose
+    // instead of lining up its last character with the numbers above it.
+    &.field-wide {
+      flex: 2;
+
+      input {
+        text-align: left;
+      }
+    }
+
+    // The Fertigkeitswert: a skill and the rank in it, which is one value in
+    // two parts, so it shares a box rather than splitting into two fields.
+    &.field-fv {
+      flex: 2.8;
+
+      select {
+        flex: 1;
+      }
+
+      .rank {
+        flex: 0 0 28px;
+        text-align: center;
+      }
+    }
+
+    // A field the current role or use has nothing to put in. Hatched rather
+    // than hidden: the row keeps its place so nothing below it moves when the
+    // role or the use changes.
+    &.na {
+      border-style: dashed;
+      border-color: $c-beige;
+      background: repeating-linear-gradient(
+        45deg,
+        rgba($c-beige, 0.25) 0 5px,
+        transparent 5px 10px
+      );
+
+      .val {
+        font-size: 10px;
+        font-style: italic;
+        color: rgba($c-dark, 0.45);
+      }
+    }
+
+    // The derived slot footprint. Never editable — it is slots times quantity,
+    // both of which are two fields to its left — so it borrows the n/a box.
+    &.slot-readout .val {
+      font-style: normal;
+    }
+  }
+
+  // Two or three values that are read as one figure: an SS of "2 D6", an HH of
+  // "+1 / 0". Split by hairlines inside a single box so they read as one
+  // answer rather than as neighbouring fields.
+  .split {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    height: $gear-control-height;
+    border: 1px solid $c-dark;
+    border-radius: $gear-radius;
+    background: $c-white;
+    overflow: hidden;
+
+    .cap {
+      flex: none;
+      padding: 0 5px;
+      font-size: 8px;
+      color: rgba($c-dark, 0.55);
+      text-transform: uppercase;
+    }
+
+    .unit {
+      flex: none;
+      padding: 0 7px;
+      border-left: 1px solid rgba($c-beige, 0.8);
+      font-size: 10px;
+      color: rgba($c-dark, 0.65);
+    }
+
+    input,
+    select {
+      @include gear-value-input;
+      flex: 1;
+      height: 100%;
+      padding: 0 4px;
+      border: none;
+      border-left: 1px solid rgba($c-beige, 0.8);
+      background: transparent;
+      font-size: 12px;
+      text-align: center;
+
+      &:focus {
+        outline: none;
+        background: rgba($c-primary, 0.06);
+      }
+    }
+
+    &:focus-within {
+      border-color: $c-primary;
+    }
+  }
+
+  // A count with no table behind it — stack quantity and loaded ammunition. The
+  // buttons exist because these are nudged far more often than they are typed.
+  .stepper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    height: $gear-control-height;
+    border: 1px solid $c-dark;
+    border-radius: $gear-radius;
+    background: $c-white;
+    overflow: hidden;
+
+    .cap {
+      flex: none;
+      padding: 0 5px;
+      font-size: 8px;
+      color: rgba($c-dark, 0.55);
+      text-transform: uppercase;
+    }
+
+    input {
+      @include gear-value-input;
+      flex: 1;
+      height: 100%;
+      padding: 0;
+      border: none;
+      background: transparent;
+      font-size: 12px;
+      text-align: center;
+
+      &:focus {
+        outline: none;
+        background: rgba($c-primary, 0.06);
+      }
+    }
+
+    .stepper-button {
+      flex: 0 0 20px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-left: 1px solid rgba($c-beige, 0.8);
+      font-size: 12px;
+      line-height: 1;
+      color: rgba($c-dark, 0.7);
+      cursor: pointer;
+
+      &:first-child {
+        border-left: none;
+        border-right: 1px solid rgba($c-beige, 0.8);
+      }
+
+      &:hover {
+        background: rgba($c-beige, 0.4);
+        color: $c-dark;
+      }
+    }
+
+    &:focus-within {
+      border-color: $c-primary;
+    }
+  }
+
+  // Rüstungsabdeckung as a share of full coverage, beside the number.
+  .coverage-bar {
+    flex: 1;
+    height: 6px;
+    border: 1px solid $c-dark;
+    border-radius: $gear-radius;
+    background: linear-gradient(
+      to right,
+      $c-dark 0 var(--coverage, 0%),
+      transparent var(--coverage, 0%)
+    );
+  }
+
+  /* ---------------------------------------------- Choices */
+
+  // The role (exclusive) and the armour zones (multi-select). Round so they
+  // never read as buttons that do something — they say what the item *is*.
+  // Both selected states are styled off the one selector, since the chips
+  // differ in how many may be on at once, not in how a chosen one looks.
+  .chips {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .chip {
+    background: transparent;
+    padding: 4px 9px;
+    border: 1px solid $c-beige;
+    border-radius: 20px;
+    font-size: 10px;
+    line-height: 1;
+    color: rgba($c-dark, 0.6);
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover {
+      border-color: $c-dark;
+      color: $c-dark;
+    }
+
+    &[aria-pressed='true'],
+    &[aria-checked='true'] {
+      border-color: $c-dark;
+      background: $c-dark;
+      color: $c-white;
+    }
+  }
+
+  // Single-select: the weapon's use. Joined into one bar because the three
+  // options are one answer, and a gap between them would invite two.
+  .segments {
+    display: flex;
+    border: 1px solid $c-dark;
+    border-radius: 5px;
+    overflow: hidden;
+
+    .use-segment {
+      flex: 1;
+      padding: 4px 0;
+      border-left: 1px solid $c-dark;
+      font-size: 10px;
+      line-height: 1.4;
+      text-align: center;
+      text-transform: uppercase;
+      cursor: pointer;
+
+      &:first-child {
+        border-left: none;
+      }
+
+      &:hover {
+        background: rgba($c-beige, 0.4);
+      }
+
+      &[aria-checked='true'] {
+        background: $c-dark;
+        color: $c-white;
+      }
+    }
+  }
+
+  // The click-scales. Equal-width cells so the band a value sits in can be
+  // read off its position without counting.
+  .scale {
+    gap: 3px;
+
+    .scale-cell {
+      flex: 1;
+      min-width: 0;
+      height: $gear-control-height;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid $c-dark;
+      border-radius: $gear-radius;
+      background: $c-white;
+      font-size: 10px;
+      cursor: pointer;
+
+      &:hover {
+        background: rgba($c-beige, 0.4);
+      }
+
+      &[aria-checked='true'] {
+        background: $c-dark;
+        color: $c-white;
+      }
+
+      &:focus-visible {
+        outline: 2px solid $c-primary;
+        outline-offset: 1px;
+      }
+    }
+  }
+
+  // The five range bands: a value with its distance written underneath, since
+  // "+1" means nothing without knowing which band it belongs to.
+  .stack {
+    gap: 4px;
+
+    .stack-field {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      min-width: 0;
+
+      input {
+        @include gear-value-input;
+        width: 100%;
+        height: $gear-control-height;
+        padding: 0;
+        border: 1px solid $c-dark;
+        border-radius: $gear-radius;
+        background: $c-white;
+        font-size: 11px;
+        text-align: center;
+
+        &:focus {
+          border-color: $c-primary;
+          background: rgba($c-primary, 0.06);
+          outline: none;
+        }
+      }
+
+      .cap {
+        font-size: 8px;
+        color: rgba($c-dark, 0.55);
+        text-transform: uppercase;
+      }
+    }
+  }
+
+  /* ---------------------------------------------- Blocks */
+
+  /* ---------------------------------------------- Overview */
+
+  .gear-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 10px;
+    padding: 4px 0 2px;
+  }
+
+  .overview-badges,
+  .overview-wide {
+    grid-column: 1 / -1;
+  }
+
+  .overview-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-top: 4px;
+
+    > button,
+    .overview-ammo {
+      min-height: 28px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0;
+      padding: 5px 9px;
+      border: 1px solid rgba($c-dark, 0.65);
+      border-radius: 5px;
+      background: rgba($c-white, 0.55);
+      color: $c-dark;
+      font-family: inherit;
+      font-size: 10px;
+
+      &:hover:not(:disabled) { background: rgba($c-beige, 0.35); }
+      &:disabled { opacity: 0.45; }
+    }
+
+    .overview-ammo {
+      gap: 0;
+      padding: 0;
+      overflow: hidden;
+
+      strong {
+        min-width: 30px;
+        text-align: center;
+      }
+
+      .stepper-button {
+        width: 26px;
+        height: 27px;
+        border: none;
+        border-radius: 0;
+        background: transparent;
+      }
+    }
+  }
+
+  .overview-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .overview-badge {
+    padding: 3px 8px;
+    border: 1px solid rgba($c-beige, 0.85);
+    border-radius: 99px;
+    background: rgba($c-white, 0.5);
+    color: rgba($c-dark, 0.7);
+    font-size: 9px;
+
+    &.role {
+      border-color: $c-dark;
+      color: $c-dark;
+    }
+
+    &.state.worn,
+    &.state.carried {
+      background: rgba($c-primary, 0.09);
+    }
+
+    &.warning {
+      border-color: $c-warning;
+      background: rgba($c-warning, 0.08);
+      color: $c-warning;
+      cursor: pointer;
+    }
+  }
+
+  .overview-card {
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid rgba($c-beige, 0.75);
+    border-radius: 7px;
+    background: rgba($c-white, 0.38);
+
+    > header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba($c-beige, 0.55);
+
+      h2 {
+        margin: 0;
+        font-size: 13px;
+      }
+
+      span,
+      strong {
+        color: rgba($c-dark, 0.58);
+        font-size: 10px;
+        font-weight: normal;
+      }
+    }
+
+    p {
+      margin: 5px 0;
+    }
+  }
+
+  .overview-empty,
+  .overview-note,
+  .overview-card small {
+    color: rgba($c-dark, 0.5);
+    font-size: 9px;
+  }
+
+  .range-chart {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
+    height: 92px;
+    padding-top: 4px;
+  }
+
+  .range-cycle > .range-band {
+    position: relative;
+    display: grid;
+    grid-template-rows: 1fr auto auto;
+    align-items: end;
+    min-width: 0;
+    text-align: center;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      right: 0;
+      left: 0;
+      border-top: 1px solid rgba($c-dark, 0.3);
+    }
+
+    .range-bar {
+      z-index: 1;
+      justify-self: stretch;
+      height: var(--magnitude);
+      max-height: 35px;
+      margin: 0 4px 2px;
+      border-radius: 4px 4px 0 0;
+      background: rgba($c-dark, 0.28);
+    }
+
+    &.positive .range-bar { background: rgba(62, 126, 55, 0.65); }
+    &.negative .range-bar { background: rgba($c-warning, 0.58); transform: translateY(34px); }
+    &.unavailable .range-bar { height: 3px; background: rgba($c-dark, 0.15); }
+
+    strong,
+    small { z-index: 2; }
+    strong { font-size: 11px; }
+    small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  }
+
+  .penetration-axis {
+    display: flex;
+    gap: 4px;
+    min-height: 42px;
+  }
+
+  .penetration-segment {
+    flex: var(--segment-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 42px;
+    border-radius: 6px;
+    background: rgba($c-dark, 0.1);
+    font-size: 10px;
+
+    &.equal {
+      flex-grow: 1;
+      background: rgba($c-primary, 0.18);
+      font-weight: bold;
+    }
+  }
+
+  .overview-scale {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+  }
+
+  .overview-scale-cell {
+    padding: 6px 0;
+    border-radius: 4px;
+    background: rgba($c-dark, 0.08);
+    font-size: 10px;
+    text-align: center;
+
+    &[aria-current='true'] {
+      background: $c-dark;
+      color: $c-white;
+    }
+  }
+
+  .stat-summary dl,
+  .armor-values {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 5px;
+    margin: 0;
+
+    div {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      padding: 4px 6px;
+      border-radius: 4px;
+      background: rgba($c-white, 0.55);
+    }
+
+    dt { color: rgba($c-dark, 0.5); font-size: 9px; }
+    dd { margin: 0; font-size: 10px; }
+  }
+
+  .armor-zone-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 9px;
+
+    span {
+      display: flex;
+      gap: 5px;
+      padding: 4px 7px;
+      border-radius: 4px;
+      background: rgba($c-primary, 0.1);
+      font-size: 10px;
+    }
+  }
+
+  .armor-values { grid-template-columns: repeat(3, 1fr); }
+
+  .overview-coverage {
+    display: block;
+    height: 6px;
+    margin-top: 8px;
+    border-radius: 5px;
+    background: rgba($c-dark, 0.12);
+    overflow: hidden;
+
+    i { display: block; width: var(--coverage); height: 100%; background: $c-dark; }
+  }
+
+  .slot-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+
+    span,
+    b {
+      width: 24px;
+      height: 24px;
+      display: grid;
+      place-items: center;
+      border-radius: 4px;
+      background: rgba($c-primary, 0.32);
+      font-size: 9px;
+    }
+  }
+
+  .strength-profile.unmet {
+    border-color: rgba($c-warning, 0.6);
+  }
+
+  .overview-description {
+    min-height: 44px;
+    max-height: 180px;
+    line-height: 1.45;
+    overflow-y: auto;
+
+    > :first-child { margin-top: 0; }
+    > :last-child { margin-bottom: 0; }
+  }
+
+  .memo-wrap {
+    flex: 1;
+    min-width: 0;
+  }
+
+  // A description is usually several sentences, so give it a real writing
+  // surface instead of the one-line strip left beneath Foundry's toolbar.
+  // The core editor remains intact (including its explicit save action); this
+  // only separates its toolbar from the page and makes the content area the
+  // visually dominant part of the control.
+  .memo {
+    display: flex;
+    flex-direction: column;
+    min-height: 200px;
+    height: 240px;
+    max-height: 70vh;
+    border: 1px solid $c-beige;
+    border-radius: $gear-radius;
+    background: rgba($c-white, 0.9);
+    overflow: hidden;
+    resize: vertical;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+    &:hover {
+      border-color: rgba($c-dark, 0.65);
+    }
+
+    &:focus-within {
+      border-color: $c-primary;
+      box-shadow: 0 0 0 1px rgba($c-primary, 0.18);
+    }
+
+    // These are Foundry's public editor structure: the menu stays compact and
+    // the content, not the toolbar, receives the extra height.
+    .editor-menu {
+      flex: 0 0 auto;
+      min-height: 32px;
+      padding: 3px 7px;
+      border-bottom: 1px solid rgba($c-beige, 0.65);
+      background: rgba($c-beige, 0.18);
+    }
+
+    .editor-content {
+      flex: 1;
+      min-height: 150px;
+      padding: 9px 11px;
+      background: rgba($c-white, 0.72);
+      line-height: 1.45;
+      cursor: text;
+      overflow-y: auto;
+    }
+
+    .ProseMirror {
+      min-height: 142px;
+
+      &:focus {
+        outline: none;
+      }
+    }
+  }
+
+  .memo-help {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    margin: 5px 2px 0;
+    font-size: 9px;
+    line-height: 1.35;
+    color: rgba($c-dark, 0.5);
+
+    i {
+      flex: none;
+      font-size: 9px;
+    }
+  }
+
+  .gear-hint {
+    margin: 0 0 8px $gear-label-width + $gear-row-gap;
+    font-size: 10px;
+    font-style: italic;
+    color: rgba($c-dark, 0.55);
+  }
+
+  .gear-section-divider {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    color: rgba($c-dark, 0.55);
+    font-size: 9px;
+    font-weight: bold;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+
+    &::before,
+    &::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba($c-dark, 0.28);
+    }
+  }
+
+  // Related authoring values get a quiet container of their own. This keeps
+  // trade metadata visually separate from both the item's physical basics and
+  // the role-specific rules below it without turning the editor into tabs.
+  .gear-property-group {
+    display: flex;
+    flex-direction: column;
+    margin: 8px 0;
+    padding: 0 10px 2px;
+    border: 1px solid rgba($c-beige, 0.72);
+    border-radius: 6px;
+    background: rgba($c-white, 0.2);
+
+    .gear-section-divider {
+      margin-top: -6px;
+
+      span {
+        padding: 0 7px;
+        background: $c-white;
+      }
+    }
+
+    .gear-row:last-child {
+      border-bottom: none;
+    }
+
+    .field-price {
+      flex: 0 1 180px;
+    }
+  }
+
+  .range-cycle {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .range-cycle > .range-band {
+    flex: 1;
+    min-width: 0;
+    height: 62px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    margin: 0;
+    border: 1px solid rgba($c-dark, 0.35);
+    border-radius: $gear-radius;
+    background: rgba($c-white, 0.7);
+    box-shadow: none;
+
+    strong { font-size: 12px; line-height: 1; }
+    > span:last-child { font-size: 9px; color: rgba($c-dark, 0.65); }
+    &.negative { color: $c-warning; background: rgba($c-warning, 0.08); }
+    &.positive { color: $c-primary; background: rgba($c-primary, 0.1); }
+    &.unavailable { color: rgba($c-dark, 0.45); background: rgba($c-dark, 0.06); }
+
+    .range-visual {
+      position: relative;
+      width: 70%;
+      height: 18px;
+
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 50% 0 auto;
+        border-top: 1px solid rgba($c-dark, 0.25);
+      }
+
+      i {
+        position: absolute;
+        left: 12%;
+        right: 12%;
+        top: 50%;
+        border-top: 3px solid rgba($c-dark, 0.65);
+        transform: translateY(-50%);
+      }
+    }
+
+    &.negative .range-visual i {
+      top: 82%;
+      border-color: $c-warning;
+    }
+
+    &.positive .range-visual i {
+      top: 18%;
+      border-color: $c-primary;
+    }
+
+    &.unavailable .range-visual i {
+      border-top-style: dashed;
+      border-color: rgba($c-dark, 0.35);
+    }
+  }
+
+  .range-help {
+    flex: 0 0 100%;
+    margin: 3px 2px 0;
+    font-size: 9px;
+    line-height: 1.35;
+    color: rgba($c-dark, 0.58);
+  }
+
+  .consumable-effects {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .consumable-effect {
+    display: flex;
+    align-items: stretch;
+    gap: 5px;
+
+    textarea {
+      flex: 1;
+      min-height: 58px;
+      resize: vertical;
+    }
+
+    button {
+      flex: 0 0 32px;
+      width: 32px;
+      margin: 0;
+      color: $c-warning;
+    }
+  }
+
+  .consumable-effect-add {
+    align-self: flex-start;
+    width: auto;
+    margin: 0;
+    padding: 4px 9px;
+  }
+
+  .empty-effect {
+    margin: 2px 0;
+    color: rgba($c-dark, 0.55);
+    font-size: 10px;
+    font-style: italic;
+  }
+
+  /* ---------------------------------------------- Foot */
+
+  .gear-foot {
+    display: flex;
+    align-items: center;
+    gap: $gear-row-gap;
+    padding-top: 8px;
+    border-top: 2px solid $c-dark;
+
+    .gear-validation {
+      position: relative;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .gear-status {
+      flex: 1;
+      cursor: pointer;
+      font-size: 10px;
+      color: rgba($c-dark, 0.55);
+
+      &.is-missing {
+        color: $c-warning;
+      }
+    }
+
+    .missing-fields {
+      position: absolute;
+      z-index: 5;
+      bottom: calc(100% + 6px);
+      left: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      width: min(420px, 80vw);
+      padding: 8px;
+      border: 1px solid $c-beige;
+      border-radius: 5px;
+      background: $c-white;
+      box-shadow: 0 2px 8px rgba($c-dark, 0.18);
+
+      span {
+        flex-basis: 100%;
+        color: rgba($c-dark, 0.55);
+        font-size: 9px;
+      }
+
+      button {
+        padding: 3px 6px;
+        border: 1px solid rgba($c-warning, 0.45);
+        border-radius: 4px;
+        background: rgba($c-warning, 0.05);
+        color: $c-warning;
+        font-size: 9px;
+      }
+    }
+
+    // The delete control loses its own row here — the footer is the row.
+    .item-delete-row {
+      margin: 0;
+    }
+
+    .item-delete-hint {
+      flex: none;
+      margin: 0;
+      font-size: 10px;
+    }
+  }
+}

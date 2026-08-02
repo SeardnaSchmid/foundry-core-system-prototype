@@ -26,8 +26,12 @@ related: [reference/module-map]
 | `apps/custom-skills-overview.hbs` | `TnoCustomSkillsOverview` |
 | `chat/roll-card.hbs` | `rollTno()` / `rollTnoBase()` in `dice.mjs` — see [dice-resolution.md](../concepts/dice-resolution.md) |
 | `chat/edge-panel.hbs`, `chat/parts/trial-error-tracker.hbs` | `chat.mjs`'s `renderEdgeSection()` — see [edge-pool.md](../concepts/edge-pool.md) |
-| `item/item-sheet.hbs`, `item-item-sheet.hbs`, `item-feature-sheet.hbs`, `item-spell-sheet.hbs`, `item-armor-sheet.hbs`, `item-weapon-sheet.hbs` | `TnoItemSheet`, resolved per item type |
-| `item/parts/item-effects.hbs` | Included by all item sheet templates |
+| `item/item-gear-sheet.hbs` | `TnoGearSheet` — the Overview/Edit shell for every physical item, see [item-roles.md](../concepts/item-roles.md) |
+| `item/parts/item-gear-overview.hbs` | The play-facing gear summary: role-shaped visualizations, actor context, and safe item actions |
+| `item/parts/item-role-weapon.hbs`, `item-role-armor.hbs`, `item-role-consumable.hbs` | Included by `item-gear-sheet.hbs`, one per role the item has switched on |
+| `item/parts/item-scale.hbs` | The click-scale control (DK, RD, RH, RW). Called with `{{> item-scale cells=scales.dk key='dk'}}` |
+| `item/item-sheet.hbs`, `item-feature-sheet.hbs`, `item-spell-sheet.hbs` | `TnoItemSheet`, resolved per item type — only `feature` and `spell` reach it now |
+| `item/parts/item-delete.hbs` | Delete action included by all item sheet templates; item sheets intentionally expose no Foundry Active Effect UI |
 
 All of the above are preloaded by
 [`helpers/templates.mjs`](../../../module/helpers/templates.mjs) — if you
@@ -44,7 +48,8 @@ render-time fetch (works, but loses the preload benefit).
 | `components/_dice-dialog.scss`, `_dice-card.scss` | Roll dialogs and the chat roll card / edge panel |
 | `components/_resource.scss` | Largest component partial — attribute heatmap grid, skill groups, edge pool display |
 | `components/_forms.scss` | Shared form controls across dialogs and sheets |
-| `components/_items.scss` | Inventory list rendering |
+| `components/_items.scss` | Inventory list rendering, including the Rollen column's tags |
+| `components/_item-dialog.scss` | Both gear views: overview cards/profiles/actions plus the editor's label column, scales, cycleable range bands, repeatable consumable effects, resizable description editor, chips, segments, splits and steppers. Nested with `&.gear-dialog` because the class sits on the sheet root alongside `tno`, not inside it |
 | `components/_inventory.scss` | The paper doll and the Trageslots grid, plus their `-compact` sidebar variants — see [inventory.md](../concepts/inventory.md) |
 | `components/_effects.scss` | Active effect list rendering |
 | `components/_base-roll-button.scss` | The chat-log "Basiswürfel" quick-roll button |

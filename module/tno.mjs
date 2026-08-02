@@ -4,8 +4,10 @@ import { TnoItem } from './documents/item.mjs';
 // Import sheet classes.
 import { TnoActorSheet, BASICS_SPLIT_DEFAULT } from './sheets/actor-sheet.mjs';
 import { TnoItemSheet } from './sheets/item-sheet.mjs';
+import { TnoGearSheet } from './sheets/item-gear-sheet.mjs';
 // Import helper/utility classes and constants.
 import { preloadHandlebarsTemplates } from './helpers/templates.mjs';
+import { GEAR_TYPES } from './helpers/items.mjs';
 import { TNO } from './helpers/config.mjs';
 import { rollTno, rollTnoBase } from './helpers/dice.mjs';
 import { registerChatListeners } from './helpers/chat.mjs';
@@ -71,7 +73,16 @@ Hooks.once('init', function () {
     label: 'TNO.SheetLabels.Actor',
   });
   Items.unregisterSheet('core', ItemSheet);
+  // Two item sheets, split by whether the item is a physical object. Gear —
+  // whatever roles it carries — gets the row editor; features and spells keep
+  // the plain description sheet, which is all they have ever had.
+  Items.registerSheet('tno', TnoGearSheet, {
+    types: GEAR_TYPES,
+    makeDefault: true,
+    label: 'TNO.SheetLabels.Item',
+  });
   Items.registerSheet('tno', TnoItemSheet, {
+    types: ['feature', 'spell'],
     makeDefault: true,
     label: 'TNO.SheetLabels.Item',
   });

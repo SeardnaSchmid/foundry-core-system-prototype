@@ -262,3 +262,36 @@ TNO.slotCostHints = [
   { slots: 3, hint: 'TNO.Inventory.SlotHint.3' },
   { slots: 4, hint: 'TNO.Inventory.SlotHint.4' },
 ];
+
+/**
+ * The roles a piece of gear can take on, as the chip row's labels. Keys are
+ * ITEM_ROLES; the order here is the order the chips appear in.
+ * @type {Object}
+ */
+TNO.itemRoles = {
+  weapon: 'TNO.Item.Role.Weapon',
+  armor: 'TNO.Item.Role.Armor',
+  consumable: 'TNO.Item.Role.Consumable',
+};
+
+/**
+ * Which kind of combat profile the weapon authors.
+ * @type {Object}
+ */
+TNO.weaponUses = {
+  melee: 'TNO.Weapons.Use.Melee',
+  ranged: 'TNO.Weapons.Use.Ranged',
+};
+
+/**
+ * The five distance bands of the Angriffswürfe table, near to far. Keys are
+ * RANGE_BANDS; the short captions sit under the five range fields.
+ * @type {Object}
+ */
+TNO.rangeBands = {
+  sn: 'TNO.Weapons.Band.Sn',
+  near: 'TNO.Weapons.Band.Near',
+  mid: 'TNO.Weapons.Band.Mid',
+  far: 'TNO.Weapons.Band.Far',
+  sf: 'TNO.Weapons.Band.Sf',
+};
