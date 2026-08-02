@@ -32,31 +32,23 @@ async function createWeaponAndOpen(page, actorId) {
 
   const sheet = page.locator(`#${result.appId}`);
   await sheet.waitFor({ state: 'visible', timeout: 20_000 });
-  await sheet.locator('.gear-overview').waitFor({ state: 'visible', timeout: 20_000 });
+  await sheet.locator('.gear-rows').waitFor({ state: 'visible', timeout: 20_000 });
   return { ...result, sheet };
 }
 
-test('gear sheet switches between a contextual overview and bounded editor', async ({ world }) => {
+test('gear sheet opens directly as a bounded editor', async ({ world }) => {
   const { id } = await createCharacter(world.page, { abilities: { str: 3, dex: 6 } });
   const { sheet } = await createWeaponAndOpen(world.page, id);
 
-  await expect(sheet.locator('.range-profile')).toBeVisible();
-  await expect(sheet.locator('.penetration-segment.equal')).toHaveText('RH 5');
-  await expect(sheet.locator('.slot-profile')).toContainText('2 of 12');
-  await expect(sheet.locator('.strength-profile')).toHaveClass(/unmet/);
-  await expect(sheet.locator('.overview-actions .item-self-delete')).toBeVisible();
+  await expect(sheet.locator('.gear-overview, .gear-modes')).toHaveCount(0);
   await expect(sheet.locator('.effect-control')).toHaveCount(0);
   await expect(sheet.locator('[data-tab="effects"]')).toHaveCount(0);
-
-  // Foundry's permanent headless-browser warnings and first-world tour can
-  // cover application chrome even though the control itself is actionable.
-  await sheet.locator('.gear-mode[data-view="edit"]').evaluate((button) => button.click());
   await expect(sheet.locator('.gear-rows')).toBeVisible();
   await expect(sheet.locator('input[name="system.quantity"]')).toHaveAttribute('min', '0');
   await expect(sheet.locator('input[name="system.hh.active"]')).toHaveAttribute('max', '3');
   await expect(sheet.locator('.role-chip').first()).toHaveJSProperty('tagName', 'BUTTON');
   await expect(sheet.locator('.range-cycle .range-visual')).toHaveCount(5);
-  await expect(sheet.locator('.gear-section-divider')).toContainText('Weapon Values');
+  await expect(sheet.locator('.gear-section-divider').filter({ hasText: /^Weapon Values$/ })).toBeVisible();
   await expect(sheet.locator('.effect-control')).toHaveCount(0);
 
   // Switching role re-renders the armour partial; this pins the template parse
@@ -66,7 +58,7 @@ test('gear sheet switches between a contextual overview and bounded editor', asy
   await expect(sheet.locator('.gear-section-divider')).toContainText('Armour Values');
 });
 
-test('overview actions adjust ammunition and open the normal weapon check', async ({ world }) => {
+test('gear editor adjusts ammunition', async ({ world }) => {
   const { id } = await createCharacter(world.page, { abilities: { str: 5, dex: 5 } });
   const { itemId, sheet } = await createWeaponAndOpen(world.page, id);
 
@@ -76,8 +68,5 @@ test('overview actions adjust ammunition and open the normal weapon check', asyn
     [id, itemId],
   )).toBe(5);
 
-  await sheet.locator('.item-weapon-check').click();
-  await expect(world.page.locator('#tno-roll-dialog')).toBeVisible();
-  await expect(world.page.locator('#tno-roll-dialog')).toContainText('E2E Carbine');
-  expect(world.errors, 'no uncaught page errors while using the item overview').toEqual([]);
+  expect(world.errors, 'no uncaught page errors while using the gear editor').toEqual([]);
 });

@@ -141,9 +141,9 @@
 .banner-chip {
   display: flex;
   align-items: center;
-  gap: 6px;
-  min-height: 26px;
-  padding: 3px 10px;
+  gap: 7px;
+  min-height: 34px;
+  padding: 5px 12px;
   border: 1px solid $c-beige;
   border-radius: 999px;
   background: rgba($c-white, 0.72);
@@ -152,12 +152,12 @@
   white-space: nowrap;
 
   .chip-icon {
-    font-size: var(--font-size-11, 11px);
+    font-size: var(--font-size-13, 13px);
     color: $c-tan;
   }
 
   .chip-label {
-    font-size: var(--font-size-9, 9px);
+    font-size: var(--font-size-10, 10px);
     text-transform: uppercase;
     letter-spacing: 0.03em;
     color: $c-tan;
@@ -166,7 +166,7 @@
   .chip-value {
     display: flex;
     align-items: baseline;
-    font-size: var(--font-size-14, 14px);
+    font-size: var(--font-size-17, 17px);
     font-weight: bold;
     line-height: 1;
     font-variant-numeric: tabular-nums;
@@ -221,7 +221,7 @@
 // separated by a quiet rule rather than run together as one figure.
 .chip-movement {
   .chip-move {
-    font-size: var(--font-size-14, 14px);
+    font-size: var(--font-size-17, 17px);
     font-weight: bold;
     line-height: 1;
     font-variant-numeric: tabular-nums;
@@ -253,12 +253,13 @@
   }
 
   .chip-sep {
-    font-size: var(--font-size-12, 12px);
+    font-size: var(--font-size-14, 14px);
     color: $c-beige;
   }
 }
 
-.chip-sense {
+.chip-sense,
+.chip-initiative {
   cursor: pointer;
   transition: background 0.15s ease;
 
@@ -266,39 +267,40 @@
     background: $c-tan;
     color: $c-white;
 
-    .chip-icon {
+    .chip-icon,
+    .chip-info {
       color: $c-white;
     }
   }
 }
 
 // The edge pool chip, styled like the other meta chips for consistency.
+.chip-edge,
+.chip-initiative {
+  .chip-info {
+    font-size: var(--font-size-11, 11px);
+    color: $c-tan;
+    opacity: 0.7;
+  }
+}
+
 .chip-edge {
   .chip-label {
     color: $c-tan;
   }
 
   .chip-value-max {
-    font-size: var(--font-size-11, 11px);
+    font-size: var(--font-size-12, 12px);
     font-weight: normal;
     color: $c-tan;
   }
 
-  // Says "there is more behind this tooltip" — the three derived edge
-  // thresholds (Fehler Analysieren, Ideen Bonus, Trial & error) are display
-  // values that none of the sheet's actions read from, so they live in the
-  // chip's title rather than as tiles of their own.
-  .chip-info {
-    font-size: var(--font-size-10, 10px);
-    color: $c-tan;
-    opacity: 0.7;
-  }
 }
 
 .edge-pips {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 
 // One diamond per point of the maximum. Rotated squares rather than a glyph so
@@ -309,8 +311,8 @@
 // treatment — anything that lit up on hover would advertise a click that does
 // nothing.
 .edge-pip {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border: 1px solid $c-advance;
   background: transparent;
   transform: rotate(45deg);
@@ -342,48 +344,6 @@
     border: none;
     object-fit: cover;
     object-position: top center;
-  }
-}
-
-// Initiative as an opaque strip across the portrait's bottom edge, so it stays
-// readable on any uploaded image.
-.portrait-init {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  justify-content: center;
-  align-items: baseline;
-  gap: 5px;
-  padding: 2px 0;
-  background: rgba($c-dark, 0.78);
-  text-decoration: none;
-  color: $c-faint;
-  cursor: pointer;
-
-  &:hover {
-    background: rgba($c-dark, 0.92);
-    color: $c-white;
-  }
-
-  .init-label {
-    font-size: var(--font-size-9, 9px);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-  }
-
-  .init-value {
-    font-size: var(--font-size-13, 13px);
-    font-weight: bold;
-    line-height: 1;
-
-    small {
-      margin-left: 2px;
-      font-size: var(--font-size-9, 9px);
-      font-weight: normal;
-      opacity: 0.75;
-    }
   }
 }
 

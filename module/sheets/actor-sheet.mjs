@@ -18,10 +18,10 @@ import {
 } from '../helpers/attributes.mjs';
 import {
   buildSlotGrid,
-  itemSlotCost,
   ARMOR_ADDON_ZONES,
   wornItemIds,
 } from '../helpers/inventory.mjs';
+import { localizeGearSummary, prepareGearSummaryContext } from '../helpers/item-summary.mjs';
 import { ITEM_ROLES, armorZones, itemRoles } from '../helpers/items.mjs';
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
@@ -602,7 +602,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         return withQty({
           item,
           quantity,
-          tip: `${this.#slotStats(item, quantity)}<br>${game.i18n.localize('TNO.Inventory.CellHint')}`,
+          tip: `${this.#slotStats(item)}<br>${game.i18n.localize('TNO.Inventory.CellHint')}`,
         });
       }),
       // Handlebars has no "repeat n times", so the free-cell count becomes a
@@ -636,7 +636,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    * @private
    */
   #slotCells(block, inside) {
-    const stats = this.#slotStats(block.item, block.quantity);
+    const stats = this.#slotStats(block.item);
     const insideTip = `${stats}<br>${game.i18n.localize('TNO.Inventory.CellHint')}`;
     const overTip = `${stats}<br>${game.i18n.localize('TNO.Inventory.OverflowHint')}`;
 
@@ -674,50 +674,136 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    * names and the weapon free-text fields are all user-authored.
    *
    * @param {Item} item
-   * @param {number} quantity
    * @returns {string}
    * @private
    */
-  #slotStats(item, quantity) {
+  #slotStats(item) {
     const esc = foundry.utils.escapeHTML;
     const loc = (key) => game.i18n.localize(key);
+    const summary = localizeGearSummary(item);
+    const badges = summary.badges.map((key) => esc(loc(key)));
+    const stats = summary.stats.map((stat) =>
+      `${esc(loc(stat.labelKey))} ${esc(stat.display)}`
+    );
+    return [
+      `<strong>${esc(item.name)}</strong>`,
+      [...badges, ...stats].join(' · '),
+    ].filter(Boolean).join('<br>');
+  }
 
-    // What the piece *is* is now the role it carries — or none, which is most
-    // of the inventory and reads fine as just the slot cost. Still built from
-    // the filtered list rather than a lookup, so a leftover double-role item
-    // names both instead of silently showing one.
-    const roles = itemRoles(item);
-    const summary = [
-      ...ITEM_ROLES.filter((role) => roles[role]).map((role) => loc(CONFIG.TNO.itemRoles[role])),
-      `${loc('TNO.Inventory.Slots')} ${itemSlotCost(item)}`,
-    ];
-    if (quantity > 1) summary.push(`×${quantity}`);
+  /** Build the popover's template context from the live embedded item. */
+  #itemPopoverContext(item) {
+    const base = prepareGearSummaryContext(item);
+    const { roles, presentation } = base;
+    const skill = getSkillDefinitions(item.actor)[item.system.fv?.skill];
+    const canEdit = this.isEditable;
+    return {
+      ...base,
+      canEdit,
+      canWeaponCheck: !!(canEdit && item.actor?.isOwner && roles.weapon && skill),
+      canAdjustAmmo: canEdit && roles.weapon && presentation.use === 'ranged',
+      canConsume: canEdit && roles.consumable && Number(item.system.quantity) > 0,
+      canDelete: canEdit && !item.isWorn,
+    };
+  }
 
-    const lines = [`<strong>${esc(item.name)}</strong>`, summary.join(' · ')];
-
-    if (roles.armor) {
-      const zones = armorZones(item).map((zone) => loc(CONFIG.TNO.armorZones[zone]));
-      const values = ['rh', 'rw', 'ra'].map(
-        (key) => `${loc(`TNO.Armor.${key.capitalize()}Short`)} ${Number(item.system?.[key]) || 0}`
-      );
-      lines.push([...zones, ...values].join(' · '));
+  /** Rebuild an open popover after the actor sheet has re-rendered. */
+  async #refreshItemPopover() {
+    const popover = this._itemPopover;
+    const itemId = this._itemPopoverItemId;
+    if (!popover || !itemId) return;
+    const item = this.actor.items.get(itemId);
+    if (!item) {
+      if (popover.matches(':popover-open')) popover.hidePopover();
+      return;
     }
 
-    if (roles.weapon) {
-      const system = item.system ?? {};
-      const damage = (figure) =>
-        Number(figure?.count) ? `${Number(figure.count)}${esc(String(figure.die ?? ''))}` : null;
-      // Only what is filled in: a weapon halfway through being authored would
-      // otherwise show a row of blank labels.
-      const values = [
-        system.rd ? `${loc('TNO.Weapons.RdShort')} ${Number(system.rd)}` : null,
-        damage(system.ss) ? `${loc('TNO.Weapons.Ss')} ${damage(system.ss)}` : null,
-        damage(system.ws) ? `${loc('TNO.Weapons.Ws')} ${damage(system.ws)}` : null,
-      ].filter(Boolean);
-      if (values.length) lines.push(values.join(' · '));
+    const focused = popover.contains(document.activeElement)
+      ? {
+          action: document.activeElement.dataset.popoverAction,
+          by: document.activeElement.dataset.by,
+        }
+      : null;
+    const html = await renderTemplate(
+      'systems/tno/templates/actor/parts/item-popover.hbs',
+      this.#itemPopoverContext(item)
+    );
+    if (this._itemPopover !== popover || this._itemPopoverItemId !== itemId) return;
+    popover.innerHTML = html;
+    popover.setAttribute('aria-label', item.name);
+    if (focused?.action) {
+      const controls = [...popover.querySelectorAll(`[data-popover-action="${focused.action}"]`)];
+      controls.find((control) => focused.by === undefined || control.dataset.by === focused.by)?.focus();
     }
+  }
 
-    return lines.join('<br>');
+  /** Open and place the compact item popover beside the clicked sheet cell. */
+  async #openItemPopover(item, anchor) {
+    if (!this._itemPopover || !item) return;
+    this._itemPopoverItemId = item.id;
+    this._itemPopoverAnchor = anchor;
+    await this.#refreshItemPopover();
+    if (!this._itemPopover.matches(':popover-open')) this._itemPopover.showPopover();
+    if (!this._itemPopover.contains(document.activeElement)) {
+      this._itemPopover.querySelector('[autofocus]')?.focus();
+    }
+    this.#positionItemPopover();
+  }
+
+  /** Keep the body-level top-layer element within the current viewport. */
+  #positionItemPopover() {
+    const popover = this._itemPopover;
+    if (!popover?.matches(':popover-open')) return;
+    let anchor = this._itemPopoverAnchor;
+    if (!anchor?.isConnected) {
+      const id = CSS.escape(this._itemPopoverItemId ?? '');
+      anchor = this.element.querySelector(`.slot-first[data-item-id="${id}"], .slot-trinket[data-item-id="${id}"], .armor-row[data-item-id="${id}"]`);
+      this._itemPopoverAnchor = anchor;
+    }
+    if (!anchor) return;
+
+    const gap = 6;
+    const edge = 8;
+    const anchorRect = anchor.getBoundingClientRect();
+    const popoverRect = popover.getBoundingClientRect();
+    const left = Math.min(
+      Math.max(edge, anchorRect.left),
+      Math.max(edge, window.innerWidth - popoverRect.width - edge)
+    );
+    const below = anchorRect.bottom + gap;
+    const above = anchorRect.top - popoverRect.height - gap;
+    const top = below + popoverRect.height <= window.innerHeight - edge
+      ? below
+      : Math.max(edge, above);
+    popover.style.left = `${Math.round(left)}px`;
+    popover.style.top = `${Math.round(top)}px`;
+  }
+
+  /** Dispatch actions from the body-level popover to its live item document. */
+  async #onItemPopoverClick(event) {
+    const control = event.target.closest('[data-popover-action]');
+    if (!control || control.disabled) return;
+    event.preventDefault();
+    const item = this.actor.items.get(this._itemPopoverItemId);
+    if (!item && control.dataset.popoverAction !== 'close') return;
+
+    switch (control.dataset.popoverAction) {
+      case 'close':
+        return this._itemPopover.hidePopover();
+      case 'edit':
+        this._itemPopover.hidePopover();
+        return item.sheet.render({ force: true });
+      case 'post':
+        return item.roll();
+      case 'weapon-check':
+        return item.openWeaponCheck();
+      case 'ammo':
+        return item.adjustAmmo(Number(control.dataset.by));
+      case 'consume':
+        return item.consume();
+      case 'delete':
+        return item.confirmDelete();
+    }
   }
 
   /* -------------------------------------------- */
@@ -802,11 +888,42 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   async _onFirstRender(context, options) {
     await super._onFirstRender(context, options);
 
+    // The sheet body is replaced on every render, so the native popover lives
+    // at document.body and delegates its own stable listeners there.
+    this._itemPopover = document.createElement('div');
+    this._itemPopover.className = 'tno item-popover';
+    this._itemPopover.setAttribute('popover', 'auto');
+    document.body.append(this._itemPopover);
+    this._itemPopover.addEventListener('click', (event) => this.#onItemPopoverClick(event));
+    this._itemPopover.addEventListener('change', (event) => {
+      const input = event.target.closest('.item-popover-ammo-input');
+      if (!input) return;
+      const item = this.actor.items.get(this._itemPopoverItemId);
+      if (!item) return;
+      if (!Number.isFinite(input.valueAsNumber)) {
+        input.value = Number(item.system.ammo?.count) || 0;
+        return;
+      }
+      item.setAmmo(input.valueAsNumber);
+    });
+    this._itemPopover.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && this._itemPopover.matches(':popover-open')) {
+        // Native light-dismiss still handles Escape; only stop Foundry's
+        // document keybind from closing the actor sheet at the same time.
+        event.stopPropagation();
+      }
+    });
+    this._itemPopover.addEventListener('toggle', (event) => {
+      if (event.newState !== 'closed') return;
+      this._itemPopoverItemId = null;
+      this._itemPopoverAnchor = null;
+    });
+
     // Custom clickable chips (anchors without `href`, plus `.skill-info` and
     // the carry grid's cells) are promoted to real keyboard targets in
     // _onRender; this forwards their Enter/Space to the same click listeners
     // bound below.
-    this.#delegate('keydown', 'a:not([href]), .skill-info, .slot-cell, .slot-trinket', (event, target) => {
+    this.#delegate('keydown', 'a:not([href]), .skill-info, .slot-cell, .slot-trinket, .armor-row[data-item-id]', (event, target) => {
       if (event.key !== 'Enter' && event.key !== ' ') return;
       event.preventDefault();
       target.click();
@@ -999,23 +1116,17 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       this._promptCreateItem();
     }, editable);
 
-    // Open an item from the carry grid or the zero-slot band. Everything in
-    // those two views is a real item, so a click has to reach its sheet —
-    // otherwise gear that is neither worn nor in the flat list is only
-    // draggable, never editable.
-    // A worn piece is reachable the same way: the paper doll row is the only
-    // place it appears once it is on the body, so without this a piece of
-    // armour becomes uneditable the moment it is equipped. The unequip x sits
-    // inside that row and has its own handler — both would fire on one click,
-    // so the row hands that case over rather than opening a sheet behind the
-    // piece being taken off.
+    // Carry cells, loose trinkets and worn armour open a compact action
+    // popover. The full editor remains one level below its Edit action. The
+    // unequip x belongs to the row but keeps its dedicated state-change action.
     this.#delegate(
       'click',
       '.slot-cell[data-item-id], .slot-trinket, .armor-row[data-item-id]',
       (event, target) => {
         if (event.target.closest('.armor-unequip')) return;
         event.preventDefault();
-        this.actor.items.get(target.dataset.itemId)?.sheet.render(true);
+        const item = this.actor.items.get(target.dataset.itemId);
+        if (item) this.#openItemPopover(item, target);
       }
     );
 
@@ -1113,6 +1224,19 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     this._makeKeyboardAccessible();
     this._applySkillFilter();
     this._applyColumnSplit();
+
+    if (this._itemPopover?.matches(':popover-open')) {
+      await this.#refreshItemPopover();
+      this.#positionItemPopover();
+    }
+  }
+
+  /** @inheritDoc */
+  async _onClose(options) {
+    if (this._itemPopover?.matches(':popover-open')) this._itemPopover.hidePopover();
+    this._itemPopover?.remove();
+    this._itemPopover = null;
+    return super._onClose(options);
   }
 
   /**
@@ -1134,7 +1258,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // four-slot item four times to reach the next one is worse than not
     // reaching its tail at all.
     const targets = this.element.querySelectorAll(
-      'a:not([href]), .skill-info, .slot-cell.slot-first, .slot-trinket'
+      'a:not([href]), .skill-info, .slot-cell.slot-first, .slot-trinket, .armor-row[data-item-id]'
     );
     for (const el of targets) {
       if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');

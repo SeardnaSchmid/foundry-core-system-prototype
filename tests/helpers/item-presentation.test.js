@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildGearPresentation,
+  buildGearSummary,
   buildPenetrationProfile,
   buildRangeProfile,
   buildSlotPresentation,
@@ -62,5 +63,81 @@ describe('item presentation', () => {
   it('builds one role-aware presentation object', () => {
     expect(buildGearPresentation(weapon({ use: 'ranged', zone: 'head' }), null))
       .toMatchObject({ roles: { weapon: true }, use: 'ranged', zones: [], ownership: { embedded: false } });
+  });
+
+  it('builds compact melee and ranged summaries without localization globals', () => {
+    expect(buildGearSummary(weapon({
+      use: 'melee',
+      quantity: 2,
+      fv: { skill: 'brawling', rank: 4 },
+      dk: 3,
+      rb: 2,
+      ss: { count: 3 },
+      ws: { count: 1 },
+      hh: { active: 1, passive: -1 },
+      sv: 5,
+    }))).toEqual({
+      badges: ['TNO.Item.Role.Weapon', 'TNO.Weapons.Use.Melee'],
+      stats: [
+        { labelKey: 'TNO.Inventory.Slots', value: 4 },
+        { labelKey: 'TNO.Inventory.Quantity', value: '×2' },
+        { labelKey: 'TNO.Item.Cap.Fv', value: { skillKey: 'brawling', rank: 4 } },
+        { labelKey: 'TNO.Item.Summary.Dk', value: 3 },
+        { labelKey: 'TNO.Weapons.Rb', value: 2 },
+        { labelKey: 'TNO.Weapons.Ss', value: '3W' },
+        { labelKey: 'TNO.Weapons.Ws', value: '1W' },
+        { labelKey: 'TNO.Item.Summary.Hh', value: '1 / -1' },
+        { labelKey: 'TNO.Item.Cap.Sv', value: 5 },
+      ],
+    });
+
+    expect(buildGearSummary(weapon({
+      use: 'ranged', rd: 4, ammo: { count: 0, type: 'cells' }, hh: { active: 0 },
+    })).stats).toEqual([
+      { labelKey: 'TNO.Inventory.Slots', value: 2 },
+      { labelKey: 'TNO.Weapons.RdShort', value: 4 },
+      { labelKey: 'TNO.Item.Summary.Hh', value: '0' },
+      { labelKey: 'TNO.Weapons.Magazine', value: '0 cells' },
+    ]);
+  });
+
+  it('summarizes armour, consumables, plain stacks, and incomplete gear', () => {
+    const armor = {
+      type: 'item',
+      isWorn: true,
+      system: {
+        roles: { armor: true }, zone: 'suit', slots: 3, quantity: 1, rh: 8, rw: 2, ra: 6, sv: 3,
+      },
+    };
+    expect(buildGearSummary(armor)).toEqual({
+      badges: ['TNO.Item.Role.Armor'],
+      stats: [
+        { labelKey: 'TNO.Armor.Zone.Label', value: ['TNO.Armor.Zone.Suit'] },
+        { labelKey: 'TNO.Armor.RhShort', value: '—' },
+        { labelKey: 'TNO.Armor.RwShort', value: 2 },
+        { labelKey: 'TNO.Armor.RaShort', value: '6 / 10' },
+        { labelKey: 'TNO.Item.Cap.Sv', value: 3 },
+      ],
+    });
+
+    expect(buildGearSummary({
+      type: 'item', system: { roles: { consumable: true }, slots: 1, quantity: 0 },
+    })).toEqual({
+      badges: ['TNO.Item.Role.Consumable'],
+      stats: [
+        { labelKey: 'TNO.Inventory.Slots', value: 0 },
+        { labelKey: 'TNO.Item.Summary.Stock', value: '×0' },
+      ],
+    });
+
+    expect(buildGearSummary({
+      type: 'item', system: { roles: {}, slots: 1, quantity: 3 },
+    })).toEqual({
+      badges: ['TNO.Item.Role.Plain'],
+      stats: [
+        { labelKey: 'TNO.Inventory.Slots', value: 3 },
+        { labelKey: 'TNO.Inventory.Quantity', value: '×3' },
+      ],
+    });
   });
 });

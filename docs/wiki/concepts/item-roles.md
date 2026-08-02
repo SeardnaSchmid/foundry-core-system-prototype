@@ -3,7 +3,7 @@ type: concept
 title: Item roles and the gear dialog
 description: Why a physical item has roles instead of a Foundry item type, and how the row-editor sheet is built from them.
 tags: [items, roles, weapons, armor, sheets, schema]
-resource: [module/helpers/items.mjs, module/helpers/item-presentation.mjs, module/sheets/item-gear-sheet.mjs, templates/item/item-gear-sheet.hbs, templates/item/parts/item-gear-overview.hbs]
+resource: [module/helpers/items.mjs, module/helpers/item-presentation.mjs, module/helpers/item-summary.mjs, module/sheets/actor-sheet.mjs, module/sheets/item-gear-sheet.mjs, templates/actor/parts/item-popover.hbs, templates/item/item-gear-sheet.hbs, templates/item/parts/item-gear-summary.hbs]
 spec: docs/design/character-sheet-prd.md
 related: [concepts/inventory, concepts/migrations, reference/ui-surfaces, architecture/data-schema]
 ---
@@ -104,25 +104,26 @@ an exclusive, clearable selection and the paper doll fills that one target
 when the piece is worn. Unterkleidung remains a special base-layer location
 which contributes beneath every hit zone during armour resolution.
 
-## The dialog: overview and edit
+## The editor and compact summary
 
 [`TnoGearSheet`](../../../module/sheets/item-gear-sheet.mjs) — ApplicationV2,
-registered for `GEAR_TYPES`. `TnoItemSheet` (V1) keeps `feature` and `spell`.
-The sheet has two local views which never alter the document: **Übersicht** is
-the play-facing summary and action surface, while **Bearbeiten** is the full
-row editor. An incomplete badge in the overview returns directly to editing.
+registered for `GEAR_TYPES` — is the full row editor. `TnoItemSheet` (V1)
+keeps `feature` and `spell`. The play-facing compact summary lives instead in
+the actor sheet's item popover and in chat; it is rendered from the shared
+`item-gear-summary.hbs` partial.
 
 [`item-presentation.mjs`](../../../module/helpers/item-presentation.mjs) builds
-the pure view model shared by the overview components: range profile, neutral
-RD/RH threshold, slot footprint and owner capacity, SV comparison, and
-carried/worn state. It imports both `items.mjs` and `inventory.mjs` so
-templates never duplicate their coercion or arithmetic.
+the pure presentation data, while
+[`item-summary.mjs`](../../../module/helpers/item-summary.mjs) adds
+localization and the live actor context for the compact summary. Together they
+keep slot footprint, FV, armour values and carried/worn state out of templates.
 
 Three properties of the layout are deliberate and easy to undo by accident:
 
-**No tabs inside editing.** The edit view remains one scrolling column of
-`label | control` rows. Its overview/edit switch separates two tasks rather
-than dividing related authoring fields across hidden pages.
+**No tabs inside editing.** The editor remains one scrolling column of
+`label | control` rows. The compact play summary is a separate surface rather
+than a second editor view, so related authoring fields are never divided across
+hidden pages.
 
 **Nothing is hidden, only disabled.** A field the current role or use does not
 apply to — the Distanzklasse of a rifle, the Fertigkeitswert of a breastplate —
@@ -142,10 +143,10 @@ row. Numeric fields with structural bounds are clamped through
 `GEAR_NUMBER_BOUNDS`; custom scales, chips, segments and steppers use native
 buttons so Enter/Space and disabled/focus semantics come from the browser.
 
-The overview offers only actions backed by stored state: post to chat, adjust
-loaded ammunition, consume one item from a stack, and delete the item through
-the same confirmation used by the inventory list. Worn armour must be taken
-off before deletion.
+The actor-sheet popover offers only actions backed by stored state: open the
+editor, post to chat, adjust loaded ammunition, consume one item from a stack,
+and delete the item through the same confirmation used by the inventory list.
+Worn armour must be taken off before deletion.
 An actor-owned weapon with FV can open the normal roll builder as a
 **Waffenprobe**. That is not a full attack: it neither chooses SS/WS nor spends
 ammunition, and it does not imply a readied state.
@@ -185,9 +186,9 @@ intercepted where a native control does not already own them.
 - **Weapon readiness and automatic attack resolution.** Ranged weapons may be
   used as improvised melee weapons under the combat rules, but that does not
   create a second authored profile; the removed `both` value could not store
-  separate SS/WS/HH values truthfully. The item overview can
+  separate SS/WS/HH values truthfully. The item popover can
   open its FV check, but the PRD still defines no readied-weapon state or
-  complete RD/RH → SS/WS workflow. The penetration graphic therefore shows the
+  complete RD/RH → SS/WS workflow. The compact summary therefore shows the
   threshold neutrally instead of assigning an outcome the model cannot prove.
 
 ## What went away

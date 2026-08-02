@@ -1,0 +1,35 @@
+{{> 'systems/tno/templates/item/parts/item-gear-summary.hbs' showClose=true}}
+
+<footer class='item-popover-actions' aria-label='{{localize "TNO.Item.Overview.Actions"}}'>
+  {{#if canEdit}}
+    <button type='button' data-popover-action='edit'>
+      <i class='fa-solid fa-pen' aria-hidden='true'></i>{{localize 'TNO.Item.Popover.Edit'}}
+    </button>
+  {{/if}}
+  <button type='button' data-popover-action='post'>
+    <i class='fa-solid fa-message' aria-hidden='true'></i>{{localize 'TNO.Item.Overview.Post'}}
+  </button>
+  {{#if canWeaponCheck}}
+    <button type='button' data-popover-action='weapon-check' title='{{localize "TNO.Item.Overview.WeaponCheckHint"}}'>
+      <i class='fa-solid fa-dice-d20' aria-hidden='true'></i>{{localize 'TNO.Item.Overview.WeaponCheck'}}
+    </button>
+  {{/if}}
+  {{#if canAdjustAmmo}}
+    <span class='item-popover-ammo'>
+      <button type='button' data-popover-action='ammo' data-by='-1' title='{{localize "TNO.Item.Overview.AmmoDecrease"}}'>&minus;</button>
+      <input type='number' class='item-popover-ammo-input' value='{{item.system.ammo.count}}'
+             min='0' step='1' aria-label='{{localize "TNO.Weapons.LoadedAmmo"}}'/>
+      <button type='button' data-popover-action='ammo' data-by='1' title='{{localize "TNO.Item.Overview.AmmoIncrease"}}'>+</button>
+    </span>
+  {{/if}}
+  {{#if canEdit}}
+    {{#if roles.consumable}}
+      <button type='button' data-popover-action='consume' {{#unless canConsume}}disabled title='{{localize "TNO.Item.Overview.NoUses"}}'{{/unless}}>
+        <i class='fa-solid fa-flask' aria-hidden='true'></i>{{localize 'TNO.Item.Overview.Use'}}
+      </button>
+    {{/if}}
+    <button type='button' class='danger' data-popover-action='delete' {{#unless canDelete}}disabled title='{{localize "TNO.Item.DeleteWornHint"}}'{{/unless}}>
+      <i class='fa-solid fa-trash' aria-hidden='true'></i>{{localize 'TNO.Item.Delete'}}
+    </button>
+  {{/if}}
+</footer>

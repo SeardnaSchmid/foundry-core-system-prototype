@@ -50,11 +50,10 @@ test('the character sheet renders the derived values', async ({ world }) => {
   const { id } = await createCharacter(world.page, { abilities: ABILITIES });
   const sheet = await openSheet(world.page, id);
 
-  // Initiative is rendered as "<value><small>+1d10</small>" in the banner's
-  // portrait caption, because it is rolled as initiative + 1d10.
-  await expect(sheet.locator('.portrait-init[data-roll*="derived.initiative"] .init-value')).toHaveText(
-    '7+1d10'
-  );
+  // Initiative is display-only in the upper-right banner chip; the combat
+  // tracker, not the character sheet, owns the actual initiative roll.
+  await expect(sheet.locator('.chip-initiative .chip-value')).toHaveText('7');
+  await expect(sheet.locator('.portrait-init')).toHaveCount(0);
   await expect(sheet.locator('.chip-sense .chip-value')).toHaveText('5');
 
   // Crawl | walk | sprint, in one banner chip.

@@ -1,4 +1,4 @@
-Rules: Read files first. Write complete solution. Test once. No over-engineering.
+Rules: Read files first. Write complete solution. Test once. Only run e2e tests if asked. No over-engineering.
 If the request or the existing design looks wrong, stop and say so before writing code.
 
 This repo is **TNO**, a game system for Foundry VTT: vanilla ESM in `module/`,

@@ -1,5 +1,6 @@
 import { armorZones, itemRoles, RANGE_BANDS, weaponUse } from './items.mjs';
 import { itemSlotCost, wornItemIds } from './inventory.mjs';
+import { TNO } from './config.mjs';
 
 const PENETRATION_MIN_RH = 0;
 const PENETRATION_MAX_RH = 10;
@@ -10,6 +11,113 @@ const numberOrNull = (value) => {
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
 };
+
+const present = (value) => value !== '' && value !== null && value !== undefined;
+
+/**
+ * Build the compact, role-aware facts shared by carry-cell tooltips and the
+ * actor-sheet item popover. The helper deliberately returns localization keys
+ * instead of translated strings so it stays usable in plain unit tests and
+ * free of Foundry globals.
+ *
+ * A stat value is normally display-ready. The two values which need runtime
+ * context remain structured: armour zones are localization keys, while an FV
+ * carries the skill key which the owning actor resolves (including custom
+ * skills).
+ *
+ * @param {Object} item  An item document or plain item-shaped object.
+ * @returns {{badges: string[], stats: Array<{labelKey: string, value: *}>}}
+ */
+export function buildGearSummary(item) {
+  const system = item?.system ?? {};
+  const roles = itemRoles(item);
+  const use = weaponUse(system);
+  const badges = Object.entries(TNO.itemRoles)
+    .filter(([role]) => roles[role])
+    .map(([, labelKey]) => labelKey);
+  if (!badges.length) badges.push('TNO.Item.Role.Plain');
+  if (roles.weapon) badges.push(TNO.weaponUses[use]);
+
+  const stats = [];
+  if (!item?.isWorn) {
+    stats.push({ labelKey: 'TNO.Inventory.Slots', value: itemSlotCost(item) });
+  }
+
+  const quantity = Math.max(0, numberOrNull(system.quantity) ?? 1);
+  if (roles.consumable) {
+    stats.push({ labelKey: 'TNO.Item.Summary.Stock', value: `×${quantity}` });
+  } else if (quantity > 1) {
+    stats.push({ labelKey: 'TNO.Inventory.Quantity', value: `×${quantity}` });
+  }
+
+  if (roles.weapon) {
+    const skillKey = String(system.fv?.skill ?? '').trim();
+    const customSkill = item?.actor?.system?.skills?.[skillKey]?.custom;
+    if (skillKey && (skillKey in TNO.skills || customSkill)) {
+      stats.push({
+        labelKey: 'TNO.Item.Cap.Fv',
+        value: { skillKey, rank: Number(system.fv?.rank) || 0 },
+      });
+    }
+    if (use === 'melee' && present(system.dk)) {
+      stats.push({ labelKey: 'TNO.Item.Summary.Dk', value: Number(system.dk) });
+    }
+    const penetration = use === 'ranged' ? 'rd' : 'rb';
+    if (present(system[penetration])) {
+      stats.push({
+        labelKey: penetration === 'rd' ? 'TNO.Weapons.RdShort' : 'TNO.Weapons.Rb',
+        value: Number(system[penetration]),
+      });
+    }
+    for (const [key, labelKey] of [['ss', 'TNO.Weapons.Ss'], ['ws', 'TNO.Weapons.Ws']]) {
+      const count = numberOrNull(system[key]?.count);
+      if (count !== null && count > 0) stats.push({ labelKey, value: `${count}W` });
+    }
+    const active = numberOrNull(system.hh?.active);
+    const passive = numberOrNull(system.hh?.passive);
+    if (active !== null || (use === 'melee' && passive !== null)) {
+      const values = use === 'melee' ? [active, passive] : [active];
+      stats.push({
+        labelKey: 'TNO.Item.Summary.Hh',
+        value: values.map((value) => value ?? '—').join(' / '),
+      });
+    }
+    if (use === 'ranged') {
+      const count = Math.max(0, numberOrNull(system.ammo?.count) ?? 0);
+      const type = String(system.ammo?.type ?? '').trim();
+      stats.push({
+        labelKey: 'TNO.Weapons.Magazine',
+        value: `${count}${type ? ` ${type}` : ''}`,
+      });
+    }
+  }
+
+  if (roles.armor) {
+    const zones = armorZones(item);
+    if (zones.length) {
+      stats.push({
+        labelKey: 'TNO.Armor.Zone.Label',
+        value: zones.map((zone) => TNO.armorZones[zone]),
+      });
+    }
+    const suit = zones.includes('suit');
+    if (suit || present(system.rh)) {
+      stats.push({ labelKey: 'TNO.Armor.RhShort', value: suit ? '—' : Number(system.rh) });
+    }
+    if (present(system.rw)) {
+      stats.push({ labelKey: 'TNO.Armor.RwShort', value: Number(system.rw) });
+    }
+    if (present(system.ra)) {
+      stats.push({ labelKey: 'TNO.Armor.RaShort', value: `${Number(system.ra)} / 10` });
+    }
+  }
+
+  if (present(system.sv) && Number(system.sv) !== 0) {
+    stats.push({ labelKey: 'TNO.Item.Cap.Sv', value: Number(system.sv) });
+  }
+
+  return { badges, stats };
+}
 
 /** Present a damage pair without deciding which combat branch applies. */
 export function damagePresentation(damage) {

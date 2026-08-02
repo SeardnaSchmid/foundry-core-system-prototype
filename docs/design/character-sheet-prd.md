@@ -48,8 +48,8 @@ The character sheet (`TnoActorSheet`, actor type `character`) is the single-wind
 Docked left, visible on every tab.
 
 - **Portrait:** `actor.img`, click-to-edit via Foundry's native `data-edit="img"`.
-- **Lozenges (portrait overlay):** two roll chips overlaid on the portrait's bottom edge, opaque so they stay legible on any uploaded portrait:
-  - **Initiative:** `1d10 + @derived.initiative`, rolled via the generic `data-roll` formula path.
+- **Banner chips (top right):**
+  - **Initiative:** `1d10 + @derived.initiative`, rolled via the generic `data-roll` formula path. It replaces the former portrait overlay, so the portrait stays unobstructed.
   - **Sixth Sense (6. Sinn):** a plain standard 3d20 roll against `system.derived.sixthSense`, no modifiers/advantage, no Problem-Solving pre-edge (`edgeExempt: true`) — it's an instinctive reaction, not a deliberate check.
 - **Movement chip:** crawl | walk | sprint as one display-only chip, each figure with its own tooltip — no roll, no interaction. A tier the character has lost is **struck through in the warning red**: sprint whenever `derived.canSprint` is false (a load at half the carry budget *or* a damaged Beweglichkeit — the chip does not distinguish, the tooltip does), and walk as well once the load is `crawlOnly`. This is where the carry grid's `Kein Sprint` / `Nur Kriechen` badges went: the consequence belongs on the figure it takes away, since the question being asked is "how far can I move".
 - **Problem-Solving group:** the reserve pool (directly editable, clamped 0..max) plus three tiles — see [problem-solving-prd.md](problem-solving-prd.md) for full mechanics. Only "Fehler Analysieren" is clickable from here; "Idee haben" lives in the roll dialog and "Fehler finden"/"Neuer Versuch" live on a failed roll's chat card, so their sidebar tiles are display-only, shown for at-a-glance reference.

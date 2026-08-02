@@ -11,8 +11,8 @@ See `module/sheets/item-gear-sheet.mjs` for why there are no tabs and no save
 button. --}}
 
 <header class='gear-head'>
-  <img class='profile-img' src='{{item.img}}' {{#if editing}}data-edit='img'{{/if}} title='{{item.name}}' />
-  {{#if editing}}
+  <img class='profile-img' src='{{item.img}}' {{#if canEdit}}data-edit='img'{{/if}} title='{{item.name}}' />
+  {{#if canEdit}}
     <input
       class='gear-name {{#if missing.name}}is-missing{{/if}}'
       name='name'
@@ -23,24 +23,9 @@ button. --}}
   {{else}}
     <h1 class='gear-title'>{{item.name}}</h1>
   {{/if}}
-  {{#if canEdit}}
-    <nav class='gear-modes' aria-label='{{localize "TNO.Item.View.Label"}}'>
-      <button type='button' class='gear-mode' data-view='overview' aria-pressed='{{overview}}'>
-        <i class='fa-solid fa-eye' aria-hidden='true'></i>
-        {{localize 'TNO.Item.View.Overview'}}
-      </button>
-      <button type='button' class='gear-mode' data-view='edit' aria-pressed='{{editing}}'>
-        <i class='fa-solid fa-sliders' aria-hidden='true'></i>
-        {{localize 'TNO.Item.View.Edit'}}
-      </button>
-    </nav>
-  {{/if}}
-  {{#if editing}}<span class='gear-keyhint'>{{localize 'TNO.Item.KeyHint'}}</span>{{/if}}
+  {{#if canEdit}}<span class='gear-keyhint'>{{localize 'TNO.Item.KeyHint'}}</span>{{/if}}
 </header>
 
-{{#if overview}}
-  {{> 'systems/tno/templates/item/parts/item-gear-overview.hbs'}}
-{{else}}
 <div class='gear-rows'>
 
   {{!-- What the piece is. Exclusive, and clearable by clicking the chip that is
@@ -212,4 +197,3 @@ button. --}}
   </details>
   {{> 'systems/tno/templates/item/parts/item-delete.hbs'}}
 </footer>
-{{/if}}

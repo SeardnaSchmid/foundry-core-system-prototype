@@ -388,11 +388,6 @@
         "Armor": "Rüstung",
         "Consumable": "Verbrauch"
       },
-      "View": {
-        "Label": "Ansicht",
-        "Overview": "Übersicht",
-        "Edit": "Bearbeiten"
-      },
       "Overview": {
         "RangeProfile": "Reichweitenprofil",
         "Penetration": "Durchschlag",
@@ -411,12 +406,23 @@
         "Actions": "Aktionen",
         "Post": "Im Chat zeigen",
         "Use": "Anwenden",
+        "UseTitle": "Verbrauchsgegenstand anwenden",
+        "UseConfirm": "<strong>{name}</strong> anwenden und ein Exemplar verbrauchen?",
         "NoUses": "Kein Exemplar mehr übrig",
         "WeaponCheck": "Waffenprobe",
         "WeaponCheckHint": "Öffnet die normale Probe mit der Waffenfertigkeit. Bereitschaft und vollständige Kampfauflösung sind noch nicht modelliert.",
         "AmmoDecrease": "Munition verringern",
         "AmmoIncrease": "Munition erhöhen",
         "UsedFlavor": "{name} angewendet"
+      },
+      "Summary": {
+        "Stock": "Vorrat",
+        "Dk": "DK",
+        "Hh": "HH"
+      },
+      "Popover": {
+        "Edit": "Bearbeiten",
+        "Close": "Gegenstandsdetails schließen"
       },
       "Cap": {
         "Slots": "SLT",

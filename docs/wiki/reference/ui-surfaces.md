@@ -17,6 +17,7 @@ related: [reference/module-map]
 | `actor/actor-npc-sheet.hbs` | `TnoActorSheet` (type `npc`) |
 | `actor/parts/actor-items.hbs`, `actor-features.hbs`, `actor-spells.hbs`, `actor-effects.hbs` | Included by the actor sheet templates above |
 | `actor/parts/actor-paperdoll.hbs`, `actor-slot-grid.hbs`, `actor-weapons.hbs` | The equipment column in the character sheet's Basics tab — see [inventory.md](../concepts/inventory.md). `actor-weapons.hbs` is a reserved layout holding its place: there is no readiness model to list weapons by yet |
+| `actor/parts/item-popover.hbs` | The actor-sheet item popover: compact summary plus the live item actions |
 | `apps/roll-dialog.hbs` | `TnoRollDialog` |
 | `apps/base-roll-dialog.hbs` | `TnoBaseRollDialog` |
 | `apps/parts/advantage-picker.hbs` | Included by both roll dialogs, via `roll-dialog-shared.mjs` |
@@ -26,8 +27,8 @@ related: [reference/module-map]
 | `apps/custom-skills-overview.hbs` | `TnoCustomSkillsOverview` |
 | `chat/roll-card.hbs` | `rollTno()` / `rollTnoBase()` in `dice.mjs` — see [dice-resolution.md](../concepts/dice-resolution.md) |
 | `chat/edge-panel.hbs`, `chat/parts/trial-error-tracker.hbs` | `chat.mjs`'s `renderEdgeSection()` — see [edge-pool.md](../concepts/edge-pool.md) |
-| `item/item-gear-sheet.hbs` | `TnoGearSheet` — the Overview/Edit shell for every physical item, see [item-roles.md](../concepts/item-roles.md) |
-| `item/parts/item-gear-overview.hbs` | The play-facing gear summary: role-shaped visualizations, actor context, and safe item actions |
+| `item/item-gear-sheet.hbs` | `TnoGearSheet` — the row editor for every physical item, see [item-roles.md](../concepts/item-roles.md) |
+| `item/parts/item-gear-summary.hbs` | The shared compact gear summary used by the actor-sheet popover and chat item cards |
 | `item/parts/item-role-weapon.hbs`, `item-role-armor.hbs`, `item-role-consumable.hbs` | Included by `item-gear-sheet.hbs`, one per role the item has switched on |
 | `item/parts/item-scale.hbs` | The click-scale control (DK, RD, RH, RW). Called with `{{> item-scale cells=scales.dk key='dk'}}` |
 | `item/item-sheet.hbs`, `item-feature-sheet.hbs`, `item-spell-sheet.hbs` | `TnoItemSheet`, resolved per item type — only `feature` and `spell` reach it now |

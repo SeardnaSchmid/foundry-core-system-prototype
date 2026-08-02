@@ -1,7 +1,7 @@
 {{!-- ApplicationV2 renders this part straight into `.window-content`, which is
 itself the sheet's <form> element — hence no <form> wrapper here. --}}
 
-  {{!-- Banner: the portrait, the character's name and the three at-a-glance
+  {{!-- Banner: the portrait, the character's name and the four at-a-glance
   chips, in one band above the tab body rather than a left-docked sidebar. The
   sidebar's tile stacks are gone with it: movement collapses into one chip, the
   carry read-out is the Trageslots header's job, and the problem-solving
@@ -66,18 +66,21 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
         <i class="fa-solid fa-circle-info chip-info"></i>
       </div>
 
+      {{!-- Initiative moved from the portrait to the banner, but still rolls
+      the same 1d10 + Initiative formula on click. --}}
+      <a class="banner-chip chip-initiative rollable" data-roll="{{config.initiativeFormula}}" data-label="{{localize 'TNO.Derived.Initiative'}}" title="{{localize 'TNO.Derived.Initiative'}} — {{localize 'TNO.DerivedHint.Initiative'}}">
+        <i class="fa-solid fa-bolt chip-icon"></i>
+        <span class="chip-label">{{localize "TNO.DerivedShort.Initiative"}}</span>
+        <span class="chip-value">{{system.derived.initiative}}</span>
+        <i class="fa-solid fa-circle-info chip-info"></i>
+      </a>
+
     </div>
 
-    {{!-- Initiative wird gewürfelt mit Initiativegrundwert+1d10. The formula
-    comes from CONFIG.TNO so this caption and Foundry's combat tracker always
-    roll the same thing. It sits as an opaque strip across the portrait's
-    bottom edge, so it stays legible on any uploaded image. --}}
+    {{!-- The portrait is only the character image. Initiative lives in the
+    rollable chip at the upper right of the banner. --}}
     <div class="banner-portrait">
       <img class="profile-img" src="{{actor.img}}" data-edit="img" data-action="editImage" title="{{actor.name}}" height="161" width="215"/>
-      <a class="portrait-init rollable" data-roll="{{config.initiativeFormula}}" data-label="{{localize 'TNO.Derived.Initiative'}}" title="{{localize 'TNO.Derived.Initiative'}} — {{localize 'TNO.DerivedHint.Initiative'}}">
-        <span class="init-label">{{localize "TNO.DerivedShort.Initiative"}}</span>
-        <span class="init-value">{{system.derived.initiative}}<small>+1d10</small></span>
-      </a>
     </div>
 
     {{!-- Name, then a subtitle line the player owns: a free-text profession or

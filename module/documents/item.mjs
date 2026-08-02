@@ -1,5 +1,7 @@
 import { wornItemIds } from '../helpers/inventory.mjs';
-import { hasRole } from '../helpers/items.mjs';
+import { prepareGearSummaryContext } from '../helpers/item-summary.mjs';
+import { getSkillDefinitions } from '../helpers/skills.mjs';
+import { clampGearNumber, hasRole, isGear } from '../helpers/items.mjs';
 
 /**
  * Extend the basic Item with some very simple modifications.
@@ -77,12 +79,47 @@ export class TnoItem extends Item {
    * Kampfregeln are implemented this is where their entry point goes.
    */
   async roll() {
+    const content = isGear(this)
+      ? await renderTemplate(
+          'systems/tno/templates/chat/item-summary.hbs',
+          prepareGearSummaryContext(this)
+        )
+      : this.system.description ?? '';
     return ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this.actor }),
       rollMode: game.settings.get('core', 'rollMode'),
       flavor: this.name,
-      content: this.system.description ?? '',
+      content,
     });
+  }
+
+  /** Open the normal roll builder with this weapon's authored FV component. */
+  openWeaponCheck() {
+    const actor = this.actor;
+    const key = this.system.fv?.skill;
+    const definition = getSkillDefinitions(actor)[key];
+    if (!actor || !key || !definition) return;
+    return new game.tno.TnoRollDialog(actor, {
+      attributeA: definition.attribute ?? '',
+      skill: { key, label: definition.label, value: Number(this.system.fv?.rank) || 0 },
+      flavor: this.name,
+    }).render(true);
+  }
+
+  /** Nudge the loaded ammunition count without letting it fall below zero. */
+  adjustAmmo(by) {
+    if (!hasRole(this, 'weapon') || !Number.isFinite(by)) return;
+    const current = Number(this.system.ammo?.count) || 0;
+    return this.setAmmo(current + by);
+  }
+
+  /** Set the loaded ammunition count from a numeric input, within its bounds. */
+  setAmmo(value) {
+    if (!hasRole(this, 'weapon') || value === '' || value === null || value === undefined) return;
+    const field = 'system.ammo.count';
+    const next = clampGearNumber(field, value);
+    if (!Number.isFinite(next)) return;
+    return this.update({ [field]: next });
   }
 
   /**
@@ -92,6 +129,22 @@ export class TnoItem extends Item {
    */
   async consume() {
     if (!hasRole(this, 'consumable')) return;
+    const available = Math.max(0, Number(this.system.quantity) || 0);
+    if (available <= 0) {
+      ui.notifications.warn(game.i18n.localize('TNO.Item.Overview.NoUses'));
+      return;
+    }
+
+    const confirmed = await foundry.applications.api.DialogV2.confirm({
+      window: { title: game.i18n.localize('TNO.Item.Overview.UseTitle') },
+      content: game.i18n.format('TNO.Item.Overview.UseConfirm', {
+        name: foundry.utils.escapeHTML(this.name),
+      }),
+    });
+    if (!confirmed) return;
+
+    // Re-read after the dialog: another client may have spent the last use
+    // while this confirmation was open.
     const remaining = Math.max(0, Number(this.system.quantity) || 0);
     if (remaining <= 0) {
       ui.notifications.warn(game.i18n.localize('TNO.Item.Overview.NoUses'));

@@ -1,12 +1,10 @@
 import { getSkillDefinitions } from '../helpers/skills.mjs';
 import { itemSlotCost } from '../helpers/inventory.mjs';
-import { buildGearPresentation } from '../helpers/item-presentation.mjs';
 import {
   ARMOR_ZONES,
   GEAR_NUMBER_BOUNDS,
   ITEM_ROLES,
   RANGE_BANDS,
-  RA_MAX,
   SCALES,
   WEAPON_USES,
   clampGearNumber,
@@ -93,9 +91,6 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     context.system = system;
     context.config = CONFIG.TNO;
     context.roles = roles;
-    this._viewMode ??= 'overview';
-    context.overview = this._viewMode === 'overview';
-    context.editing = this._viewMode === 'edit';
     context.canEdit = this.isEditable;
 
     // Three chip/segment rows of the same shape, differing only in how many
@@ -144,16 +139,6 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     context.skills = Object.entries(definitions)
       .map(([key, definition]) => ({ key, label: definition.label }))
       .sort((a, b) => a.label.localeCompare(b.label, game.i18n.lang));
-    const weaponSkill = definitions[system.fv?.skill];
-    context.weaponCheck = weaponSkill ? {
-      key: system.fv.skill,
-      label: weaponSkill.label,
-      value: Number(system.fv?.rank) || 0,
-      attribute: weaponSkill.attribute ?? '',
-    } : null;
-
-    context.raPercent = Math.round((Math.clamp(Number(system.ra) || 0, 0, RA_MAX) / RA_MAX) * 100);
-
     // What is still blank, both as a count for the footer and as a lookup the
     // rows mark themselves with.
     const missing = missingRequired(item);
@@ -170,38 +155,6 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     const tier = CONFIG.TNO.slotCostHints.find((hint) => hint.slots === Number(system.slots));
     context.slotTier = tier?.hint ?? null;
     context.slotCost = cost;
-
-    const presentation = buildGearPresentation(item, item.actor);
-    presentation.roleLabels = ITEM_ROLES
-      .filter((role) => presentation.roles[role])
-      .map((role) => CONFIG.TNO.itemRoles[role]);
-    presentation.useLabel = CONFIG.TNO.weaponUses[presentation.use];
-    presentation.range = presentation.range.map((band) => ({
-      ...band,
-      label: CONFIG.TNO.rangeBands[band.band],
-    }));
-    presentation.zoneLabels = presentation.zones.map((zone) => CONFIG.TNO.armorZones[zone]);
-    presentation.strength.status = presentation.strength.met === false
-      ? 'unmet'
-      : presentation.strength.met === true ? 'met' : 'neutral';
-    presentation.ownership.label = presentation.ownership.state
-      ? `TNO.Inventory.${presentation.ownership.state[0].toUpperCase()}${presentation.ownership.state.slice(1)}`
-      : null;
-    presentation.penetration.label = presentation.penetration.key.toUpperCase();
-    presentation.penetration.hasValue = presentation.penetration.value !== null;
-    context.presentation = presentation;
-    context.showStrength = roles.weapon || roles.armor;
-    context.canPost = true;
-    context.canAdjustAmmo = this.isEditable && roles.weapon && context.ranged;
-    context.canConsume = this.isEditable && roles.consumable && Number(system.quantity) > 0;
-    context.canWeaponCheck = !!(this.item.actor?.isOwner && roles.weapon && context.weaponCheck);
-
-    context.enrichedDescription = await TextEditor.enrichHTML(system.description ?? '', {
-      secrets: this.document.isOwner,
-      async: true,
-      rollData: this.item.getRollData(),
-      relativeTo: this.item,
-    });
 
     // Worn gear holds back its own delete button: the actor's
     // `system.equipment` addresses the piece by id, and deleting it out from
@@ -220,15 +173,12 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     this._listenerAbort?.abort();
     this._listenerAbort = new AbortController();
 
-    this.#delegate('click', '.item-post', () => this.item.roll());
-    if (!this.isEditable) return;
-
-    this.#delegate('click', '.gear-mode', (event, target) => {
-      const mode = target.dataset.view;
-      if (!['overview', 'edit'].includes(mode) || mode === this._viewMode) return;
-      this._viewMode = mode;
-      this.render();
-    });
+    if (!this.isEditable) {
+      for (const control of this.element.querySelectorAll('input, select, textarea, button, prose-mirror')) {
+        control.setAttribute('disabled', '');
+      }
+      return;
+    }
 
     this.#delegate('click', '.role-chip', (event, target) => {
       this.#pickRole(target.dataset.role);
@@ -269,10 +219,6 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     });
 
     this.#delegate('click', '.item-self-delete', () => this.item.confirmDelete());
-
-    this.#delegate('click', '.item-consume', () => this.item.consume());
-
-    this.#delegate('click', '.item-weapon-check', () => this.#openWeaponCheck());
 
     this.#delegate('click', '[data-missing-field]', (event, target) => {
       this.#focusMissing(target.dataset.missingField);
@@ -386,21 +332,6 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
       : container?.querySelector?.('input, select, button, [tabindex="0"]');
     focusable?.focus();
   }
-
-  /** Open the normal roll builder with this weapon's authored FV component. */
-  #openWeaponCheck() {
-    const actor = this.item.actor;
-    const key = this.item.system.fv?.skill;
-    const definition = getSkillDefinitions(actor)[key];
-    if (!actor || !key || !definition) return;
-    return new game.tno.TnoRollDialog(actor, {
-      attributeA: definition.attribute ?? '',
-      skill: { key, label: definition.label, value: Number(this.item.system.fv?.rank) || 0 },
-      flavor: this.item.name,
-    }).render(true);
-  }
-
-  /* -------------------------------------------- */
 
   /**
    * The row-editor keyboard model: up and down walk the rows, left and right

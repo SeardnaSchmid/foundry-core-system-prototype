@@ -388,11 +388,6 @@
         "Armor": "Armour",
         "Consumable": "Consumable"
       },
-      "View": {
-        "Label": "View",
-        "Overview": "Overview",
-        "Edit": "Edit"
-      },
       "Overview": {
         "RangeProfile": "Range profile",
         "Penetration": "Penetration",
@@ -411,12 +406,23 @@
         "Actions": "Actions",
         "Post": "Show in chat",
         "Use": "Apply",
+        "UseTitle": "Apply consumable",
+        "UseConfirm": "Apply <strong>{name}</strong> and consume one item?",
         "NoUses": "No item remaining",
         "WeaponCheck": "Weapon check",
         "WeaponCheckHint": "Opens the normal check with the weapon skill. Readiness and complete combat resolution are not modelled yet.",
         "AmmoDecrease": "Decrease ammunition",
         "AmmoIncrease": "Increase ammunition",
         "UsedFlavor": "Used {name}"
+      },
+      "Summary": {
+        "Stock": "Stock",
+        "Dk": "DK",
+        "Hh": "HH"
+      },
+      "Popover": {
+        "Edit": "Edit",
+        "Close": "Close item details"
       },
       "Cap": {
         "Slots": "SLT",

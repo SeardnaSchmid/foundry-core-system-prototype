@@ -1,0 +1,214 @@
+// Compact item facts and actions in the browser's native top layer. Like the
+// gear dialog, this class sits on the same element as `.tno`, hence `&`.
+&.item-popover {
+  position: fixed;
+  inset: auto;
+  width: min(280px, calc(100vw - 16px));
+  max-height: calc(100vh - 16px);
+  margin: 0;
+  padding: 8px;
+  overflow: auto;
+  border: 1px solid rgba($c-dark, 0.55);
+  border-radius: 6px;
+  background: #f4f1e8;
+  box-shadow: 0 5px 18px rgba($c-black, 0.28);
+
+  &::backdrop {
+    background: transparent;
+  }
+}
+
+// Chat uses the exact same summary partial, presented as an in-message card
+// instead of a viewport-positioned top-layer element.
+&.item-chat-summary {
+  padding: 8px;
+  border: 1px solid rgba($c-dark, 0.35);
+  border-radius: 6px;
+  background: rgba($c-white, 0.38);
+}
+
+&.item-popover,
+&.item-chat-summary {
+  color: $c-dark;
+  font-family: $font-primary;
+
+  button {
+    width: auto;
+    min-height: 0;
+    margin: 0;
+    font-family: inherit;
+    box-shadow: none;
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+  }
+
+  .item-popover-head {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    img {
+      flex: 0 0 22px;
+      width: 22px;
+      height: 22px;
+      border: 1px solid rgba($c-dark, 0.25);
+      border-radius: 3px;
+      object-fit: cover;
+    }
+
+    strong {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      font-size: 13px;
+      line-height: 1.2;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .item-popover-close {
+    flex: 0 0 24px;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: rgba($c-dark, 0.62);
+    line-height: 24px;
+  }
+
+  .item-popover-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 7px;
+  }
+
+  .item-popover-badge {
+    padding: 2px 5px;
+    border: 1px solid rgba($c-dark, 0.28);
+    border-radius: 999px;
+    background: rgba($c-white, 0.55);
+    font-size: 9px;
+    line-height: 1.2;
+
+    &.state.worn {
+      border-color: rgba($c-ready, 0.55);
+      color: $c-ready;
+    }
+
+    &.warning {
+      border-color: rgba($c-warning, 0.55);
+      background: rgba($c-warning, 0.06);
+      color: $c-warning;
+    }
+  }
+
+  .item-popover-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 10px;
+    margin: 8px 0 0;
+    padding: 6px 0;
+    border-top: 1px solid rgba($c-dark, 0.18);
+    border-bottom: 1px solid rgba($c-dark, 0.18);
+
+    > div {
+      display: grid;
+      grid-template-columns: minmax(38px, auto) 1fr;
+      gap: 5px;
+      align-items: baseline;
+      min-width: 0;
+      padding: 2px 0;
+    }
+
+    dt {
+      overflow: hidden;
+      color: rgba($c-dark, 0.58);
+      font-size: 9px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    dd {
+      min-width: 0;
+      margin: 0;
+      overflow-wrap: anywhere;
+      font-size: 10px;
+      font-weight: bold;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  .item-popover-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+
+    > button {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 6px;
+      border: 1px solid rgba($c-dark, 0.28);
+      border-radius: 4px;
+      background: rgba($c-white, 0.58);
+      color: $c-dark;
+      font-size: 9px;
+
+      &.danger {
+        color: $c-warning;
+      }
+    }
+  }
+
+  .item-popover-ammo {
+    display: inline-flex;
+    align-items: center;
+    height: 24px;
+    border: 1px solid rgba($c-dark, 0.28);
+    border-radius: 4px;
+    background: rgba($c-white, 0.58);
+
+    button {
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      border: none;
+      background: transparent;
+      line-height: 22px;
+    }
+
+    input {
+      width: 34px;
+      height: 22px;
+      min-width: 0;
+      margin: 0;
+      padding: 0 2px;
+      appearance: textfield;
+      -moz-appearance: textfield;
+      border: none;
+      border-right: 1px solid rgba($c-dark, 0.18);
+      border-left: 1px solid rgba($c-dark, 0.18);
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      color: $c-dark;
+      text-align: center;
+      font-size: 10px;
+      font-variant-numeric: tabular-nums;
+
+      &::-webkit-inner-spin-button,
+      &::-webkit-outer-spin-button {
+        margin: 0;
+        appearance: none;
+      }
+    }
+  }
+}

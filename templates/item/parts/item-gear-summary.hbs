@@ -1,0 +1,37 @@
+<header class='item-popover-head'>
+  <img src='{{item.img}}' width='22' height='22' alt=''/>
+  <strong>{{item.name}}</strong>
+  {{#if showClose}}
+    <button type='button' class='item-popover-close' data-popover-action='close'
+            title='{{localize "TNO.Item.Popover.Close"}}' aria-label='{{localize "TNO.Item.Popover.Close"}}'
+            autofocus>
+      <i class='fa-solid fa-xmark' aria-hidden='true'></i>
+    </button>
+  {{/if}}
+</header>
+
+<div class='item-popover-badges'>
+  {{#each summary.badges}}
+    <span class='item-popover-badge'>{{localize this}}</span>
+  {{/each}}
+  {{#if presentation.ownership.label}}
+    <span class='item-popover-badge state {{presentation.ownership.state}}'>{{localize presentation.ownership.label}}</span>
+  {{/if}}
+  {{#if missingCount}}
+    <span class='item-popover-badge warning'>
+      <i class='fa-solid fa-triangle-exclamation' aria-hidden='true'></i>
+      {{localize 'TNO.Item.MissingRequired' count=missingCount}}
+    </span>
+  {{/if}}
+</div>
+
+{{#if summary.stats.length}}
+  <dl class='item-popover-stats'>
+    {{#each summary.stats}}
+      <div>
+        <dt>{{localize this.labelKey}}</dt>
+        <dd>{{this.display}}</dd>
+      </div>
+    {{/each}}
+  </dl>
+{{/if}}
