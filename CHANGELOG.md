@@ -1,5 +1,15 @@
 # Changelog
 
+# [0.28.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.27.0...v0.28.0) (2026-08-02)
+
+
+### Features
+
+* refine character sheet basics layout ([38c42de](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/38c42de844013cb075742a3f6ef8b346f55ba049))
+* refine weapon item authoring and attacks ([7abfe67](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/7abfe6733a2c7bc1eedfa1a5cc321dd4e8020bfb))
+* **sheet:** rebuild the Basics tab as two full-width rows ([c5f2099](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/c5f2099f934fd2c0b854af87f2819cf30bf787c8))
+* **ui:** add item summaries and banner initiative ([067a018](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/067a01876d5bfa2f7e3fdd883151ed80dd713187))
+
 # [0.27.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.26.0...v0.27.0) (2026-08-02)
 
 
