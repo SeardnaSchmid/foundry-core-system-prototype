@@ -5,7 +5,8 @@
       "name": "foundry",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "serve"],
-      "port": 30000
+      "port": 30000,
+      "autoPort": false
     }
   ],
   "autoVerify": true

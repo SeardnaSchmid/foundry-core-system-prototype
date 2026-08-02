@@ -12,7 +12,7 @@ export const preloadHandlebarsTemplates = async function () {
     'systems/tno/templates/actor/parts/actor-effects.hbs',
     'systems/tno/templates/actor/parts/actor-paperdoll.hbs',
     'systems/tno/templates/actor/parts/actor-slot-grid.hbs',
-    'systems/tno/templates/actor/parts/actor-weapons.hbs',
+    'systems/tno/templates/actor/parts/actor-trinkets.hbs',
     'systems/tno/templates/actor/parts/item-popover.hbs',
     // Item partials
     'systems/tno/templates/item/parts/item-delete.hbs',

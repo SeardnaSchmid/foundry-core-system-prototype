@@ -2,7 +2,7 @@
 import { TnoActor } from './documents/actor.mjs';
 import { TnoItem } from './documents/item.mjs';
 // Import sheet classes.
-import { TnoActorSheet, BASICS_SPLIT_DEFAULT } from './sheets/actor-sheet.mjs';
+import { TnoActorSheet, BASICS_LAYOUT_DEFAULT } from './sheets/actor-sheet.mjs';
 import { TnoItemSheet } from './sheets/item-sheet.mjs';
 import { TnoGearSheet } from './sheets/item-gear-sheet.mjs';
 // Import helper/utility classes and constants.
@@ -103,11 +103,11 @@ Hooks.once('init', function () {
   game.settings.register('tno', 'heatmapHighCurve', { scope: 'client', config: false, type: Number, default: DEFAULT_HEATMAP_CONFIG.highCurve });
   game.settings.register('tno', 'heatmapCritical', { scope: 'client', config: false, type: String, default: DEFAULT_HEATMAP_CONFIG.critical });
 
-  // Where the character sheet's Basics tab splits between the attribute/skill
-  // column and the equipment column, as the left column's share of the row.
-  // Client-scoped and hidden: it is dragged on the sheet itself (see the
-  // splitter handling in sheets/actor-sheet.mjs), never typed into a form.
-  game.settings.register('tno', 'basicsSplit', { scope: 'client', config: false, type: Number, default: BASICS_SPLIT_DEFAULT });
+  // How the character sheet's Basics tab divides each of its two rows, as one
+  // share per column keyed by row. Client-scoped and hidden: it is dragged on
+  // the sheet itself (see the splitter handling in sheets/actor-sheet.mjs),
+  // never typed into a form.
+  game.settings.register('tno', 'basicsLayout', { scope: 'client', config: false, type: Object, default: BASICS_LAYOUT_DEFAULT });
 
   game.settings.registerMenu('tno', 'heatmapLabMenu', {
     name: 'TNO.Settings.HeatmapPreset.Name',

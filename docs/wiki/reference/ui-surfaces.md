@@ -16,7 +16,7 @@ related: [reference/module-map]
 | `actor/actor-character-sheet.hbs` | `TnoActorSheet` (type `character`) |
 | `actor/actor-npc-sheet.hbs` | `TnoActorSheet` (type `npc`) |
 | `actor/parts/actor-items.hbs`, `actor-features.hbs`, `actor-spells.hbs`, `actor-effects.hbs` | Included by the actor sheet templates above |
-| `actor/parts/actor-paperdoll.hbs`, `actor-slot-grid.hbs`, `actor-weapons.hbs` | The equipment column in the character sheet's Basics tab — see [inventory.md](../concepts/inventory.md). `actor-weapons.hbs` is a reserved layout holding its place: there is no readiness model to list weapons by yet |
+| `actor/parts/actor-paperdoll.hbs`, `actor-trinkets.hbs`, `actor-slot-grid.hbs` | Three of the five columns of the character sheet's Basics tab — see [inventory.md](../concepts/inventory.md). The paper doll and the Kleinkram column sit in the top row, the carry raster in the bottom one |
 | `actor/parts/item-popover.hbs` | The actor-sheet item popover: compact summary plus the live item actions |
 | `apps/roll-dialog.hbs` | `TnoRollDialog` |
 | `apps/base-roll-dialog.hbs` | `TnoBaseRollDialog` |
@@ -39,6 +39,37 @@ All of the above are preloaded by
 add a new one, register it there too or Foundry falls back to a
 render-time fetch (works, but loses the preload benefit).
 
+## The Basics tab's grid
+
+Two full-width rows, each a flex row of `.basics-cell` columns with a
+`.basics-splitter` at every boundary:
+
+| Row (`data-split-row`) | Columns |
+| --- | --- |
+| `top` | attribute matrix · paper doll · Kleinkram |
+| `bottom` | skill list · Trageslots raster |
+
+The top row sizes to its own content and the bottom row takes what is left —
+the blocks above have a natural height, the two lists below are the ones that
+can always use more.
+
+A column's width is a **grow factor off a zero basis**, not a width: the
+handles' own strips come off the row first and the columns divide the rest, so
+a resized window keeps the proportions. The shares live in the `basicsLayout`
+client setting, one array per row, normalised to sum to 1 on read.
+
+**A handle only ever redistributes the pair it sits between.** That is what
+makes a three-column row with two handles behave the way a reader expects, and
+it is why the row rather than one boundary is what a double-click resets: with
+two handles, restoring only the pair under the pointer would leave the row in a
+state the defaults never had. The template is the single place a row's column
+count is declared — `_applyColumnSplit()` and the pointer/keyboard handlers in
+[`actor-sheet.mjs`](../../../module/sheets/actor-sheet.mjs) read it off the DOM.
+
+The stylesheet carries the same defaults per column class, which is what the
+tab is laid out with until the sheet's first render writes `flex-grow`. Keep
+them in step with `BASICS_LAYOUT_DEFAULT`.
+
 ## SCSS components
 
 `src/scss/tno.scss` is the single entry point compiled to `css/tno.css`
@@ -51,7 +82,7 @@ render-time fetch (works, but loses the preload benefit).
 | `components/_forms.scss` | Shared form controls across dialogs and sheets |
 | `components/_items.scss` | Inventory list rendering, including the Rollen column's tags |
 | `components/_item-dialog.scss` | Both gear views: overview cards/profiles/actions plus the editor's label column, scales, cycleable range bands, repeatable consumable effects, resizable description editor, chips, segments, splits and steppers. Nested with `&.gear-dialog` because the class sits on the sheet root alongside `tno`, not inside it |
-| `components/_inventory.scss` | The paper doll and the Trageslots grid, plus their `-compact` sidebar variants — see [inventory.md](../concepts/inventory.md) |
+| `components/_inventory.scss` | The paper doll, the Kleinkram column and the Trageslots grid — see [inventory.md](../concepts/inventory.md). The narrower padding they take inside a Basics column is set on `.basics-cell` in `_forms.scss`, not here |
 | `components/_effects.scss` | Active effect list rendering |
 | `components/_base-roll-button.scss` | The chat-log "Basiswürfel" quick-roll button |
 | `global/_flex.scss`, `_grid.scss`, `_window.scss` | Layout primitives |

@@ -31,6 +31,14 @@ client-scoped and hidden (`config: false` — edited only through the
 `heatmapLowCurve`, `heatmapHighCurve`, `heatmapCritical` — see
 [heatmap.md](../concepts/heatmap.md).
 
+`basicsLayout` — how the character sheet's Basics tab divides each of its two
+rows, as one share per column keyed by row. Its default and bounds live with
+the sheet (`BASICS_LAYOUT_DEFAULT` in
+[`actor-sheet.mjs`](../../../module/sheets/actor-sheet.mjs)), which is also the
+only thing that writes it: the value is dragged on the sheet itself, never
+typed into a form. Client-scoped so a player's layout follows them across every
+character sheet they open rather than living on the actor.
+
 One world-scoped hidden setting, registered by
 `registerMigrationSettings()` in
 [`migrations.mjs:15`](../../../module/helpers/migrations.mjs):

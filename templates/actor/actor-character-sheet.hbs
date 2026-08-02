@@ -113,12 +113,21 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
   {{!-- Sheet Body --}}
   <section class="sheet-body">
 
-    {{!-- Basics Tab: attributes and skills on the left, everything the
-    character has on them on the right. --}}
-    <div class="tab basics {{tabs.basics.cssClass}}" data-group="primary" data-tab="basics">
-      <div class="basics-columns">
+    {{!-- Basics Tab, as two full-width rows rather than a left/right split.
+    Top: the attribute matrix, what is on the body, and the zero-slot pocket.
+    Bottom: the skill list and the carry raster — the two long lists, each of
+    which wants width more than the blocks above them do.
 
-      <section class="basics-main flexcol">
+    Every boundary between two columns is a draggable handle, and each row keeps
+    its own set of shares (`basicsLayout`, client-scoped): a handle only ever
+    redistributes the pair it sits between, so a row of three columns has two
+    independent boundaries rather than one split running the sheet's height. --}}
+    <div class="tab basics {{tabs.basics.cssClass}}" data-group="primary" data-tab="basics">
+      <div class="basics-rows">
+
+      <div class="basics-row" data-split-row="top">
+
+      <section class="basics-cell cell-attributes flexcol">
 
         {{!-- Primary attributes, laid out as a heatmap: one column per category
         (körperlich/sozial/geistig) and one row per attribute pairing,
@@ -180,6 +189,37 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
           </tbody>
         </table>
         </div>
+
+      </section>
+
+      <div class="basics-splitter" role="separator" aria-orientation="vertical" tabindex="0"
+           title="{{localize 'TNO.BasicsSplitterHint'}}"></div>
+
+      {{!-- What the character is wearing right now: the armour paper doll and
+      its four zone read-outs. The Inventar tab keeps the flat administrative
+      list — creating, editing and deleting items — but this answers "what am I
+      wearing?", which is a question asked mid-roll, so it sits beside the
+      attributes rather than a tab away. --}}
+      <section class="basics-cell cell-gear flexcol">
+        <h3 class="cell-title">{{localize "TNO.Armor.WornTitle"}}</h3>
+        {{> "systems/tno/templates/actor/parts/actor-paperdoll.hbs"}}
+      </section>
+
+      <div class="basics-splitter" role="separator" aria-orientation="vertical" tabindex="0"
+           title="{{localize 'TNO.BasicsSplitterHint'}}"></div>
+
+      {{!-- Geld, Papiere, Krimskrams: carried, but priced at zero slots, so they
+      never take a cell in the raster below and get a column of their own here
+      instead. --}}
+      <section class="basics-cell cell-loose flexcol">
+        {{> "systems/tno/templates/actor/parts/actor-trinkets.hbs"}}
+      </section>
+
+      </div>
+
+      <div class="basics-row" data-split-row="bottom">
+
+      <section class="basics-cell cell-skills flexcol">
 
         {{!-- Skills, grouped by category. Each skill rolls with its linked
         attribute; the rank is added as the roll dialog's starting bonus. --}}
@@ -252,23 +292,17 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
 
       </section>
 
-      {{!-- Drag handle between the two columns. A real element rather than a
-      CSS border so it can be grabbed; the ratio it sets is a client setting,
-      so each player keeps their own split across sheets and sessions. --}}
       <div class="basics-splitter" role="separator" aria-orientation="vertical" tabindex="0"
            title="{{localize 'TNO.BasicsSplitterHint'}}"></div>
 
-      {{!-- What the character has on them: worn armour, carried gear, and the
-      weapons they can bring to bear. The Inventar tab keeps the flat
-      administrative list — creating, editing and deleting items — but these two
-      views answer "what am I wearing / hauling right now?", which is a question
-      asked mid-roll, so they sit beside the attributes instead of a tab away. --}}
-      <aside class="basics-aside flexcol">
-        <h3 class="aside-title">{{localize "TNO.Armor.WornTitle"}}</h3>
-        {{> "systems/tno/templates/actor/parts/actor-paperdoll.hbs"}}
+      {{!-- What the character is hauling: the Trageslots budget, packed. Beside
+      the skills rather than under the paper doll, because the raster and the
+      skill list are the tab's two long lists and both want the width. --}}
+      <section class="basics-cell cell-carry flexcol">
         {{> "systems/tno/templates/actor/parts/actor-slot-grid.hbs"}}
-        {{> "systems/tno/templates/actor/parts/actor-weapons.hbs"}}
-      </aside>
+      </section>
+
+      </div>
 
       </div>
     </div>

@@ -533,30 +533,46 @@
   min-height: 0;
 }
 
-// Attributes and skills on the left, everything on the character's body on the
-// right. Both columns own their own scrolling, so a long skill list and a full
-// pack never push each other around.
+// The Basics tab as two full-width rows: the attribute matrix, the worn gear
+// and the zero-slot pocket above; the skill list and the carry raster below.
 //
-// The two shares are grow factors off a zero basis rather than widths, so the
-// splitter's own strip is subtracted before the ratio is applied and the
-// columns keep their proportions when the window is resized. `--basics-split`
-// is the left column's share; the sheet writes it per render from the
-// `basicsSplit` client setting and again live while the handle is dragged.
-.basics-columns {
-  // Keep in step with BASICS_SPLIT_DEFAULT in sheets/actor-sheet.mjs — this is
-  // only the pre-script fallback; the sheet overwrites it per render.
-  --basics-split: 0.5;
+// The top row sizes to its own content and the bottom row takes what is left —
+// the blocks up there have a natural height (twelve attribute cells, five zone
+// rows), while the two lists below are the ones that can always use more.
+.basics-rows {
   display: flex;
+  flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
-  align-items: stretch;
+  gap: 10px;
 }
 
-// The attribute matrix and skill cards scroll together as one region. Both
-// stay pinned at the top only if they fit the available height; once the
-// column is squeezed, the entire section scrolls.
-.basics-main {
-  flex: var(--basics-split) 1 0;
+.basics-row {
+  display: flex;
+  min-height: 0;
+  align-items: stretch;
+
+  &[data-split-row='top'] {
+    flex: 0 1 auto;
+  }
+
+  &[data-split-row='bottom'] {
+    flex: 1 1 auto;
+  }
+}
+
+// Every column owns its own scrolling, so a long skill list and a full pack
+// never push each other around.
+//
+// The shares are grow factors off a zero basis rather than widths, so the
+// splitters' own strips are subtracted before the proportions are applied and
+// the columns keep them when the window is resized. The per-column defaults
+// below are only the pre-script fallback — the sheet writes `flex-grow` per
+// render from the `basicsLayout` client setting, and again live while a handle
+// is dragged. Keep them in step with BASICS_LAYOUT_DEFAULT in
+// sheets/actor-sheet.mjs.
+.basics-cell {
+  flex: 1 1 0;
   min-width: 0;
   min-height: 0;
   display: flex;
@@ -566,9 +582,44 @@
   scrollbar-color: rgba($c-dark, 0.3) transparent;
 }
 
-// The grabbable strip between the columns. It replaces the old flex gap and
-// .basics-aside's dashed border: the rule is drawn on the handle itself so the
-// line the user aims at is the line that moves.
+.cell-attributes,
+.cell-loose {
+  flex-grow: 0.25;
+}
+
+.cell-gear,
+.cell-skills,
+.cell-carry {
+  flex-grow: 0.5;
+}
+
+// The paper doll and the carry raster both size their padding for a full-width
+// tab; tighten it here so the armour rows keep room for their RH/RW/RA
+// read-outs and the raster keeps its five columns.
+.cell-gear,
+.cell-carry,
+.cell-loose {
+  padding-right: 2px;
+
+  .paperdoll,
+  .slot-grid-block {
+    padding: 10px;
+  }
+
+  .paperdoll {
+    gap: 10px;
+  }
+
+  .paperdoll-figure {
+    width: 84px;
+  }
+}
+
+// The grabbable strip between two columns. A real element rather than a CSS
+// border so it can be grabbed, and the rule is drawn on the handle itself so
+// the line the user aims at is the line that moves. Each handle redistributes
+// only the pair it sits between; the shares it sets are a client setting, so
+// each player keeps their own layout across sheets and sessions.
 .basics-splitter {
   flex: 0 0 13px;
   position: relative;
@@ -601,37 +652,9 @@
   }
 }
 
-.basics-aside {
-  flex: calc(1 - var(--basics-split)) 1 0;
-  min-width: 0;
-  min-height: 0;
-  gap: 8px;
-  padding: 0 2px 0 6px;
-  overflow-y: auto;
-
-  // Thin scrollbar tinted to the parchment, matching .skill-groups-scroll.
-  scrollbar-width: thin;
-  scrollbar-color: rgba($c-dark, 0.3) transparent;
-
-  // Both equipment blocks size their padding for a full-width tab; tighten it
-  // here so the armour rows keep room for their RH/RW/RA read-outs.
-  .paperdoll,
-  .slot-grid-block {
-    padding: 10px;
-  }
-
-  .paperdoll {
-    gap: 10px;
-  }
-
-  .paperdoll-figure {
-    width: 84px;
-  }
-}
-
-// Caption above the paper doll — the Trageslots and weapons blocks carry their
-// own headers, so this is the only block that needs one.
-.aside-title {
+// Caption above the paper doll — the Trageslots and Kleinkram blocks carry
+// their own headers, so this is the only column that needs one.
+.cell-title {
   flex: 0 0 auto;
   margin: 0;
   padding: 0;

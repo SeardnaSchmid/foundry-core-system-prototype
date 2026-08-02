@@ -622,8 +622,9 @@ button:focus-visible {
   }
 }
 
-// Container for the skill cards. Scrolling is now on `.basics-main` above,
-// so the entire column (attributes + skills) scrolls together, not just skills.
+// Container for the skill cards. Scrolling is on the `.basics-cell` around it,
+// so the header (search + filters) scrolls away with the list rather than
+// staying pinned over it.
 .skill-groups-scroll {
   flex: 1 1 auto;
   min-height: 0;
