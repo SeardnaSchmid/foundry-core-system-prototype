@@ -76,16 +76,15 @@
 // and the three meta chips, replacing the left-docked sidebar. Fixed height, so
 // the band never grows with a long name.
 //
-// A grid rather than four absolutely-placed boxes: the name field's box is
+// A flex row rather than four absolutely-placed boxes: the name field's box is
 // transparent, so with absolute placement it would reach under the chips and
-// swallow clicks on them. The three lanes make that impossible — the name can
-// only ever grow into its own column, and it yields that column's width to the
-// chips (`auto`) before it starts truncating, so the two never overlap however
-// long the name gets.
+// swallow clicks on them. The name keeps a readable lane; if that lane and the
+// chip row cannot coexist, the chips move to the next line before the name is
+// squeezed away.
 //
 // The portrait is the one exception — it deliberately hangs past the bottom
-// edge, which no in-flow child can do — so it stays absolute and the first grid
-// column reserves its lane. margin-bottom is the clearance that keeps the tab
+// edge, which no in-flow child can do — so it stays absolute and the left
+// padding reserves its lane. margin-bottom is the clearance that keeps the tab
 // body out from under it, which is why it isn't the usual small gap.
 //
 // The band is full-bleed: the negative side and top margins cancel core's 16px
@@ -95,43 +94,34 @@
 // now sits directly on them.
 .sheet-banner {
   // 4:3 landscape. The portrait is absolutely placed, so these drive both its
-  // own box and the grid lane reserved for it.
+  // own box and the left padding that reserves its lane.
   --portrait-w: 215px;
   --portrait-h: 161px;
   --portrait-inset: 4px;
 
   position: relative;
-  display: grid;
-  // Portrait lane, name, chips — one row, so the name's box top and the chip
-  // row start on the same line instead of the name sitting under them. The
-  // first track ends exactly where the portrait does: the portrait starts 4px
-  // from the frame but the track starts at the 16px padding edge, so the track
-  // is short by that 12px difference. The chips lane is capped and may wrap:
-  // `auto` sized to the pill row and refused to break when the sheet narrowed.
-  grid-template-columns:
-    calc(var(--portrait-w) - (16px - var(--portrait-inset)))
-    minmax(0, 2fr)
-    minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   align-items: start;
   column-gap: 16px;
-  flex: 0 0 130px;
-  height: 130px;
-  padding: 12px 16px 2px;
+  row-gap: 6px;
+  flex: 0 0 auto;
+  min-height: 130px;
+  // The regular 16px left gutter plus the portrait width and its 4px inset.
+  // This matches the old grid lane's right edge.
+  padding: 12px 16px 2px calc(var(--portrait-w) + 20px);
   // The bottom margin is the portrait's overhang plus a 10px breath: the
   // portrait bottom sits at inset + height, and everything past this band's
   // own height hangs over the tab body, which must be pushed clear of it.
-  margin: -16px -16px calc(var(--portrait-inset) + var(--portrait-h) - 108px + 10px);
+  margin: -16px -16px calc(var(--portrait-inset) + var(--portrait-h) - 130px + 10px);
   border-bottom: 1px solid $c-beige;
   border-radius: 0;
   background: linear-gradient(180deg, rgba($c-dark, 0.14) 0%, rgba($c-dark, 0.04) 100%);
 }
 
 .banner-chips {
-  grid-column: 3;
-  grid-row: 1;
-  justify-self: end;
-  align-self: start;
+  order: 2;
+  flex: 0 1 auto;
   min-width: 0;
   max-width: 100%;
   display: flex;
@@ -363,9 +353,10 @@
   // box laid over it.
   --banner-name-size: 46px;
 
-  grid-column: 2;
-  grid-row: 1;
-  align-self: start;
+  order: 1;
+  // The chips may move below the name, but must not squeeze it away.
+  flex: 1 1 280px;
+  min-width: min(280px, 100%);
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -637,10 +628,16 @@
   flex-grow: 0.25;
 }
 
-.cell-gear,
-.cell-skills,
-.cell-carry {
+.cell-gear {
   flex-grow: 0.5;
+}
+
+.cell-skills {
+  flex-grow: 0.4;
+}
+
+.cell-carry {
+  flex-grow: 0.6;
 }
 
 // The paper doll and the carry raster both size their padding for a full-width

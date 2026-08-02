@@ -3,7 +3,7 @@ type: concept
 title: Item roles and the gear dialog
 description: Why a physical item has roles instead of a Foundry item type, and how the row-editor sheet is built from them.
 tags: [items, roles, weapons, armor, sheets, schema]
-resource: [module/helpers/items.mjs, module/helpers/item-presentation.mjs, module/helpers/item-summary.mjs, module/sheets/actor-sheet.mjs, module/sheets/item-gear-sheet.mjs, templates/actor/parts/item-popover.hbs, templates/item/item-gear-sheet.hbs, templates/item/parts/item-gear-summary.hbs]
+resource: [module/apps/roll-dialog.mjs, module/documents/item.mjs, module/helpers/items.mjs, module/helpers/item-presentation.mjs, module/helpers/item-summary.mjs, module/sheets/actor-sheet.mjs, module/sheets/item-gear-sheet.mjs, templates/actor/parts/item-popover.hbs, templates/apps/roll-dialog.hbs, templates/item/item-gear-sheet.hbs, templates/item/parts/item-gear-summary.hbs, templates/item/parts/item-role-weapon.hbs]
 spec: docs/design/character-sheet-prd.md
 related: [concepts/inventory, concepts/migrations, reference/ui-surfaces, architecture/data-schema]
 ---
@@ -44,6 +44,11 @@ before clearing the other.
 migration writes, and the shape that survives if a piece ever does need two —
 whereas a string would have to be migrated twice to find out.
 
+The inventory views use `inventoryIcon(item)` from the same helper, so the
+carry grid, Kleinkram list and flat inventory list all show the same quick
+read: ranged weapon, melee weapon, armour, consumable or a generic object.
+The item image remains available on the item's own sheet.
+
 ## The types are still registered, and mean nothing
 
 `item`, `armor` and `weapon` are all still in `template.json`, all sharing the
@@ -73,8 +78,8 @@ always did.
 
 | Group | Fields |
 | --- | --- |
-| Every item | `quantity`, `slots`, `sv`, `price`, `availability`, `fv: {skill, rank}`, `description` |
-| Weapon role | `use` (`melee`/`ranged`), `dk`, `range: {sn, near, mid, far, sf}`, `ammo: {count, type}`, `rd`, `ss: {count}`, `ws: {count}`, `hh: {active, passive}`, `rb` |
+| Every item | `quantity`, `slots`, `sv`, `price`, `availability`, `description` |
+| Weapon role | `use` (`melee`/`ranged`), `fv: {skill, rank}`, `wa` (one primary-attribute key), `dk`, `range: {sn, near, mid, far, sf}`, `ammo: {count, type}`, `rd`, `ss: {count}`, `ws: {count}`, `hh: {active, passive}`, `rb` |
 | Armour role | `zone`, `rh`, `rw`, `ra` |
 | Consumable role | `consumableEffects: [{id, text}]`; its remaining stock is the shared `quantity` |
 
@@ -144,12 +149,14 @@ row. Numeric fields with structural bounds are clamped through
 buttons so Enter/Space and disabled/focus semantics come from the browser.
 
 The actor-sheet popover offers only actions backed by stored state: open the
-editor, post to chat, adjust loaded ammunition, consume one item from a stack,
-and delete the item through the same confirmation used by the inventory list.
-Worn armour must be taken off before deletion.
+editor, post to chat, adjust loaded ammunition, and delete the item through the
+same confirmation used by the inventory list. Worn armour must be taken off
+before deletion.
 An actor-owned weapon with FV can open the normal roll builder as a
-**Waffenprobe**. That is not a full attack: it neither chooses SS/WS nor spends
-ammunition, and it does not imply a readied state.
+**Angriffswurf**. Its authored FV and Waffenattribut are required, shown as
+the two fixed threshold components, and cannot be changed in that dialog. That
+is not a full attack: it neither chooses SS/WS nor spends ammunition, and it
+does not imply a readied state.
 
 Controls, and when each is right:
 

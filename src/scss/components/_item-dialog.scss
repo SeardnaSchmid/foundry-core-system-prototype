@@ -305,6 +305,12 @@ $gear-radius: 4px;
       }
     }
 
+    // Kept beside the weapon skill because both together determine the
+    // starting components of a weapon check.
+    &.field-wa {
+      flex: 1.1;
+    }
+
     // A field the current role or use has nothing to put in. Hatched rather
     // than hidden: the row keeps its place so nothing below it moves when the
     // role or the use changes.

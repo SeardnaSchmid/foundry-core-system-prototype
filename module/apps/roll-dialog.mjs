@@ -29,6 +29,8 @@ export class TnoRollDialog extends FormApplication {
    * @param {Actor} actor              The rolling actor.
    * @param {object} [options]
    * @param {string} [options.attributeA]  Ability key to preselect as the first component.
+   * @param {boolean} [options.lockAttribute]  Keep `attributeA` fixed rather
+   *   than offering the normal skill-roll attribute picker.
    * @param {object} [options.skill]       Fixed skill component: { key, label, value }.
    *   When set, the dialog switches to "skill" mode: attributeA starts
    *   preselected but is picked via an attribute chip grid, and its value
@@ -43,9 +45,10 @@ export class TnoRollDialog extends FormApplication {
    *   the threshold.
    * @param {string} [options.flavor]      Label shown as the roll's subject heading and chat flavor.
    */
-  constructor(actor, { attributeA = '', skill = null, freeSkill = false, fixedValue = null, flavor = '' } = {}) {
+  constructor(actor, { attributeA = '', lockAttribute = false, skill = null, freeSkill = false, fixedValue = null, flavor = '' } = {}) {
     super({ attributeA, attributeB: '', skillValue: 0, bonus: 0, advantage: TNO_ADVANTAGE.none, useIdea: false });
     this.actor = actor;
+    this.lockAttribute = !!(lockAttribute && attributeA);
     this.skill = skill;
     this.freeSkill = freeSkill;
     this.fixedValue = fixedValue;
@@ -84,6 +87,7 @@ export class TnoRollDialog extends FormApplication {
       advantageOptions: advantageOptions(),
       advantageConsequence: describeAdvantage(this.object.advantage),
       isSkillMode: !!this.skill,
+      isLockedAttribute: this.lockAttribute,
       isFreeMode: this.freeSkill,
       isFixedMode: !!this.fixedValue,
       threshold: this._computeThreshold(this.object),
@@ -307,7 +311,8 @@ export class TnoRollDialog extends FormApplication {
 
     // Skill mode: the attribute is picked from a heatmap chip grid instead of
     // a select, so the player sees every attribute's value at once and can
-    // freely swap to any other one.
+    // freely swap to any other one. Weapon attacks lock this choice to their
+    // authored WA and therefore omit the grid altogether.
     html.on('click', '.tno-attribute-chip', (ev) => {
       ev.preventDefault();
       const chip = ev.currentTarget;
@@ -362,6 +367,7 @@ export class TnoRollDialog extends FormApplication {
 
   /** @override */
   async _updateObject(event, formData) {
+    if (this.lockAttribute) formData.attributeA = this.object.attributeA;
     const components = this._baseComponents(formData);
 
     // "Insight" (pre-edge): compute the threshold and bonus off the
@@ -383,7 +389,7 @@ export class TnoRollDialog extends FormApplication {
     // Remember the attribute this skill was rolled against, per actor, so
     // the next time this skill's roll dialog opens (on this sheet) it
     // preselects it instead of the skill's configured default.
-    if (this.skill && formData.attributeA) {
+    if (this.skill && formData.attributeA && !this.lockAttribute) {
       await this.actor.update({ [`system.skills.${this.skill.key}.lastAttribute`]: formData.attributeA });
     }
 

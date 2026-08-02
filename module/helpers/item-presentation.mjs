@@ -1,4 +1,4 @@
-import { armorZones, itemRoles, RANGE_BANDS, weaponUse } from './items.mjs';
+import { armorZones, itemRoles, RANGE_BANDS, weaponAttribute, weaponUse } from './items.mjs';
 import { itemSlotCost, wornItemIds } from './inventory.mjs';
 import { TNO } from './config.mjs';
 
@@ -51,6 +51,7 @@ export function buildGearSummary(item) {
   }
 
   if (roles.weapon) {
+    stats.push({ labelKey: 'TNO.Weapons.Attribute', value: [TNO.abilities[weaponAttribute(system)]] });
     const skillKey = String(system.fv?.skill ?? '').trim();
     const customSkill = item?.actor?.system?.skills?.[skillKey]?.custom;
     if (skillKey && (skillKey in TNO.skills || customSkill)) {

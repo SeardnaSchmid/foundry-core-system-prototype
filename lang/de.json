@@ -405,15 +405,10 @@
         "NoEffect": "Noch keine Wirkung beschrieben.",
         "Actions": "Aktionen",
         "Post": "Im Chat zeigen",
-        "Use": "Anwenden",
-        "UseTitle": "Verbrauchsgegenstand anwenden",
-        "UseConfirm": "<strong>{name}</strong> anwenden und ein Exemplar verbrauchen?",
-        "NoUses": "Kein Exemplar mehr übrig",
-        "WeaponCheck": "Waffenprobe",
-        "WeaponCheckHint": "Öffnet die normale Probe mit der Waffenfertigkeit. Bereitschaft und vollständige Kampfauflösung sind noch nicht modelliert.",
+        "WeaponCheck": "Angriff würfeln",
+        "WeaponCheckHint": "Würfelt den Angriff fest mit dem Waffenattribut und der Waffenfertigkeit dieses Gegenstands.",
         "AmmoDecrease": "Munition verringern",
-        "AmmoIncrease": "Munition erhöhen",
-        "UsedFlavor": "{name} angewendet"
+        "AmmoIncrease": "Munition erhöhen"
       },
       "Summary": {
         "Stock": "Vorrat",
@@ -508,7 +503,7 @@
     },
     "TabEffects": "Effekte",
     "Armor": {
-      "WornTitle": "Ausrüstung · getragen",
+      "WornTitle": "Getragene Ausrüstung",
       "Zones": "Rüstungszonen",
       "FigureAlt": "Silhouette mit hervorgehobenen Rüstungszonen",
       "Values": "Rüstungswerte",
@@ -542,7 +537,7 @@
       }
     },
     "Inventory": {
-      "CarrySlots": "Inventarslots",
+      "CarrySlots": "Inventar",
       "Slots": "Inventarslots",
       "Quantity": "Menge",
       "SlotsHint": "0 Krimskrams · 1 klein · 2 mittel · 3 groß · 4 rucksackgroß",
@@ -573,6 +568,9 @@
       }
     },
     "Weapons": {
+      "Attribute": "Waffenattribut (WA)",
+      "AttributeShort": "WA",
+      "AttributeHint": "Welches Attribut mit dieser Waffe verwendet wird.",
       "Damage": "Schaden",
       "Range": "Reichweite",
       "Values": "Waffenwerte",

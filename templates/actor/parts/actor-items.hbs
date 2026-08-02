@@ -33,12 +33,7 @@ bookkeeping. --}}
       <div class='item-name'>
         <div class='item-image'>
           <a class='rollable' data-roll-type='item'>
-            <img
-              src='{{item.img}}'
-              title='{{item.name}}'
-              width='24'
-              height='24'
-            />
+            <i class='fa-solid {{item.inventoryIcon}} inventory-item-icon' title='{{item.name}}' aria-hidden='true'></i>
           </a>
         </div>
         <h4>{{item.name}}</h4>

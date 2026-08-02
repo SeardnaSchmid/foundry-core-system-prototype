@@ -374,7 +374,7 @@ $c-trinket-label: rgba($c-dark, 0.55);
   // across the rest of the run.
   justify-content: flex-start;
   gap: 6px;
-  min-height: 34px;
+  min-height: 46px;
   padding: 0 6px;
   border-radius: 8px;
   font-size: var(--font-size-13, 13px);
@@ -430,7 +430,7 @@ $c-trinket-label: rgba($c-dark, 0.55);
 .slot-cell.slot-first.slot-joined {
   overflow: visible;
 
-  .slot-name {
+  .slot-content {
     // Opt out of flex sizing: as a shrinkable flex item the label would be
     // squeezed back into this one cell and ellipsised there, wasting the rest
     // of the run. At its natural width it overflows the cell instead — which
@@ -438,7 +438,7 @@ $c-trinket-label: rgba($c-dark, 0.55);
     // so it can never reach the next item.
     flex: 0 0 auto;
     width: max-content;
-    max-width: calc(var(--slot-run, 1) * (100% + var(--slot-gap)) - var(--slot-gap));
+    max-width: calc(var(--slot-run, 1) * (100% + var(--slot-gap)) - var(--slot-gap) - 22px);
   }
 }
 
@@ -543,7 +543,13 @@ $c-trinket-label: rgba($c-dark, 0.55);
 }
 
 .slot-icon {
-  flex: 0 0 auto;
+  flex: 0 0 16px;
+  text-align: center;
+  color: $c-tan;
+}
+
+.over-capacity .slot-icon {
+  color: inherit;
 }
 
 // The affordance that says "these cells can be rearranged". With equipping now
@@ -582,21 +588,55 @@ $c-trinket-label: rgba($c-dark, 0.55);
 }
 
 .slot-name {
+  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.slot-qty {
+.slot-content {
+  align-self: stretch;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  justify-content: flex-start;
+  padding-top: 8px;
+  line-height: 1;
+}
+
+.slot-subcategory {
   color: $c-tan;
+  font-size: var(--font-size-10, 10px);
   font-weight: normal;
   font-variant-numeric: tabular-nums;
+}
 
-  // On the solid warning fill the muted tan drops below contrast, so the
-  // multiplier borrows the cell's own text colour instead.
-  .over-capacity & {
-    color: inherit;
-    opacity: 0.85;
-  }
+.over-capacity .slot-subcategory { color: inherit; opacity: 0.85; }
+
+.slot-qty {
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  min-width: 17px;
+  padding: 1px 3px;
+  border-radius: 7px;
+  background: rgba($c-tan, 0.18);
+  color: $c-dark;
+  font-size: var(--font-size-10, 10px);
+  font-weight: bold;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+// On the solid warning fill the muted tan drops below contrast, so the
+// multiplier borrows the cell's own text colour instead.
+.slot-cell.over-capacity .slot-qty {
+  background: rgba($c-white, 0.16);
+  color: inherit;
+}
+
+.slot-with-qty .slot-content {
+  padding-right: 22px;
 }
 
 .slot-grid-note {
@@ -683,8 +723,9 @@ $c-trinket-label: rgba($c-dark, 0.55);
   // of thing — it can still be opened, sorted and worn.
   cursor: grab;
 
-  img {
+  .slot-trinket-icon {
     flex: 0 0 auto;
+    color: $c-tan;
   }
 }
 

@@ -81,6 +81,7 @@ describe('item presentation', () => {
       stats: [
         { labelKey: 'TNO.Inventory.Slots', value: 4 },
         { labelKey: 'TNO.Inventory.Quantity', value: '×2' },
+        { labelKey: 'TNO.Weapons.Attribute', value: ['TNO.Ability.Str.long'] },
         { labelKey: 'TNO.Item.Cap.Fv', value: { skillKey: 'brawling', rank: 4 } },
         { labelKey: 'TNO.Item.Summary.Dk', value: 3 },
         { labelKey: 'TNO.Weapons.Rb', value: 2 },
@@ -95,6 +96,7 @@ describe('item presentation', () => {
       use: 'ranged', rd: 4, ammo: { count: 0, type: 'cells' }, hh: { active: 0 },
     })).stats).toEqual([
       { labelKey: 'TNO.Inventory.Slots', value: 2 },
+      { labelKey: 'TNO.Weapons.Attribute', value: ['TNO.Ability.Str.long'] },
       { labelKey: 'TNO.Weapons.RdShort', value: 4 },
       { labelKey: 'TNO.Item.Summary.Hh', value: '0' },
       { labelKey: 'TNO.Weapons.Magazine', value: '0 cells' },

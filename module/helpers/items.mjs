@@ -43,6 +43,13 @@ export const GEAR_TYPES = ['item', 'armor', 'weapon'];
  */
 export const WEAPON_USES = ['melee', 'ranged'];
 
+/** All primary attributes a weapon profile can author, in sheet order. */
+export const WEAPON_ATTRIBUTES = [
+  'str', 'dex', 'fin', 'per',
+  'aut', 'cha', 'man', 'emp',
+  'wil', 'int', 'wis', 'inv',
+];
+
 /**
  * The five distance bands a ranged weapon carries a modifier for, near to far.
  * A band left empty means the weapon cannot attack at that distance at all,
@@ -231,6 +238,32 @@ export function weaponUse(system) {
 }
 
 /**
+ * The attribute a weapon check starts from. Older weapon documents did not
+ * store one, so they retain the historic Strength default.
+ * @param {Object} system An item's `system` data.
+ * @returns {string}
+ */
+export function weaponAttribute(system) {
+  return WEAPON_ATTRIBUTES.includes(system?.wa) ? system.wa : 'str';
+}
+
+/**
+ * The compact, recognisable icon for a physical item in an inventory view.
+ * Item artwork is useful on an item's own sheet, but a repeated role icon is
+ * quicker to scan in the dense carry grid and flat inventory list.
+ *
+ * @param {Object} item An item document (or plain object).
+ * @returns {string} A Font Awesome icon class without the style prefix.
+ */
+export function inventoryIcon(item) {
+  const roles = itemRoles(item);
+  if (roles.weapon) return weaponUse(item?.system) === 'ranged' ? 'fa-crosshairs' : 'fa-sword';
+  if (roles.armor) return 'fa-shield-halved';
+  if (roles.consumable) return 'fa-flask';
+  return 'fa-cube';
+}
+
+/**
  * Whether the weapon's Distanzklasse applies, i.e. whether it is ever swung.
  * @param {Object} system  An item's `system` data.
  * @returns {boolean}
@@ -316,6 +349,8 @@ export function missingRequired(item) {
   if (blank(system.slots)) missing.push('slots');
 
   if (roles.weapon) {
+    if (blank(system.fv?.skill)) missing.push('fv');
+    if (!WEAPON_ATTRIBUTES.includes(system.wa)) missing.push('wa');
     if (usesRanged(system) && blank(system.rd)) missing.push('rd');
     if (usesMelee(system) && blank(system.rb)) missing.push('rb');
     if (!Number(system.ss?.count)) missing.push('ss');

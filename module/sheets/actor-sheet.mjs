@@ -22,7 +22,7 @@ import {
   wornItemIds,
 } from '../helpers/inventory.mjs';
 import { localizeGearSummary, prepareGearSummaryContext } from '../helpers/item-summary.mjs';
-import { ITEM_ROLES, armorZones, itemRoles } from '../helpers/items.mjs';
+import { ITEM_ROLES, WEAPON_ATTRIBUTES, armorZones, inventoryIcon, itemRoles, weaponUse } from '../helpers/items.mjs';
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -40,7 +40,7 @@ const { ActorSheetV2 } = foundry.applications.sheets;
  */
 export const BASICS_LAYOUT_DEFAULT = Object.freeze({
   top: [0.25, 0.5, 0.25],
-  bottom: [0.5, 0.5],
+  bottom: [0.4, 0.6],
 });
 
 /**
@@ -543,6 +543,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       i.roleLabels = ITEM_ROLES.filter((role) => roles[role]).map(
         (role) => CONFIG.TNO.itemRoles[role]
       );
+      i.inventoryIcon = inventoryIcon(i);
       if (roles.armor) armory.push(i);
       // Weapons are gear the slot economy already accounts for; the Waffen
       // block that will list them by readiness is not designed yet, so for now
@@ -634,6 +635,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         const quantity = Number(item.system?.quantity) || 1;
         return withQty({
           item,
+          icon: inventoryIcon(item),
           quantity,
           tip: `${this.#slotStats(item)}<br>${game.i18n.localize('TNO.Inventory.CellHint')}`,
         });
@@ -658,7 +660,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    * there on reads as overload. An overflow block passes 0, which marks the
    * whole run.
    *
-   * Only the first cell carries the icon and name — the rest are the same item
+   * Only the first cell carries the item's label — the rest are the same item
    * continuing — but every cell carries the item id, so a wide block can be
    * grabbed or dropped onto anywhere along its length. `_onSortItem` is
    * overridden to cope with the repeated id that implies.
@@ -677,6 +679,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       const over = index >= inside;
       return {
         item: block.item,
+        icon: inventoryIcon(block.item),
         tip: over ? overTip : insideTip,
         over,
         first: index === 0,
@@ -684,10 +687,22 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         // Only the first cell renders the label, so it has to know how many
         // cells it may run across before it is clipped.
         span: block.span,
+        subcategory: this.#slotSubcategory(block.item),
         quantity: block.quantity,
         showQty: block.quantity > 1,
       };
     });
+  }
+
+  /** The one role-specific detail that belongs directly below an item name. */
+  #slotSubcategory(item) {
+    const roles = itemRoles(item);
+    if (roles.armor) {
+      const [zone] = armorZones(item);
+      return zone ? game.i18n.localize(CONFIG.TNO.armorZones[zone]) : null;
+    }
+    if (roles.weapon) return game.i18n.localize(CONFIG.TNO.weaponUses[weaponUse(item.system)]);
+    return null;
   }
 
   /**
@@ -733,9 +748,8 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     return {
       ...base,
       canEdit,
-      canWeaponCheck: !!(canEdit && item.actor?.isOwner && roles.weapon && skill),
+      canWeaponCheck: !!(canEdit && item.actor?.isOwner && roles.weapon && skill && WEAPON_ATTRIBUTES.includes(item.system.wa)),
       canAdjustAmmo: canEdit && roles.weapon && presentation.use === 'ranged',
-      canConsume: canEdit && roles.consumable && Number(item.system.quantity) > 0,
       canDelete: canEdit && !item.isWorn,
     };
   }
@@ -832,8 +846,6 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         return item.openWeaponCheck();
       case 'ammo':
         return item.adjustAmmo(Number(control.dataset.by));
-      case 'consume':
-        return item.consume();
       case 'delete':
         return item.confirmDelete();
     }

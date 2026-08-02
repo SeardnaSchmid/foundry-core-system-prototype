@@ -52,7 +52,7 @@ button. --}}
   </div>
 
   {{!-- Compact general requirements. SV belongs only to weapons and armour;
-  FV belongs only to weapons. --}}
+  weapon-specific FV and WA live in the weapon-values block below. --}}
   <div class='gear-row' data-row='general'>
     <span class='gear-label'>{{localize 'TNO.Item.General'}}</span>
     <div class='gear-ctl general-fields'>
@@ -68,25 +68,6 @@ button. --}}
       </label>
       {{else}}
       <span class='field na'><span class='cap'>{{localize 'TNO.Item.Cap.Sv'}}</span><span class='val'>n/a</span></span>
-      {{/if}}
-      {{#if roles.weapon}}
-        <label class='field field-fv' title='{{localize "TNO.Weapons.FvHint"}}'>
-          <span class='cap'>{{localize 'TNO.Item.Cap.Fv'}}</span>
-          <select name='system.fv.skill'>
-            <option value=''>—</option>
-            {{#each skills}}
-              <option value='{{this.key}}' {{#ifEquals this.key ../system.fv.skill}}selected{{/ifEquals}}>
-                {{this.label}}
-              </option>
-            {{/each}}
-          </select>
-          <input class='rank' type='number' name='system.fv.rank' value='{{system.fv.rank}}' min='0' step='1' />
-        </label>
-      {{else}}
-        <span class='field field-fv na'>
-          <span class='cap'>{{localize 'TNO.Item.Cap.Fv'}}</span>
-          <span class='val'>{{localize 'TNO.Item.NaNoWeapon'}}</span>
-        </span>
       {{/if}}
     </div>
   </div>

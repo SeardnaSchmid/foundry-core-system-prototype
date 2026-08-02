@@ -4,6 +4,7 @@ import {
   clampGearNumber,
   cycleRangeModifier,
   hasRole,
+  inventoryIcon,
   isGear,
   itemRoles,
   missingRequired,
@@ -12,6 +13,7 @@ import {
   toggleZone,
   usesMelee,
   usesRanged,
+  weaponAttribute,
   weaponUse,
 } from '../../module/helpers/items.mjs';
 
@@ -134,6 +136,27 @@ describe('weaponUse', () => {
   });
 });
 
+describe('weaponAttribute', () => {
+  it('accepts every primary attribute, defaulting legacy weapons to Strength', () => {
+    expect(weaponAttribute({ wa: 'str' })).toBe('str');
+    expect(weaponAttribute({ wa: 'fin' })).toBe('fin');
+    expect(weaponAttribute({ wa: 'dex' })).toBe('dex');
+    expect(weaponAttribute({ wa: 'inv' })).toBe('inv');
+    expect(weaponAttribute({ wa: 'tail' })).toBe('str');
+    expect(weaponAttribute({})).toBe('str');
+  });
+});
+
+describe('inventoryIcon', () => {
+  it('distinguishes every physical inventory role', () => {
+    expect(inventoryIcon(item({ weapon: true }, { use: 'ranged' }))).toBe('fa-crosshairs');
+    expect(inventoryIcon(item({ weapon: true }, { use: 'melee' }))).toBe('fa-sword');
+    expect(inventoryIcon(item({ armor: true }))).toBe('fa-shield-halved');
+    expect(inventoryIcon(item({ consumable: true }))).toBe('fa-flask');
+    expect(inventoryIcon(item())).toBe('fa-cube');
+  });
+});
+
 describe('cycleRangeModifier', () => {
   it('cycles through the four rule-backed range states in both directions', () => {
     expect(cycleRangeModifier(null)).toBe(-3);
@@ -197,12 +220,12 @@ describe('missingRequired', () => {
 
   it('asks a weapon only for the values its use has', () => {
     const melee = missingRequired(
-      item({ weapon: true }, { ...complete, use: 'melee', rb: 3, ss: { count: 2 }, dk: 2 })
+      item({ weapon: true }, { ...complete, use: 'melee', fv: { skill: 'brawling', rank: 0 }, wa: 'str', rb: 3, ss: { count: 2 }, dk: 2 })
     );
     expect(melee).toEqual([]);
 
     const ranged = missingRequired(
-      item({ weapon: true }, { ...complete, use: 'ranged', rd: 3, ss: { count: 2 } })
+      item({ weapon: true }, { ...complete, use: 'ranged', fv: { skill: 'shooting', rank: 0 }, wa: 'per', rd: 3, ss: { count: 2 } })
     );
     // No DK is asked of a rifle; a band is.
     expect(ranged).toEqual(['range']);
@@ -212,11 +235,19 @@ describe('missingRequired', () => {
     const system = {
       ...complete,
       use: 'ranged',
+      fv: { skill: 'shooting', rank: 0 },
+      wa: 'per',
       rd: 3,
       ss: { count: 2 },
       range: { sn: null, near: 0, mid: null, far: null, sf: null },
     };
     expect(missingRequired(item({ weapon: true }, system))).toEqual([]);
+  });
+
+  it('requires both FV and WA for a weapon', () => {
+    const profile = { ...complete, use: 'melee', rb: 3, ss: { count: 2 }, dk: 2 };
+    expect(missingRequired(item({ weapon: true }, profile)).sort()).toEqual(['fv', 'wa']);
+    expect(missingRequired(item({ weapon: true }, { ...profile, fv: { skill: 'brawling', rank: 0 }, wa: 'str' }))).toEqual([]);
   });
 
   it('asks armour for a location, hardness and coverage', () => {

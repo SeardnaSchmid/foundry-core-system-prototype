@@ -286,24 +286,22 @@
   --portrait-h: 161px;
   --portrait-inset: 4px;
   position: relative;
-  display: grid;
-  grid-template-columns: calc(var(--portrait-w) - (16px - var(--portrait-inset))) minmax(0, 2fr) minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   align-items: start;
   column-gap: 16px;
-  flex: 0 0 130px;
-  height: 130px;
-  padding: 12px 16px 2px;
-  margin: -16px -16px calc(var(--portrait-inset) + var(--portrait-h) - 108px + 10px);
+  row-gap: 6px;
+  flex: 0 0 auto;
+  min-height: 130px;
+  padding: 12px 16px 2px calc(var(--portrait-w) + 20px);
+  margin: -16px -16px calc(var(--portrait-inset) + var(--portrait-h) - 130px + 10px);
   border-bottom: 1px solid #b5b3a4;
   border-radius: 0;
   background: linear-gradient(180deg, rgba(25, 24, 19, 0.14) 0%, rgba(25, 24, 19, 0.04) 100%);
 }
 .tno .banner-chips {
-  grid-column: 3;
-  grid-row: 1;
-  justify-self: end;
-  align-self: start;
+  order: 2;
+  flex: 0 1 auto;
   min-width: 0;
   max-width: 100%;
   display: flex;
@@ -464,9 +462,9 @@
 }
 .tno .banner-identity {
   --banner-name-size: 46px;
-  grid-column: 2;
-  grid-row: 1;
-  align-self: start;
+  order: 1;
+  flex: 1 1 280px;
+  min-width: min(280px, 100%);
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -651,10 +649,14 @@
 .tno .cell-loose {
   flex-grow: 0.25;
 }
-.tno .cell-gear,
-.tno .cell-skills,
-.tno .cell-carry {
+.tno .cell-gear {
   flex-grow: 0.5;
+}
+.tno .cell-skills {
+  flex-grow: 0.4;
+}
+.tno .cell-carry {
+  flex-grow: 0.6;
 }
 .tno .cell-gear,
 .tno .cell-carry,
@@ -1851,9 +1853,16 @@
 .tno .items-list .item .item-name .item-image {
   flex: 0 0 30px;
   height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background-size: 30px;
   border: none;
   margin-right: 5px;
+}
+.tno .items-list .item .item-name .item-image .inventory-item-icon {
+  font-size: var(--font-size-17, 17px);
+  color: #444;
 }
 .tno .items-list .item-prop {
   text-align: center;
@@ -2117,6 +2126,9 @@
 .tno.gear-dialog .field.field-fv .rank {
   flex: 0 0 28px;
   text-align: center;
+}
+.tno.gear-dialog .field.field-wa {
+  flex: 1.1;
 }
 .tno.gear-dialog .field.na {
   border-style: dashed;
@@ -3080,7 +3092,7 @@
   align-items: center;
   justify-content: flex-start;
   gap: 6px;
-  min-height: 34px;
+  min-height: 46px;
   padding: 0 6px;
   border-radius: 8px;
   font-size: var(--font-size-13, 13px);
@@ -3112,10 +3124,10 @@
 .tno .slot-cell.slot-first.slot-joined {
   overflow: visible;
 }
-.tno .slot-cell.slot-first.slot-joined .slot-name {
+.tno .slot-cell.slot-first.slot-joined .slot-content {
   flex: 0 0 auto;
   width: max-content;
-  max-width: calc(var(--slot-run, 1) * (100% + var(--slot-gap)) - var(--slot-gap));
+  max-width: calc(var(--slot-run, 1) * (100% + var(--slot-gap)) - var(--slot-gap) - 22px);
 }
 .tno .slot-empty {
   border: 1px dashed #85877f;
@@ -3181,7 +3193,12 @@
   color: #fff;
 }
 .tno .slot-icon {
-  flex: 0 0 auto;
+  flex: 0 0 16px;
+  text-align: center;
+  color: #444;
+}
+.tno .over-capacity .slot-icon {
+  color: inherit;
 }
 .tno .slot-grip {
   position: absolute;
@@ -3207,17 +3224,50 @@
   color: #fff;
 }
 .tno .slot-name {
+  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.tno .slot-qty {
+.tno .slot-content {
+  align-self: stretch;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  justify-content: flex-start;
+  padding-top: 8px;
+  line-height: 1;
+}
+.tno .slot-subcategory {
   color: #444;
+  font-size: var(--font-size-10, 10px);
   font-weight: normal;
   font-variant-numeric: tabular-nums;
 }
-.over-capacity .tno .slot-qty {
+.tno .over-capacity .slot-subcategory {
   color: inherit;
   opacity: 0.85;
+}
+.tno .slot-qty {
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  min-width: 17px;
+  padding: 1px 3px;
+  border-radius: 7px;
+  background: rgba(68, 68, 68, 0.18);
+  color: #191813;
+  font-size: var(--font-size-10, 10px);
+  font-weight: bold;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.tno .slot-cell.over-capacity .slot-qty {
+  background: rgba(255, 255, 255, 0.16);
+  color: inherit;
+}
+.tno .slot-with-qty .slot-content {
+  padding-right: 22px;
 }
 .tno .slot-grid-note {
   margin: 8px 0 0;
@@ -3273,8 +3323,9 @@
   color: #444;
   cursor: grab;
 }
-.tno .slot-trinket img {
+.tno .slot-trinket .slot-trinket-icon {
   flex: 0 0 auto;
+  color: #444;
 }
 .tno .slot-trinket-name {
   overflow: hidden;

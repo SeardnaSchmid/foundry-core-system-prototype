@@ -23,11 +23,6 @@
     </span>
   {{/if}}
   {{#if canEdit}}
-    {{#if roles.consumable}}
-      <button type='button' data-popover-action='consume' {{#unless canConsume}}disabled title='{{localize "TNO.Item.Overview.NoUses"}}'{{/unless}}>
-        <i class='fa-solid fa-flask' aria-hidden='true'></i>{{localize 'TNO.Item.Overview.Use'}}
-      </button>
-    {{/if}}
     <button type='button' class='danger' data-popover-action='delete' {{#unless canDelete}}disabled title='{{localize "TNO.Item.DeleteWornHint"}}'{{/unless}}>
       <i class='fa-solid fa-trash' aria-hidden='true'></i>{{localize 'TNO.Item.Delete'}}
     </button>

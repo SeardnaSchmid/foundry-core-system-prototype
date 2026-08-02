@@ -99,9 +99,17 @@
       .item-image {
         flex: 0 0 30px;
         height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         background-size: 30px;
         border: none;
         margin-right: 5px;
+
+        .inventory-item-icon {
+          font-size: var(--font-size-17, 17px);
+          color: $c-tan;
+        }
       }
     }
   }

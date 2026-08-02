@@ -6,6 +6,7 @@ import {
   ITEM_ROLES,
   RANGE_BANDS,
   SCALES,
+  WEAPON_ATTRIBUTES,
   WEAPON_USES,
   clampGearNumber,
   cycleRangeModifier,
@@ -24,6 +25,8 @@ const { ItemSheetV2 } = foundry.applications.sheets;
 const MISSING_LABELS = {
   name: 'Name',
   slots: 'TNO.Inventory.Slots',
+  fv: 'TNO.Item.Cap.Fv',
+  wa: 'TNO.Weapons.Attribute',
   dk: 'TNO.Weapons.Dk',
   range: 'TNO.Weapons.Range',
   rd: 'TNO.Weapons.Rd',
@@ -94,8 +97,8 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     context.canEdit = this.isEditable;
 
     // Three chip/segment rows of the same shape, differing only in how many
-    // cells may be on at once: the role is exclusive and clearable, the armour
-    // armour location and weapon use are exclusive selections.
+    // cells may be on at once: the role is exclusive and clearable; armour
+    // location and weapon use are exclusive selections.
     context.roleChips = ITEM_ROLES.map((key) => ({
       key,
       label: CONFIG.TNO.itemRoles[key],
@@ -111,6 +114,12 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
       use,
       label: CONFIG.TNO.weaponUses[use],
       on: (system.use ?? 'melee') === use,
+    }));
+    const selectedWeaponAttribute = WEAPON_ATTRIBUTES.includes(system.wa) ? system.wa : '';
+    context.weaponAttributeOptions = WEAPON_ATTRIBUTES.map((attribute) => ({
+      key: attribute,
+      label: CONFIG.TNO.abilities[attribute],
+      on: selectedWeaponAttribute === attribute,
     }));
 
     context.melee = usesMelee(system);
@@ -188,7 +197,7 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
       this.item.update({ 'system.zone': toggleZone(this.item.system.zone, target.dataset.zone) });
     });
 
-    this.#delegate('click', '.use-segment', (event, target) => {
+    this.#delegate('click', '.use-segment[data-use]', (event, target) => {
       this.item.update({ 'system.use': target.dataset.use });
     });
 

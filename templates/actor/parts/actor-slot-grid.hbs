@@ -53,7 +53,7 @@ the same grid, marked over capacity. --}}
   it to the end, and armour dragged onto its paper doll zone is worn. --}}
   <div class='slot-grid'>
     {{#each slotGrid.cells as |cell|}}
-      <div class='slot-cell slot-filled draggable{{#if cell.over}} over-capacity{{/if}}{{#if cell.first}} slot-first{{/if}}{{#unless cell.last}} slot-joined{{/unless}}'
+      <div class='slot-cell slot-filled draggable{{#if cell.over}} over-capacity{{/if}}{{#if cell.first}} slot-first{{/if}}{{#if cell.showQty}} slot-with-qty{{/if}}{{#unless cell.last}} slot-joined{{/unless}}'
            style='--slot-run: {{cell.span}}'
            data-item-id='{{cell.item._id}}'
            data-tooltip-html='{{cell.tip}}'
@@ -61,8 +61,11 @@ the same grid, marked over capacity. --}}
         {{#if cell.first}}
           <i class='fas fa-grip-vertical slot-grip'></i>
           {{#if cell.over}}<i class='fas fa-triangle-exclamation slot-overflow-icon'></i>{{/if}}
-          <img class='slot-icon' src='{{cell.item.img}}' width='16' height='16' alt=''/>
-          <span class='slot-name'>{{cell.item.name}}</span>
+          <i class='fa-solid {{cell.icon}} slot-icon' aria-hidden='true'></i>
+          <span class='slot-content'>
+            <span class='slot-name'>{{cell.item.name}}</span>
+            {{#if cell.subcategory}}<span class='slot-subcategory'>{{cell.subcategory}}</span>{{/if}}
+          </span>
           {{#if cell.showQty}}<span class='slot-qty'>×{{cell.quantity}}</span>{{/if}}
         {{/if}}
       </div>

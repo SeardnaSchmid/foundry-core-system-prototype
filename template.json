@@ -119,6 +119,7 @@
         "fv": { "skill": "", "rank": 0 },
         "roles": { "weapon": false, "armor": false, "consumable": false },
         "use": "melee",
+        "wa": "str",
         "dk": null,
         "range": { "sn": 0, "near": 0, "mid": 0, "far": 0, "sf": 0 },
         "ammo": { "count": 0, "type": "" },

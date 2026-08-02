@@ -59,7 +59,8 @@ the badge text/symbol shown on roll dialogs and chat cards.
   `_onRoll` — ability/skill/free/sixthSense rolls from the character sheet.
 - [`module/apps/roll-dialog.mjs`](../../../module/apps/roll-dialog.mjs) —
   the full roll builder (attribute picker, skill/ability/free/fixed modes,
-  bonus, "Idee haben" pre-edge toggle).
+  bonus, "Idee haben" pre-edge toggle). A weapon attack uses its locked
+  weapon-attribute/FV components instead of exposing the picker.
 - [`module/apps/base-roll-dialog.mjs`](../../../module/apps/base-roll-dialog.mjs)
   — the bare-dice dialog, no actor required.
 - [`module/documents/item.mjs`](../../../module/documents/item.mjs)

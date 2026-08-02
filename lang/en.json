@@ -405,15 +405,10 @@
         "NoEffect": "No effect described yet.",
         "Actions": "Actions",
         "Post": "Show in chat",
-        "Use": "Apply",
-        "UseTitle": "Apply consumable",
-        "UseConfirm": "Apply <strong>{name}</strong> and consume one item?",
-        "NoUses": "No item remaining",
-        "WeaponCheck": "Weapon check",
-        "WeaponCheckHint": "Opens the normal check with the weapon skill. Readiness and complete combat resolution are not modelled yet.",
+        "WeaponCheck": "Roll attack",
+        "WeaponCheckHint": "Rolls this item's attack with its fixed weapon attribute and weapon skill.",
         "AmmoDecrease": "Decrease ammunition",
-        "AmmoIncrease": "Increase ammunition",
-        "UsedFlavor": "Used {name}"
+        "AmmoIncrease": "Increase ammunition"
       },
       "Summary": {
         "Stock": "Stock",
@@ -508,7 +503,7 @@
     },
     "TabEffects": "Effects",
     "Armor": {
-      "WornTitle": "Equipment · worn",
+      "WornTitle": "Worn Equipment",
       "Zones": "Armour zones",
       "FigureAlt": "Silhouette with the armoured zones highlighted",
       "Values": "Armour Values",
@@ -542,7 +537,7 @@
       }
     },
     "Inventory": {
-      "CarrySlots": "Carry Slots",
+      "CarrySlots": "Inventory",
       "Slots": "Slots",
       "Quantity": "Quantity",
       "SlotsHint": "0 trinkets · 1 small · 2 medium · 3 large · 4 backpack-sized",
@@ -573,6 +568,9 @@
       }
     },
     "Weapons": {
+      "Attribute": "Weapon Attribute (WA)",
+      "AttributeShort": "WA",
+      "AttributeHint": "Which attribute is used with this weapon.",
       "Damage": "Damage",
       "Range": "Range",
       "Values": "Weapon Values",

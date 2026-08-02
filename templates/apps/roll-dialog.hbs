@@ -9,6 +9,13 @@
     <span class="tno-roll-section-caption">{{localize "TNO.Roll.BaseCaption"}}</span>
 
     {{#if isSkillMode}}
+    {{#if isLockedAttribute}}
+    <div class="tno-roll-detail">
+      <span class="tno-roll-detail-label">{{localize "TNO.Roll.AttributeA"}}</span>
+      <span class="tno-roll-detail-value">{{selectedAttributeLabel}}</span>
+    </div>
+    <input type="hidden" name="attributeA" value="{{attributeA}}"/>
+    {{else}}
     <div class="form-group tno-attribute-field">
       <label>{{localize "TNO.Roll.ChooseAttribute"}}</label>
       <div class="tno-attribute-chip-grid" role="group" aria-label="{{localize 'TNO.Roll.ChooseAttribute'}}">
@@ -25,10 +32,11 @@
         </button>
         {{/each}}
         {{/each}}
-      </div>
-      <input type="hidden" name="attributeA" value="{{attributeA}}"/>
-      <div class="tno-attribute-selected"><span class="tno-attribute-selected-name">{{selectedAttributeLabel}}</span></div>
     </div>
+    <input type="hidden" name="attributeA" value="{{attributeA}}"/>
+    <div class="tno-attribute-selected"><span class="tno-attribute-selected-name">{{selectedAttributeLabel}}</span></div>
+    </div>
+    {{/if}}
     <div class="tno-skill-row">
       <span class="tno-skill-name">{{skillLabel}}</span>
       <span class="tno-skill-value" style="background:{{skillCellBg}}; color:{{skillTextColor}};">{{skillValue}}</span>

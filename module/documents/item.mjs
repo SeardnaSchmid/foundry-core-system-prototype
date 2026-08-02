@@ -1,7 +1,7 @@
 import { wornItemIds } from '../helpers/inventory.mjs';
 import { prepareGearSummaryContext } from '../helpers/item-summary.mjs';
 import { getSkillDefinitions } from '../helpers/skills.mjs';
-import { clampGearNumber, hasRole, isGear } from '../helpers/items.mjs';
+import { clampGearNumber, hasRole, isGear, weaponAttribute } from '../helpers/items.mjs';
 
 /**
  * Extend the basic Item with some very simple modifications.
@@ -93,14 +93,15 @@ export class TnoItem extends Item {
     });
   }
 
-  /** Open the normal roll builder with this weapon's authored FV component. */
+  /** Open a weapon attack with its authored WA and FV locked in place. */
   openWeaponCheck() {
     const actor = this.actor;
     const key = this.system.fv?.skill;
     const definition = getSkillDefinitions(actor)[key];
     if (!actor || !key || !definition) return;
     return new game.tno.TnoRollDialog(actor, {
-      attributeA: definition.attribute ?? '',
+      attributeA: weaponAttribute(this.system),
+      lockAttribute: true,
       skill: { key, label: definition.label, value: Number(this.system.fv?.rank) || 0 },
       flavor: this.name,
     }).render(true);
@@ -122,47 +123,4 @@ export class TnoItem extends Item {
     return this.update({ [field]: next });
   }
 
-  /**
-   * Spend one item from the stack and announce its authored effects in chat.
-   * This does not apply a mechanical effect—the effect texts are free authoring—but it
-   * makes the one rule-backed state change the item can perform explicit.
-   */
-  async consume() {
-    if (!hasRole(this, 'consumable')) return;
-    const available = Math.max(0, Number(this.system.quantity) || 0);
-    if (available <= 0) {
-      ui.notifications.warn(game.i18n.localize('TNO.Item.Overview.NoUses'));
-      return;
-    }
-
-    const confirmed = await foundry.applications.api.DialogV2.confirm({
-      window: { title: game.i18n.localize('TNO.Item.Overview.UseTitle') },
-      content: game.i18n.format('TNO.Item.Overview.UseConfirm', {
-        name: foundry.utils.escapeHTML(this.name),
-      }),
-    });
-    if (!confirmed) return;
-
-    // Re-read after the dialog: another client may have spent the last use
-    // while this confirmation was open.
-    const remaining = Math.max(0, Number(this.system.quantity) || 0);
-    if (remaining <= 0) {
-      ui.notifications.warn(game.i18n.localize('TNO.Item.Overview.NoUses'));
-      return;
-    }
-
-    await this.update({ 'system.quantity': remaining - 1 });
-    const authored = (this.system.consumableEffects ?? [])
-      .map((effect) => String(effect?.text ?? '').trim())
-      .filter(Boolean)
-      .map((effect) => `<li>${foundry.utils.escapeHTML(effect)}</li>`)
-      .join('');
-    const summary = authored ? `<ul>${authored}</ul>` : '';
-    return ChatMessage.create({
-      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-      rollMode: game.settings.get('core', 'rollMode'),
-      flavor: game.i18n.format('TNO.Item.Overview.UsedFlavor', { name: this.name }),
-      content: `${summary}${this.system.description ?? ''}`,
-    });
-  }
 }
