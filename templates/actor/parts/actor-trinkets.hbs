@@ -1,0 +1,37 @@
+{{!-- Kleinkram: Geld, Papiere und Krimskrams — carried gear the inventory rules
+price at zero slots, so it never occupies a cell in the Trageslots raster and
+gets a column of its own here instead.
+
+The column has no create control and no drop target of its own. Nothing here is
+a state a piece can be put *into*: an item is Kleinkram exactly when its
+`slots` is 0, which is authored on the item's own sheet. Same interactions as a
+slot cell otherwise — costing nothing to carry does not make it a different kind
+of thing, so it can still be opened, sorted and worn. --}}
+<div class='slot-trinkets card'>
+
+  <div class='slot-trinkets-header'>
+    {{!-- The explanation hangs off the label rather than the whole block: the
+    items below carry their own tooltips, and a container-wide one only ever
+    showed in the gaps between them. --}}
+    <span class='slot-trinkets-title'
+          data-tooltip-html='{{localize "TNO.Inventory.TrinketsHint"}}'
+          data-tooltip-direction='LEFT'>{{localize 'TNO.Inventory.Trinkets'}}</span>
+    <span class='slot-trinkets-cost'>{{localize 'TNO.Inventory.TrinketsZeroSlots'}}</span>
+  </div>
+
+  {{#if slotGrid.trinkets.length}}
+    <div class='slot-trinkets-list'>
+      {{#each slotGrid.trinkets as |trinket|}}
+        <span class='slot-trinket draggable' data-item-id='{{trinket.item._id}}'
+              data-tooltip-html='{{trinket.tip}}' data-tooltip-direction='UP'>
+          <img src='{{trinket.item.img}}' width='14' height='14' alt=''/>
+          <span class='slot-trinket-name'>{{trinket.item.name}}</span>
+          {{#if trinket.showQty}}<span class='slot-qty'>×{{trinket.quantity}}</span>{{/if}}
+        </span>
+      {{/each}}
+    </div>
+  {{else}}
+    <p class='slot-trinkets-empty'>{{localize 'TNO.Inventory.TrinketsEmpty'}}</p>
+  {{/if}}
+
+</div>

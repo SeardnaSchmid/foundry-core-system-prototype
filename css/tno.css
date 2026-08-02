@@ -599,15 +599,26 @@
   flex: 1 1 auto;
   min-height: 0;
 }
-.tno .basics-columns {
-  --basics-split: 0.5;
+.tno .basics-rows {
   display: flex;
+  flex-direction: column;
   flex: 1 1 auto;
+  min-height: 0;
+  gap: 10px;
+}
+.tno .basics-row {
+  display: flex;
   min-height: 0;
   align-items: stretch;
 }
-.tno .basics-main {
-  flex: var(--basics-split) 1 0;
+.tno .basics-row[data-split-row=top] {
+  flex: 0 1 auto;
+}
+.tno .basics-row[data-split-row=bottom] {
+  flex: 1 1 auto;
+}
+.tno .basics-cell {
+  flex: 1 1 0;
   min-width: 0;
   min-height: 0;
   display: flex;
@@ -615,6 +626,38 @@
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(25, 24, 19, 0.3) transparent;
+}
+.tno .cell-attributes,
+.tno .cell-loose {
+  flex-grow: 0.25;
+}
+.tno .cell-gear,
+.tno .cell-skills,
+.tno .cell-carry {
+  flex-grow: 0.5;
+}
+.tno .cell-gear,
+.tno .cell-carry,
+.tno .cell-loose {
+  padding-right: 2px;
+}
+.tno .cell-gear .paperdoll,
+.tno .cell-gear .slot-grid-block,
+.tno .cell-carry .paperdoll,
+.tno .cell-carry .slot-grid-block,
+.tno .cell-loose .paperdoll,
+.tno .cell-loose .slot-grid-block {
+  padding: 10px;
+}
+.tno .cell-gear .paperdoll,
+.tno .cell-carry .paperdoll,
+.tno .cell-loose .paperdoll {
+  gap: 10px;
+}
+.tno .cell-gear .paperdoll-figure,
+.tno .cell-carry .paperdoll-figure,
+.tno .cell-loose .paperdoll-figure {
+  width: 84px;
 }
 .tno .basics-splitter {
   flex: 0 0 13px;
@@ -640,27 +683,7 @@
 .tno .basics-splitter:focus-visible {
   outline: none;
 }
-.tno .basics-aside {
-  flex: calc(1 - var(--basics-split)) 1 0;
-  min-width: 0;
-  min-height: 0;
-  gap: 8px;
-  padding: 0 2px 0 6px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(25, 24, 19, 0.3) transparent;
-}
-.tno .basics-aside .paperdoll,
-.tno .basics-aside .slot-grid-block {
-  padding: 10px;
-}
-.tno .basics-aside .paperdoll {
-  gap: 10px;
-}
-.tno .basics-aside .paperdoll-figure {
-  width: 84px;
-}
-.tno .aside-title {
+.tno .cell-title {
   flex: 0 0 auto;
   margin: 0;
   padding: 0;
@@ -1018,7 +1041,7 @@
   outline: 2px solid #444;
   outline-offset: 1px;
 }
-.tno .weapons-pending, .tno .slot-badge, .tno .skill-level, .tno .attribute-table.heatmap .heatmap-cell .heatmap-delta, .tno .xp-badge {
+.tno .slot-badge, .tno .skill-level, .tno .attribute-table.heatmap .heatmap-cell .heatmap-delta, .tno .xp-badge {
   font-size: var(--font-size-11, 11px);
   font-weight: bold;
   line-height: 1;
@@ -2930,9 +2953,6 @@
   align-items: stretch;
   padding: 14px 16px;
 }
-.tno .paperdoll.has-loose {
-  grid-template-columns: auto minmax(0, 3fr) minmax(0, 1fr);
-}
 .tno .paperdoll-figure {
   width: 110px;
   height: auto;
@@ -3294,21 +3314,49 @@
 }
 .tno .slot-trinkets {
   display: flex;
+  flex: 0 1 auto;
   flex-direction: column;
   align-items: stretch;
   gap: 3px;
-  padding: 6px 8px;
+  padding: 8px 10px;
   border: 1px solid rgba(25, 24, 19, 0.14);
   border-radius: 8px;
   background: rgba(25, 24, 19, 0.05);
   justify-content: flex-start;
 }
-.tno .slot-trinkets-label {
+.tno .slot-trinkets-header {
+  display: flex;
   flex: 0 0 auto;
-  margin-bottom: 1px;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 4px;
+  font-size: var(--font-size-13, 13px);
+}
+.tno .slot-trinkets-title {
+  font-weight: bold;
+  color: #191813;
+  cursor: help;
+}
+.tno .slot-trinkets-cost {
+  margin-left: auto;
   font-size: var(--font-size-11, 11px);
   color: rgba(25, 24, 19, 0.55);
-  cursor: help;
+}
+.tno .slot-trinkets-list {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 3px;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(25, 24, 19, 0.3) transparent;
+}
+.tno .slot-trinkets-empty {
+  margin: 0;
+  font-size: var(--font-size-11, 11px);
+  font-style: italic;
+  color: rgba(25, 24, 19, 0.55);
 }
 .tno .slot-trinket {
   position: relative;
@@ -3327,53 +3375,6 @@
 .tno .slot-trinket-name {
   overflow: hidden;
   text-overflow: ellipsis;
-}
-.tno .weapons-block {
-  flex: 0 0 auto;
-  padding: 10px;
-}
-.tno .weapons-header {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-bottom: 8px;
-  font-size: var(--font-size-13, 13px);
-}
-.tno .weapons-title {
-  font-weight: bold;
-  color: #191813;
-}
-.tno .weapons-pending {
-  margin-left: auto;
-  border: 1px dashed #444;
-  text-transform: uppercase;
-  color: #444;
-  opacity: 0.7;
-}
-.tno .weapons-row {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: 6px;
-  align-items: center;
-}
-.tno .weapons-columns {
-  padding: 0 6px 4px;
-  border-bottom: 1px solid rgba(25, 24, 19, 0.15);
-  font-size: var(--font-size-10, 10px);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #444;
-}
-.tno .weapons-columns .weapon-cell {
-  text-align: center;
-}
-.tno .weapons-empty {
-  margin: 8px 0 0;
-  padding: 0 6px;
-  font-size: var(--font-size-11, 11px);
-  font-style: italic;
-  color: #444;
-  opacity: 0.8;
 }
 .tno .effects .item .effect-source,
 .tno .effects .item .effect-duration,

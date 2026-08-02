@@ -6,14 +6,11 @@ from the carry grid onto its zone (see `_onDrop`). Clicking one used to offer to
 author a piece on the spot, which conjured gear out of an empty doll — wearing
 something is a state change on gear already in hand.
 
-Three quarters of the row past the figure are the worn zones, the last quarter
-the zero-slot pocket beside them. The zone rows never needed the full width —
-each is a label and three short read-outs — and the column that buys is the only
-place on this tab tall enough to list the loose items downwards instead of
-cramming them across a strip. `has-loose` is dropped when there is nothing
-loose, so the rows take the width back rather than sitting beside an empty
-box. --}}
-<div class='paperdoll card{{#if slotGrid.trinkets.length}} has-loose{{/if}}'>
+The figure sizes to itself and the zone rows take the rest. The zero-slot pocket
+used to hang off the last quarter of this card and now has a column of its own
+in the row (see `actor-trinkets.hbs`) — the loose items are carried, not
+worn, and reading them off the armour card said otherwise. --}}
+<div class='paperdoll card'>
 
   {{!-- The viewBox is cropped to the drawing's actual bounds (x 22-98,
   y 4-160, plus a stroke's worth of margin) rather than a round 120x178 canvas,
@@ -123,28 +120,4 @@ box. --}}
 
   </div>
 
-  {{!-- Geld, Papiere, Krimskrams: nominally 0 slots, so they never occupy a
-  cell in the carry raster and get a column of their own here instead. Listed
-  downwards rather than run across a band — the names are short and the height
-  is free, whereas width in this aside is not. Same interactions as a slot
-  cell: costing nothing to carry does not make it a different kind of thing,
-  it can still be opened, sorted and worn. --}}
-  {{#if slotGrid.trinkets.length}}
-    <div class='slot-trinkets'>
-      {{!-- The explanation hangs off the label rather than the whole block: the
-      items below carry their own tooltips, and a container-wide one only ever
-      showed in the gaps between them. --}}
-      <span class='slot-trinkets-label'
-            data-tooltip-html='{{localize "TNO.Inventory.TrinketsHint"}}'
-            data-tooltip-direction='LEFT'>{{localize 'TNO.Inventory.Trinkets'}}</span>
-      {{#each slotGrid.trinkets as |trinket|}}
-        <span class='slot-trinket draggable' data-item-id='{{trinket.item._id}}'
-              data-tooltip-html='{{trinket.tip}}' data-tooltip-direction='UP'>
-          <img src='{{trinket.item.img}}' width='14' height='14' alt=''/>
-          <span class='slot-trinket-name'>{{trinket.item.name}}</span>
-          {{#if trinket.showQty}}<span class='slot-qty'>×{{trinket.quantity}}</span>{{/if}}
-        </span>
-      {{/each}}
-    </div>
-  {{/if}}
 </div>

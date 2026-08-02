@@ -28,14 +28,47 @@ const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
 
 /**
- * The Basics tab's column split, as the left (attributes/skills) column's share
- * of the row. The bounds stop either side from being dragged shut, which would
- * leave no handle wide enough to drag back out. Exported because
- * `tno.mjs` registers the `basicsSplit` client setting with this default.
+ * How the Basics tab divides each of its two rows: one share per column, in
+ * document order, per row key. The keys are the rows' `data-split-row` values.
+ * Exported because `tno.mjs` registers the `basicsLayout` client setting with
+ * this default.
+ *
+ * Shares are grow factors, not widths — the splitters' own strips come off the
+ * row first and the columns divide what is left, so a resized window keeps the
+ * proportions. They are normalised to sum to 1 on read, which is what lets a
+ * single drag move one boundary while every other column stays put.
  */
-export const BASICS_SPLIT_DEFAULT = 0.5;
-const BASICS_SPLIT_MIN = 0.2;
-const BASICS_SPLIT_MAX = 0.8;
+export const BASICS_LAYOUT_DEFAULT = Object.freeze({
+  top: [0.25, 0.5, 0.25],
+  bottom: [0.5, 0.5],
+});
+
+/**
+ * The narrowest a column may be dragged, as its share of the row. Below this a
+ * column has no width left to grab its own handle back out by.
+ */
+const BASICS_CELL_MIN = 0.12;
+
+/**
+ * Bring a stored row of shares into a usable state: the right length, nothing
+ * below the minimum, summing to 1. A stored row that is the wrong length is a
+ * layout from before this row had that many columns, so it is discarded rather
+ * than padded — the default proportions are a better guess than a stale array
+ * stretched to fit.
+ *
+ * @param {unknown} shares    Whatever was stored for this row.
+ * @param {number[]} fallback The row's default shares, and its column count.
+ * @returns {number[]}
+ */
+function normalizeShares(shares, fallback) {
+  const raw = Array.isArray(shares) && shares.length === fallback.length
+    ? shares.map((n) => (Number.isFinite(Number(n)) ? Math.max(Number(n), BASICS_CELL_MIN) : null))
+    : null;
+  if (!raw || raw.includes(null)) return [...fallback];
+
+  const total = raw.reduce((sum, n) => sum + n, 0);
+  return total > 0 ? raw.map((n) => n / total) : [...fallback];
+}
 
 /**
  * Case/diacritic-insensitive subsequence fuzzy match: true if every
@@ -772,30 +805,63 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   }
 
   /**
-   * Paint the Basics tab's column split. The ratio goes into a CSS custom
-   * property rather than inline widths, so the two columns keep the grow
-   * factors the stylesheet gives them (see `.basics-columns`) and the split
-   * survives a window resize as a proportion.
-   * @param {number} [ratio]  Left column's share; defaults to the stored one
+   * The columns and handles of one Basics row, in document order. Read off the
+   * DOM rather than kept in a field so the template stays the single place a
+   * row's column count is declared.
+   * @param {HTMLElement} row
+   * @returns {{cells: HTMLElement[], handles: HTMLElement[], key: string}}
    * @private
    */
-  _applyColumnSplit(ratio = game.settings.get('tno', 'basicsSplit')) {
-    const columns = this.element.querySelector('.basics-columns');
-    if (!columns) return;
-    const clamped = Math.clamp(ratio, BASICS_SPLIT_MIN, BASICS_SPLIT_MAX);
-    columns.style.setProperty('--basics-split', String(clamped));
+  #rowParts(row) {
+    return {
+      key: row.dataset.splitRow,
+      cells: [...row.querySelectorAll(':scope > .basics-cell')],
+      handles: [...row.querySelectorAll(':scope > .basics-splitter')],
+    };
   }
 
   /**
-   * Apply a split and remember it. Client-scoped, so it follows the player
-   * across every character sheet they open rather than living on the actor.
-   * @param {number} ratio
+   * The stored shares for one row, normalised against its defaults.
+   * @param {string} key
+   * @returns {number[]}
    * @private
    */
-  #storeColumnSplit(ratio) {
-    const clamped = Math.clamp(ratio, BASICS_SPLIT_MIN, BASICS_SPLIT_MAX);
-    this._applyColumnSplit(clamped);
-    game.settings.set('tno', 'basicsSplit', clamped);
+  #rowShares(key) {
+    const stored = game.settings.get('tno', 'basicsLayout') ?? {};
+    return normalizeShares(stored[key], BASICS_LAYOUT_DEFAULT[key] ?? [1]);
+  }
+
+  /**
+   * Paint the Basics tab's column splits. Each share becomes a column's
+   * `flex-grow` off a zero basis, so the handles' own strips are subtracted
+   * before the proportions are applied and a window resize keeps them. The
+   * stylesheet carries the same defaults, which is what the tab is laid out
+   * with until this runs.
+   * @param {Record<string, number[]>} [layout]  Per-row shares; defaults to stored
+   * @private
+   */
+  _applyColumnSplit(layout = null) {
+    for (const row of this.element.querySelectorAll('.basics-row')) {
+      const { key, cells } = this.#rowParts(row);
+      const shares = layout?.[key]
+        ? normalizeShares(layout[key], BASICS_LAYOUT_DEFAULT[key] ?? [1])
+        : this.#rowShares(key);
+      cells.forEach((cell, index) => { cell.style.flexGrow = String(shares[index]); });
+    }
+  }
+
+  /**
+   * Apply one row's shares and remember them. Client-scoped, so the layout
+   * follows the player across every character sheet they open rather than
+   * living on the actor.
+   * @param {string} key
+   * @param {number[]} shares
+   * @private
+   */
+  #storeColumnSplit(key, shares) {
+    const layout = { ...(game.settings.get('tno', 'basicsLayout') ?? {}), [key]: shares };
+    this._applyColumnSplit(layout);
+    game.settings.set('tno', 'basicsLayout', layout);
   }
 
   /** @inheritDoc */
@@ -846,33 +912,50 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       this._applySkillFilter();
     });
 
-    // Drag the Basics tab's column divider. Pointer capture keeps the move and
-    // release events on the handle itself, so the drag needs no listeners on
-    // `document` — which a detached sheet would bind to the wrong window.
-    // Purely a display preference, so read-only sheets can drag it too.
+    // Drag one of the Basics tab's column dividers. Pointer capture keeps the
+    // move and release events on the handle itself, so the drag needs no
+    // listeners on `document` — which a detached sheet would bind to the wrong
+    // window. Purely a display preference, so read-only sheets can drag too.
+    //
+    // A handle only ever redistributes the pair it sits between: the columns
+    // past it keep the width they had, which is what makes a three-column row
+    // with two handles behave the way a reader expects.
     this.#delegate('pointerdown', '.basics-splitter', (event, target) => {
       event.preventDefault();
-      const columns = target.parentElement;
-      // Everything the two columns can actually share: the handle's own strip
-      // is not up for grabs, so the ratio is measured against the rest.
-      const track = columns.clientWidth - target.offsetWidth;
-      if (track <= 0) return;
+      const row = target.parentElement;
+      const { key, cells, handles } = this.#rowParts(row);
+      const index = handles.indexOf(target);
+      const [left, right] = [cells[index], cells[index + 1]];
+      if (!left || !right) return;
 
-      // Measured from where inside the handle the pointer went down, so the
-      // divider does not jump to centre itself under the cursor.
-      const origin = columns.getBoundingClientRect().left;
-      const grab = event.clientX - target.getBoundingClientRect().left;
-      const ratioAt = (clientX) => Math.clamp(
-        (clientX - grab - origin) / track, BASICS_SPLIT_MIN, BASICS_SPLIT_MAX
-      );
+      const shares = this.#rowShares(key);
+      const pairShare = shares[index] + shares[index + 1];
+      // Both columns' widths together are the only pixels this drag can move,
+      // and they stand for `pairShare` of the row — so pixels and shares
+      // convert into each other without needing the row's origin at all.
+      const pairPx = left.offsetWidth + right.offsetWidth;
+      if (pairPx <= 0 || pairShare <= 0) return;
 
-      const onMove = (moveEvent) => this._applyColumnSplit(ratioAt(moveEvent.clientX));
+      const minPx = (BASICS_CELL_MIN / pairShare) * pairPx;
+      const startX = event.clientX;
+      const startPx = left.offsetWidth;
+      const sharesAt = (clientX) => {
+        const leftPx = Math.clamp(startPx + (clientX - startX), minPx, pairPx - minPx);
+        const next = [...shares];
+        next[index] = (pairShare * leftPx) / pairPx;
+        next[index + 1] = pairShare - next[index];
+        return next;
+      };
+
+      const onMove = (moveEvent) => {
+        this._applyColumnSplit({ [key]: sharesAt(moveEvent.clientX) });
+      };
       const onEnd = (endEvent) => {
         target.removeEventListener('pointermove', onMove);
         target.removeEventListener('pointerup', onEnd);
         target.removeEventListener('pointercancel', onEnd);
         target.classList.remove('dragging');
-        this.#storeColumnSplit(ratioAt(endEvent.clientX));
+        this.#storeColumnSplit(key, sharesAt(endEvent.clientX));
       };
 
       target.classList.add('dragging');
@@ -882,22 +965,32 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       target.addEventListener('pointercancel', onEnd);
     });
 
-    // Double-click resets the split, which is the only way back once a column
-    // has been dragged to one of its bounds and lost its proportions.
-    this.#delegate('dblclick', '.basics-splitter', (event) => {
+    // Double-click resets the whole row, which is the only way back once a
+    // column has been dragged to its bound and lost its proportions. The row
+    // rather than the one boundary: with two handles, restoring only the pair
+    // under the pointer would leave the row in a state the defaults never had.
+    this.#delegate('dblclick', '.basics-splitter', (event, target) => {
       event.preventDefault();
-      this.#storeColumnSplit(BASICS_SPLIT_DEFAULT);
+      const { key } = this.#rowParts(target.parentElement);
+      this.#storeColumnSplit(key, [...(BASICS_LAYOUT_DEFAULT[key] ?? [1])]);
     });
 
     // The keyboard equivalents, since the handle is a focusable separator.
-    this.#delegate('keydown', '.basics-splitter', (event) => {
+    this.#delegate('keydown', '.basics-splitter', (event, target) => {
       const step = { ArrowLeft: -0.02, ArrowRight: 0.02 }[event.key];
       if (step === undefined && event.key !== 'Home') return;
       event.preventDefault();
-      const current = game.settings.get('tno', 'basicsSplit');
-      this.#storeColumnSplit(step === undefined
-        ? BASICS_SPLIT_DEFAULT
-        : Math.clamp(current + step, BASICS_SPLIT_MIN, BASICS_SPLIT_MAX));
+
+      const { key, handles } = this.#rowParts(target.parentElement);
+      if (step === undefined) return this.#storeColumnSplit(key, [...(BASICS_LAYOUT_DEFAULT[key] ?? [1])]);
+
+      const index = handles.indexOf(target);
+      const shares = this.#rowShares(key);
+      const pairShare = shares[index] + shares[index + 1];
+      const next = [...shares];
+      next[index] = Math.clamp(shares[index] + step, BASICS_CELL_MIN, pairShare - BASICS_CELL_MIN);
+      next[index + 1] = pairShare - next[index];
+      this.#storeColumnSplit(key, next);
     });
 
     // -------------------------------------------------------------

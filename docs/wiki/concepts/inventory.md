@@ -83,9 +83,13 @@ Two consequences are worth knowing before changing anything here:
 **A weapon is gear like any other here.** The Richtwert table prices weapons by
 size alongside everything else, so a carried weapon costs its slots. Whether one
 is *readied* is a separate question the rules have not answered yet, and it is
-deliberately not modelled by exempting weapons from the budget — see the Waffen
-block in [ui-surfaces.md](../reference/ui-surfaces.md), which reserves its place
-in the layout and lists nothing.
+deliberately not modelled by exempting weapons from the budget.
+
+The Basics tab used to reserve an empty Waffen block for the answer. It no
+longer does: a block that lists nothing is a promise, not a layout, and holding
+a column open for two years taught a reader only that weapons were missing.
+Readiness will need its own view when it exists, and what shape that view takes
+is not decided by leaving a gap for it now.
 
 Load states come from `CARRY_THRESHOLDS`: at half capacity or more,
 `noSprint`; once the budget is full, `crawlOnly`. `derived.canSprint`
@@ -140,6 +144,20 @@ for the UX spec.
 The slot grid packs blocks in the items' existing `sort` order, so
 reordering is purely a view concern and a player's arrangement never needs
 persisting.
+
+**Three columns, not two, and they sit in different rows.** The paper doll is in
+the Basics tab's top row and the carry raster in its bottom one, because the
+raster is a long list and belongs beside the other long list on the sheet. The
+zero-slot items are the third: `buildSlotGrid` splits them off as `trinkets`,
+and they render as a Kleinkram column of their own
+(`parts/actor-trinkets.hbs`) rather than as a pocket inside the armour card,
+where reading them off the doll implied they were worn.
+
+**The Kleinkram column has no create control and no drop target.** Nothing there
+is a state a piece can be put *into*: an item is Kleinkram exactly when its
+`slots` is 0, which is authored on the item's own sheet. A drop that moved a
+piece into the column would have to rewrite that number, which is a change to
+what the thing *is*, made by a gesture that looks like tidying.
 
 ### Moving things between the two views
 
