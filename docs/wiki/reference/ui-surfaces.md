@@ -49,9 +49,9 @@ Two full-width rows, each a flex row of `.basics-cell` columns with a
 | `top` | attribute matrix · paper doll · Kleinkram |
 | `bottom` | skill list · Trageslots raster |
 
-The top row sizes to its own content and the bottom row takes what is left —
-the blocks above have a natural height, the two lists below are the ones that
-can always use more.
+Both rows size to their own content. Long skill and inventory lists extend the
+character sheet's single `.window-content` scroll surface; `_dockTabsRail()`
+moves the tab rail onto the app root so it remains fixed outside that scroller.
 
 A column's width is a **grow factor off a zero basis**, not a width: the
 handles' own strips come off the row first and the columns divide the rest, so

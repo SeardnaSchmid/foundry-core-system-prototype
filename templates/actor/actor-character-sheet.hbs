@@ -134,8 +134,8 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
         mirroring the "Attribute" table in the rulebook. Cell and sum-badge
         backgrounds are color-graded relative to the character's own values,
         ported from the "Attribut-Heatmap" prototype. --}}
-        <div class="attributes-header flexrow">
-          <h3 class="attributes-title">{{localize "TNO.AttributesTitle"}} <span class="xp-badge" title="{{localize 'TNO.XpTotalAttributesHint'}}">{{attributeGrid.totalValue}} {{localize "TNO.UnitPoints"}} · {{attributeGrid.totalXp}} {{localize "TNO.UnitXp"}}</span></h3>
+        <div class="basics-section-header attributes-header flexrow">
+          <h3 class="basics-section-title attributes-title">{{localize "TNO.AttributesTitle"}} <span class="xp-badge" title="{{localize 'TNO.XpTotalAttributesHint'}}">{{attributeGrid.totalValue}} {{localize "TNO.UnitPoints"}} · {{attributeGrid.totalXp}} {{localize "TNO.UnitXp"}}</span></h3>
           {{#if isGM}}
           <a class="heatmap-lab-btn" title="{{localize 'TNO.Settings.HeatmapPreset.BtnHint'}}"><i class="fa-solid fa-palette"></i></a>
           {{/if}}
@@ -159,15 +159,12 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
                 <span class="heatmap-row-label">{{row.label}}</span>
               </th>
               {{#each row.cells as |cell|}}
-              <td class="heatmap-cell{{#if cell.isPeak}} heatmap-peak{{/if}}{{#if cell.isCritical}} heatmap-critical{{/if}}" style="background:{{cell.cellBg}}; color:{{cell.textColor}}; border-color:{{cell.critBorder}};" title="{{cell.hint}}">
-                <div class="heatmap-cell-top">
+              <td class="heatmap-cell{{#if cell.hasDelta}} heatmap-modified{{/if}}{{#if cell.isPeak}} heatmap-peak{{/if}}{{#if cell.isCritical}} heatmap-critical{{/if}}" style="background:{{cell.cellBg}}; color:{{cell.textColor}}; border-color:{{cell.critBorder}};" title="{{cell.hint}}">
                   {{#if cell.hasDelta}}
                   <a class="heatmap-delta" data-key="{{cell.key}}" title="{{#if cell.isCritical}}{{localize 'TNO.AttributeCritical'}} — {{/if}}{{localize 'TNO.ResetTemp'}}" style="background:{{cell.deltaBg}}; color:{{cell.deltaText}};">{{#if cell.isCritical}}⚠ {{/if}}{{cell.deltaLabel}}</a>
                   {{else if cell.isCritical}}
                   <span class="heatmap-warn-badge" title="{{localize 'TNO.AttributeCritical'}}">⚠</span>
                   {{/if}}
-                  <span class="heatmap-cell-name">{{cell.label}}</span>
-                </div>
                 <div class="heatmap-cell-values flexrow flex-center">
                   <a class="heatmap-stepper" data-key="{{cell.key}}" data-action="decrement" title="{{localize 'TNO.AttributeDecrease'}}" style="background:{{cell.stepperBg}}; border-color:{{cell.stepperBorder}}; color:{{cell.stepperColor}};">−</a>
                   {{!-- Modified attributes read as "base → effective" (e.g.
@@ -178,6 +175,9 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
                     {{#if cell.hasDelta}}<span class="heatmap-base inactive" title="{{cell.baseHint}}">{{cell.baseValue}}</span><span class="heatmap-arrow">→</span>{{/if}}<span class="heatmap-temp active" title="{{cell.tempHint}}">{{cell.tempValue}}</span>
                   </span>
                   <a class="heatmap-stepper" data-key="{{cell.key}}" data-action="increment" title="{{localize 'TNO.AttributeIncrease'}}" style="background:{{cell.stepperBg}}; border-color:{{cell.stepperBorder}}; color:{{cell.stepperColor}};">+</a>
+                </div>
+                <div class="heatmap-cell-top">
+                  <span class="heatmap-cell-name">{{cell.label}}</span>
                 </div>
                 <a class="heatmap-xp-bar{{#if cell.xpReady}} ready{{/if}}" data-key="{{cell.key}}" style="background:{{cell.xpBarTrack}};" title="{{#if cell.xpAtMax}}{{localize 'TNO.XpMaxBadge'}}{{else}}{{cell.xp}}/{{cell.xpCost}} xp{{/if}} — {{localize 'TNO.AttributeAdvanceHint'}}">
                   <span class="heatmap-xp-bar-fill" style="width:{{cell.xpPercent}}%; background:{{cell.xpBarFill}};"></span>
@@ -201,7 +201,9 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
       wearing?", which is a question asked mid-roll, so it sits beside the
       attributes rather than a tab away. --}}
       <section class="basics-cell cell-gear flexcol">
-        <h3 class="cell-title">{{localize "TNO.Armor.WornTitle"}}</h3>
+        <div class="basics-section-header gear-header flexrow">
+          <h3 class="basics-section-title cell-title">{{localize "TNO.Armor.WornTitle"}}</h3>
+        </div>
         {{> "systems/tno/templates/actor/parts/actor-paperdoll.hbs"}}
       </section>
 
@@ -223,8 +225,8 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
 
         {{!-- Skills, grouped by category. Each skill rolls with its linked
         attribute; the rank is added as the roll dialog's starting bonus. --}}
-        <div class="skills-header flexrow">
-          <h3 class="skills-title">{{localize "TNO.SkillsTitle"}} <span class="xp-badge" title="{{localize 'TNO.XpTotalSkillsHint'}}">{{skillRankTotal}} {{localize "TNO.UnitPoints"}} · {{skillXpTotal}} {{localize "TNO.UnitXp"}}</span></h3>
+        <div class="basics-section-header skills-header flexrow">
+          <h3 class="basics-section-title skills-title">{{localize "TNO.SkillsTitle"}} <span class="xp-badge" title="{{localize 'TNO.XpTotalSkillsHint'}}">{{skillRankTotal}} {{localize "TNO.UnitPoints"}} · {{skillXpTotal}} {{localize "TNO.UnitXp"}}</span></h3>
           <input type="text" class="skill-search-input" value="{{skillSearch}}" placeholder="{{localize 'TNO.SkillSearchPlaceholder'}}" title="{{localize 'TNO.SkillSearchHint'}}" />
           <div class="skill-filter-group">
             <a class="skill-filter-btn {{#ifEquals skillFilter 'trained'}}active{{/ifEquals}}" data-filter="trained" title="{{localize 'TNO.SkillFilterTrainedHint'}}">{{localize "TNO.SkillFilterTrained"}}</a>
@@ -232,15 +234,13 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
             <a class="skill-filter-btn {{#ifEquals skillFilter 'all'}}active{{/ifEquals}}" data-filter="all" title="{{localize 'TNO.SkillFilterAllHint'}}">{{localize "TNO.SkillFilterAll"}}</a>
           </div>
         </div>
-        {{!-- Scroll wrapper owns the vertical overflow (fixed height from the
-        flex column); the inner .skill-groups is a balanced CSS multi-column
-        flow whose height is content-driven, so long skill lists (the ALL
-        filter) fill all three columns evenly and scroll here rather than
-        scrolling the whole sheet. --}}
+        {{!-- The inner .skill-groups is a balanced CSS multi-column flow whose
+        height is content-driven inside the skills column's bounded scroll
+        region. --}}
         <div class="skill-groups-scroll">
         <div class="skill-groups">
           {{#each skillGroups as |group|}}
-          <div class="card skill-group">
+          <div class="card basics-section-card skill-group">
             <h4 class="skill-group-title">
               <span class="skill-group-name">{{group.label}}</span>
               <span class="xp-badge">{{group.totalRank}}pt | {{group.totalXp}}xp</span>

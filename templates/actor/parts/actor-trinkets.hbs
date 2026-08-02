@@ -7,17 +7,17 @@ a state a piece can be put *into*: an item is Kleinkram exactly when its
 `slots` is 0, which is authored on the item's own sheet. Same interactions as a
 slot cell otherwise — costing nothing to carry does not make it a different kind
 of thing, so it can still be opened, sorted and worn. --}}
-<div class='slot-trinkets card'>
-
-  <div class='slot-trinkets-header'>
+<div class='basics-section-header slot-trinkets-header'>
     {{!-- The explanation hangs off the label rather than the whole block: the
     items below carry their own tooltips, and a container-wide one only ever
     showed in the gaps between them. --}}
-    <span class='slot-trinkets-title'
-          data-tooltip-html='{{localize "TNO.Inventory.TrinketsHint"}}'
-          data-tooltip-direction='LEFT'>{{localize 'TNO.Inventory.Trinkets'}}</span>
+    <h3 class='basics-section-title slot-trinkets-title'
+        data-tooltip-html='{{localize "TNO.Inventory.TrinketsHint"}}'
+        data-tooltip-direction='LEFT'>{{localize 'TNO.Inventory.Trinkets'}}</h3>
     <span class='slot-trinkets-cost'>{{localize 'TNO.Inventory.TrinketsZeroSlots'}}</span>
-  </div>
+</div>
+
+<div class='slot-trinkets'>
 
   {{#if slotGrid.trinkets.length}}
     <div class='slot-trinkets-list'>

@@ -106,11 +106,12 @@
   // row start on the same line instead of the name sitting under them. The
   // first track ends exactly where the portrait does: the portrait starts 4px
   // from the frame but the track starts at the 16px padding edge, so the track
-  // is short by that 12px difference.
+  // is short by that 12px difference. The chips lane is capped and may wrap:
+  // `auto` sized to the pill row and refused to break when the sheet narrowed.
   grid-template-columns:
     calc(var(--portrait-w) - (16px - var(--portrait-inset)))
-    minmax(0, 1fr)
-    auto;
+    minmax(0, 2fr)
+    minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
   align-items: start;
   column-gap: 16px;
@@ -130,8 +131,14 @@
   grid-column: 3;
   grid-row: 1;
   justify-self: end;
+  align-self: start;
+  min-width: 0;
+  max-width: 100%;
   display: flex;
+  flex-wrap: wrap;
   align-items: stretch;
+  align-content: flex-start;
+  justify-content: flex-end;
   gap: 6px;
 }
 
@@ -486,10 +493,6 @@
 .sheet-main {
   flex: 1;
   min-width: 0;
-  // Establish a bounded height so the tab body below can own its own scroll
-  // instead of letting content push the whole window past its edge. `min-height`
-  // alone does not bound a flex child whose line takes its cross size from
-  // content, so the cap is spelled out as well.
   min-height: 0;
   max-height: 100%;
 }
@@ -498,9 +501,8 @@
   flex: 0;
 }
 
-// The tab body fills the remaining height under the name band and clips its
-// overflow, so a long tab (e.g. the full skill list) scrolls inside its own
-// region rather than scrolling the entire sheet (portrait + matrix included).
+// The tab body is bounded beneath the name band; its individual regions can
+// scroll without pushing the window or its externally docked tab rail.
 .sheet-body {
   flex: 1 1 auto;
   min-height: 0;
@@ -509,23 +511,19 @@
   overflow: hidden;
 }
 
-// Non-basics tabs (biography, items) keep filling the body as before. The
-// basics tab opts into a flex column instead (below) so its skill list can be
-// the lone scroll container.
+// Tabs fill the bounded body rather than spilling beyond the application frame.
 .sheet-body .tab,
 .sheet-body .tab .editor {
   height: 100%;
 }
 
-// The Inventar tab's flat item list can run long. It scrolls as one region —
-// .sheet-body only clips — so rows below the fold stay reachable instead of
-// being silently cut off.
+// The administrative inventory list owns its own vertical overflow.
 .sheet-body .tab.items {
   overflow-y: auto;
 }
 
-// Active basics tab: grows to fill the body (flex:1) so the two columns inside
-// it get a bounded height to scroll within.
+// Basics uses the remaining bounded height: the compact top row stays natural
+// while the long skill and carry views scroll inside their own columns.
 .sheet-body .tab.basics.active {
   display: flex;
   flex-direction: column;
@@ -536,34 +534,37 @@
 // The Basics tab as two full-width rows: the attribute matrix, the worn gear
 // and the zero-slot pocket above; the skill list and the carry raster below.
 //
-// The top row sizes to its own content and the bottom row takes what is left —
-// the blocks up there have a natural height (twelve attribute cells, five zone
-// rows), while the two lists below are the ones that can always use more.
+// The top row sizes to its content; the long bottom row receives the remaining
+// space in the bounded Basics area.
 .basics-rows {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
-  gap: 10px;
+  gap: 4px;
 }
 
 .basics-row {
   display: flex;
   min-height: 0;
-  align-items: stretch;
 
   &[data-split-row='top'] {
+    // The compact blocks have different content densities, so they keep their
+    // own heights instead of stretching to the tallest neighbour.
+    align-items: flex-start;
     flex: 0 1 auto;
   }
 
   &[data-split-row='bottom'] {
+    // Skills and Carry Slots must fill this bounded row; their cells own the
+    // vertical overflow and therefore need a definite cross-axis height.
+    align-items: stretch;
     flex: 1 1 auto;
+    border-top: 1px solid $c-beige;
+    padding-top: 6px;
   }
 }
 
-// Every column owns its own scrolling, so a long skill list and a full pack
-// never push each other around.
-//
 // The shares are grow factors off a zero basis rather than widths, so the
 // splitters' own strips are subtracted before the proportions are applied and
 // the columns keep them when the window is resized. The per-column defaults
@@ -580,6 +581,55 @@
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba($c-dark, 0.3) transparent;
+}
+
+// The character sheet deliberately has one scroll owner: `.window-content`.
+// Override the bounded NPC-style tab layout so every Basics block contributes
+// its natural height to that shared document instead of clipping or scrolling
+// inside an individual column.
+&.sheet.actor.character {
+  .sheet-body {
+    flex: 0 0 auto;
+    min-height: auto;
+    display: block;
+    overflow: visible;
+  }
+
+  .sheet-body .tab,
+  .sheet-body .tab .editor {
+    height: auto;
+  }
+
+  .sheet-body .tab.items {
+    overflow: visible;
+  }
+
+  .sheet-body .tab.basics.active {
+    display: block;
+    min-height: auto;
+  }
+
+  .basics-rows {
+    flex: 0 0 auto;
+    min-height: auto;
+  }
+
+  .basics-row,
+  .basics-row[data-split-row='top'],
+  .basics-row[data-split-row='bottom'] {
+    flex: 0 0 auto;
+    align-items: flex-start;
+  }
+
+  .basics-cell {
+    min-height: auto;
+    overflow: visible;
+  }
+
+  .skill-groups-scroll {
+    flex: 0 0 auto;
+    min-height: auto;
+  }
 }
 
 .cell-attributes,
@@ -607,11 +657,27 @@
   }
 
   .paperdoll {
-    gap: 10px;
+    padding: 6px;
+    gap: 6px;
   }
 
   .paperdoll-figure {
-    width: 84px;
+    width: 58px;
+  }
+}
+
+.cell-gear {
+  .paperdoll-zones {
+    gap: 3px;
+  }
+
+  .armor-row {
+    min-height: 26px;
+    padding: 2px 6px;
+
+    &.armor-suit {
+      margin-bottom: 3px;
+    }
   }
 }
 
@@ -652,25 +718,31 @@
   }
 }
 
-// Caption above the paper doll — the Trageslots and Kleinkram blocks carry
-// their own headers, so this is the only column that needs one.
-.cell-title {
+// Every Basics area starts with the same quiet caption line. The content below
+// can be a matrix, a skill flow or an inventory card, but its title and any
+// compact metadata always share this rhythm.
+.basics-section-header {
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  min-height: 12px;
+  margin: 0 0 4px;
+}
+
+.basics-section-title {
   margin: 0;
   padding: 0;
   border: none;
   font-size: var(--font-size-12, 12px);
-  line-height: 1;
+  font-weight: 600;
+  line-height: 12px;
   text-transform: uppercase;
   color: $c-dark;
 }
 
-// Vertical icon-only tab rail docked outside the sheet's right edge, styled
-// after the reference dnd5e sheet's tab layout. It stays inside
-// `.window-content` — ApplicationV2#changeTab only finds nav elements there —
-// and hangs past the sheet edge because that content box is `overflow: visible`
-// (see global/_window.scss); the nearest positioned ancestor it offsets from is
-// the app frame itself.
+// Vertical icon-only tab rail docked outside the sheet's right edge. The sheet
+// moves it from `.window-content` onto the app root after ApplicationV2 wires
+// its tab actions, keeping it outside the character sheet's scroll surface.
 .tabs-right {
   position: absolute;
   top: 160px;
@@ -678,14 +750,9 @@
   width: 40px;
   display: flex;
   flex-direction: column;
-  // flex-start (not center) pins each item's left edge flush against the
-  // sheet's edge, so hover growth below only extends rightward instead of
-  // also spilling left back over the sheet.
+  // Pin icons to the outside edge so hover growth extends away from the sheet.
   align-items: flex-start;
   gap: 6px;
-  // Left padding keeps the resting icon at the same 5px inset it had under
-  // the old center alignment; no right padding since hover growth below is
-  // meant to spill past the rail's right edge.
   padding: 10px 0 10px 5px;
   border: 1px solid $c-beige;
   border-left: none;

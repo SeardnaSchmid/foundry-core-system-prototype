@@ -7,10 +7,8 @@ ausgenommen sind Kleidung und Rüstung welche der Charakter am Leib trägt".
 The grid holds exactly as many cells as the character has slots; there is no
 padding out to the raster width. Anything past the budget keeps running on in
 the same grid, marked over capacity. --}}
-<div class='slot-grid-block card'>
-
-  <div class='slot-grid-header'>
-    <span class='slot-grid-title'>{{localize 'TNO.Inventory.CarrySlots'}}</span>
+<div class='basics-section-header slot-grid-header'>
+    <h3 class='basics-section-title slot-grid-title'>{{localize 'TNO.Inventory.CarrySlots'}}</h3>
     {{!-- Used over capacity. The three parts are separate elements because they
     rank differently — the figure the player tracks, the separator, the limit
     behind it — and the container is a flex row, so the newlines between them
@@ -37,7 +35,9 @@ the same grid, marked over capacity. --}}
         <i class='fas fa-plus'></i>
       </a>
     {{/if}}
-  </div>
+</div>
+
+<div class='slot-grid-block card basics-section-card'>
 
   {{!-- One cell per slot the load costs, in one flat run: what fits, then what
   spills past the budget, then — only when nothing spilled — the free cells.

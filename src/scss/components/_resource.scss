@@ -62,10 +62,9 @@ button:focus-visible {
 // just borders on each individual category card below; ATTRIBUTES now
 // matches that: the header sits unboxed above, same as .skills-header.
 .attributes-card {
-  // Fixed block at the top of the basics tab's flex column — never shrinks
-  // when the skill list below scrolls.
+  // Natural-height block at the top of the Basics tab.
   flex: 0 0 auto;
-  margin: 0 0 10px;
+  margin: 0;
   // Mobile-first: .attribute-table's base rules are the narrowest layout
   // (fluid columns, row-header column and column-header row both dropped).
   // Ascending @container (min-width) tiers below add richness back in as
@@ -92,7 +91,7 @@ button:focus-visible {
   min-width: 0;
   border-collapse: separate;
   border-spacing: 3px;
-  margin: 6px 0 0;
+  margin: 2px 0 0;
 
   .attribute-corner,
   .heatmap-row-header {
@@ -167,12 +166,11 @@ button:focus-visible {
     .heatmap-cell {
       position: relative;
       text-align: center;
-      // Mobile-first base: the compact chrome for the narrowest containers,
-      // where each fluid column is down to ~120-130px and the top row is
-      // crowded — the absolute delta chip (top-left) would otherwise close
-      // in on the centred attribute name. padding-top on .heatmap-cell-top
-      // below drops the name below the chip instead of sharing its row.
-      padding: 3px 4px;
+      // Keep the vertical rhythm stable at every width. Wider containers add
+      // horizontal breathing room and, eventually, axis labels; they do not
+      // make the twelve data tiles taller.
+      min-height: 42px;
+      padding: 1px 3px 5px;
       border-radius: 4px;
       border: 1.5px solid transparent;
       // The XP bar is pinned to the bottom edge as an absolute strip (below);
@@ -194,12 +192,7 @@ button:focus-visible {
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 3px;
-        min-height: 16px;
-        // Base (narrowest): the name can no longer share the delta chip's
-        // row, so it drops below instead — see the min-width: 401px tier
-        // below for where the two are given room to sit side by side again.
-        padding-top: 12px;
+        min-height: 9px;
       }
 
       // Standalone warning badge (top-left), only shown for the rare case of
@@ -213,7 +206,9 @@ button:focus-visible {
       }
 
       .heatmap-cell-name {
-        font-weight: 600;
+        // The value is the primary signal in a heatmap tile; the attribute
+        // name only identifies it and should not compete with that value.
+        font-weight: 400;
         // Base (narrowest): let the longest names ("Investigation")
         // ellipsize rather than spill into the neighbouring cell — the full
         // name stays available in the cell tooltip. min-width: 401px below
@@ -222,7 +217,8 @@ button:focus-visible {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        font-size: var(--font-size-10, 10px);
+        font-size: var(--font-size-9, 9px);
+        line-height: 1;
       }
 
       // XP-toward-next-rank bar, pinned as an absolute strip flush with the
@@ -292,7 +288,14 @@ button:focus-visible {
       // one tight cluster instead.
       .heatmap-cell-values {
         gap: 4px;
+        min-height: 23px;
         justify-content: center;
+      }
+
+      // Reserve horizontal rather than vertical room for the reset chip. A
+      // modified attribute must not make its entire table row taller.
+      &.heatmap-modified .heatmap-cell-values {
+        padding-left: 20px;
       }
 
       .heatmap-value-pair {
@@ -309,8 +312,8 @@ button:focus-visible {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 18px;
-        height: 18px;
+        width: 16px;
+        height: 16px;
         flex: none;
         border-radius: 50%;
         border: 1.5px solid;
@@ -347,10 +350,11 @@ button:focus-visible {
       .heatmap-temp,
       .heatmap-base {
         font-weight: 800;
+        line-height: 1;
         transition: font-size 0.15s ease, opacity 0.15s ease;
 
         &.active {
-          font-size: var(--font-size-16, 16px);
+          font-size: var(--font-size-18, 18px);
           opacity: 1;
         }
 
@@ -376,50 +380,31 @@ button:focus-visible {
   // ascending complement here is min-width: (N+1)px — using min-width: Npx
   // would double-fire both rules at the exact boundary pixel.
   //
-  // At ~120-130px per column and below, the delta chip and centred name can
-  // no longer share one row, so the base above drops the name below the
-  // chip and shrinks it. Past that, give the column-header row and the
-  // full-size delta chip/name back their room.
+  // Once each data column has a little more room, enlarge only the small
+  // reset/name text. The header row remains hidden so crossing this breakpoint
+  // does not suddenly make the component taller.
   @container (min-width: 401px) {
     &.heatmap {
-      thead {
-        display: table-header-group;
-      }
-
       .heatmap-cell {
         .heatmap-delta {
           font-size: var(--font-size-11, 11px);
           padding: 1px 5px;
         }
 
-        .heatmap-cell-top {
-          padding-top: 0;
-        }
-
         .heatmap-cell-name {
-          max-width: none;
-          overflow: visible;
-          text-overflow: clip;
-          white-space: normal;
-          font-size: var(--font-size-11, 11px);
+          font-size: var(--font-size-10, 10px);
         }
       }
     }
   }
 
-  // Once there's room for the matrix's comfortable footprint without the row
-  // header — 3×150px data columns + 4×4px border-spacing gaps (columns+1
-  // gaps under border-collapse: separate) = 466px, plus a cushion — restore
-  // the full-size cell chrome. The columns stay fluid rather than pinning to
-  // 150px: the matrix takes the whole width the column gives it and the tiles
-  // grow with it, which is what makes dragging the Basics splitter (see
-  // `.basics-splitter` in components/_forms.scss) worth doing. 150px is only
-  // the floor now, held by the table's min-width.
+  // Wider matrices gain horizontal breathing room only. There is deliberately
+  // no min-width or larger vertical chrome here, so splitter resizing remains
+  // fluid and never creates a horizontal scrollbar or a height jump.
   @container (min-width: 481px) {
     &.heatmap {
       table-layout: fixed;
       width: 100%;
-      min-width: 500px;
       border-spacing: 4px;
 
       thead th,
@@ -428,30 +413,19 @@ button:focus-visible {
       }
 
       .heatmap-cell {
-        padding: 4px 6px 10px;
-
-        .heatmap-cell-name {
-          font-size: var(--font-size-12, 12px);
-        }
+        padding-inline: 6px;
 
         .heatmap-cell-values {
-          gap: 8px;
+          gap: 6px;
         }
 
         .heatmap-value-pair {
-          min-width: 40px;
+          min-width: 36px;
         }
 
         .heatmap-stepper {
-          width: 22px;
-          height: 22px;
-        }
-
-        .heatmap-temp,
-        .heatmap-base {
-          &.active {
-            font-size: var(--font-size-20, 20px);
-          }
+          width: 18px;
+          height: 18px;
         }
       }
     }
@@ -465,10 +439,59 @@ button:focus-visible {
   // as a fallback (see actor-sheet.mjs), so the matrix stays readable.
   @container (min-width: 559px) {
     &.heatmap {
+      thead {
+        display: table-header-group;
+      }
+
       .attribute-corner,
       .heatmap-row-header {
         display: table-cell;
         width: 84px;
+      }
+    }
+  }
+
+  // Splitters can make the attribute column extremely narrow. Preserve all
+  // controls in that state by scaling the value cluster horizontally while
+  // keeping the same compact cell height and ellipsising long labels.
+  @container (max-width: 300px) {
+    &.heatmap {
+      .heatmap-cell {
+        padding-inline: 2px;
+
+        .heatmap-cell-values {
+          gap: 2px;
+        }
+
+        &.heatmap-modified .heatmap-cell-values {
+          padding-left: 14px;
+        }
+
+        .heatmap-stepper {
+          width: 14px;
+          height: 14px;
+          font-size: var(--font-size-10, 10px);
+        }
+
+        .heatmap-value-pair {
+          min-width: 24px;
+        }
+
+        .heatmap-temp,
+        .heatmap-base {
+          &.active {
+            font-size: var(--font-size-17, 17px);
+          }
+
+          &.inactive {
+            font-size: var(--font-size-10, 10px);
+          }
+        }
+
+        .heatmap-arrow {
+          margin-inline: 1px;
+          font-size: var(--font-size-9, 9px);
+        }
       }
     }
   }
@@ -481,15 +504,11 @@ button:focus-visible {
 .attributes-header,
 .skills-header {
   position: relative;
-  // Fixed row above the scrolling skill list — stays put while it scrolls.
-  flex: 0 0 auto;
-  align-items: center;
   // Not space-between: the skills-header has three right-hand controls
   // (search input + filter group) that must stay adjacent to each other,
   // not spread apart. margin-left: auto on the first control (below) pushes
   // the whole control cluster to the right instead.
   justify-content: flex-start;
-  margin: 0 0 4px;
 }
 
 .attributes-title,
@@ -502,9 +521,6 @@ button:focus-visible {
   margin: 0;
   padding: 0 8px 0 0;
   border: none;
-  font-size: var(--font-size-12, 12px);
-  line-height: 1;
-  text-transform: uppercase;
 
   // Same quiet-at-rest, full-strength-on-hover treatment as the per-group
   // badges below (.skill-group-title): the section title already reads as
@@ -622,9 +638,8 @@ button:focus-visible {
   }
 }
 
-// Container for the skill cards. Scrolling is on the `.basics-cell` around it,
-// so the header (search + filters) scrolls away with the list rather than
-// staying pinned over it.
+// Container for the skill cards. The surrounding Basics cell owns the scroll,
+// so the header and its categories travel together inside that bounded region.
 .skill-groups-scroll {
   flex: 1 1 auto;
   min-height: 0;

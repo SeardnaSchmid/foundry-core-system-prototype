@@ -1314,6 +1314,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // rows draggable onto the hotbar.
     await super._onRender(context, options);
 
+    this._dockTabsRail();
     this._makeKeyboardAccessible();
     this._applySkillFilter();
     this._applyColumnSplit();
@@ -1322,6 +1323,21 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       await this.#refreshItemPopover();
       this.#positionItemPopover();
     }
+  }
+
+  /**
+   * Move the tab rail out of `.window-content`, which is the character sheet's
+   * single scroll surface. ApplicationV2 wires the freshly rendered rail in
+   * `super._onRender()` first; moving that live element afterwards preserves
+   * its tab actions while keeping it fixed outside the scrolling sheet edge.
+   * A prior rail survives a part re-render beside `.window-content`, so remove
+   * it before docking the new one.
+   */
+  _dockTabsRail() {
+    const rail = this.element.querySelector('.window-content > .tabs-right');
+    if (!rail) return;
+    this.element.querySelector(':scope > .tabs-right')?.remove();
+    this.element.append(rail);
   }
 
   /** @inheritDoc */

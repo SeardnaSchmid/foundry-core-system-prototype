@@ -11,11 +11,16 @@
 }
 .tno.sheet.actor .window-content {
   display: flex;
-  overflow: visible;
   min-height: 0;
+  overflow: visible;
 }
 .tno.sheet.actor.character .window-content {
   flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(25, 24, 19, 0.3) transparent;
 }
 .tno.sheet.actor.npc .window-content {
   flex-direction: row;
@@ -282,7 +287,7 @@
   --portrait-inset: 4px;
   position: relative;
   display: grid;
-  grid-template-columns: calc(var(--portrait-w) - (16px - var(--portrait-inset))) minmax(0, 1fr) auto;
+  grid-template-columns: calc(var(--portrait-w) - (16px - var(--portrait-inset))) minmax(0, 2fr) minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
   align-items: start;
   column-gap: 16px;
@@ -298,8 +303,14 @@
   grid-column: 3;
   grid-row: 1;
   justify-self: end;
+  align-self: start;
+  min-width: 0;
+  max-width: 100%;
   display: flex;
+  flex-wrap: wrap;
   align-items: stretch;
+  align-content: flex-start;
+  justify-content: flex-end;
   gap: 6px;
 }
 .tno .banner-chip {
@@ -575,18 +586,21 @@
   flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
-  gap: 10px;
+  gap: 4px;
 }
 .tno .basics-row {
   display: flex;
   min-height: 0;
-  align-items: stretch;
 }
 .tno .basics-row[data-split-row=top] {
+  align-items: flex-start;
   flex: 0 1 auto;
 }
 .tno .basics-row[data-split-row=bottom] {
+  align-items: stretch;
   flex: 1 1 auto;
+  border-top: 1px solid #b5b3a4;
+  padding-top: 6px;
 }
 .tno .basics-cell {
   flex: 1 1 0;
@@ -597,6 +611,41 @@
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(25, 24, 19, 0.3) transparent;
+}
+.tno.sheet.actor.character .sheet-body {
+  flex: 0 0 auto;
+  min-height: auto;
+  display: block;
+  overflow: visible;
+}
+.tno.sheet.actor.character .sheet-body .tab,
+.tno.sheet.actor.character .sheet-body .tab .editor {
+  height: auto;
+}
+.tno.sheet.actor.character .sheet-body .tab.items {
+  overflow: visible;
+}
+.tno.sheet.actor.character .sheet-body .tab.basics.active {
+  display: block;
+  min-height: auto;
+}
+.tno.sheet.actor.character .basics-rows {
+  flex: 0 0 auto;
+  min-height: auto;
+}
+.tno.sheet.actor.character .basics-row,
+.tno.sheet.actor.character .basics-row[data-split-row=top],
+.tno.sheet.actor.character .basics-row[data-split-row=bottom] {
+  flex: 0 0 auto;
+  align-items: flex-start;
+}
+.tno.sheet.actor.character .basics-cell {
+  min-height: auto;
+  overflow: visible;
+}
+.tno.sheet.actor.character .skill-groups-scroll {
+  flex: 0 0 auto;
+  min-height: auto;
 }
 .tno .cell-attributes,
 .tno .cell-loose {
@@ -623,12 +672,23 @@
 .tno .cell-gear .paperdoll,
 .tno .cell-carry .paperdoll,
 .tno .cell-loose .paperdoll {
-  gap: 10px;
+  padding: 6px;
+  gap: 6px;
 }
 .tno .cell-gear .paperdoll-figure,
 .tno .cell-carry .paperdoll-figure,
 .tno .cell-loose .paperdoll-figure {
-  width: 84px;
+  width: 58px;
+}
+.tno .cell-gear .paperdoll-zones {
+  gap: 3px;
+}
+.tno .cell-gear .armor-row {
+  min-height: 26px;
+  padding: 2px 6px;
+}
+.tno .cell-gear .armor-row.armor-suit {
+  margin-bottom: 3px;
 }
 .tno .basics-splitter {
   flex: 0 0 13px;
@@ -654,13 +714,20 @@
 .tno .basics-splitter:focus-visible {
   outline: none;
 }
-.tno .cell-title {
+.tno .basics-section-header {
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  min-height: 12px;
+  margin: 0 0 4px;
+}
+.tno .basics-section-title {
   margin: 0;
   padding: 0;
   border: none;
   font-size: var(--font-size-12, 12px);
-  line-height: 1;
+  font-weight: 600;
+  line-height: 12px;
   text-transform: uppercase;
   color: #191813;
 }
@@ -1049,7 +1116,7 @@
 }
 .tno .attributes-card {
   flex: 0 0 auto;
-  margin: 0 0 10px;
+  margin: 0;
   container-type: inline-size;
   overflow-x: auto;
 }
@@ -1059,7 +1126,7 @@
   min-width: 0;
   border-collapse: separate;
   border-spacing: 3px;
-  margin: 6px 0 0;
+  margin: 2px 0 0;
 }
 .tno .attribute-table .attribute-corner,
 .tno .attribute-table .heatmap-row-header {
@@ -1109,7 +1176,8 @@
 .tno .attribute-table.heatmap .heatmap-cell {
   position: relative;
   text-align: center;
-  padding: 3px 4px;
+  min-height: 42px;
+  padding: 1px 3px 5px;
   border-radius: 4px;
   border: 1.5px solid transparent;
   overflow: hidden;
@@ -1125,9 +1193,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 3px;
-  min-height: 16px;
-  padding-top: 12px;
+  min-height: 9px;
 }
 .tno .attribute-table.heatmap .heatmap-cell .heatmap-warn-badge {
   position: absolute;
@@ -1136,12 +1202,13 @@
   font-size: var(--font-size-12, 12px);
 }
 .tno .attribute-table.heatmap .heatmap-cell .heatmap-cell-name {
-  font-weight: 600;
+  font-weight: 400;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: var(--font-size-10, 10px);
+  font-size: var(--font-size-9, 9px);
+  line-height: 1;
 }
 .tno .attribute-table.heatmap .heatmap-cell .heatmap-xp-bar {
   position: absolute;
@@ -1181,7 +1248,11 @@
 }
 .tno .attribute-table.heatmap .heatmap-cell .heatmap-cell-values {
   gap: 4px;
+  min-height: 23px;
   justify-content: center;
+}
+.tno .attribute-table.heatmap .heatmap-cell.heatmap-modified .heatmap-cell-values {
+  padding-left: 20px;
 }
 .tno .attribute-table.heatmap .heatmap-cell .heatmap-value-pair {
   flex: 0 0 auto;
@@ -1190,8 +1261,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   flex: none;
   border-radius: 50%;
   border: 1.5px solid;
@@ -1224,11 +1295,12 @@
 .tno .attribute-table.heatmap .heatmap-cell .heatmap-temp,
 .tno .attribute-table.heatmap .heatmap-cell .heatmap-base {
   font-weight: 800;
+  line-height: 1;
   transition: font-size 0.15s ease, opacity 0.15s ease;
 }
 .tno .attribute-table.heatmap .heatmap-cell .heatmap-temp.active,
 .tno .attribute-table.heatmap .heatmap-cell .heatmap-base.active {
-  font-size: var(--font-size-16, 16px);
+  font-size: var(--font-size-18, 18px);
   opacity: 1;
 }
 .tno .attribute-table.heatmap .heatmap-cell .heatmap-temp.inactive,
@@ -1243,29 +1315,18 @@
   opacity: 0.55;
 }
 @container (min-width: 401px) {
-  .tno .attribute-table.heatmap thead {
-    display: table-header-group;
-  }
   .tno .attribute-table.heatmap .heatmap-cell .heatmap-delta {
     font-size: var(--font-size-11, 11px);
     padding: 1px 5px;
   }
-  .tno .attribute-table.heatmap .heatmap-cell .heatmap-cell-top {
-    padding-top: 0;
-  }
   .tno .attribute-table.heatmap .heatmap-cell .heatmap-cell-name {
-    max-width: none;
-    overflow: visible;
-    text-overflow: clip;
-    white-space: normal;
-    font-size: var(--font-size-11, 11px);
+    font-size: var(--font-size-10, 10px);
   }
 }
 @container (min-width: 481px) {
   .tno .attribute-table.heatmap {
     table-layout: fixed;
     width: 100%;
-    min-width: 500px;
     border-spacing: 4px;
   }
   .tno .attribute-table.heatmap thead th,
@@ -1273,40 +1334,64 @@
     width: auto;
   }
   .tno .attribute-table.heatmap .heatmap-cell {
-    padding: 4px 6px 10px;
-  }
-  .tno .attribute-table.heatmap .heatmap-cell .heatmap-cell-name {
-    font-size: var(--font-size-12, 12px);
+    padding-inline: 6px;
   }
   .tno .attribute-table.heatmap .heatmap-cell .heatmap-cell-values {
-    gap: 8px;
+    gap: 6px;
   }
   .tno .attribute-table.heatmap .heatmap-cell .heatmap-value-pair {
-    min-width: 40px;
+    min-width: 36px;
   }
   .tno .attribute-table.heatmap .heatmap-cell .heatmap-stepper {
-    width: 22px;
-    height: 22px;
-  }
-  .tno .attribute-table.heatmap .heatmap-cell .heatmap-temp.active,
-  .tno .attribute-table.heatmap .heatmap-cell .heatmap-base.active {
-    font-size: var(--font-size-20, 20px);
+    width: 18px;
+    height: 18px;
   }
 }
 @container (min-width: 559px) {
+  .tno .attribute-table.heatmap thead {
+    display: table-header-group;
+  }
   .tno .attribute-table.heatmap .attribute-corner,
   .tno .attribute-table.heatmap .heatmap-row-header {
     display: table-cell;
     width: 84px;
   }
 }
+@container (max-width: 300px) {
+  .tno .attribute-table.heatmap .heatmap-cell {
+    padding-inline: 2px;
+  }
+  .tno .attribute-table.heatmap .heatmap-cell .heatmap-cell-values {
+    gap: 2px;
+  }
+  .tno .attribute-table.heatmap .heatmap-cell.heatmap-modified .heatmap-cell-values {
+    padding-left: 14px;
+  }
+  .tno .attribute-table.heatmap .heatmap-cell .heatmap-stepper {
+    width: 14px;
+    height: 14px;
+    font-size: var(--font-size-10, 10px);
+  }
+  .tno .attribute-table.heatmap .heatmap-cell .heatmap-value-pair {
+    min-width: 24px;
+  }
+  .tno .attribute-table.heatmap .heatmap-cell .heatmap-temp.active,
+  .tno .attribute-table.heatmap .heatmap-cell .heatmap-base.active {
+    font-size: var(--font-size-17, 17px);
+  }
+  .tno .attribute-table.heatmap .heatmap-cell .heatmap-temp.inactive,
+  .tno .attribute-table.heatmap .heatmap-cell .heatmap-base.inactive {
+    font-size: var(--font-size-10, 10px);
+  }
+  .tno .attribute-table.heatmap .heatmap-cell .heatmap-arrow {
+    margin-inline: 1px;
+    font-size: var(--font-size-9, 9px);
+  }
+}
 .tno .attributes-header,
 .tno .skills-header {
   position: relative;
-  flex: 0 0 auto;
-  align-items: center;
   justify-content: flex-start;
-  margin: 0 0 4px;
 }
 .tno .attributes-title,
 .tno .skills-title {
@@ -1316,9 +1401,6 @@
   margin: 0;
   padding: 0 8px 0 0;
   border: none;
-  font-size: var(--font-size-12, 12px);
-  line-height: 1;
-  text-transform: uppercase;
 }
 .tno .attributes-title .xp-badge,
 .tno .skills-title .xp-badge {
@@ -1716,8 +1798,7 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  overflow-y: auto;
-  scrollbar-width: thin;
+  overflow: visible;
   color: #444;
 }
 .tno .items-list .item-list {
@@ -2787,6 +2868,12 @@
   align-items: stretch;
   padding: 14px 16px;
 }
+.tno .basics-section-card {
+  border: 1px solid rgba(25, 24, 19, 0.14);
+  border-radius: 8px;
+  background: rgba(25, 24, 19, 0.05);
+  box-shadow: none;
+}
 .tno .paperdoll-figure {
   width: 110px;
   height: auto;
@@ -2924,15 +3011,10 @@
   background: rgba(184, 134, 11, 0.07);
 }
 .tno .slot-grid-header {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  margin-bottom: 10px;
-  font-size: var(--font-size-13, 13px);
+  gap: 6px;
 }
 .tno .slot-grid-title {
-  font-weight: bold;
-  color: #191813;
+  padding-right: 0;
 }
 .tno .slot-grid-count {
   display: inline-flex;
@@ -2941,7 +3023,7 @@
   line-height: 1;
 }
 .tno .slot-grid-count strong {
-  font-size: var(--font-size-22, 22px);
+  font-size: var(--font-size-12, 12px);
   color: #b8860b;
 }
 .tno .slot-grid-count strong.over-capacity {
@@ -2949,12 +3031,12 @@
 }
 .tno .slot-grid-sep {
   margin: 0 2px;
-  font-size: var(--font-size-14, 14px);
+  font-size: var(--font-size-11, 11px);
   color: #444;
   opacity: 0.45;
 }
 .tno .slot-grid-max {
-  font-size: var(--font-size-14, 14px);
+  font-size: var(--font-size-11, 11px);
   color: #444;
 }
 .tno .slot-badge {
@@ -3153,22 +3235,12 @@
   align-items: stretch;
   gap: 3px;
   padding: 8px 10px;
-  border: 1px solid rgba(25, 24, 19, 0.14);
-  border-radius: 8px;
-  background: rgba(25, 24, 19, 0.05);
   justify-content: flex-start;
 }
 .tno .slot-trinkets-header {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: baseline;
   gap: 6px;
-  margin-bottom: 4px;
-  font-size: var(--font-size-13, 13px);
 }
 .tno .slot-trinkets-title {
-  font-weight: bold;
-  color: #191813;
   cursor: help;
 }
 .tno .slot-trinkets-cost {
@@ -3181,10 +3253,8 @@
   flex-direction: column;
   align-items: stretch;
   gap: 3px;
-  min-height: 0;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(25, 24, 19, 0.3) transparent;
+  min-height: auto;
+  overflow: visible;
 }
 .tno .slot-trinkets-empty {
   margin: 0;

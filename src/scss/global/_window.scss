@@ -12,29 +12,28 @@
   // components/_forms.scss). ApplicationV2's frame clips its own box
   // (`.application { overflow: hidden }`), which V1's `.window-app` did not —
   // after the V2 migration that swallowed the rail entirely, leaving the sheet
-  // with no visible tab navigation. Un-clipping the frame is what lets the rail
-  // show again; the scrollable regions inside keep their own overflow.
+  // with no visible tab navigation. Un-clipping the frame lets the rail stay
+  // docked outside the sheet while the bounded content regions scroll inside.
   overflow: visible;
 
   .window-content {
     display: flex;
-    // The tab rail is absolutely positioned past the sheet's right edge, so the
-    // content box must not clip it (see `.tabs-right` in components/_forms.scss).
-    overflow: visible;
-    // `overflow: visible` means this box no longer scrolls, so it has to be
-    // bounded instead — otherwise it grows to its content and spills past the
-    // window frame onto the canvas. Core already gives us `flex: 1`, but a flex
-    // child's default `min-height: auto` refuses to shrink below its content,
-    // so the height is only really pinned once this is 0. The Inventar tab is
-    // what made it visible: paper doll + Trageslots raster above the item list
-    // is the first tab tall enough to overflow a 640px sheet.
     min-height: 0;
+    overflow: visible;
   }
 
   // The actor type is pushed onto the app's classes by
   // TnoActorSheet#_initializeApplicationOptions.
   &.character .window-content {
     flex-direction: column;
+    // The entire character sheet moves as one document: banner, compact top
+    // row and long lists all share this scroll surface. The tab rail is moved
+    // beside this element after render, so it is not clipped or scrolled.
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: rgba($c-dark, 0.3) transparent;
   }
 
   &.npc .window-content {

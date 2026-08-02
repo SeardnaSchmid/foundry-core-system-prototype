@@ -24,13 +24,8 @@ $c-zone-suited-stroke: #8ba06f;
 // $c-warning from utils/_colors.scss — the same red marks the movement tiers
 // that load takes away on the banner chip, and the two have to match.
 
-// The zero-slot column. Tinted off the parchment rather than given a colour of
-// its own: it is an aside, and any hue here would claim a meaning the grid's
-// greens and warning red have already spoken for.
-$c-trinket-bg: rgba($c-dark, 0.05);
-$c-trinket-border: rgba($c-dark, 0.14);
 // Muted ink rather than $c-beige: the beige used elsewhere for secondary text
-// sits on the card, and against this tinted band it drops to roughly 1.1:1 —
+// sits on the card, and against the shared card surface it drops to roughly 1.1:1 —
 // invisible. This label carries the meaning of the whole column, so it has to
 // stay readable while still ranking below the item names in $c-tan.
 $c-trinket-label: rgba($c-dark, 0.55);
@@ -49,6 +44,16 @@ $c-trinket-label: rgba($c-dark, 0.55);
   // of zone rows beside it and the silhouette can scale to match.
   align-items: stretch;
   padding: 14px 16px;
+}
+
+// One shared quiet surface below the common Basics heading. Armour, loose
+// items and the slot raster remain distinct interactions, not distinct panel
+// systems.
+.basics-section-card {
+  border: 1px solid rgba($c-dark, 0.14);
+  border-radius: 8px;
+  background: rgba($c-dark, 0.05);
+  box-shadow: none;
 }
 
 .paperdoll-figure {
@@ -247,16 +252,11 @@ $c-trinket-label: rgba($c-dark, 0.55);
 }
 
 .slot-grid-header {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  margin-bottom: 10px;
-  font-size: var(--font-size-13, 13px);
+  gap: 6px;
 }
 
 .slot-grid-title {
-  font-weight: bold;
-  color: $c-dark;
+  padding-right: 0;
 }
 
 // A ratio, not a string: the three parts are sized and weighted apart so the
@@ -272,7 +272,7 @@ $c-trinket-label: rgba($c-dark, 0.55);
   // The used count is the number players actually track, so it carries the
   // weight.
   strong {
-    font-size: var(--font-size-22, 22px);
+    font-size: var(--font-size-12, 12px);
     color: $c-advance;
 
     // Over budget is legal — it just costs movement — so this is a warning
@@ -288,7 +288,7 @@ $c-trinket-label: rgba($c-dark, 0.55);
 // without becoming a third number.
 .slot-grid-sep {
   margin: 0 2px;
-  font-size: var(--font-size-14, 14px);
+  font-size: var(--font-size-11, 11px);
   color: $c-tan;
   opacity: 0.45;
 }
@@ -299,7 +299,7 @@ $c-trinket-label: rgba($c-dark, 0.55);
 // get out of its way. It was $c-beige, which sat at 1.25:1 on the card's own
 // $c-faint: the limit is context, but a budget nobody can read is not context.
 .slot-grid-max {
-  font-size: var(--font-size-14, 14px);
+  font-size: var(--font-size-11, 11px);
   color: $c-tan;
 }
 
@@ -614,9 +614,8 @@ $c-trinket-label: rgba($c-dark, 0.55);
 // raster, so they get a column of their own beside the worn zones. Listed
 // downwards, not across: the names are short and the column is as tall as the
 // paper doll beside it, so height is the free dimension and width is not.
-// Recessed rather than raised — a pocket rather than a card, belonging to the
-// same kit but sitting outside the budget, so it never competes with the raster
-// that carries the actual capacity.
+// Flat rather than wrapped: zero-slot gear is a lightweight aside next to the
+// paper doll, not another inventory card.
 .slot-trinkets {
   display: flex;
   flex: 0 1 auto;
@@ -624,23 +623,14 @@ $c-trinket-label: rgba($c-dark, 0.55);
   align-items: stretch;
   gap: 3px;
   padding: 8px 10px;
-  border: 1px solid $c-trinket-border;
-  border-radius: 8px;
-  background: $c-trinket-bg;
   // The list starts at the top of the column rather than floating in the middle
   // of whatever height the row gives it.
   justify-content: flex-start;
 }
 
-// Same shape as the Trageslots header beside it: what the block is on the left,
-// what it costs on the right.
+// Common Basics heading: the category on the left and its cost on the right.
 .slot-trinkets-header {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: baseline;
   gap: 6px;
-  margin-bottom: 4px;
-  font-size: var(--font-size-13, 13px);
 }
 
 // The only thing here that names a rule rather than a piece of gear, so it is
@@ -648,8 +638,6 @@ $c-trinket-label: rgba($c-dark, 0.55);
 // `help` because there is nothing to click — the label explains itself and does
 // nothing else.
 .slot-trinkets-title {
-  font-weight: bold;
-  color: $c-dark;
   cursor: help;
 }
 
@@ -666,10 +654,8 @@ $c-trinket-label: rgba($c-dark, 0.55);
   flex-direction: column;
   align-items: stretch;
   gap: 3px;
-  min-height: 0;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba($c-dark, 0.3) transparent;
+  min-height: auto;
+  overflow: visible;
 }
 
 // Says the column is empty, not broken — with no header row of its own to make

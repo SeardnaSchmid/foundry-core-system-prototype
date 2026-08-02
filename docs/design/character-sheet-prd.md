@@ -38,7 +38,7 @@ The character sheet (`TnoActorSheet`, actor type `character`) is the single-wind
 
 - **Fixed window size:** 1000×640 (`TnoActorSheet.defaultOptions`) — sized to fit the compact attribute matrix plus three skill columns without forcing a wider window than the reference sheet needed.
 - **Two-column shell:** `.sheet-columns` holds a fixed-width `<aside class="sidebar">` (portrait + derived stats, visible across every tab) and a `.sheet-main` column carrying the header band and tabbed body.
-- **Tab rail:** `<nav class="sheet-tabs tabs-right">` is docked as a vertical icon rail along the right edge (mirroring the reference sheet), each item showing an icon plus a text label that's hidden by default and revealed on hover/focus so the rail's purpose is discoverable without waiting on the native tooltip delay. It is re-parented out of `.window-content` directly onto the app window element (`_dockTabsRail`) so it can dock past the sheet's own scroll bounds.
+- **Tab rail:** `<nav class="sheet-tabs tabs-right">` is docked as a vertical icon rail along the right edge (mirroring the reference sheet), each item showing an icon plus a text label that's hidden by default and revealed on hover/focus so the rail's purpose is discoverable without waiting on the native tooltip delay. After ApplicationV2 wires its actions, `_dockTabsRail()` moves it from `.window-content` onto the app root so it remains fixed outside the sheet's single scroll surface.
 - **Header band:** spans only the main columns (not the sidebar), holds the editable name field and a total-XP badge (`totalXpSpent` = attribute XP + skill XP combined) — the badge's home after being an orphaned footer line under the sidebar in an earlier layout.
 
 ---
@@ -74,7 +74,7 @@ Docked left, visible on every tab.
 
 ## Basics Tab: Skills
 
-- **Grouping:** skills are grouped by `CONFIG.TNO.skillCategories`, rendered in a balanced CSS multi-column flow (`.skill-groups`) inside a scroll wrapper that owns vertical overflow independently of the rest of the sheet, so a long "All" list fills all three columns evenly instead of scrolling the whole sheet. Categories with zero skills defined still render, with an empty-state hint.
+- **Grouping:** skills are grouped by `CONFIG.TNO.skillCategories`, rendered in a balanced CSS multi-column flow (`.skill-groups`). A long "All" list fills all three columns evenly and extends the character sheet's single vertical scroll surface. Categories with zero skills defined still render, with an empty-state hint.
 - **Custom skills:** actor-defined skills (via `TnoCustomSkillDialog`) are merged into the same list as built-ins by `getSkillDefinitions()` and behave identically — same roll flow, same advancement, own badge, always counted as "trained" regardless of rank so a freshly added rank-0 custom skill doesn't disappear from the default filter.
 - **Per-row display:** name (with subgroup badge, e.g. "Medicine — First Aid" compacted to a badge, and custom badge where applicable), rank (level chip, color-graded like the attribute cells once rank > 0), and an XP fraction (`xp`/`xpCost`, cost = `3 × (rank+1)`), highlighted "ready" once advancement is affordable.
 - **Roll:** clicking a skill row opens `TnoRollDialog` preselecting the skill's suggested attribute (or whichever attribute the actor last rolled that skill against — `lastAttribute` sticks per-skill) and the skill's rank as a threshold component. Shift-clicking a *custom* skill opens its edit dialog instead of rolling.
