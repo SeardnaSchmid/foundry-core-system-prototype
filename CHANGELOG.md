@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.27.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.26.0...v0.27.0) (2026-08-02)
+
+
+### Features
+
+* **items:** redesign gear editing and item roles ([2ae81e0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/2ae81e0192731b4a3a35ed2202885982355f9eaa))
+
 # [0.26.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.25.2...v0.26.0) (2026-08-01)
 
 
