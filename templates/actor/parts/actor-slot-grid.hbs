@@ -55,9 +55,7 @@ the same grid, marked over capacity. --}}
     {{#each slotGrid.cells as |cell|}}
       <div class='slot-cell slot-filled draggable{{#if cell.over}} over-capacity{{/if}}{{#if cell.first}} slot-first{{/if}}{{#if cell.showQty}} slot-with-qty{{/if}}{{#unless cell.last}} slot-joined{{/unless}}'
            style='--slot-run: {{cell.span}}'
-           data-item-id='{{cell.item._id}}'
-           data-tooltip-html='{{cell.tip}}'
-           data-tooltip-direction='UP'>
+           data-item-id='{{cell.item._id}}'>
         {{#if cell.first}}
           <i class='fas fa-grip-vertical slot-grip'></i>
           {{#if cell.over}}<i class='fas fa-triangle-exclamation slot-overflow-icon'></i>{{/if}}

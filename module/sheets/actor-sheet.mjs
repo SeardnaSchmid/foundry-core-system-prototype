@@ -21,7 +21,7 @@ import {
   ARMOR_ADDON_ZONES,
   wornItemIds,
 } from '../helpers/inventory.mjs';
-import { localizeGearSummary, prepareGearSummaryContext } from '../helpers/item-summary.mjs';
+import { prepareGearSummaryContext } from '../helpers/item-summary.mjs';
 import { ITEM_ROLES, WEAPON_ATTRIBUTES, armorZones, inventoryIcon, itemRoles, weaponUse } from '../helpers/items.mjs';
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
@@ -636,7 +636,6 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           item,
           icon: inventoryIcon(item),
           quantity,
-          tip: `${this.#slotStats(item)}<br>${game.i18n.localize('TNO.Inventory.CellHint')}`,
         });
       }),
       // Handlebars has no "repeat n times", so the free-cell count becomes a
@@ -670,16 +669,11 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    * @private
    */
   #slotCells(block, inside) {
-    const stats = this.#slotStats(block.item);
-    const insideTip = `${stats}<br>${game.i18n.localize('TNO.Inventory.CellHint')}`;
-    const overTip = `${stats}<br>${game.i18n.localize('TNO.Inventory.OverflowHint')}`;
-
     return Array.from({ length: block.span }, (_, index) => {
       const over = index >= inside;
       return {
         item: block.item,
         icon: inventoryIcon(block.item),
-        tip: over ? overTip : insideTip,
         over,
         first: index === 0,
         last: index === block.span - 1,
@@ -702,44 +696,6 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     }
     if (roles.weapon) return game.i18n.localize(CONFIG.TNO.weaponUses[weaponUse(item.system)]);
     return null;
-  }
-
-  /**
-   * The stat block a carry cell or trinket shows on hover and on focus, as the
-   * HTML core's TooltipManager renders from `data-tooltip-html`.
-   *
-   * Assembled here rather than in the template because the sheet registers only
-   * `toLowerCase` and `ifEquals` as Handlebars helpers, and this needs to branch
-   * on the item type. There is deliberately no weight: the rules price gear in
-   * slots, and no weight field exists to show.
-   *
-   * Armour is read from `system`, never `system.derived`: a piece in the carry
-   * grid is being hauled rather than worn, so what it is worth is what the piece
-   * itself says, not what it would contribute layered into a zone.
-   *
-   * Every interpolated field is escaped — the string is rendered as HTML, and
-   * names and the weapon free-text fields are all user-authored.
-   *
-   * @param {Item} item
-   * @returns {string}
-   * @private
-   */
-  #slotStats(item) {
-    const esc = foundry.utils.escapeHTML;
-    const loc = (key) => game.i18n.localize(key);
-    const summary = localizeGearSummary(item);
-    const badges = summary.badges.map((badge) => esc(badge.text));
-    const probe = summary.probe
-      ? [summary.probe.attribute, summary.probe.fv].map((part) => esc(part.display))
-      : [];
-    // A tile with nothing in it is the card keeping its shape, which a one-line
-    // tooltip has no use for.
-    const facts = [...summary.tiles.filter((tile) => tile.state !== 'na'), ...summary.rows]
-      .map((fact) => `${esc(loc(fact.labelKey))} ${esc(fact.display)}${fact.note ? ` ${esc(fact.note.text)}` : ''}`);
-    return [
-      `<strong>${esc(item.name)}</strong>`,
-      [...badges, ...probe, ...facts].join(' · '),
-    ].filter(Boolean).join('<br>');
   }
 
   /** Build the popover's template context from the live embedded item. */

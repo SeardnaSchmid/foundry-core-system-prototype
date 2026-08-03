@@ -39,13 +39,6 @@ Hooks.once('init', function () {
   // Add custom constants for configuration.
   CONFIG.TNO = TNO;
 
-  // Core's default hover delay (500ms) reads as sluggish on the carry grid,
-  // where every cell carries a `data-tooltip-html` stat block and reading the
-  // grid means sweeping across several of them. Only elements core's
-  // TooltipManager handles are affected — a plain `title=` is the browser's own
-  // tooltip and keeps its own timing.
-  TooltipManager.TOOLTIP_ACTIVATION_MS = 150;
-
   /**
    * The combat tracker rolls exactly what the character sheet's Initiative
    * caption rolls — the derived Initiative value plus 1d10 — by sharing the
