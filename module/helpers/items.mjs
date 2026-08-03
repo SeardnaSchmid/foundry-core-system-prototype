@@ -328,6 +328,27 @@ export function toggleZone(current, zone) {
 }
 
 /**
+ * What each required-field key is called, so the gear dialog's footer and the
+ * view-mode card's warning banner name a missing value the same way.
+ * @type {Object<string, string>}
+ */
+export const MISSING_FIELD_LABELS = {
+  name: 'Name',
+  slots: 'TNO.Inventory.Slots',
+  fv: 'TNO.Item.Cap.Fv',
+  wa: 'TNO.Weapons.Attribute',
+  dk: 'TNO.Weapons.Dk',
+  range: 'TNO.Weapons.Range',
+  rd: 'TNO.Weapons.Rd',
+  ss: 'TNO.Weapons.Ss',
+  zone: 'TNO.Armor.Zone.Label',
+  rh: 'TNO.Armor.Rh',
+  ra: 'TNO.Armor.Ra',
+  rb: 'TNO.Weapons.Rb',
+  effects: 'TNO.Item.Effect',
+};
+
+/**
  * Which required fields are still blank, as field keys the dialog's footer
  * counts and its rows mark.
  *
@@ -363,8 +384,11 @@ export function missingRequired(item) {
   }
 
   if (roles.armor) {
-    if (!armorZones(item).length) missing.push('zone');
-    if (blank(system.rh)) missing.push('rh');
+    const zones = armorZones(item);
+    if (!zones.length) missing.push('zone');
+    // Underclothing never grants Armour Hardness, so RH is not a value the
+    // suit is missing — it is one the suit does not have.
+    if (blank(system.rh) && !zones.includes(ARMOR_SUIT_ZONE)) missing.push('rh');
     if (blank(system.ra)) missing.push('ra');
   }
 

@@ -17,7 +17,7 @@ related: [reference/module-map]
 | `actor/actor-npc-sheet.hbs` | `TnoActorSheet` (type `npc`) |
 | `actor/parts/actor-items.hbs`, `actor-features.hbs`, `actor-spells.hbs`, `actor-effects.hbs` | Included by the actor sheet templates above |
 | `actor/parts/actor-paperdoll.hbs`, `actor-trinkets.hbs`, `actor-slot-grid.hbs` | Three of the five columns of the character sheet's Basics tab — see [inventory.md](../concepts/inventory.md). The paper doll and the Kleinkram column sit in the top row, the carry raster in the bottom one |
-| `actor/parts/item-popover.hbs` | The actor-sheet item popover: compact summary plus the live item actions |
+| `actor/parts/item-popover.hbs` | The actor-sheet item popover: the shared view-mode card plus the live item actions |
 | `apps/roll-dialog.hbs` | `TnoRollDialog` |
 | `apps/base-roll-dialog.hbs` | `TnoBaseRollDialog` |
 | `apps/parts/advantage-picker.hbs` | Included by both roll dialogs, via `roll-dialog-shared.mjs` |
@@ -28,7 +28,7 @@ related: [reference/module-map]
 | `chat/roll-card.hbs` | `rollTno()` / `rollTnoBase()` in `dice.mjs` — see [dice-resolution.md](../concepts/dice-resolution.md) |
 | `chat/edge-panel.hbs`, `chat/parts/trial-error-tracker.hbs` | `chat.mjs`'s `renderEdgeSection()` — see [edge-pool.md](../concepts/edge-pool.md) |
 | `item/item-gear-sheet.hbs` | `TnoGearSheet` — the row editor for every physical item, see [item-roles.md](../concepts/item-roles.md) |
-| `item/parts/item-gear-summary.hbs` | The shared compact gear summary used by the actor-sheet popover and chat item cards |
+| `item/parts/item-gear-summary.hbs` | The shared view-mode card — badges, probe band, value tiles, warning banner, detail rows — used by the actor-sheet popover and chat item cards |
 | `item/parts/item-role-weapon.hbs`, `item-role-armor.hbs`, `item-role-consumable.hbs` | Included by `item-gear-sheet.hbs`, one per role the item has switched on |
 | `item/parts/item-scale.hbs` | The click-scale control (DK, RD, RH, RW). Called with `{{> item-scale cells=scales.dk key='dk'}}` |
 | `item/item-sheet.hbs`, `item-feature-sheet.hbs`, `item-spell-sheet.hbs` | `TnoItemSheet`, resolved per item type — only `feature` and `spell` reach it now |
@@ -82,6 +82,7 @@ them in step with `BASICS_LAYOUT_DEFAULT`.
 | `components/_forms.scss` | Shared form controls across dialogs and sheets |
 | `components/_items.scss` | Inventory list rendering, including the Rollen column's tags |
 | `components/_item-dialog.scss` | Both gear views: overview cards/profiles/actions plus the editor's label column, scales, cycleable range bands, repeatable consumable effects, resizable description editor, chips, segments, splits and steppers. Nested with `&.gear-dialog` because the class sits on the sheet root alongside `tno`, not inside it |
+| `components/_item-popover.scss` | The view-mode card in both its homes — the actor sheet's top-layer popover (`&.item-popover`) and the chat card (`&.item-chat-summary`). Badges, probe band, value tiles, warning banner, detail rows and the action bar are styled once for both |
 | `components/_inventory.scss` | The paper doll, the Kleinkram column and the Trageslots grid — see [inventory.md](../concepts/inventory.md). The narrower padding they take inside a Basics column is set on `.basics-cell` in `_forms.scss`, not here |
 | `components/_effects.scss` | Active effect list rendering |
 | `components/_base-roll-button.scss` | The chat-log "Basiswürfel" quick-roll button |

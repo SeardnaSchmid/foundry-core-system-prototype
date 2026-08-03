@@ -18,8 +18,10 @@
   @import 'components/resource';
   @import 'components/items';
   @import 'components/item-dialog';
-  @import 'components/item-popover';
   @import 'components/inventory';
+  // After inventory: the view-mode card borrows the paper doll's worn colours,
+  // which are declared there.
+  @import 'components/item-popover';
   @import 'components/effects';
   @import 'components/dice-dialog';
 }

@@ -413,7 +413,16 @@
       "Summary": {
         "Stock": "Stock",
         "Dk": "DK",
-        "Hh": "HH"
+        "HhActive": "HH atk",
+        "HhAttack": "Attack",
+        "HhParry": "Parry",
+        "WeaponAttribute": "Weapon attribute",
+        "SkillRequirement": "Skill requirement",
+        "QuantityFrom2": "Qty from 2",
+        "Na": "n/a",
+        "Missing": "missing",
+        "RequirementShort": "{delta} not met",
+        "MissingBanner": "Required values missing: {fields} — add them in the editor."
       },
       "Popover": {
         "Edit": "Edit",

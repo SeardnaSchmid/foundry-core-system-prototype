@@ -28,10 +28,13 @@ $c-warning: #b3212b;
 // and never collides with the heatmap's green = high-magnitude colouring.
 $c-advance: #b8860b;
 
-// The interactive "commit to this action" accent — the roll dialog's main
-// CTA button only. A clear blue, distinct from both $c-advance's "level up"
-// gold and $c-ready's "affordable" green, so rolling the dice reads as the
-// one primary action and doesn't blend into stat/progression colours.
+// The interactive "commit to this action" accent — the roll dialog's main CTA
+// button, and the item card's "Angriff würfeln", which opens that same dialog.
+// A clear blue, distinct from both $c-advance's "level up" gold and $c-ready's
+// "affordable" green, so rolling the dice reads as the one primary action and
+// doesn't blend into stat/progression colours. Nothing that is not a roll takes
+// it: an item card without an attack emphasises Bearbeiten with weight and a
+// stronger outline instead.
 $c-primary: #2f6bff;
 $c-primary-hover: #255ae6;
 $c-primary-active: #1947c8;

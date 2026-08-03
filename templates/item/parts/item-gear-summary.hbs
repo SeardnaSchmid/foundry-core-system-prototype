@@ -1,6 +1,20 @@
+{{!-- The play-facing view of one piece of gear, shared by the actor sheet's
+      popover and the chat card. Read top to bottom: what it is, what a check
+      with it starts from, its numbers, what is still missing, then the facts
+      that need a sentence. Nothing about buying it appears here. --}}
 <header class='item-popover-head'>
-  <img src='{{item.img}}' width='22' height='22' alt=''/>
-  <strong>{{item.name}}</strong>
+  <img src='{{item.img}}' width='40' height='40' alt=''/>
+  <div class='item-popover-title'>
+    <strong>{{item.name}}</strong>
+    <div class='item-popover-badges'>
+      {{#each summary.badges}}
+        <span class='item-popover-badge {{state}}'>{{text}}</span>
+      {{/each}}
+      {{#if presentation.ownership.label}}
+        <span class='item-popover-badge state {{presentation.ownership.state}}'>{{localize presentation.ownership.label}}</span>
+      {{/if}}
+    </div>
+  </div>
   {{#if showClose}}
     <button type='button' class='item-popover-close' data-popover-action='close'
             title='{{localize "TNO.Item.Popover.Close"}}' aria-label='{{localize "TNO.Item.Popover.Close"}}'
@@ -10,27 +24,60 @@
   {{/if}}
 </header>
 
-<div class='item-popover-badges'>
-  {{#each summary.badges}}
-    <span class='item-popover-badge'>{{localize this}}</span>
-  {{/each}}
-  {{#if presentation.ownership.label}}
-    <span class='item-popover-badge state {{presentation.ownership.state}}'>{{localize presentation.ownership.label}}</span>
-  {{/if}}
-  {{#if missingCount}}
-    <span class='item-popover-badge warning'>
-      <i class='fa-solid fa-triangle-exclamation' aria-hidden='true'></i>
-      {{localize 'TNO.Item.MissingRequired' count=missingCount}}
-    </span>
-  {{/if}}
-</div>
+{{#if summary.probe}}
+  <div class='item-popover-probe'>
+    <div>
+      <span class='cap'>{{localize summary.probe.attribute.labelKey}}</span>
+      <span class='val{{#if summary.probe.attribute.missing}} missing{{/if}}'>{{summary.probe.attribute.display}}</span>
+    </div>
+    <div>
+      <span class='cap'>{{localize summary.probe.fv.labelKey}}</span>
+      <span class='val{{#if summary.probe.fv.missing}} missing{{/if}}'>{{summary.probe.fv.display}}</span>
+    </div>
+  </div>
+{{/if}}
 
-{{#if summary.stats.length}}
-  <dl class='item-popover-stats'>
-    {{#each summary.stats}}
+{{#if summary.tiles.length}}
+  <div class='item-popover-tiles'>
+    {{#each summary.tiles}}
+      <div class='item-popover-tile {{state}}'>
+        <span class='val'>{{display}}</span>
+        <span class='cap'>{{localize labelKey}}</span>
+      </div>
+    {{/each}}
+  </div>
+{{/if}}
+
+{{#if missingCount}}
+  <p class='item-popover-warning'>
+    <i class='fa-solid fa-triangle-exclamation' aria-hidden='true'></i>
+    {{localize 'TNO.Item.Summary.MissingBanner' fields=missingFields}}
+  </p>
+{{/if}}
+
+{{#if summary.rows.length}}
+  <dl class='item-popover-rows'>
+    {{#each summary.rows}}
       <div>
-        <dt>{{localize this.labelKey}}</dt>
-        <dd>{{this.display}}</dd>
+        <dt>{{localize labelKey}}</dt>
+        {{#ifEquals key 'ammo'}}
+          {{#if @root.canAdjustAmmo}}
+            <dd class='item-popover-ammo'>
+              <button type='button' data-popover-action='ammo' data-by='-1' title='{{localize "TNO.Item.Overview.AmmoDecrease"}}'>&minus;</button>
+              <input type='number' class='item-popover-ammo-input' value='{{value}}'
+                     min='0' step='1' aria-label='{{localize "TNO.Weapons.LoadedAmmo"}}'/>
+              <button type='button' data-popover-action='ammo' data-by='1' title='{{localize "TNO.Item.Overview.AmmoIncrease"}}'>+</button>
+              {{#if suffix}}<span class='ammo-type'>{{suffix}}</span>{{/if}}
+            </dd>
+          {{else}}
+            <dd>{{display}}</dd>
+          {{/if}}
+        {{else}}
+          <dd>
+            {{display}}
+            {{#if note}}<span class='note {{note.state}}'>· {{note.text}}</span>{{/if}}
+          </dd>
+        {{/ifEquals}}
       </div>
     {{/each}}
   </dl>

@@ -411,9 +411,18 @@
         "AmmoIncrease": "Munition erhöhen"
       },
       "Summary": {
-        "Stock": "Vorrat",
+        "Stock": "Bestand",
         "Dk": "DK",
-        "Hh": "HH"
+        "HhActive": "HH akt",
+        "HhAttack": "Angriff",
+        "HhParry": "Parade",
+        "WeaponAttribute": "Waffenattribut",
+        "SkillRequirement": "Fertigkeitsvoraussetzung",
+        "QuantityFrom2": "Menge ab 2",
+        "Na": "n/a",
+        "Missing": "fehlt",
+        "RequirementShort": "{delta} nicht erfüllt",
+        "MissingBanner": "Pflichtwerte fehlen: {fields} — im Editor nachtragen."
       },
       "Popover": {
         "Edit": "Bearbeiten",

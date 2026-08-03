@@ -1,4 +1,13 @@
-import { armorZones, itemRoles, RANGE_BANDS, weaponAttribute, weaponUse } from './items.mjs';
+import {
+  ARMOR_SUIT_ZONE,
+  RANGE_BANDS,
+  WEAPON_ATTRIBUTES,
+  armorZones,
+  itemRoles,
+  missingRequired,
+  weaponAttribute,
+  weaponUse,
+} from './items.mjs';
 import { itemSlotCost, wornItemIds } from './inventory.mjs';
 import { TNO } from './config.mjs';
 
@@ -12,112 +21,180 @@ const numberOrNull = (value) => {
   return Number.isFinite(number) ? number : null;
 };
 
-const present = (value) => value !== '' && value !== null && value !== undefined;
+/** Write a modifier the way a player reads it: with its sign, always. */
+const signed = (value) => (value > 0 ? `+${value}` : String(value));
 
 /**
- * Build the compact, role-aware facts shared by carry-cell tooltips and the
- * actor-sheet item popover. The helper deliberately returns localization keys
- * instead of translated strings so it stays usable in plain unit tests and
- * free of Foundry globals.
+ * Build the compact, role-aware view of one piece of gear — what the item
+ * popover, the chat card and the carry-cell tooltips all show.
  *
- * A stat value is normally display-ready. The two values which need runtime
- * context remain structured: armour zones are localization keys, while an FV
- * carries the skill key which the owning actor resolves (including custom
- * skills).
+ * The shape is the view mode's layout rather than a flat stat list, because
+ * the card is read in three passes and each one has its own grammar:
+ *
+ * - **badges** say what the thing is,
+ * - **probe** carries the two fixed components a weapon check starts from,
+ * - **tiles** are the handful of numbers with a rules table behind them, one
+ *   glance each, and
+ * - **rows** are everything that needs a sentence.
+ *
+ * Which numbers are tiles is decided per role, and the count is deliberately
+ * stable within a role so a shelf of cards lines up. A tile a role cannot fill
+ * is not dropped: it stays as an `na` tile, so switching a weapon from melee to
+ * ranged does not change the card's height. A tile a role *requires* and the
+ * item has not got is a `missing` tile, which is the same list `missingRequired`
+ * counts, so the tile and the warning banner can never disagree.
+ *
+ * Price and availability never appear here. They are facts about buying the
+ * thing, not about using it, and the view mode is what is on the table.
+ *
+ * The helper returns localization keys rather than translated strings so it
+ * stays free of Foundry globals and unit-testable; the two values that need
+ * runtime context stay structured, an FV carrying the skill key the owning
+ * actor resolves (custom skills included).
  *
  * @param {Object} item  An item document or plain item-shaped object.
- * @returns {{badges: string[], stats: Array<{labelKey: string, value: *}>}}
+ * @returns {{badges: Array, probe: ?Object, tiles: Array, rows: Array, missing: string[]}}
  */
 export function buildGearSummary(item) {
   const system = item?.system ?? {};
   const roles = itemRoles(item);
   const use = weaponUse(system);
-  const badges = Object.entries(TNO.itemRoles)
-    .filter(([role]) => roles[role])
-    .map(([, labelKey]) => labelKey);
-  if (!badges.length) badges.push('TNO.Item.Role.Plain');
-  if (roles.weapon) badges.push(TNO.weaponUses[use]);
-
-  const stats = [];
-  if (!item?.isWorn) {
-    stats.push({ labelKey: 'TNO.Inventory.Slots', value: itemSlotCost(item) });
-  }
-
+  const zones = armorZones(item);
+  const missing = missingRequired(item);
   const quantity = Math.max(0, numberOrNull(system.quantity) ?? 1);
-  if (roles.consumable) {
-    stats.push({ labelKey: 'TNO.Item.Summary.Stock', value: `×${quantity}` });
-  } else if (quantity > 1) {
-    stats.push({ labelKey: 'TNO.Inventory.Quantity', value: `×${quantity}` });
+
+  const roleKey = Object.entries(TNO.itemRoles).find(([role]) => roles[role])?.[1];
+  const badges = [{
+    key: 'role',
+    state: 'role',
+    join: ' · ',
+    labelKeys: roleKey
+      ? [roleKey, ...(roles.weapon ? [TNO.weaponUses[use]] : [])]
+      : ['TNO.Item.Role.Plain'],
+  }];
+  if (zones.length) {
+    badges.push({
+      key: 'zone',
+      state: 'zone',
+      join: ': ',
+      labelKeys: ['TNO.Armor.Zone.Label', TNO.armorZones[zones[0]]],
+    });
   }
 
-  if (roles.weapon) {
-    stats.push({ labelKey: 'TNO.Weapons.Attribute', value: [TNO.abilities[weaponAttribute(system)]] });
-    const skillKey = String(system.fv?.skill ?? '').trim();
-    const customSkill = item?.actor?.system?.skills?.[skillKey]?.custom;
-    if (skillKey && (skillKey in TNO.skills || customSkill)) {
-      stats.push({
-        labelKey: 'TNO.Item.Cap.Fv',
-        value: { skillKey, rank: Number(system.fv?.rank) || 0 },
-      });
-    }
-    if (use === 'melee' && present(system.dk)) {
-      stats.push({ labelKey: 'TNO.Item.Summary.Dk', value: Number(system.dk) });
-    }
-    const penetration = use === 'ranged' ? 'rd' : 'rb';
-    if (present(system[penetration])) {
-      stats.push({
-        labelKey: penetration === 'rd' ? 'TNO.Weapons.RdShort' : 'TNO.Weapons.Rb',
-        value: Number(system[penetration]),
-      });
-    }
-    for (const [key, labelKey] of [['ss', 'TNO.Weapons.Ss'], ['ws', 'TNO.Weapons.Ws']]) {
-      const count = numberOrNull(system[key]?.count);
-      if (count !== null && count > 0) stats.push({ labelKey, value: `${count}W` });
-    }
+  // The two components an Angriffswurf is built from, shown together because
+  // neither is meaningful alone and the roll dialog fixes both.
+  const skillKey = String(system.fv?.skill ?? '').trim();
+  const probe = roles.weapon
+    ? {
+        attribute: {
+          labelKey: 'TNO.Item.Summary.WeaponAttribute',
+          valueKey: WEAPON_ATTRIBUTES.includes(system.wa) ? TNO.abilities[weaponAttribute(system)] : null,
+        },
+        fv: {
+          labelKey: 'TNO.Item.Summary.SkillRequirement',
+          value: skillKey ? { skillKey, rank: Number(system.fv?.rank) || 0 } : null,
+        },
+      }
+    : null;
+
+  const na = (key, labelKey) => ({ key, labelKey, value: null, state: 'na' });
+  const tile = (key, labelKey, value, format = String) => {
+    if (missing.includes(key)) return { key, labelKey, value: null, state: 'missing' };
+    const number = numberOrNull(value);
+    return number === null
+      ? na(key, labelKey)
+      : { key, labelKey, value: format(number), state: 'value' };
+  };
+  const dice = (count) => `${count}W`;
+
+  const tiles = [];
+  if (roles.weapon && use === 'melee') {
+    tiles.push(
+      tile('dk', 'TNO.Item.Summary.Dk', system.dk),
+      tile('rb', 'TNO.Weapons.Rb', system.rb),
+      tile('ss', 'TNO.Weapons.Ss', system.ss?.count, dice),
+      tile('ws', 'TNO.Weapons.Ws', system.ws?.count, dice),
+    );
+  } else if (roles.weapon) {
+    tiles.push(
+      tile('rd', 'TNO.Weapons.RdShort', system.rd),
+      tile('ss', 'TNO.Weapons.Ss', system.ss?.count, dice),
+      tile('ws', 'TNO.Weapons.Ws', system.ws?.count, dice),
+      tile('hh', 'TNO.Item.Summary.HhActive', system.hh?.active, signed),
+    );
+  } else if (roles.armor) {
+    tiles.push(
+      zones.includes(ARMOR_SUIT_ZONE) ? na('rh', 'TNO.Armor.RhShort') : tile('rh', 'TNO.Armor.RhShort', system.rh),
+      tile('rw', 'TNO.Armor.RwShort', system.rw),
+      tile('ra', 'TNO.Armor.RaShort', system.ra),
+    );
+  } else if (roles.consumable) {
+    // Stock is the only number a consumable has, so it takes the emphasis the
+    // role values get on every other card.
+    tiles.push(
+      { key: 'stock', labelKey: 'TNO.Item.Summary.Stock', value: String(quantity), state: 'primary' },
+      tile('slots', 'TNO.Inventory.Slots', itemSlotCost(item)),
+    );
+  } else {
+    tiles.push(
+      tile('slots', 'TNO.Inventory.Slots', itemSlotCost(item)),
+      quantity > 1
+        ? { key: 'quantity', labelKey: 'TNO.Inventory.Quantity', value: `×${quantity}`, state: 'value' }
+        : na('quantity', 'TNO.Item.Summary.QuantityFrom2'),
+    );
+  }
+
+  const rows = [];
+  if (roles.weapon && use === 'melee') {
     const active = numberOrNull(system.hh?.active);
     const passive = numberOrNull(system.hh?.passive);
-    if (active !== null || (use === 'melee' && passive !== null)) {
-      const values = use === 'melee' ? [active, passive] : [active];
-      stats.push({
-        labelKey: 'TNO.Item.Summary.Hh',
-        value: values.map((value) => value ?? '—').join(' / '),
-      });
-    }
-    if (use === 'ranged') {
-      const count = Math.max(0, numberOrNull(system.ammo?.count) ?? 0);
-      const type = String(system.ammo?.type ?? '').trim();
-      stats.push({
-        labelKey: 'TNO.Weapons.Magazine',
-        value: `${count}${type ? ` ${type}` : ''}`,
+    if (active !== null || passive !== null) {
+      rows.push({
+        key: 'hh',
+        labelKey: 'TNO.Weapons.Hh',
+        parts: [
+          { labelKey: 'TNO.Item.Summary.HhAttack', value: active === null ? '—' : signed(active) },
+          { labelKey: 'TNO.Item.Summary.HhParry', value: passive === null ? '—' : signed(passive) },
+        ],
       });
     }
   }
-
-  if (roles.armor) {
-    const zones = armorZones(item);
-    if (zones.length) {
-      stats.push({
-        labelKey: 'TNO.Armor.Zone.Label',
-        value: zones.map((zone) => TNO.armorZones[zone]),
-      });
-    }
-    const suit = zones.includes('suit');
-    if (suit || present(system.rh)) {
-      stats.push({ labelKey: 'TNO.Armor.RhShort', value: suit ? '—' : Number(system.rh) });
-    }
-    if (present(system.rw)) {
-      stats.push({ labelKey: 'TNO.Armor.RwShort', value: Number(system.rw) });
-    }
-    if (present(system.ra)) {
-      stats.push({ labelKey: 'TNO.Armor.RaShort', value: `${Number(system.ra)} / 10` });
-    }
+  if (roles.weapon && use === 'ranged') {
+    const type = String(system.ammo?.type ?? '').trim();
+    rows.push({
+      key: 'ammo',
+      labelKey: 'TNO.Weapons.Magazine',
+      value: Math.max(0, numberOrNull(system.ammo?.count) ?? 0),
+      suffix: type || null,
+    });
+  }
+  // Weapons and armour spend their tiles on combat values, so the two carry
+  // facts move down here rather than disappearing from the card.
+  if ((roles.weapon || roles.armor) && quantity > 1) {
+    rows.push({ key: 'quantity', labelKey: 'TNO.Inventory.Quantity', value: `×${quantity}` });
+  }
+  if ((roles.weapon || roles.armor) && !item?.isWorn) {
+    rows.push({ key: 'slots', labelKey: 'TNO.Inventory.Slots', value: itemSlotCost(item) });
   }
 
-  if (present(system.sv) && Number(system.sv) !== 0) {
-    stats.push({ labelKey: 'TNO.Item.Cap.Sv', value: Number(system.sv) });
+  const required = Math.max(0, numberOrNull(system.sv) ?? 0);
+  if (required > 0) {
+    // The shortfall is plain arithmetic against the owner's Strength. How many
+    // penalty steps it costs is combat resolution and is not decided here.
+    const actual = numberOrNull(item?.actor?.system?.abilities?.str?.base);
+    rows.push({
+      key: 'sv',
+      labelKey: 'TNO.Item.Cap.Sv',
+      value: required,
+      note: actual === null
+        ? null
+        : actual >= required
+          ? { labelKey: 'TNO.Item.Overview.RequirementMet', state: 'ok' }
+          : { labelKey: 'TNO.Item.Summary.RequirementShort', params: { delta: actual - required }, state: 'warning' },
+    });
   }
 
-  return { badges, stats };
+  return { badges, probe, tiles, rows, missing };
 }
 
 /** Present a damage pair without deciding which combat branch applies. */

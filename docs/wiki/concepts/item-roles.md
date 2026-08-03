@@ -148,15 +148,49 @@ row. Numeric fields with structural bounds are clamped through
 `GEAR_NUMBER_BOUNDS`; custom scales, chips, segments and steppers use native
 buttons so Enter/Space and disabled/focus semantics come from the browser.
 
-The actor-sheet popover offers only actions backed by stored state: open the
+## The view-mode card
+
+The compact summary is one card, built once in `buildGearSummary` and rendered
+by both the actor-sheet popover and the chat item card. It is read top to
+bottom in four passes, and the shape is per role:
+
+| Band | What it holds |
+| --- | --- |
+| Badges | The role chip (filled), the weapon's use joined into it, the armour location, and the carried/worn state |
+| Probe band | A weapon's Waffenattribut and Fertigkeitsvoraussetzung, hairline-split in one box because neither half is an answer alone |
+| Tiles | The numbers with a rules table behind them — DK/RB/SS/WS for a melee weapon, RD/SS/WS/HH for a ranged one, RH/RW/RA for armour, Bestand + Trageslots for a consumable, Trageslots + Menge for a plain object |
+| Warning | Which required values are still blank, sitting between the numbers and the button that fixes them |
+| Rows | Everything needing a sentence: Handhabung, the magazine, the stack's carry cost, and the SV against its owner's Strength |
+
+Three properties of that card matter:
+
+**A tile never collapses.** The tile count is fixed within a role, so a value
+the item has not got stays as a hatched `na` box or, when the role requires it,
+a `missing` box in the warning colour. This is the same reason the editor
+hatches instead of hiding, and it is what keeps a shelf of cards aligned.
+
+**One list decides both the tile and the banner.** A `missing` tile and the
+warning banner both read `missingRequired`, so they cannot disagree. The one
+place that list encodes a rule is the Unterkleidung: a suit never grants RH, so
+a blank RH on a suit is not a missing value — the tile is `na` and the piece is
+complete.
+
+**No price, no availability.** Those are facts about acquiring the thing. The
+card is what is on the table.
+
+The popover offers only actions backed by stored state: open the
 editor, post to chat, adjust loaded ammunition, and delete the item through the
 same confirmation used by the inventory list. Worn armour must be taken off
-before deletion.
+before deletion. The chat card renders the same partial without any of them.
 An actor-owned weapon with FV can open the normal roll builder as a
-**Angriffswurf**. Its authored FV and Waffenattribut are required, shown as
-the two fixed threshold components, and cannot be changed in that dialog. That
-is not a full attack: it neither chooses SS/WS nor spends ammunition, and it
-does not imply a readied state.
+**Angriffswurf**, and takes the full-width primary action; every other item
+makes Bearbeiten primary instead. Its authored FV and Waffenattribut are
+required, shown as the two fixed threshold components, and cannot be changed in
+that dialog. That is not a full attack: it neither chooses SS/WS nor spends
+ammunition, and it does not imply a readied state.
+
+The carry-cell tooltips flatten the same card into one line, dropping the `na`
+tiles — a box holding the layout together says nothing in a sentence.
 
 Controls, and when each is right:
 

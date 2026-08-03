@@ -729,13 +729,17 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const esc = foundry.utils.escapeHTML;
     const loc = (key) => game.i18n.localize(key);
     const summary = localizeGearSummary(item);
-    const badges = summary.badges.map((key) => esc(loc(key)));
-    const stats = summary.stats.map((stat) =>
-      `${esc(loc(stat.labelKey))} ${esc(stat.display)}`
-    );
+    const badges = summary.badges.map((badge) => esc(badge.text));
+    const probe = summary.probe
+      ? [summary.probe.attribute, summary.probe.fv].map((part) => esc(part.display))
+      : [];
+    // A tile with nothing in it is the card keeping its shape, which a one-line
+    // tooltip has no use for.
+    const facts = [...summary.tiles.filter((tile) => tile.state !== 'na'), ...summary.rows]
+      .map((fact) => `${esc(loc(fact.labelKey))} ${esc(fact.display)}${fact.note ? ` ${esc(fact.note.text)}` : ''}`);
     return [
       `<strong>${esc(item.name)}</strong>`,
-      [...badges, ...stats].join(' · '),
+      [...badges, ...probe, ...facts].join(' · '),
     ].filter(Boolean).join('<br>');
   }
 

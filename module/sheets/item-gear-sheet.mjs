@@ -4,6 +4,7 @@ import {
   ARMOR_ZONES,
   GEAR_NUMBER_BOUNDS,
   ITEM_ROLES,
+  MISSING_FIELD_LABELS,
   RANGE_BANDS,
   SCALES,
   WEAPON_ATTRIBUTES,
@@ -21,22 +22,6 @@ import {
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ItemSheetV2 } = foundry.applications.sheets;
-
-const MISSING_LABELS = {
-  name: 'Name',
-  slots: 'TNO.Inventory.Slots',
-  fv: 'TNO.Item.Cap.Fv',
-  wa: 'TNO.Weapons.Attribute',
-  dk: 'TNO.Weapons.Dk',
-  range: 'TNO.Weapons.Range',
-  rd: 'TNO.Weapons.Rd',
-  ss: 'TNO.Weapons.Ss',
-  zone: 'TNO.Armor.Zone.Label',
-  rh: 'TNO.Armor.Rh',
-  ra: 'TNO.Armor.Ra',
-  rb: 'TNO.Weapons.Rb',
-  effects: 'TNO.Item.Effect',
-};
 
 /**
  * The gear dialog: one row editor for every physical item, whatever roles it
@@ -155,7 +140,7 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     context.missingCount = missing.length;
     context.missingFields = missing.map((field) => ({
       field,
-      label: MISSING_LABELS[field] ?? field,
+      label: MISSING_FIELD_LABELS[field] ?? field,
     }));
 
     // The Richtwert tier the authored slot count falls into, so the header can

@@ -1,29 +1,48 @@
-// Compact item facts and actions in the browser's native top layer. Like the
-// gear dialog, this class sits on the same element as `.tno`, hence `&`.
+// The view-mode card: compact item facts and actions, in the browser's native
+// top layer on the actor sheet and as an in-message card in chat.
+//
+// The layout is the wireframe's — badges, probe band, value tiles, warning,
+// detail rows, action bar. The *chrome* is deliberately not: the card is opened
+// from the character sheet and has to look like it belongs to that sheet, so it
+// borrows the Basics tab's vocabulary rather than the gear editor's high-
+// contrast black-and-white. Concretely:
+//
+// - quiet surfaces are `rgba($c-dark, .14)` hairlines at radius 8, like
+//   `.basics-section-card`;
+// - "this value is live" is the paper doll's worn green, the same step the
+//   armour rows and filled carry cells use;
+// - "nothing here" is a dashed $c-beige box, the same as an empty zone;
+// - a shortfall is $c-warning, shared with the Stärkevorraussetzung warning;
+// - the attack CTA is $c-primary, which _colors.scss reserves for exactly one
+//   thing: committing to a roll.
+//
+// Like the gear dialog, the popover class sits on the same element as `.tno`,
+// hence `&`.
 &.item-popover {
   position: fixed;
   inset: auto;
-  width: min(280px, calc(100vw - 16px));
+  width: min(300px, calc(100vw - 16px));
   max-height: calc(100vh - 16px);
   margin: 0;
-  padding: 8px;
+  padding: 0;
   overflow: auto;
-  border: 1px solid rgba($c-dark, 0.55);
-  border-radius: 6px;
+  border: 1px solid rgba($c-dark, 0.22);
+  border-radius: 8px;
   background: #f4f1e8;
-  box-shadow: 0 5px 18px rgba($c-black, 0.28);
+  box-shadow: 0 5px 18px rgba($c-black, 0.24);
 
   &::backdrop {
     background: transparent;
   }
 }
 
-// Chat uses the exact same summary partial, presented as an in-message card
-// instead of a viewport-positioned top-layer element.
+// Chat uses the exact same partial, presented as an in-message card instead of
+// a viewport-positioned top-layer element.
 &.item-chat-summary {
-  padding: 8px;
-  border: 1px solid rgba($c-dark, 0.35);
-  border-radius: 6px;
+  padding: 0 0 8px;
+  overflow: hidden;
+  border: 1px solid rgba($c-dark, 0.14);
+  border-radius: 8px;
   background: rgba($c-white, 0.38);
 }
 
@@ -47,23 +66,32 @@
 
   .item-popover-head {
     display: flex;
-    align-items: center;
-    gap: 7px;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 9px 10px;
+    border-bottom: 1px solid rgba($c-dark, 0.14);
+  }
 
-    img {
-      flex: 0 0 22px;
-      width: 22px;
-      height: 22px;
-      border: 1px solid rgba($c-dark, 0.25);
-      border-radius: 3px;
-      object-fit: cover;
-    }
+  .item-popover-head img {
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+    border: 1px solid rgba($c-dark, 0.14);
+    border-radius: 6px;
+    background: rgba($c-white, 0.5);
+    object-fit: cover;
+  }
+
+  .item-popover-title {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
 
     strong {
-      flex: 1;
-      min-width: 0;
       overflow: hidden;
-      font-size: 13px;
+      font-size: var(--font-size-14, 14px);
       line-height: 1.2;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -71,99 +99,318 @@
   }
 
   .item-popover-close {
-    flex: 0 0 24px;
-    width: 24px;
-    height: 24px;
+    flex: 0 0 22px;
+    width: 22px;
+    height: 22px;
     padding: 0;
     border: none;
     background: transparent;
-    color: rgba($c-dark, 0.62);
-    line-height: 24px;
+    color: $c-tan;
+    line-height: 22px;
   }
 
   .item-popover-badges {
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
-    margin-top: 7px;
   }
 
   .item-popover-badge {
-    padding: 2px 5px;
-    border: 1px solid rgba($c-dark, 0.28);
-    border-radius: 999px;
-    background: rgba($c-white, 0.55);
-    font-size: 9px;
-    line-height: 1.2;
+    padding: 2px 8px;
+    border: 1px solid rgba($c-dark, 0.18);
+    border-radius: 20px;
+    background: rgba($c-dark, 0.06);
+    font-size: var(--font-size-11, 11px);
+    line-height: 1.35;
 
-    &.state.worn {
-      border-color: rgba($c-ready, 0.55);
-      color: $c-ready;
+    // What the thing is, stated quietly. The role identifies the card; it is
+    // not a state, so it must not borrow the worn green.
+    &.role {
+      border-color: rgba($c-dark, 0.28);
+      background: rgba($c-dark, 0.1);
+      font-weight: bold;
     }
 
-    &.warning {
-      border-color: rgba($c-warning, 0.55);
-      background: rgba($c-warning, 0.06);
-      color: $c-warning;
+    &.zone {
+      border-color: $c-beige;
+      background: none;
+      color: $c-tan;
+    }
+
+    // Worn is the same green the paper doll and the armour rows use, because
+    // it is the same fact seen from a different surface.
+    &.state.worn {
+      border-color: $c-zone-filled-border;
+      background: $c-zone-filled-bg;
+    }
+
+    &.state.carried {
+      border-color: $c-beige;
+      background: none;
+      color: $c-tan;
     }
   }
 
-  .item-popover-stats {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0 10px;
-    margin: 8px 0 0;
-    padding: 6px 0;
-    border-top: 1px solid rgba($c-dark, 0.18);
-    border-bottom: 1px solid rgba($c-dark, 0.18);
+  // The two fixed components of an Angriffswurf, hairline-split inside one box
+  // because neither half is an answer on its own.
+  .item-popover-probe {
+    display: flex;
+    align-items: stretch;
+    margin: 9px 10px 0;
+    overflow: hidden;
+    border: 1px solid rgba($c-dark, 0.14);
+    border-radius: 8px;
+    background: rgba($c-white, 0.45);
 
     > div {
-      display: grid;
-      grid-template-columns: minmax(38px, auto) 1fr;
-      gap: 5px;
-      align-items: baseline;
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      gap: 2px;
       min-width: 0;
-      padding: 2px 0;
+      padding: 5px 9px;
+
+      + div {
+        border-left: 1px solid rgba($c-dark, 0.14);
+      }
+    }
+
+    .val {
+      overflow: hidden;
+      font-size: var(--font-size-13, 13px);
+      font-weight: bold;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      &.missing {
+        color: $c-warning;
+      }
+    }
+  }
+
+  // One tile per number with a rules table behind it. The count is fixed per
+  // role, so an unfilled tile stays as a dashed or warning box rather than
+  // collapsing and changing the card's height.
+  .item-popover-tiles {
+    display: flex;
+    gap: 5px;
+    padding: 9px 10px 0;
+  }
+
+  .item-popover-tile {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+    padding: 5px 2px;
+    border: 1px solid rgba($c-dark, 0.14);
+    border-radius: 8px;
+    background: rgba($c-white, 0.5);
+
+    .val {
+      font-size: var(--font-size-16, 16px);
+      font-weight: bold;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.2;
+    }
+
+    // The one value a consumable has. Green-filled like a trained skill rank,
+    // which is the sheet's existing way of saying "this number is the point".
+    &.primary {
+      border-color: $c-zone-filled-border;
+      background: $c-zone-filled-bg;
+    }
+
+    // Nothing to put here, by rule or by stack size. The same dashed idiom as
+    // an empty armour zone and a free carry cell.
+    &.na {
+      border-style: dashed;
+      border-color: $c-beige;
+      background: none;
+
+      .val {
+        color: $c-tan;
+        font-size: var(--font-size-12, 12px);
+        font-style: italic;
+        font-weight: normal;
+        line-height: 1.6;
+      }
+    }
+
+    // A required value the item has not got. The same list the banner names.
+    &.missing {
+      border-color: $c-warning;
+      background: rgba($c-warning, 0.08);
+
+      .val {
+        color: $c-warning;
+        font-size: var(--font-size-12, 12px);
+        font-weight: normal;
+        line-height: 1.6;
+      }
+
+      .cap {
+        color: $c-warning;
+      }
+    }
+  }
+
+  // Recessive by design, in both the probe band and the tiles: the eye should
+  // land on the value, exactly as it does on an armour row's RH/RW/RA pair.
+  .item-popover-probe .cap,
+  .item-popover-tile .cap {
+    max-width: 100%;
+    overflow: hidden;
+    color: $c-tan;
+    font-size: var(--font-size-11, 11px);
+    font-weight: normal;
+    letter-spacing: 0.04em;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  // Sits between the values and the actions, so the missing value is read on
+  // the way to the button that fixes it.
+  .item-popover-warning {
+    display: flex;
+    gap: 6px;
+    margin: 9px 10px 0;
+    padding: 6px 8px;
+    border: 1px solid rgba($c-warning, 0.55);
+    border-radius: 8px;
+    background: rgba($c-warning, 0.07);
+    color: $c-warning;
+    font-size: var(--font-size-11, 11px);
+    line-height: 1.4;
+  }
+
+  .item-popover-rows {
+    margin: 5px 10px 9px;
+    padding: 0;
+
+    > div {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-height: 24px;
+      padding: 3px 0;
+
+      + div {
+        border-top: 1px solid rgba($c-dark, 0.1);
+      }
     }
 
     dt {
-      overflow: hidden;
-      color: rgba($c-dark, 0.58);
-      font-size: 9px;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      color: $c-tan;
+      font-size: var(--font-size-11, 11px);
+      letter-spacing: 0.04em;
     }
 
     dd {
       min-width: 0;
       margin: 0;
       overflow-wrap: anywhere;
-      font-size: 10px;
+      font-size: var(--font-size-12, 12px);
       font-weight: bold;
       font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+
+    .note {
+      font-size: var(--font-size-11, 11px);
+      font-weight: normal;
+
+      &.ok {
+        color: $c-tan;
+      }
+
+      &.warning {
+        color: $c-warning;
+      }
     }
   }
 
   .item-popover-actions {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 10px;
+    border-top: 1px solid rgba($c-dark, 0.14);
+    background: rgba($c-dark, 0.04);
+  }
+
+  .item-popover-actions-row {
+    display: flex;
     align-items: center;
-    gap: 4px;
-    margin-top: 8px;
+    gap: 5px;
 
-    > button {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 4px 6px;
-      border: 1px solid rgba($c-dark, 0.28);
-      border-radius: 4px;
-      background: rgba($c-white, 0.58);
-      color: $c-dark;
-      font-size: 9px;
+    .spacer {
+      flex: 1;
+    }
+  }
 
-      &.danger {
-        color: $c-warning;
+  .item-popover-actions button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 4px 9px;
+    border: 1px solid rgba($c-dark, 0.2);
+    border-radius: 6px;
+    background: rgba($c-white, 0.55);
+    color: $c-dark;
+    font-size: var(--font-size-11, 11px);
+
+    &:hover:not(:disabled) {
+      border-color: rgba($c-dark, 0.4);
+      background: rgba($c-white, 0.85);
+    }
+
+    // Not a roll, so not the blue: an emphasised outline is enough to make
+    // editing the obvious next step on a card that has no attack.
+    &.primary {
+      border-color: rgba($c-dark, 0.55);
+      background: rgba($c-white, 0.9);
+      font-weight: bold;
+    }
+
+    // The one real CTA, styled as the roll dialog's `.tno-roll-submit` is:
+    // _colors.scss reserves this blue for committing to a roll, and this button
+    // opens that very dialog. Foundry's warm-gold :focus glow is killed for the
+    // same reason it is there — the blue identity has to carry into focus.
+    &.wide {
+      width: 100%;
+      padding: 6px 9px;
+      border-color: $c-primary;
+      background: $c-primary;
+      color: $c-white;
+      font-size: var(--font-size-12, 12px);
+      font-weight: bold;
+      transition: background 0.12s ease;
+
+      &:hover:not(:disabled) {
+        border-color: $c-primary-hover;
+        background: $c-primary-hover;
+      }
+
+      &:active:not(:disabled) {
+        border-color: $c-primary-active;
+        background: $c-primary-active;
+      }
+
+      &:focus {
+        box-shadow: none;
+      }
+    }
+
+    &.danger {
+      color: $c-warning;
+
+      &:hover:not(:disabled) {
+        border-color: rgba($c-warning, 0.55);
       }
     }
   }
@@ -171,37 +418,37 @@
   .item-popover-ammo {
     display: inline-flex;
     align-items: center;
-    height: 24px;
-    border: 1px solid rgba($c-dark, 0.28);
-    border-radius: 4px;
-    background: rgba($c-white, 0.58);
+    height: 22px;
+    border: 1px solid rgba($c-dark, 0.18);
+    border-radius: 6px;
+    background: rgba($c-white, 0.55);
 
     button {
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
       padding: 0;
       border: none;
       background: transparent;
-      line-height: 22px;
+      line-height: 20px;
     }
 
     input {
-      width: 34px;
-      height: 22px;
+      width: 32px;
+      height: 20px;
       min-width: 0;
       margin: 0;
       padding: 0 2px;
       appearance: textfield;
       -moz-appearance: textfield;
       border: none;
-      border-right: 1px solid rgba($c-dark, 0.18);
-      border-left: 1px solid rgba($c-dark, 0.18);
+      border-right: 1px solid rgba($c-dark, 0.14);
+      border-left: 1px solid rgba($c-dark, 0.14);
       border-radius: 0;
       background: transparent;
       box-shadow: none;
       color: $c-dark;
       text-align: center;
-      font-size: 10px;
+      font-size: var(--font-size-12, 12px);
       font-variant-numeric: tabular-nums;
 
       &::-webkit-inner-spin-button,
@@ -209,6 +456,13 @@
         margin: 0;
         appearance: none;
       }
+    }
+
+    .ammo-type {
+      padding: 0 6px;
+      color: $c-tan;
+      font-size: var(--font-size-11, 11px);
+      font-weight: normal;
     }
   }
 }
