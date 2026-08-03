@@ -79,9 +79,15 @@ always did.
 | Group | Fields |
 | --- | --- |
 | Every item | `quantity`, `slots`, `sv`, `price`, `availability`, `description` |
-| Weapon role | `use` (`melee`/`ranged`), `fv: {skill, rank}`, `wa` (one primary-attribute key), `dk`, `range: {sn, near, mid, far, sf}`, `ammo: {count, type}`, `rd`, `ss: {count}`, `ws: {count}`, `hh: {active, passive}`, `rb` |
+| Weapon role | `use` (`melee`/`ranged`), `fv: {skill, rank}`, `wa` (one primary-attribute key), `dk`, `range: {sn, near, mid, far, sf}`, `rd`, `ss: {count}`, `ws: {count}`, `hh: {active, passive}`, `rb` |
 | Armour role | `zone`, `rh`, `rw`, `ra` |
 | Consumable role | `consumableEffects: [{id, text}]`; its remaining stock is the shared `quantity` |
+
+`normalizeConsumableEffects()` is the compatibility boundary for the effects
+list. The current shape is the array above, but the reader also accepts an
+indexed object left by an early live-editor form and a legacy single string.
+Every validation and editor path consumes the normalized array; the next
+add/edit/remove action writes that canonical shape back to the item.
 
 `dk`, `rd`, `rh`, `rw` and every `range` band are **nullable**, and that is
 load-bearing: not filled in and set to the lowest step are different answers.
@@ -160,7 +166,7 @@ bottom in four passes, and the shape is per role:
 | Probe band | A weapon's Waffenattribut and Fertigkeitsvoraussetzung, hairline-split in one box because neither half is an answer alone |
 | Tiles | The numbers with a rules table behind them — DK/RB/SS/WS for a melee weapon, RD/SS/WS/HH for a ranged one, RH/RW/RA for armour, Bestand + Trageslots for a consumable, Trageslots + Menge for a plain object |
 | Warning | Which required values are still blank, sitting between the numbers and the button that fixes them |
-| Rows | Everything needing a sentence: Handhabung, the magazine, the stack's carry cost, and the SV against its owner's Strength |
+| Rows | Everything needing a sentence: Handhabung, the stack's carry cost, and the SV against its owner's Strength |
 
 Three properties of that card matter:
 
@@ -178,16 +184,18 @@ complete.
 **No price, no availability.** Those are facts about acquiring the thing. The
 card is what is on the table.
 
-The popover offers only actions backed by stored state: open the
-editor, post to chat, adjust loaded ammunition, and delete the item through the
-same confirmation used by the inventory list. Worn armour must be taken off
-before deletion. The chat card renders the same partial without any of them.
+The popover offers only actions backed by stored state: open the editor, post
+to chat, change a consumable's remaining stock with the `−` / `+` controls in
+its primary tile, and delete the item through the same confirmation used by the
+inventory list. Stock never drops below zero. Worn armour must be taken off
+before deletion. The chat card renders the same partial without any of these
+live controls.
 An actor-owned weapon with FV can open the normal roll builder as a
 **Angriffswurf**, and takes the full-width primary action; every other item
 makes Bearbeiten primary instead. Its authored FV and Waffenattribut are
 required, shown as the two fixed threshold components, and cannot be changed in
-that dialog. That is not a full attack: it neither chooses SS/WS nor spends
-ammunition, and it does not imply a readied state.
+that dialog. That is not a full attack: it does not choose SS/WS and does not
+imply a readied state.
 
 The carry-cell tooltips flatten the same card into one line, dropping the `na`
 tiles — a box holding the layout together says nothing in a sentence.
@@ -196,12 +204,12 @@ Controls, and when each is right:
 
 | Control | Used for | Why |
 | --- | --- | --- |
-| Click-scale | slots, availability, DK, RB/RD, RH, RW, RA | A closed set of steps a rules table enumerates. Clicking the selected cell again clears it — the only way back to "not set" |
-| Stepper | quantity, loaded ammunition | Counts with no table behind them, nudged far more often than typed |
+| Click-scale | slots, availability, DK, RB/RD, RH, RW, RA | A closed set of steps a rules table enumerates. Clicking the selected cell again clears it — the only way back to "not set". The slots label has a keyboard-focusable info-icon tooltip containing the complete size guideline table |
+| Stepper | quantity | A count with no table behind it, nudged far more often than typed |
 | Chips | role, armour location | Both are exclusive and clearable selections |
 | Segments | weapon use | Single-select melee/ranged category, joined into one bar |
 | Range bands | Five independently cycled `—`, `−3`, `0`, `+3` values. New ranged profiles start neutral at `0`; a horizontal line moves down/red for a penalty and up/green for a bonus, with a dashed center line for no attack |
-| Split | SS, WS, HH | Parts of a single figure, hairline-separated inside one box. SS/WS store a count of standard damage dice (`W`), not a selectable die type |
+| Split | SS, WS, HH | Related values in equal caption/value boxes: SS beside WS and Angriff beside Parade. A ranged weapon keeps Parade visible but disables its input. SS/WS are plain damage values from 0 upward — no unit, no die type, and nothing to append to the number |
 | Repeatable text | consumable effects | Each effect is a complete free-text rule including any value or duration it needs |
 
 The general/trade fields and the selected role's fields are separated by a
@@ -218,9 +226,6 @@ intercepted where a native control does not already own them.
 - **`stapelbarMit`** from the handoff's data model. It is a second layering
   model, and the one that governs is already settled: the suit never gives RH,
   everything else adds. Two would contradict.
-- **Ammunition dropdowns.** The rules provide no ammunition catalog. The sheet
-  stores the loaded magazine count plus a free-text ammunition type; spare
-  ammunition remains a separate inventory item.
 - **Einhändig/zweihändig, holsters, vacuum sealing, clothing category.** Real
   properties in the rules, but nothing reads them — adding fields nothing reads
   is how the old `roll.diceNum` boxes got there.

@@ -110,7 +110,6 @@ export const GEAR_NUMBER_BOUNDS = {
   'system.sv': { min: 0 },
   'system.price': { min: 0 },
   'system.fv.rank': { min: 0 },
-  'system.ammo.count': { min: 0 },
   'system.ss.count': { min: 0 },
   'system.ws.count': { min: 0 },
   'system.hh.active': { min: -3, max: 3 },
@@ -226,6 +225,39 @@ export function isGear(item) {
 }
 
 /**
+ * Read consumable effects from both the current array and legacy malformed
+ * shapes. Early live-editor builds could persist the indexed form fields as an
+ * object, while older hand-authored data may contain one plain text value.
+ * Returning one canonical array keeps every reader safe; the editor writes
+ * this array back on the next add, edit, or remove action.
+ *
+ * @param {Object} system  An item's system data.
+ * @returns {Array<{id: string, text: string}>}
+ */
+export function normalizeConsumableEffects(system) {
+  const stored = system?.consumableEffects;
+  const values = Array.isArray(stored)
+    ? stored
+    : typeof stored === 'string'
+      ? [stored]
+      : stored && typeof stored === 'object'
+        ? Object.values(stored)
+        : [];
+
+  return values
+    .map((effect, index) => {
+      if (typeof effect === 'string') return { id: `legacy-${index}`, text: effect };
+      if (!effect || typeof effect !== 'object') return null;
+      return {
+        ...effect,
+        id: String(effect.id ?? '').trim() || `legacy-${index}`,
+        text: String(effect.text ?? ''),
+      };
+    })
+    .filter(Boolean);
+}
+
+/**
  * A weapon's use, defaulting to melee for anything unset or unrecognised.
  * @param {Object} system  An item's `system` data.
  * @returns {string}  One of WEAPON_USES.
@@ -273,7 +305,7 @@ export function usesMelee(system) {
 }
 
 /**
- * Whether the weapon's range bands and ammunition apply.
+ * Whether the weapon's range bands apply.
  * @param {Object} system  An item's `system` data.
  * @returns {boolean}
  */
@@ -392,7 +424,7 @@ export function missingRequired(item) {
     if (blank(system.ra)) missing.push('ra');
   }
 
-  if (roles.consumable && !(system.consumableEffects ?? []).some((effect) => String(effect?.text ?? '').trim())) {
+  if (roles.consumable && !normalizeConsumableEffects(system).some((effect) => effect.text.trim())) {
     missing.push('effects');
   }
 

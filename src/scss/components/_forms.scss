@@ -672,8 +672,10 @@
     min-height: 26px;
     padding: 2px 6px;
 
+    // Trimmed with the rest of the doll, but the base-layer break has to stay
+    // readable as a break — at 3px it was just another row gap.
     &.armor-suit {
-      margin-bottom: 3px;
+      --suit-break: 8px;
     }
   }
 }
@@ -737,9 +739,8 @@
   color: $c-dark;
 }
 
-// Vertical icon-only tab rail docked outside the sheet's right edge. The sheet
-// moves it from `.window-content` onto the app root after ApplicationV2 wires
-// its tab actions, keeping it outside the character sheet's scroll surface.
+// Vertical icon-only tab rail docked outside the sheet's right edge. It stays
+// inside `.window-content`, where ApplicationV2 resolves tab redirects.
 .tabs-right {
   position: absolute;
   top: 160px;
@@ -809,8 +810,11 @@
 }
 
 .biography-textarea {
+  display: block;
+  box-sizing: border-box;
   width: 100%;
-  height: 100%;
+  min-height: 8rem;
+  max-height: min(55vh, 32rem);
   padding: 10px 12px;
   border: 1px solid rgba($c-dark, 0.15);
   border-radius: 4px;
@@ -824,6 +828,7 @@
   line-height: 1.4;
   color: $c-dark;
   resize: none;
+  overflow-y: hidden;
 
   &:focus {
     outline: none;

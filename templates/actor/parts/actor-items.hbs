@@ -1,71 +1,7 @@
-{{!-- The flat administrative surface: creating, editing, deleting and stowing
-items. The paper doll and the Trageslots grid used to sit above it and now live
-in the character sheet's Basics tab, beside the attributes — they answer "what
-am I wearing / hauling right now?", which is asked mid-roll, not while
-bookkeeping. --}}
-<ol class='items-list'>
-  <li class='item flexrow items-header'>
-    {{!-- Column captions only make sense once there are rows to label; while
-    the inventory is empty just the create control shows, above the
-    empty-state hint below. --}}
-    {{#if inventory.length}}
-    <div class='item-name'>{{localize 'Name'}}</div>
-    <div class='item-roles'>{{localize 'TNO.Item.Roles'}}</div>
-    {{/if}}
-    <div class='item-controls'>
-      {{!-- One control for all three physical types. The type used to be a
-      control each — one per type the inventory rules touch — which does not
-      survive a third type; it is a field in the add dialog now, the same one
-      the carry grid's "+" opens. --}}
-      <a class='item-control inventory-add' title='{{localize "TNO.Inventory.AddHint"}}'>
-        <i class='fas fa-plus'></i>
-        {{localize 'TNO.Inventory.Add'}}
-      </a>
-    </div>
-  </li>
-  {{#unless inventory.length}}
-  <li class='items-empty'>{{localize 'TNO.ItemsEmptyHint'}}</li>
-  {{/unless}}
-  {{#each inventory as |item id|}}
-    {{!-- `draggable` is the selector ActorSheetV2's inherited DragDrop binds,
-    which is what lets a row be dragged onto the hotbar as a macro. --}}
-    <li class='item flexrow draggable' data-item-id='{{item._id}}'>
-      <div class='item-name'>
-        <div class='item-image'>
-          <a class='rollable' data-roll-type='item'>
-            <i class='fa-solid {{item.inventoryIcon}} inventory-item-icon' title='{{item.name}}' aria-hidden='true'></i>
-          </a>
-        </div>
-        <h4>{{item.name}}</h4>
-      </div>
-      {{!-- What the piece is, which is now a list rather than a single type.
-      An item with no roles at all is most of the inventory and shows nothing,
-      which is the right amount of ink for a rope. --}}
-      <div class='item-roles item-prop'>
-        {{#each item.roleLabels}}
-          <span class='item-role-tag'>{{localize this}}</span>
-        {{/each}}
-      </div>
-      <div class='item-controls'>
-        {{!-- Worn gear is the paper doll's business and shows a static marker. --}}
-        {{#if item.isWorn}}
-          <span class='item-state item-state-worn' title='{{localize "TNO.Inventory.WornHint"}}'>
-            <i class='fas fa-user-shield'></i>
-          </span>
-        {{/if}}
-        <a
-          class='item-control item-edit'
-          title='{{localize "DOCUMENT.Update" type='Item'}}'
-        >
-          <i class='fas fa-edit'></i>
-        </a>
-        <a
-          class='item-control item-delete'
-          title='{{localize "DOCUMENT.Delete" type='Item'}}'
-        >
-          <i class='fas fa-trash'></i>
-        </a>
-      </div>
-    </li>
-  {{/each}}
-</ol>
+{{!-- The former flat inventory table is intentionally hidden while this
+surface is redesigned. The carried-gear and worn-armour views remain in the
+character sheet's Basics tab. --}}
+<section class='inventory-wip' role='status' aria-label='WIP'>
+  <i class='fa-solid fa-person-digging' aria-hidden='true'></i>
+  <strong>WIP</strong>
+</section>

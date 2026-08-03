@@ -15,7 +15,8 @@ related: [reference/module-map]
 | --- | --- |
 | `actor/actor-character-sheet.hbs` | `TnoActorSheet` (type `character`) |
 | `actor/actor-npc-sheet.hbs` | `TnoActorSheet` (type `npc`) |
-| `actor/parts/actor-items.hbs`, `actor-features.hbs`, `actor-spells.hbs`, `actor-effects.hbs` | Included by the actor sheet templates above |
+| `actor/parts/actor-items.hbs` | WIP placeholder in the actor sheet's Inventar tab |
+| `actor-features.hbs`, `actor-spells.hbs`, `actor-effects.hbs` | Included by the actor sheet templates above |
 | `actor/parts/actor-paperdoll.hbs`, `actor-trinkets.hbs`, `actor-slot-grid.hbs` | Three of the five columns of the character sheet's Basics tab — see [inventory.md](../concepts/inventory.md). The paper doll and the Kleinkram column sit in the top row, the carry raster in the bottom one |
 | `actor/parts/item-popover.hbs` | The actor-sheet item popover: the shared view-mode card plus the live item actions |
 | `apps/roll-dialog.hbs` | `TnoRollDialog` |
@@ -50,8 +51,8 @@ Two full-width rows, each a flex row of `.basics-cell` columns with a
 | `bottom` | skill list · Trageslots raster |
 
 Both rows size to their own content. Long skill and inventory lists extend the
-character sheet's single `.window-content` scroll surface; `_dockTabsRail()`
-moves the tab rail onto the app root so it remains fixed outside that scroller.
+character sheet's single `.window-content` scroll surface. The tab rail stays
+there too: ApplicationV2 resolves its tab actions from that container.
 
 A column's width is a **grow factor off a zero basis**, not a width: the
 handles' own strips come off the row first and the columns divide the rest, so

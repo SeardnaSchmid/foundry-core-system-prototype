@@ -73,7 +73,17 @@ button. --}}
   </div>
 
   <div class='gear-row {{#if missing.slots}}is-missing{{/if}}' data-row='slots'>
-    <span class='gear-label' title='{{localize "TNO.Inventory.SlotsHint"}}'>{{localize 'TNO.Inventory.Slots'}}</span>
+    <span class='gear-label gear-label-help'>
+      <span>{{localize 'TNO.Inventory.Slots'}}</span>
+      <span
+        class='gear-info'
+        tabindex='0'
+        role='img'
+        aria-label='{{localize "TNO.Inventory.SlotsInfoLabel"}}'
+        data-tooltip-html='{{localize "TNO.Inventory.SlotsInfo"}}'
+        data-tooltip-direction='RIGHT'
+      ><i class='fa-solid fa-circle-info' aria-hidden='true'></i></span>
+    </span>
     {{> 'systems/tno/templates/item/parts/item-scale.hbs' cells=scales.slots key='slots'}}
   </div>
 

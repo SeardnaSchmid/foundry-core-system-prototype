@@ -80,7 +80,7 @@ export class TnoItem extends Item {
    */
   async roll() {
     const content = isGear(this)
-      ? await renderTemplate(
+      ? await foundry.applications.handlebars.renderTemplate(
           'systems/tno/templates/chat/item-summary.hbs',
           prepareGearSummaryContext(this)
         )
@@ -107,18 +107,12 @@ export class TnoItem extends Item {
     }).render(true);
   }
 
-  /** Nudge the loaded ammunition count without letting it fall below zero. */
-  adjustAmmo(by) {
-    if (!hasRole(this, 'weapon') || !Number.isFinite(by)) return;
-    const current = Number(this.system.ammo?.count) || 0;
-    return this.setAmmo(current + by);
-  }
-
-  /** Set the loaded ammunition count from a numeric input, within its bounds. */
-  setAmmo(value) {
-    if (!hasRole(this, 'weapon') || value === '' || value === null || value === undefined) return;
-    const field = 'system.ammo.count';
-    const next = clampGearNumber(field, value);
+  /** Nudge a consumable stack's remaining stock without going below zero. */
+  adjustStock(by) {
+    if (!hasRole(this, 'consumable') || !Number.isFinite(by)) return;
+    const field = 'system.quantity';
+    const current = Number(this.system.quantity) || 0;
+    const next = clampGearNumber(field, current + by);
     if (!Number.isFinite(next)) return;
     return this.update({ [field]: next });
   }

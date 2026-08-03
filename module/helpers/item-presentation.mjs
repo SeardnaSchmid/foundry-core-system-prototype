@@ -105,21 +105,20 @@ export function buildGearSummary(item) {
       ? na(key, labelKey)
       : { key, labelKey, value: format(number), state: 'value' };
   };
-  const dice = (count) => `${count}W`;
 
   const tiles = [];
   if (roles.weapon && use === 'melee') {
     tiles.push(
       tile('dk', 'TNO.Item.Summary.Dk', system.dk),
       tile('rb', 'TNO.Weapons.Rb', system.rb),
-      tile('ss', 'TNO.Weapons.Ss', system.ss?.count, dice),
-      tile('ws', 'TNO.Weapons.Ws', system.ws?.count, dice),
+      tile('ss', 'TNO.Weapons.Ss', system.ss?.count),
+      tile('ws', 'TNO.Weapons.Ws', system.ws?.count),
     );
   } else if (roles.weapon) {
     tiles.push(
       tile('rd', 'TNO.Weapons.RdShort', system.rd),
-      tile('ss', 'TNO.Weapons.Ss', system.ss?.count, dice),
-      tile('ws', 'TNO.Weapons.Ws', system.ws?.count, dice),
+      tile('ss', 'TNO.Weapons.Ss', system.ss?.count),
+      tile('ws', 'TNO.Weapons.Ws', system.ws?.count),
       tile('hh', 'TNO.Item.Summary.HhActive', system.hh?.active, signed),
     );
   } else if (roles.armor) {
@@ -159,15 +158,6 @@ export function buildGearSummary(item) {
       });
     }
   }
-  if (roles.weapon && use === 'ranged') {
-    const type = String(system.ammo?.type ?? '').trim();
-    rows.push({
-      key: 'ammo',
-      labelKey: 'TNO.Weapons.Magazine',
-      value: Math.max(0, numberOrNull(system.ammo?.count) ?? 0),
-      suffix: type || null,
-    });
-  }
   // Weapons and armour spend their tiles on combat values, so the two carry
   // facts move down here rather than disappearing from the card.
   if ((roles.weapon || roles.armor) && quantity > 1) {
@@ -197,10 +187,15 @@ export function buildGearSummary(item) {
   return { badges, probe, tiles, rows, missing };
 }
 
-/** Present a damage pair without deciding which combat branch applies. */
+/**
+ * Present a damage pair without deciding which combat branch applies.
+ *
+ * SS and WS are plain values on a 0..N scale, not counts of dice — there is no
+ * unit to append, and a "W" suffix said there was one.
+ */
 export function damagePresentation(damage) {
   const count = Math.max(0, numberOrNull(damage?.count) ?? 0);
-  return { count, label: `${count}W` };
+  return { count, label: String(count) };
 }
 
 /** Build the signed five-band shape used by a ranged weapon overview. */

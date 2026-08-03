@@ -166,9 +166,9 @@ changes state**:
 
 - **Cell onto cell** re-sorts the list. Core's `ActorSheetV2#_onSortItem` does
   the whole job — it sorts a dropped item against whichever `[data-item-id]`
-  element it landed on — so the grid, the zero-slot band and the flat list are
-  all re-orderable without a sort handler of this system's own. What the cells
-  need from us is the `draggable` **class**: that is the selector core's
+  element it landed on — so the grid and zero-slot band are re-orderable
+  without a sort handler of this system's own. What the cells need from us is
+  the `draggable` **class**: that is the selector core's
   `DragDrop` binds, and without it a cell drags as an empty ghost.
 - **Cell onto a free cell** sorts the item past everything else
   (`_sortItemToEnd`) — dropping into the tail of the grid has no neighbour to
@@ -204,10 +204,10 @@ this view, so the cells are promoted into the keyboard tab order along with the
 sheet's other custom chips (`_makeKeyboardAccessible`).
 
 New gear is authored through one dialog (`_promptCreateItem`, opened by the
-`+` in the grid header and by the Inventar tab's single create control), and it
-asks only for a name. There is nothing else to ask: everything is created as
-type `item`, and what the thing *does* is roles it takes on afterwards, on its
-own sheet — see [item-roles.md](item-roles.md).
+`+` in the grid header), and it asks only for a name. The Inventar tab is
+currently a WIP placeholder rather than a second administrative table.
+Everything is created as type `item`, and what the thing *does* is roles it
+takes on afterwards, on its own sheet — see [item-roles.md](item-roles.md).
 
 **The grid holds exactly as many cells as the character has slots.** There is
 no padding out to the raster width — a capacity of 6 in a five-wide grid simply
@@ -222,6 +222,8 @@ it out, even where a gap remains — otherwise a small item would jump ahead of
 a large one it was sorted behind and the grid would silently reorder the
 player's list.
 
-The paper doll's silhouette has three per-zone paint states
-(`bare` / `suited` / `filled`), decided in the sheet rather than branched
-four times in the template.
+The paper doll's silhouette renders each zone as two possible layers. The
+full-size base uses the sheet-derived `baseState` (`bare` / `suited`), and a
+worn addon adds a smaller green plate above it. The exposed base rim therefore
+continues to show whether Unterkleidung is present even when that zone also has
+armour on top.

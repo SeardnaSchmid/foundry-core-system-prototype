@@ -27,8 +27,8 @@
   &.character .window-content {
     flex-direction: column;
     // The entire character sheet moves as one document: banner, compact top
-    // row and long lists all share this scroll surface. The tab rail is moved
-    // beside this element after render, so it is not clipped or scrolled.
+    // row and long lists all share this scroll surface. The tab rail hangs
+    // beside it so ApplicationV2 can keep resolving its tab actions.
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-gutter: stable;

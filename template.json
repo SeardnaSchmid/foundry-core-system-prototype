@@ -122,7 +122,6 @@
         "wa": "str",
         "dk": null,
         "range": { "sn": 0, "near": 0, "mid": 0, "far": 0, "sf": 0 },
-        "ammo": { "count": 0, "type": "" },
         "rd": null,
         "ss": { "count": 0 },
         "ws": { "count": 0 },

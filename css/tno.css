@@ -690,7 +690,7 @@
   padding: 2px 6px;
 }
 .tno .cell-gear .armor-row.armor-suit {
-  margin-bottom: 3px;
+  --suit-break: 8px;
 }
 .tno .basics-splitter {
   flex: 0 0 13px;
@@ -788,8 +788,11 @@
   margin-left: 6px;
 }
 .tno .biography-textarea {
+  display: block;
+  box-sizing: border-box;
   width: 100%;
-  height: 100%;
+  min-height: 8rem;
+  max-height: min(55vh, 32rem);
   padding: 10px 12px;
   border: 1px solid rgba(25, 24, 19, 0.15);
   border-radius: 4px;
@@ -800,6 +803,7 @@
   line-height: 1.4;
   color: #191813;
   resize: none;
+  overflow-y: hidden;
 }
 .tno .biography-textarea:focus {
   outline: none;
@@ -1796,6 +1800,27 @@
   font-style: italic;
   text-align: center;
 }
+.tno .inventory-wip {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  min-height: min(55vh, 32rem);
+  margin: 8px;
+  border: 2px dashed rgba(68, 68, 68, 0.7);
+  border-radius: 8px;
+  background: rgba(68, 68, 68, 0.08);
+  color: #444;
+  text-align: center;
+}
+.tno .inventory-wip i {
+  margin-bottom: 10px;
+  font-size: clamp(3rem, 10vw, 6rem);
+}
+.tno .inventory-wip strong {
+  font-size: clamp(2rem, 8vw, 5rem);
+  letter-spacing: 0.12em;
+  line-height: 1;
+}
 .tno .items-list {
   list-style: none;
   margin: 0;
@@ -2010,6 +2035,34 @@
   line-height: 1.2;
   color: rgba(25, 24, 19, 0.6);
 }
+.tno.gear-dialog .gear-label.gear-label-help {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.tno.gear-dialog .gear-info {
+  display: inline-grid;
+  flex: 0 0 14px;
+  width: 14px;
+  height: 14px;
+  place-items: center;
+  font-size: 13px;
+  line-height: 1;
+  color: rgba(25, 24, 19, 0.65);
+  cursor: help;
+}
+.tno.gear-dialog .gear-info:hover {
+  color: #2f6bff;
+}
+.tno.gear-dialog .gear-info:focus-visible {
+  border-radius: 50%;
+  color: #2f6bff;
+  outline: 1px solid #2f6bff;
+  outline-offset: 2px;
+}
+.tno.gear-dialog .gear-info i {
+  pointer-events: none;
+}
 .tno.gear-dialog .gear-ctl {
   flex: 1;
   display: flex;
@@ -2206,6 +2259,17 @@
 }
 .tno.gear-dialog .split:focus-within {
   border-color: #2f6bff;
+}
+.tno.gear-dialog .split.is-disabled {
+  border-color: #b5b3a4;
+  background: repeating-linear-gradient(45deg, rgba(181, 179, 164, 0.25) 0 5px, transparent 5px 10px);
+}
+.tno.gear-dialog .split.is-disabled .cap,
+.tno.gear-dialog .split.is-disabled input {
+  color: rgba(25, 24, 19, 0.45);
+}
+.tno.gear-dialog .split.is-disabled input {
+  cursor: not-allowed;
 }
 .tno.gear-dialog .stepper {
   flex: 1;
@@ -2707,36 +2771,39 @@
   height: auto;
 }
 .tno .paperdoll-figure .zone {
-  stroke-width: 1;
   cursor: pointer;
 }
-.tno .paperdoll-figure .zone.zone-bare {
+.tno .paperdoll-figure .zone .zone-base,
+.tno .paperdoll-figure .zone .zone-plate {
+  stroke-width: 1;
+}
+.tno .paperdoll-figure .zone.zone-bare .zone-base {
   fill: #b0b2ad;
   stroke: #85877f;
   stroke-dasharray: 4 3;
 }
-.tno .paperdoll-figure .zone.zone-suited {
+.tno .paperdoll-figure .zone.zone-suited .zone-base {
   fill: #cadcbb;
   stroke: #8ba06f;
 }
-.tno .paperdoll-figure .zone.zone-filled {
+.tno .paperdoll-figure .zone .zone-plate {
   fill: #7f9a62;
   stroke: #5d7546;
   stroke-width: 1.5;
 }
-.tno .paperdoll-figure .zone.zone-drop-target {
+.tno .paperdoll-figure .zone.zone-drop-target .zone-base, .tno .paperdoll-figure .zone.zone-drop-target .zone-plate {
   fill: rgba(184, 134, 11, 0.18);
   stroke: #b8860b;
   stroke-width: 2;
   stroke-dasharray: 4 3;
 }
-.tno .paperdoll-figure .zone.drop-onto {
+.tno .paperdoll-figure .zone.drop-onto .zone-base, .tno .paperdoll-figure .zone.drop-onto .zone-plate {
   fill: rgba(184, 134, 11, 0.4);
   stroke: #b8860b;
   stroke-width: 2.5;
   stroke-dasharray: none;
 }
-.tno .paperdoll-figure .zone:hover {
+.tno .paperdoll-figure .zone:hover .zone-base, .tno .paperdoll-figure .zone:hover .zone-plate {
   stroke: #b8860b;
 }
 .tno .paperdoll-zones {
@@ -2746,6 +2813,7 @@
   gap: 6px;
 }
 .tno .armor-row {
+  --armor-unequip-size: 1.25em;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -2755,6 +2823,10 @@
   border-radius: 8px;
   background: #dfe8d5;
   font-size: var(--font-size-13, 13px);
+}
+.tno .armor-row:not(:has(.armor-unequip))::after {
+  content: "";
+  flex: 0 0 var(--armor-unequip-size);
 }
 .tno .armor-row.armor-empty {
   border-style: dashed;
@@ -2778,7 +2850,17 @@
   cursor: grab;
 }
 .tno .armor-row.armor-suit {
-  margin-bottom: 4px;
+  --suit-break: 11px;
+  position: relative;
+  margin-top: var(--suit-break);
+}
+.tno .armor-row.armor-suit::before {
+  content: "";
+  position: absolute;
+  top: calc(var(--suit-break) / -2);
+  right: 6px;
+  left: 6px;
+  border-top: 1px solid rgba(25, 24, 19, 0.14);
 }
 .tno .armor-name {
   flex: 1;
@@ -2814,7 +2896,8 @@
   color: #444;
 }
 .tno .armor-unequip {
-  flex: 0 0 auto;
+  flex: 0 0 var(--armor-unequip-size);
+  text-align: center;
   color: #444;
 }
 .tno .armor-unequip:hover {
@@ -3338,6 +3421,62 @@
 .tno.item-popover .item-popover-tile.missing .cap, .tno.item-chat-summary .item-popover-tile.missing .cap {
   color: #b3212b;
 }
+.tno.item-popover .item-popover-stock, .tno.item-chat-summary .item-popover-stock {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 23px;
+  width: 100%;
+}
+.tno.item-popover .item-popover-stock > .val, .tno.item-chat-summary .item-popover-stock > .val {
+  flex: 0 0 auto;
+  min-width: 30px;
+  font-size: var(--font-size-18, 18px);
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
+}
+.tno.item-popover .item-popover-stock button, .tno.item-chat-summary .item-popover-stock button {
+  display: inline-flex;
+  flex: 0 0 16px;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 1.5px solid #5d7546;
+  border-radius: 50%;
+  background: rgba(127, 154, 98, 0.15);
+  color: #5d7546;
+  font-size: var(--font-size-11, 11px);
+  font-weight: bold;
+  line-height: 1;
+  opacity: 0.35;
+  transition: opacity 0.15s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .tno.item-popover .item-popover-stock button, .tno.item-chat-summary .item-popover-stock button {
+    opacity: 0;
+  }
+}
+.tno.item-popover .item-popover-stock button:hover:not(:disabled), .tno.item-chat-summary .item-popover-stock button:hover:not(:disabled) {
+  filter: brightness(0.92);
+}
+.tno.item-popover .item-popover-stock button:focus-visible, .tno.item-chat-summary .item-popover-stock button:focus-visible {
+  opacity: 1;
+  outline: none;
+}
+.tno.item-popover .item-popover-stock button:disabled, .tno.item-chat-summary .item-popover-stock button:disabled {
+  opacity: 0.15;
+}
+.tno.item-popover .item-popover-tile:hover .item-popover-stock button, .tno.item-chat-summary .item-popover-tile:hover .item-popover-stock button {
+  opacity: 1;
+}
+.tno.item-popover .item-popover-tile:hover .item-popover-stock button:disabled, .tno.item-chat-summary .item-popover-tile:hover .item-popover-stock button:disabled {
+  opacity: 0.15;
+}
 .tno.item-popover .item-popover-probe .cap,
 .tno.item-popover .item-popover-tile .cap, .tno.item-chat-summary .item-popover-probe .cap,
 .tno.item-chat-summary .item-popover-tile .cap {
@@ -3465,51 +3604,6 @@
 }
 .tno.item-popover .item-popover-actions button.danger:hover:not(:disabled), .tno.item-chat-summary .item-popover-actions button.danger:hover:not(:disabled) {
   border-color: rgba(179, 33, 43, 0.55);
-}
-.tno.item-popover .item-popover-ammo, .tno.item-chat-summary .item-popover-ammo {
-  display: inline-flex;
-  align-items: center;
-  height: 22px;
-  border: 1px solid rgba(25, 24, 19, 0.18);
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.55);
-}
-.tno.item-popover .item-popover-ammo button, .tno.item-chat-summary .item-popover-ammo button {
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  line-height: 20px;
-}
-.tno.item-popover .item-popover-ammo input, .tno.item-chat-summary .item-popover-ammo input {
-  width: 32px;
-  height: 20px;
-  min-width: 0;
-  margin: 0;
-  padding: 0 2px;
-  appearance: textfield;
-  -moz-appearance: textfield;
-  border: none;
-  border-right: 1px solid rgba(25, 24, 19, 0.14);
-  border-left: 1px solid rgba(25, 24, 19, 0.14);
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  color: #191813;
-  text-align: center;
-  font-size: var(--font-size-12, 12px);
-  font-variant-numeric: tabular-nums;
-}
-.tno.item-popover .item-popover-ammo input::-webkit-inner-spin-button, .tno.item-popover .item-popover-ammo input::-webkit-outer-spin-button, .tno.item-chat-summary .item-popover-ammo input::-webkit-inner-spin-button, .tno.item-chat-summary .item-popover-ammo input::-webkit-outer-spin-button {
-  margin: 0;
-  appearance: none;
-}
-.tno.item-popover .item-popover-ammo .ammo-type, .tno.item-chat-summary .item-popover-ammo .ammo-type {
-  padding: 0 6px;
-  color: #444;
-  font-size: var(--font-size-11, 11px);
-  font-weight: normal;
 }
 .tno .effects .item .effect-source,
 .tno .effects .item .effect-duration,

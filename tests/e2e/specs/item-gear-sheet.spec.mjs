@@ -17,7 +17,6 @@ async function createWeaponAndOpen(page, actorId) {
         fv: { skill: 'shooting', rank: 3 },
         dk: 2,
         range: { sn: null, near: -3, mid: 0, far: 3, sf: 0 },
-        ammo: { count: 4, type: 'cells' },
         rd: 5,
         ss: { count: 4, die: 'd6' },
         ws: { count: 2, die: 'd6' },
@@ -56,17 +55,4 @@ test('gear sheet opens directly as a bounded editor', async ({ world }) => {
   await sheet.getByRole('radio', { name: 'Armour' }).evaluate((button) => button.click());
   await expect(sheet.locator('.zone-chip')).toHaveCount(5);
   await expect(sheet.locator('.gear-section-divider')).toContainText('Armour Values');
-});
-
-test('gear editor adjusts ammunition', async ({ world }) => {
-  const { id } = await createCharacter(world.page, { abilities: { str: 5, dex: 5 } });
-  const { itemId, sheet } = await createWeaponAndOpen(world.page, id);
-
-  await sheet.locator('[data-field="system.ammo.count"][data-by="1"]').click();
-  await expect.poll(() => world.page.evaluate(
-    ([actorId, embeddedId]) => game.actors.get(actorId).items.get(embeddedId).system.ammo.count,
-    [id, itemId],
-  )).toBe(5);
-
-  expect(world.errors, 'no uncaught page errors while using the gear editor').toEqual([]);
 });

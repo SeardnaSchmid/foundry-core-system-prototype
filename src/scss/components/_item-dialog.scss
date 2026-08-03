@@ -179,6 +179,39 @@ $gear-radius: 4px;
     font-size: 10px;
     line-height: 1.2;
     color: rgba($c-dark, 0.6);
+
+    &.gear-label-help {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+  }
+
+  .gear-info {
+    display: inline-grid;
+    flex: 0 0 14px;
+    width: 14px;
+    height: 14px;
+    place-items: center;
+    font-size: 13px;
+    line-height: 1;
+    color: rgba($c-dark, 0.65);
+    cursor: help;
+
+    &:hover {
+      color: $c-primary;
+    }
+
+    &:focus-visible {
+      border-radius: 50%;
+      color: $c-primary;
+      outline: 1px solid $c-primary;
+      outline-offset: 2px;
+    }
+
+    i {
+      pointer-events: none;
+    }
   }
 
   .gear-ctl {
@@ -337,9 +370,8 @@ $gear-radius: 4px;
     }
   }
 
-  // Two or three values that are read as one figure: an SS of "2 D6", an HH of
-  // "+1 / 0". Split by hairlines inside a single box so they read as one
-  // answer rather than as neighbouring fields.
+  // One compact caption/value field. Related pairs such as SS/WS and the two
+  // HH values use two equal `.split` boxes beside each other.
   .split {
     flex: 1;
     display: flex;
@@ -388,10 +420,31 @@ $gear-radius: 4px;
     &:focus-within {
       border-color: $c-primary;
     }
+
+    // Keep a use-specific value in the same place instead of removing it and
+    // shifting the row. The native disabled input prevents edits; the quiet
+    // hatch makes that state visible without replacing the stored value.
+    &.is-disabled {
+      border-color: $c-beige;
+      background: repeating-linear-gradient(
+        45deg,
+        rgba($c-beige, 0.25) 0 5px,
+        transparent 5px 10px
+      );
+
+      .cap,
+      input {
+        color: rgba($c-dark, 0.45);
+      }
+
+      input {
+        cursor: not-allowed;
+      }
+    }
   }
 
-  // A count with no table behind it — stack quantity and loaded ammunition. The
-  // buttons exist because these are nudged far more often than they are typed.
+  // A count with no table behind it. The buttons exist because stack quantity
+  // is nudged far more often than it is typed.
   .stepper {
     flex: 1;
     display: flex;

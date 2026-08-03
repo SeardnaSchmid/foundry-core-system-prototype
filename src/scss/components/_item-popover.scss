@@ -256,6 +256,73 @@
     }
   }
 
+  // The stock is already the primary consumable value, so its quick action
+  // lives inside that tile instead of adding another row to the action footer.
+  // Its tight `− value +` cluster deliberately mirrors the attribute cells:
+  // the number is the focal point and the round steppers surface on hover.
+  .item-popover-stock {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-height: 23px;
+    width: 100%;
+
+    > .val {
+      flex: 0 0 auto;
+      min-width: 30px;
+      font-size: var(--font-size-18, 18px);
+      font-weight: 800;
+      line-height: 1;
+      text-align: center;
+    }
+
+    button {
+      display: inline-flex;
+      flex: 0 0 16px;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      padding: 0;
+      border: 1.5px solid $c-zone-filled-stroke;
+      border-radius: 50%;
+      background: rgba($c-zone-filled, 0.15);
+      color: $c-zone-filled-stroke;
+      font-size: var(--font-size-11, 11px);
+      font-weight: bold;
+      line-height: 1;
+      opacity: 0.35;
+      transition: opacity 0.15s ease;
+
+      @media (hover: hover) and (pointer: fine) {
+        opacity: 0;
+      }
+
+      &:hover:not(:disabled) {
+        filter: brightness(0.92);
+      }
+
+      &:focus-visible {
+        opacity: 1;
+        outline: none;
+      }
+
+      &:disabled {
+        opacity: 0.15;
+      }
+    }
+  }
+
+  .item-popover-tile:hover .item-popover-stock button {
+    opacity: 1;
+  }
+
+  .item-popover-tile:hover .item-popover-stock button:disabled {
+    opacity: 0.15;
+  }
+
   // Recessive by design, in both the probe band and the tiles: the eye should
   // land on the value, exactly as it does on an armour row's RH/RW/RA pair.
   .item-popover-probe .cap,
@@ -415,54 +482,4 @@
     }
   }
 
-  .item-popover-ammo {
-    display: inline-flex;
-    align-items: center;
-    height: 22px;
-    border: 1px solid rgba($c-dark, 0.18);
-    border-radius: 6px;
-    background: rgba($c-white, 0.55);
-
-    button {
-      width: 20px;
-      height: 20px;
-      padding: 0;
-      border: none;
-      background: transparent;
-      line-height: 20px;
-    }
-
-    input {
-      width: 32px;
-      height: 20px;
-      min-width: 0;
-      margin: 0;
-      padding: 0 2px;
-      appearance: textfield;
-      -moz-appearance: textfield;
-      border: none;
-      border-right: 1px solid rgba($c-dark, 0.14);
-      border-left: 1px solid rgba($c-dark, 0.14);
-      border-radius: 0;
-      background: transparent;
-      box-shadow: none;
-      color: $c-dark;
-      text-align: center;
-      font-size: var(--font-size-12, 12px);
-      font-variant-numeric: tabular-nums;
-
-      &::-webkit-inner-spin-button,
-      &::-webkit-outer-spin-button {
-        margin: 0;
-        appearance: none;
-      }
-    }
-
-    .ammo-type {
-      padding: 0 6px;
-      color: $c-tan;
-      font-size: var(--font-size-11, 11px);
-      font-weight: normal;
-    }
-  }
 }

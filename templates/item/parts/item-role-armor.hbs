@@ -12,9 +12,22 @@ chip again clears it. --}}
   </div>
 </div>
 
+{{!-- The Unterkleidung layers under every zone at once and by rule contributes
+no Rüstungshärte, so a suit has no RH to author. Hatched in place rather than
+hidden, like a ranged weapon's Distanzklasse: dropping the row would move RW and
+RA up under the cursor every time the location chip changes. --}}
 <div class='gear-row {{#if missing.rh}}is-missing{{/if}}' data-row='rh'>
   <span class='gear-label' title='{{localize "TNO.Armor.RhHint"}}'>{{localize 'TNO.Armor.Rh'}}</span>
-  {{> 'systems/tno/templates/item/parts/item-scale.hbs' cells=scales.rh key='rh'}}
+  {{#if armorSuit}}
+    <div class='gear-ctl'>
+      <span class='field na' title='{{localize "TNO.Armor.SuitNoRhHint"}}'>
+        <span class='cap'>1–10</span>
+        <span class='val'>{{localize 'TNO.Armor.NaSuit'}}</span>
+      </span>
+    </div>
+  {{else}}
+    {{> 'systems/tno/templates/item/parts/item-scale.hbs' cells=scales.rh key='rh'}}
+  {{/if}}
 </div>
 
 <div class='gear-row' data-row='rw'>
@@ -26,9 +39,3 @@ chip again clears it. --}}
   <span class='gear-label' title='{{localize "TNO.Armor.RaHint"}}'>{{localize 'TNO.Armor.Ra'}}</span>
   {{> 'systems/tno/templates/item/parts/item-scale.hbs' cells=scales.ra key='ra'}}
 </div>
-
-{{!-- The Unterkleidung layers under every zone at once and by rule contributes
-no Rüstungshärte, so RH on a suit is ignored wherever armour is resolved. --}}
-{{#ifEquals system.zone 'suit'}}
-  <p class='hint gear-hint'>{{localize 'TNO.Armor.SuitNoRhHint'}}</p>
-{{/ifEquals}}

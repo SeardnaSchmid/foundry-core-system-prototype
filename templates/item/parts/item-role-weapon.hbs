@@ -82,31 +82,6 @@ ranged profile into a second, incomplete weapon profile. --}}
   {{/if}}
 </div>
 
-<div class='gear-row' data-row='ammo'>
-  <span class='gear-label' title='{{localize "TNO.Weapons.MagazineHint"}}'>{{localize 'TNO.Weapons.Magazine'}}</span>
-  {{#if ranged}}
-    <div class='gear-ctl'>
-      <span class='stepper'>
-        <button type='button' class='stepper-button' data-field='system.ammo.count' data-by='-1'>&minus;</button>
-        <input type='number' name='system.ammo.count' value='{{system.ammo.count}}' min='0' step='1' aria-label='{{localize "TNO.Weapons.LoadedAmmo"}}' />
-        <button type='button' class='stepper-button' data-field='system.ammo.count' data-by='1'>+</button>
-      </span>
-      {{!-- Free text rather than a dropdown: the handoff sources the ammunition
-      list from a rules dataset the system does not have, and an empty select
-      would be worse than a field you can type "Gauss-Zellen" into. --}}
-      <label class='field field-wide'>
-        <input type='text' name='system.ammo.type' value='{{system.ammo.type}}' placeholder='{{localize "TNO.Weapons.AmmoType"}}' />
-      </label>
-    </div>
-  {{else}}
-    <div class='gear-ctl'>
-      <span class='field na'>
-        <span class='val'>{{localize 'TNO.Item.NaMelee'}}</span>
-      </span>
-    </div>
-  {{/if}}
-</div>
-
 <div class='gear-row {{#if missing.rd}}is-missing{{/if}}{{#if missing.rb}}is-missing{{/if}}' data-row='penetration'>
   {{#if ranged}}
     <span class='gear-label' title='{{localize "TNO.Weapons.RdHint"}}'>{{localize 'TNO.Weapons.Rd'}}</span>
@@ -126,12 +101,10 @@ n/a. --}}
     <label class='split' title='{{localize "TNO.Weapons.SsHint"}}'>
       <span class='cap'>{{localize 'TNO.Weapons.Ss'}}</span>
       <input type='number' name='system.ss.count' value='{{system.ss.count}}' min='0' step='1' />
-      <span class='unit'>W</span>
     </label>
     <label class='split' title='{{localize "TNO.Weapons.WsHint"}}'>
       <span class='cap'>{{localize 'TNO.Weapons.Ws'}}</span>
       <input type='number' name='system.ws.count' value='{{system.ws.count}}' min='0' step='1' />
-      <span class='unit'>W</span>
     </label>
   </div>
 </div>
@@ -139,13 +112,13 @@ n/a. --}}
 <div class='gear-row' data-row='hh'>
   <span class='gear-label' title='{{localize "TNO.Weapons.HhHint"}}'>{{localize 'TNO.Weapons.Hh'}}</span>
   <div class='gear-ctl'>
-    <label class='split'>
+    <label class='split' title='{{localize "TNO.Weapons.HhHint"}}'>
       <span class='cap'>{{localize 'TNO.Weapons.HhActive'}}</span>
       <input type='number' name='system.hh.active' value='{{system.hh.active}}' min='-3' max='3' step='1' />
-      {{#if melee}}
+    </label>
+    <label class='split {{#if ranged}}is-disabled{{/if}}' title='{{#if ranged}}{{localize "TNO.Item.NaRanged"}}{{else}}{{localize "TNO.Weapons.HhHint"}}{{/if}}'>
       <span class='cap'>{{localize 'TNO.Weapons.HhPassive'}}</span>
-      <input type='number' name='system.hh.passive' value='{{system.hh.passive}}' min='-3' max='3' step='1' />
-      {{/if}}
+      <input type='number' name='system.hh.passive' value='{{system.hh.passive}}' min='-3' max='3' step='1' {{#if ranged}}disabled{{/if}} />
     </label>
   </div>
 </div>

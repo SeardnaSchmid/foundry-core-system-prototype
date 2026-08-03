@@ -41,7 +41,24 @@
   <div class='item-popover-tiles'>
     {{#each summary.tiles}}
       <div class='item-popover-tile {{state}}'>
-        <span class='val'>{{display}}</span>
+        {{#ifEquals key 'stock'}}
+          {{#if @root.canAdjustStock}}
+            <div class='item-popover-stock'>
+              <button type='button' data-popover-action='stock' data-by='-1'
+                      title='{{localize "TNO.Item.Overview.StockDecrease"}}'
+                      aria-label='{{localize "TNO.Item.Overview.StockDecrease"}}'
+                      {{#unless @root.canDecreaseStock}}disabled{{/unless}}>&minus;</button>
+              <span class='val'>{{display}}</span>
+              <button type='button' data-popover-action='stock' data-by='1'
+                      title='{{localize "TNO.Item.Overview.StockIncrease"}}'
+                      aria-label='{{localize "TNO.Item.Overview.StockIncrease"}}'>+</button>
+            </div>
+          {{else}}
+            <span class='val'>{{display}}</span>
+          {{/if}}
+        {{else}}
+          <span class='val'>{{display}}</span>
+        {{/ifEquals}}
         <span class='cap'>{{localize labelKey}}</span>
       </div>
     {{/each}}
@@ -60,24 +77,10 @@
     {{#each summary.rows}}
       <div>
         <dt>{{localize labelKey}}</dt>
-        {{#ifEquals key 'ammo'}}
-          {{#if @root.canAdjustAmmo}}
-            <dd class='item-popover-ammo'>
-              <button type='button' data-popover-action='ammo' data-by='-1' title='{{localize "TNO.Item.Overview.AmmoDecrease"}}'>&minus;</button>
-              <input type='number' class='item-popover-ammo-input' value='{{value}}'
-                     min='0' step='1' aria-label='{{localize "TNO.Weapons.LoadedAmmo"}}'/>
-              <button type='button' data-popover-action='ammo' data-by='1' title='{{localize "TNO.Item.Overview.AmmoIncrease"}}'>+</button>
-              {{#if suffix}}<span class='ammo-type'>{{suffix}}</span>{{/if}}
-            </dd>
-          {{else}}
-            <dd>{{display}}</dd>
-          {{/if}}
-        {{else}}
-          <dd>
-            {{display}}
-            {{#if note}}<span class='note {{note.state}}'>· {{note.text}}</span>{{/if}}
-          </dd>
-        {{/ifEquals}}
+        <dd>
+          {{display}}
+          {{#if note}}<span class='note {{note.state}}'>· {{note.text}}</span>{{/if}}
+        </dd>
       </div>
     {{/each}}
   </dl>

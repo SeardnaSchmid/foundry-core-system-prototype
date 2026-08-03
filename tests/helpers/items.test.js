@@ -8,6 +8,7 @@ import {
   isGear,
   itemRoles,
   missingRequired,
+  normalizeConsumableEffects,
   scaleCells,
   selectRole,
   toggleZone,
@@ -260,5 +261,23 @@ describe('missingRequired', () => {
   it('asks a consumable for at least one described effect', () => {
     expect(missingRequired(item({ consumable: true }, complete))).toEqual(['effects']);
     expect(missingRequired(item({ consumable: true }, { ...complete, consumableEffects: [{ text: 'Heilt 2W.' }] }))).toEqual([]);
+    expect(missingRequired(item({ consumable: true }, {
+      ...complete,
+      consumableEffects: { 0: { text: 'Legacy effect' } },
+    }))).toEqual([]);
+  });
+});
+
+describe('normalizeConsumableEffects', () => {
+  it('normalizes indexed objects and old single-text values', () => {
+    expect(normalizeConsumableEffects({
+      consumableEffects: { 0: { id: 'kept', text: 'First' }, 1: { text: 'Second' } },
+    })).toEqual([
+      { id: 'kept', text: 'First' },
+      { id: 'legacy-1', text: 'Second' },
+    ]);
+    expect(normalizeConsumableEffects({ consumableEffects: 'Old effect' }))
+      .toEqual([{ id: 'legacy-0', text: 'Old effect' }]);
+    expect(normalizeConsumableEffects({ consumableEffects: 4 })).toEqual([]);
   });
 });

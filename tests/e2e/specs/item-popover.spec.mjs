@@ -15,7 +15,6 @@ test('carry-cell popover stays open across actions and opens the editor directly
         fv: { skill: 'shooting', rank: 3 },
         rd: 4,
         ss: { count: 3 },
-        ammo: { count: 4, type: 'cells' },
       },
     }]);
     return item.id;
@@ -30,24 +29,6 @@ test('carry-cell popover stays open across actions and opens the editor directly
   await expect(popover.locator('.item-popover-head')).toContainText('Popover Carbine');
   await expect(popover.locator('.item-popover-badges')).toContainText('Ranged');
   await expect(popover.locator('.item-popover-stats')).toContainText('Shooting 3');
-
-  await popover.locator('[data-popover-action="ammo"][data-by="1"]').click();
-  await expect.poll(() => world.page.evaluate(
-    ([actorId, embeddedId]) => game.actors.get(actorId).items.get(embeddedId).system.ammo.count,
-    [id, itemId],
-  )).toBe(5);
-  await expect(popover).toBeVisible();
-  const ammo = popover.locator('.item-popover-ammo-input');
-  await expect(ammo).toHaveValue('5');
-
-  await ammo.fill('7');
-  await ammo.blur();
-  await expect.poll(() => world.page.evaluate(
-    ([actorId, embeddedId]) => game.actors.get(actorId).items.get(embeddedId).system.ammo.count,
-    [id, itemId],
-  )).toBe(7);
-  await expect(popover).toBeVisible();
-  await expect(popover.locator('.item-popover-ammo-input')).toHaveValue('7');
 
   const summaryParts = '.item-popover-head, .item-popover-badges, .item-popover-stats';
   const expectedSummary = await popover.locator(summaryParts).allInnerTexts();

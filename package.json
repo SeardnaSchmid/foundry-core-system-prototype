@@ -14,7 +14,8 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report",
     "docs:check": "node scripts/validate-wiki.mjs",
-    "serve": "node scripts/serve-foundry.mjs"
+    "serve": "node scripts/serve-foundry.mjs",
+    "serve:stop": "fuser -k ${FOUNDRY_PORT:-30000}/tcp 2>/dev/null || true; rmdir \"${FOUNDRY_DATA_PATH:-$HOME/.local/share/FoundryVTT}/Config/options.json.lock\" 2>/dev/null || true"
   },
   "browserslist": [
     "last 3 versions"

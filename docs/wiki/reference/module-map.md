@@ -22,7 +22,7 @@ Entry point, no exports (side-effecting init). See
 | File | Exports | Responsibility |
 | --- | --- | --- |
 | `actor.mjs` | `TnoActor extends Actor` | Derived-data computation — see [data-schema.md](../architecture/data-schema.md) |
-| `item.mjs` | `TnoItem extends Item` | `isWorn`, `confirmDelete()`, `getRollData()`, `roll()` (posts to chat), weapon-check and ammunition helpers |
+| `item.mjs` | `TnoItem extends Item` | `isWorn`, `confirmDelete()`, `getRollData()`, `roll()` (posts to chat), weapon-check and consumable-stock helpers |
 
 ## `sheets/`
 

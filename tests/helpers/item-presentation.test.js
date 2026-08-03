@@ -17,8 +17,9 @@ const weapon = (system = {}) => ({
 });
 
 describe('item presentation', () => {
-  it('formats damage as a count of standard damage dice', () => {
-    expect(damagePresentation({ count: 2, die: 'd8' })).toEqual({ count: 2, label: '2W' });
+  it('presents damage as a plain value, with no die unit to append', () => {
+    expect(damagePresentation({ count: 2 })).toEqual({ count: 2, label: '2' });
+    expect(damagePresentation({})).toEqual({ count: 0, label: '0' });
   });
 
   it('preserves unavailable, negative, neutral, and positive range bands', () => {
@@ -42,8 +43,8 @@ describe('item presentation', () => {
           { key: 'equal', from: 5, to: 5, size: 1, single: true },
           { key: 'above', from: 6, to: 10, size: 5, single: false },
         ],
-        ss: { count: 4, label: '4W' },
-        ws: { count: 2, label: '2W' },
+        ss: { count: 4, label: '4' },
+        ws: { count: 2, label: '2' },
       });
   });
 
@@ -90,8 +91,8 @@ describe('item presentation', () => {
     expect(summary.tiles).toEqual([
       { key: 'dk', labelKey: 'TNO.Item.Summary.Dk', value: '3', state: 'value' },
       { key: 'rb', labelKey: 'TNO.Weapons.Rb', value: '2', state: 'value' },
-      { key: 'ss', labelKey: 'TNO.Weapons.Ss', value: '3W', state: 'value' },
-      { key: 'ws', labelKey: 'TNO.Weapons.Ws', value: '1W', state: 'value' },
+      { key: 'ss', labelKey: 'TNO.Weapons.Ss', value: '3', state: 'value' },
+      { key: 'ws', labelKey: 'TNO.Weapons.Ws', value: '1', state: 'value' },
     ]);
     expect(summary.rows).toEqual([
       {
@@ -108,26 +109,24 @@ describe('item presentation', () => {
     ]);
   });
 
-  it('swaps two tiles for a ranged profile and keeps the magazine as a row', () => {
+  it('swaps two tiles for a ranged profile', () => {
     const summary = buildGearSummary(weapon({
       use: 'ranged',
       rd: 4,
       range: { near: 0 },
       ss: { count: 2 },
       ws: { count: 1 },
-      ammo: { count: 6, type: 'cells' },
       hh: { active: 0 },
       fv: { skill: 'rifles', rank: 3 },
     }));
 
     expect(summary.tiles).toEqual([
       { key: 'rd', labelKey: 'TNO.Weapons.RdShort', value: '4', state: 'value' },
-      { key: 'ss', labelKey: 'TNO.Weapons.Ss', value: '2W', state: 'value' },
-      { key: 'ws', labelKey: 'TNO.Weapons.Ws', value: '1W', state: 'value' },
+      { key: 'ss', labelKey: 'TNO.Weapons.Ss', value: '2', state: 'value' },
+      { key: 'ws', labelKey: 'TNO.Weapons.Ws', value: '1', state: 'value' },
       { key: 'hh', labelKey: 'TNO.Item.Summary.HhActive', value: '0', state: 'value' },
     ]);
     expect(summary.rows).toEqual([
-      { key: 'ammo', labelKey: 'TNO.Weapons.Magazine', value: 6, suffix: 'cells' },
       { key: 'slots', labelKey: 'TNO.Inventory.Slots', value: 2 },
     ]);
   });

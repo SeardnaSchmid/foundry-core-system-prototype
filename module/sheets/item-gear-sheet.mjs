@@ -1,6 +1,7 @@
 import { getSkillDefinitions } from '../helpers/skills.mjs';
 import { itemSlotCost } from '../helpers/inventory.mjs';
 import {
+  ARMOR_SUIT_ZONE,
   ARMOR_ZONES,
   GEAR_NUMBER_BOUNDS,
   ITEM_ROLES,
@@ -13,6 +14,7 @@ import {
   cycleRangeModifier,
   itemRoles,
   missingRequired,
+  normalizeConsumableEffects,
   scaleCells,
   selectRole,
   toggleZone,
@@ -95,6 +97,9 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
       label: CONFIG.TNO.armorZones[zone],
       on: selectedArmorZone === zone,
     }));
+    // The base layer has no Rüstungshärte by rule, so its RH row is n/a rather
+    // than an authorable scale — the same treatment a ranged weapon's DK gets.
+    context.armorSuit = selectedArmorZone === ARMOR_SUIT_ZONE;
     context.useSegments = WEAPON_USES.map((use) => ({
       use,
       label: CONFIG.TNO.weaponUses[use],
@@ -124,15 +129,30 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
       display: system.range?.[band] == null ? '—' : `${Number(system.range[band]) > 0 ? '+' : ''}${system.range[band]}`,
       state: system.range?.[band] == null ? 'unavailable' : Number(system.range[band]) > 0 ? 'positive' : Number(system.range[band]) < 0 ? 'negative' : 'neutral',
     }));
-    context.consumableEffects = (system.consumableEffects ?? []).map((effect, index) => ({ ...effect, index }));
+    context.consumableEffects = normalizeConsumableEffects(system).map((effect, index) => ({ ...effect, index }));
 
     // Every skill the world knows, including the owning character's custom
     // ones — an item on a character should be able to name a Fertigkeit that
     // only that character has.
     const definitions = getSkillDefinitions(this.item.actor);
+    // Each option carries its category, because the closed select shows one
+    // line and a bare skill name does not say what kind of skill it is — least
+    // of all a custom one, where "Kuiper Forset" could be a milieu or a biome.
+    // The category is part of the option text rather than an <optgroup> label
+    // for that reason: a group heading is only there while the list is open.
+    const categoryOrder = Object.keys(CONFIG.TNO.skillCategories);
     context.skills = Object.entries(definitions)
-      .map(([key, definition]) => ({ key, label: definition.label }))
-      .sort((a, b) => a.label.localeCompare(b.label, game.i18n.lang));
+      .map(([key, definition]) => ({
+        key,
+        name: definition.label,
+        category: definition.category,
+        label: `${game.i18n.localize(CONFIG.TNO.skillCategories[definition.category])} · ${definition.label}`,
+      }))
+      // Grouped in the categories' own order, then alphabetically inside each,
+      // so the list reads like the skill tab rather than like a flat index.
+      .sort((a, b) =>
+        categoryOrder.indexOf(a.category) - categoryOrder.indexOf(b.category)
+        || a.name.localeCompare(b.name, game.i18n.lang));
     // What is still blank, both as a count for the footer and as a lookup the
     // rows mark themselves with.
     const missing = missingRequired(item);
@@ -202,13 +222,13 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     });
 
     this.#delegate('click', '.consumable-effect-add', () => {
-      const effects = [...(this.item.system.consumableEffects ?? [])];
+      const effects = normalizeConsumableEffects(this.item.system);
       effects.push({ id: foundry.utils.randomID(), text: '' });
       this.item.update({ 'system.consumableEffects': effects });
     });
 
     this.#delegate('click', '.consumable-effect-remove', (event, target) => {
-      const effects = (this.item.system.consumableEffects ?? []).filter((effect) => effect.id !== target.dataset.effectId);
+      const effects = normalizeConsumableEffects(this.item.system).filter((effect) => effect.id !== target.dataset.effectId);
       this.item.update({ 'system.consumableEffects': effects });
     });
 
@@ -226,7 +246,7 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         event.preventDefault();
         event.stopImmediatePropagation();
         const id = effectInput.closest('.consumable-effect')?.dataset.effectId;
-        const effects = (this.item.system.consumableEffects ?? []).map((effect) =>
+        const effects = normalizeConsumableEffects(this.item.system).map((effect) =>
           effect.id === id ? { ...effect, text: effectInput.value } : effect
         );
         this.item.update({ 'system.consumableEffects': effects });
@@ -302,7 +322,7 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 
   /**
    * Nudge a numeric field, clamped at zero. Used by the stepper controls,
-   * which exist for the counts the rules leave open-ended (RA, RB, ammunition,
+   * which exist for the counts the rules leave open-ended (RA, RB and
    * applications) — anything with a table-bounded range is a scale instead.
    * @param {string} field  A `system.…` path.
    * @param {number} by

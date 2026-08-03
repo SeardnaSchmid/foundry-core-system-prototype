@@ -61,25 +61,30 @@ $c-trinket-label: rgba($c-dark, 0.55);
   height: auto;
 
   .zone {
-    stroke-width: 1;
     cursor: pointer;
 
-    // Nothing on this location. Filled grey rather than left open: the figure
-    // has to be legible as a body against the parchment before an empty zone
-    // can read as a gap, and the dashed outline carries "unfilled" instead.
-    &.zone-bare {
+    .zone-base,
+    .zone-plate {
+      stroke-width: 1;
+    }
+
+    // The full-size shape always describes the base layer. A smaller addon
+    // plate can sit above it without hiding whether this rim is bare or suited.
+    &.zone-bare .zone-base {
       fill: $c-zone-bare;
       stroke: $c-zone-bare-stroke;
       stroke-dasharray: 4 3;
     }
 
     // Unterkleidung only — covered, but not hardened.
-    &.zone-suited {
+    &.zone-suited .zone-base {
       fill: $c-zone-suited;
       stroke: $c-zone-suited-stroke;
     }
 
-    &.zone-filled {
+    // Zone armour is the upper layer. Its inset leaves enough of the base
+    // visible to read Unterkleidung under the plate at the doll's compact size.
+    .zone-plate {
       fill: $c-zone-filled;
       stroke: $c-zone-filled-stroke;
       stroke-width: 1.5;
@@ -91,7 +96,8 @@ $c-trinket-label: rgba($c-dark, 0.55);
     // here would read as a second kind of invitation. Last of the paint states
     // so it overrides whichever one the zone was in — during a drag the
     // question is "can I drop this", not "what is worn".
-    &.zone-drop-target {
+    &.zone-drop-target .zone-base,
+    &.zone-drop-target .zone-plate {
       fill: rgba($c-advance, 0.18);
       stroke: $c-advance;
       stroke-width: 2;
@@ -100,14 +106,16 @@ $c-trinket-label: rgba($c-dark, 0.55);
 
     // The pointer is on this zone now. The dashes close and the wash deepens:
     // dashed says "this is where it goes", solid says "let go and it lands".
-    &.drop-onto {
+    &.drop-onto .zone-base,
+    &.drop-onto .zone-plate {
       fill: rgba($c-advance, 0.4);
       stroke: $c-advance;
       stroke-width: 2.5;
       stroke-dasharray: none;
     }
 
-    &:hover {
+    &:hover .zone-base,
+    &:hover .zone-plate {
       stroke: $c-advance;
     }
   }
@@ -121,6 +129,11 @@ $c-trinket-label: rgba($c-dark, 0.55);
 }
 
 .armor-row {
+  // The unequip control's column, in em so it tracks the row's own font size —
+  // the icon is a 1.25em glyph, and a px constant would drift the moment the
+  // doll is trimmed inside a Basics column.
+  --armor-unequip-size: 1.25em;
+
   display: flex;
   align-items: center;
   gap: 10px;
@@ -130,6 +143,15 @@ $c-trinket-label: rgba($c-dark, 0.55);
   border-radius: 8px;
   background: $c-zone-filled-bg;
   font-size: var(--font-size-13, 13px);
+
+  // A row with nothing to take off still reserves that column, so the RH/RW/RA
+  // read-outs stay in one line down the whole doll instead of stepping right
+  // wherever a zone happens to be empty. As a flex item the placeholder also
+  // picks up the row's gap, which is the other half of the offset.
+  &:not(:has(.armor-unequip))::after {
+    content: '';
+    flex: 0 0 var(--armor-unequip-size);
+  }
 
   // An empty zone is a drop target, not a button — no pointer cursor, since
   // there is nothing to click. It only lights up while a piece of armour that
@@ -165,9 +187,29 @@ $c-trinket-label: rgba($c-dark, 0.55);
   }
 
   // The Unterkleidung is a layer under everything else rather than a hit
-  // location, so it sits apart from the four zone rows below it.
+  // location, so it sits apart from the four zone rows below it. A 4px gap was
+  // too quiet to carry that once a piece was worn — a filled suit row read as a
+  // fifth location — so the separation is a ruled break, not just spacing. The
+  // rule is a positioned pseudo-element rather than a border on the row: the
+  // row's own rounded border is the "worn" state and must not gain an edge.
+  // The base layer closes the list, so its break opens above it. `--suit-break`
+  // is the one number: the rule always centres itself in the gap it opens, so a
+  // context that trims the doll (`.cell-gear` in _forms.scss) sets the gap alone
+  // and the line follows.
   &.armor-suit {
-    margin-bottom: 4px;
+    --suit-break: 11px;
+
+    position: relative;
+    margin-top: var(--suit-break);
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: calc(var(--suit-break) / -2);
+      right: 6px;
+      left: 6px;
+      border-top: 1px solid rgba($c-dark, 0.14);
+    }
   }
 }
 
@@ -216,7 +258,9 @@ $c-trinket-label: rgba($c-dark, 0.55);
 }
 
 .armor-unequip {
-  flex: 0 0 auto;
+  // Same width as the placeholder above, so both kinds of row end identically.
+  flex: 0 0 var(--armor-unequip-size);
+  text-align: center;
   color: $c-tan;
 
   &:hover {

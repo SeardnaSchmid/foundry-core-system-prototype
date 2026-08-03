@@ -581,7 +581,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const equipment = this.actor.system.equipment ?? {};
 
     // The suit is a layer under everything rather than a hit location, so it
-    // gets its own row above the four zones instead of sitting among them.
+    // gets its own separate row instead of sitting among the four zones.
     const suit = this.actor.items.get(equipment.suit) ?? null;
     context.paperdoll = {
       suit,
@@ -593,11 +593,10 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           zone,
           label: CONFIG.TNO.armorZones[zone],
           item,
-          // How the silhouette paints this location. A bare zone under the
-          // suit is neither unprotected nor armoured — the suit closes the
-          // coverage without hardening it — so it gets a state of its own
-          // rather than being lumped in with either extreme.
-          state: item ? 'filled' : suit ? 'suited' : 'bare',
+          // How the silhouette paints the body beneath a possible addon. The
+          // addon is a smaller plate of its own, so the remaining rim can keep
+          // showing whether Unterkleidung is present underneath it.
+          baseState: suit ? 'suited' : 'bare',
           ...(derived.armor?.[zone] ?? { rh: 0, rw: 0, ra: 0 }),
         };
       }),
@@ -746,14 +745,16 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   /** Build the popover's template context from the live embedded item. */
   #itemPopoverContext(item) {
     const base = prepareGearSummaryContext(item);
-    const { roles, presentation } = base;
+    const { roles } = base;
     const skill = getSkillDefinitions(item.actor)[item.system.fv?.skill];
     const canEdit = this.isEditable;
+    const stock = Math.max(0, Number(item.system.quantity) || 0);
     return {
       ...base,
       canEdit,
       canWeaponCheck: !!(canEdit && item.actor?.isOwner && roles.weapon && skill && WEAPON_ATTRIBUTES.includes(item.system.wa)),
-      canAdjustAmmo: canEdit && roles.weapon && presentation.use === 'ranged',
+      canAdjustStock: canEdit && roles.consumable,
+      canDecreaseStock: canEdit && roles.consumable && stock > 0,
       canDelete: canEdit && !item.isWorn,
     };
   }
@@ -775,7 +776,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           by: document.activeElement.dataset.by,
         }
       : null;
-    const html = await renderTemplate(
+    const html = await foundry.applications.handlebars.renderTemplate(
       'systems/tno/templates/actor/parts/item-popover.hbs',
       this.#itemPopoverContext(item)
     );
@@ -848,8 +849,8 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         return item.roll();
       case 'weapon-check':
         return item.openWeaponCheck();
-      case 'ammo':
-        return item.adjustAmmo(Number(control.dataset.by));
+      case 'stock':
+        return item.adjustStock(Number(control.dataset.by));
       case 'delete':
         return item.confirmDelete();
     }
@@ -877,6 +878,21 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       if (requireEditable && !this.isEditable) return;
       handler(event, target);
     });
+  }
+
+  /** Grow the biography to its content, up to its stylesheet-defined limit. */
+  #resizeBiography() {
+    const textarea = this.element.querySelector('.biography-textarea');
+    if (!textarea || !textarea.offsetParent) return;
+
+    textarea.style.height = 'auto';
+    const style = getComputedStyle(textarea);
+    const minHeight = Number.parseFloat(style.minHeight) || 0;
+    const maxHeight = Number.parseFloat(style.maxHeight) || Infinity;
+    const naturalHeight = Math.max(minHeight, textarea.scrollHeight);
+    const height = Math.min(naturalHeight, maxHeight);
+    textarea.style.height = `${height}px`;
+    textarea.style.overflowY = naturalHeight > maxHeight ? 'auto' : 'hidden';
   }
 
   /**
@@ -977,17 +993,6 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     this._itemPopover.setAttribute('popover', 'auto');
     document.body.append(this._itemPopover);
     this._itemPopover.addEventListener('click', (event) => this.#onItemPopoverClick(event));
-    this._itemPopover.addEventListener('change', (event) => {
-      const input = event.target.closest('.item-popover-ammo-input');
-      if (!input) return;
-      const item = this.actor.items.get(this._itemPopoverItemId);
-      if (!item) return;
-      if (!Number.isFinite(input.valueAsNumber)) {
-        input.value = Number(item.system.ammo?.count) || 0;
-        return;
-      }
-      item.setAmmo(input.valueAsNumber);
-    });
     this._itemPopover.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && this._itemPopover.matches(':popover-open')) {
         // Native light-dismiss still handles Escape; only stop Foundry's
@@ -1010,6 +1015,14 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       event.preventDefault();
       target.click();
     });
+
+    // The description tab is hidden during the character sheet's initial
+    // render, so size its textarea after Foundry has made that tab visible.
+    this.#delegate('click', '.sheet-tabs [data-tab="description"]', () => {
+      requestAnimationFrame(() => this.#resizeBiography());
+    });
+
+    this.#delegate('input', '.biography-textarea', () => this.#resizeBiography());
 
     // Render the item sheet for viewing/editing prior to the editable check.
     this.#delegate('click', '.item-edit', (event, target) => {
@@ -1330,30 +1343,15 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // rows draggable onto the hotbar.
     await super._onRender(context, options);
 
-    this._dockTabsRail();
     this._makeKeyboardAccessible();
     this._applySkillFilter();
     this._applyColumnSplit();
+    this.#resizeBiography();
 
     if (this._itemPopover?.matches(':popover-open')) {
       await this.#refreshItemPopover();
       this.#positionItemPopover();
     }
-  }
-
-  /**
-   * Move the tab rail out of `.window-content`, which is the character sheet's
-   * single scroll surface. ApplicationV2 wires the freshly rendered rail in
-   * `super._onRender()` first; moving that live element afterwards preserves
-   * its tab actions while keeping it fixed outside the scrolling sheet edge.
-   * A prior rail survives a part re-render beside `.window-content`, so remove
-   * it before docking the new one.
-   */
-  _dockTabsRail() {
-    const rail = this.element.querySelector('.window-content > .tabs-right');
-    if (!rail) return;
-    this.element.querySelector(':scope > .tabs-right')?.remove();
-    this.element.append(rail);
   }
 
   /** @inheritDoc */

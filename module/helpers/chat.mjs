@@ -160,7 +160,7 @@ async function renderTrialErrorProgress(card, data) {
   const tracker = buildTracker(data, null);
   const container = document.createElement('div');
   container.className = 'tno-edge-actions';
-  container.innerHTML = await renderTemplate('systems/tno/templates/chat/parts/trial-error-tracker.hbs', {
+  container.innerHTML = await foundry.applications.handlebars.renderTemplate('systems/tno/templates/chat/parts/trial-error-tracker.hbs', {
     tracker,
     showReroll: false,
   });
@@ -419,7 +419,7 @@ async function renderOwnerPanel(message, card, actor, data, view) {
   // started Trial & error, or you're mid-chain), or when restoring it after
   // an action re-render.
   if (tracker || (view === 'troubleshoot' && hasEdgeActions)) container.classList.add('troubleshoot');
-  container.innerHTML = await renderTemplate('systems/tno/templates/chat/edge-panel.hbs', {
+  container.innerHTML = await foundry.applications.handlebars.renderTemplate('systems/tno/templates/chat/edge-panel.hbs', {
     tracker,
     xpOptions,
     xpCaption: game.i18n.localize('TNO.Edge.LessonCaption'),

@@ -189,7 +189,7 @@ export async function rollTno({
 
   const advantageKey = Object.keys(TNO_ADVANTAGE).find((key) => TNO_ADVANTAGE[key] === advantage);
 
-  const content = await renderTemplate('systems/tno/templates/chat/roll-card.hbs', {
+  const content = await foundry.applications.handlebars.renderTemplate('systems/tno/templates/chat/roll-card.hbs', {
     flavor,
     hasThreshold,
     threshold,
