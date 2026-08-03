@@ -1,5 +1,13 @@
 # Changelog
 
+# [0.29.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.28.1...v0.29.0) (2026-08-03)
+
+
+### Features
+
+* rebuild the item view-mode card ([f9a2999](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/f9a2999766ec14bd031cb02bded335a5566e38d0))
+* refine gear and inventory interactions ([9d943af](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/9d943af30876b2164f39092789f1a811b29427c0))
+
 ## [0.28.1](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.28.0...v0.28.1) (2026-08-02)
 
 # [0.28.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.27.0...v0.28.0) (2026-08-02)
