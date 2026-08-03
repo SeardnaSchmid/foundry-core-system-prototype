@@ -15,11 +15,10 @@ $c-zone-filled-stroke: #5d7546;
 // two greens.
 $c-zone-bare: #b0b2ad;
 $c-zone-bare-stroke: #85877f;
-// Covered by the Unterkleidung alone: the same green, washed out. The suit
-// closes the coverage but grants no hardness, so this must not read as
-// armoured — it is the pale step between grey and green.
-$c-zone-suited: #cadcbb;
-$c-zone-suited-stroke: #8ba06f;
+// Covered by the Unterkleidung alone: a quiet ice blue that complements the
+// green armour layer without reading as a hardened plate.
+$c-zone-suited: #c5dce0;
+$c-zone-suited-stroke: #7e9fa4;
 // The SV shortfall warning and the over-capacity load state both use the shared
 // $c-warning from utils/_colors.scss — the same red marks the movement tiers
 // that load takes away on the banner chip, and the two have to match.
