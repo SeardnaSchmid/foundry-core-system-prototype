@@ -966,7 +966,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // the carry grid's cells) are promoted to real keyboard targets in
     // _onRender; this forwards their Enter/Space to the same click listeners
     // bound below.
-    this.#delegate('keydown', 'a:not([href]), .skill-info, .slot-cell, .slot-trinket, .armor-row[data-item-id]', (event, target) => {
+    this.#delegate('keydown', 'a:not([href]), .skill-info, .slot-cell, .slot-trinket, .armor-row[data-item-id], .banner-portrait .profile-img[data-action="editImage"]', (event, target) => {
       if (event.key !== 'Enter' && event.key !== ' ') return;
       event.preventDefault();
       target.click();
@@ -1337,7 +1337,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // four-slot item four times to reach the next one is worse than not
     // reaching its tail at all.
     const targets = this.element.querySelectorAll(
-      'a:not([href]), .skill-info, .slot-cell.slot-first, .slot-trinket, .armor-row[data-item-id]'
+      'a:not([href]), .skill-info, .slot-cell.slot-first, .slot-trinket, .armor-row[data-item-id], .banner-portrait .profile-img[data-action="editImage"]'
     );
     for (const el of targets) {
       if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');

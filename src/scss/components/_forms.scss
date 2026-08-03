@@ -72,20 +72,11 @@
   box-shadow: 0 1px 2px rgba($c-dark, 0.15);
 }
 
-// Character sheet banner: one horizontal band carrying the portrait, the name
-// and the three meta chips, replacing the left-docked sidebar. Fixed height, so
-// the band never grows with a long name.
-//
-// A flex row rather than four absolutely-placed boxes: the name field's box is
-// transparent, so with absolute placement it would reach under the chips and
-// swallow clicks on them. The name keeps a readable lane; if that lane and the
-// chip row cannot coexist, the chips move to the next line before the name is
-// squeezed away.
-//
-// The portrait is the one exception — it deliberately hangs past the bottom
-// edge, which no in-flow child can do — so it stays absolute and the left
-// padding reserves its lane. margin-bottom is the clearance that keeps the tab
-// body out from under it, which is why it isn't the usual small gap.
+// Character sheet banner: one horizontal band carrying the portrait, name and
+// meta chips. Grid keeps all three in normal flow, so a wrapped chip row can
+// make the banner taller without invalidating fixed portrait-clearance maths.
+// The name owns a protected middle lane; the chip block yields and then moves
+// below it before the title is squeezed away.
 //
 // The band is full-bleed: the negative side and top margins cancel core's 16px
 // `.window-content` padding, so it meets the window frame on three sides while
@@ -93,37 +84,98 @@
 // chips off the frame, and the top corners are square because the window header
 // now sits directly on them.
 .sheet-banner {
-  // 4:3 landscape. The portrait is absolutely placed, so these drive both its
-  // own box and the left padding that reserves its lane.
-  --portrait-w: 215px;
-  --portrait-h: 161px;
-  --portrait-inset: 4px;
-
+  --portrait-size: clamp(150px, 16cqi, 170px);
+  // `.window-content` reserves a stable thin scrollbar gutter. Bleed beneath
+  // it so the full-width artwork reaches the actual window edge instead of
+  // ending one pale strip early.
+  --scrollbar-bleed: 16px;
   position: relative;
-  display: flex;
-  flex-wrap: wrap;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: var(--portrait-size) minmax(280px, 1fr) minmax(0, auto);
+  grid-template-areas: 'portrait identity chips';
   align-items: start;
-  column-gap: 16px;
-  row-gap: 6px;
+  gap: 8px 16px;
   flex: 0 0 auto;
-  min-height: 130px;
-  // The regular 16px left gutter plus the portrait width and its 4px inset.
-  // This matches the old grid lane's right edge.
-  padding: 12px 16px 2px calc(var(--portrait-w) + 20px);
-  // The bottom margin is the portrait's overhang plus a 10px breath: the
-  // portrait bottom sits at inset + height, and everything past this band's
-  // own height hangs over the tab body, which must be pushed clear of it.
-  margin: -16px -16px calc(var(--portrait-inset) + var(--portrait-h) - 130px + 10px);
+  padding: 12px 16px 10px;
+  // The portrait contributes 22px less than its painted height to the grid:
+  // 12px visibly overhang the band, followed by a 10px gap before sheet content.
+  // Unlike the old formula this remains correct however tall wrapped chips make
+  // the banner itself.
+  margin: -16px calc(-16px - var(--scrollbar-bleed)) 22px -16px;
   border-bottom: 1px solid $c-beige;
   border-radius: 0;
+  // Neutral fallback when the portrait cannot load. The charcoal readability
+  // gradient below still gives the identity a deliberate dark field.
   background: linear-gradient(180deg, rgba($c-dark, 0.14) 0%, rgba($c-dark, 0.04) 100%);
+
+  // A fine rule spans the banner behind the raised portrait. The portrait's
+  // higher stacking layer masks its part of the rule naturally, so no
+  // portrait-specific horizontal or vertical offset is needed.
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    z-index: 0;
+    height: 2px;
+    background: linear-gradient(90deg, rgba($c-advance, 0.74) 0%, rgba($c-advance, 0.26) 42%, transparent 82%);
+    pointer-events: none;
+  }
+}
+
+// One recognizable copy of the portrait carries the banner. The same single
+// warm-charcoal fade protects the identity and supplies the visual motif: a
+// slight diagonal cut with a restrained gold warmth at its trailing edge.
+.banner-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+
+  img {
+    position: absolute;
+    border: none;
+    object-fit: cover;
+    // Portrait-photo sweet spot: the upper golden-ratio point keeps eyes and
+    // faces in the wide crop more reliably than a geometric 50% centre.
+    object-position: center 38%;
+  }
+
+  .banner-backdrop-image {
+    inset: -4px;
+    z-index: 0;
+    width: calc(100% + 8px);
+    height: calc(100% + 8px);
+    filter: saturate(0.55) contrast(1.12) brightness(0.72);
+    opacity: 0.58;
+    transform: scale(1.01);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(103deg, rgba($c-dark, 0.96) 0%, rgba($c-dark, 0.8) 27%, rgba($c-dark, 0.42) 48%, rgba($c-advance, 0.1) 59%, transparent 72%);
+  }
+}
+
+.banner-chips,
+.banner-portrait,
+.banner-identity {
+  position: relative;
+  z-index: 1;
 }
 
 .banner-chips {
-  order: 2;
-  flex: 0 1 auto;
+  grid-area: chips;
+  justify-self: end;
+  width: fit-content;
   min-width: 0;
-  max-width: 100%;
+  max-width: 520px;
   display: flex;
   flex-wrap: wrap;
   align-items: stretch;
@@ -132,18 +184,19 @@
   gap: 6px;
 }
 
-// Pill-shaped meta chips, mirroring the reference dnd5e sheet's Initiative/
-// Speed/Proficiency lozenge row — opaque, so they stay legible against the
-// banner's gradient.
+// Pill-shaped meta chips with light glass chrome. One local blur and one soft
+// highlight are enough to separate them from the image.
 .banner-chip {
   display: flex;
   align-items: center;
   gap: 7px;
   min-height: 34px;
   padding: 5px 12px;
-  border: 1px solid $c-beige;
+  border: 1px solid rgba($c-white, 0.66);
   border-radius: 999px;
-  background: rgba($c-white, 0.72);
+  background: rgba($c-white, 0.66);
+  box-shadow: inset 0 1px 0 rgba($c-white, 0.76), 0 1px 3px rgba($c-dark, 0.14);
+  backdrop-filter: blur(4px);
   text-decoration: none;
   color: inherit;
   white-space: nowrap;
@@ -319,20 +372,20 @@
   }
 }
 
-// Anchored to the banner's top-left corner with minimal inset, and overhanging
-// the bottom edge the way a portrait plate sits proud of a header band.
-// .sheet-banner's margin-bottom reserves the room.
+// A square character profile in the grid's first lane. Its negative bottom
+// margin creates the small visual overhang while keeping the grid responsible
+// for layout and responsive wrapping.
 .banner-portrait {
-  position: absolute;
-  left: var(--portrait-inset);
-  top: var(--portrait-inset);
-  width: var(--portrait-w);
-  height: var(--portrait-h);
-  border: 2px solid $c-tan;
-  border-radius: 5px;
+  grid-area: portrait;
+  position: relative;
+  width: var(--portrait-size);
+  height: var(--portrait-size);
+  margin-bottom: -22px;
+  border: 1px solid rgba($c-advance, 0.62);
+  border-radius: 6px;
   overflow: hidden;
   background: $c-faint;
-  box-shadow: 0 1px 4px rgba($c-black, 0.35);
+  box-shadow: inset 0 0 0 1px rgba($c-white, 0.38), 0 5px 12px rgba($c-black, 0.28);
 
   .profile-img {
     display: block;
@@ -340,8 +393,48 @@
     height: 100%;
     border: none;
     object-fit: cover;
-    object-position: top center;
+    object-position: center 20%;
   }
+
+  &.is-editable {
+    cursor: pointer;
+
+    .profile-img {
+      cursor: pointer;
+    }
+
+    &:hover .portrait-edit-hint,
+    &:focus-within .portrait-edit-hint {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .profile-img:focus-visible {
+      outline: 2px solid $c-advance;
+      outline-offset: -3px;
+    }
+  }
+}
+
+.portrait-edit-hint {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  max-width: calc(100% - 16px);
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba($c-black, 0.72);
+  color: $c-white;
+  font-size: var(--font-size-10, 10px);
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(3px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
 // Sits to the right of the portrait in the band's middle lane, sharing row 1
@@ -353,15 +446,14 @@
   // box laid over it.
   --banner-name-size: 46px;
 
-  order: 1;
+  grid-area: identity;
   // The chips may move below the name, but must not squeeze it away.
-  flex: 1 1 280px;
   min-width: min(280px, 100%);
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   gap: 1px;
-  min-width: 0;
+  color: $c-white;
 
   h1.charname {
     margin: 0;
@@ -370,6 +462,7 @@
     // Large, dominant headline that commands the banner space.
     font-size: var(--banner-name-size);
     line-height: 1;
+    letter-spacing: -0.025em;
 
     // Read as a title, not a form field: no box at rest, an underline hint on
     // hover, and a stronger underline while focused (i.e. while editing).
@@ -387,20 +480,60 @@
       font-size: var(--banner-name-size);
       font-weight: bold;
       line-height: 1;
+      color: $c-white;
       // Core gives inputs an inset glow, which across a field this wide reads
       // as a stray rule under the name rather than as a text box.
       box-shadow: none;
       transition: box-shadow 0.15s ease;
 
+      &::placeholder {
+        color: rgba($c-white, 0.58);
+      }
+
       &:hover {
-        box-shadow: inset 0 -1px 0 $c-beige;
+        box-shadow: inset 0 -1px 0 rgba($c-white, 0.46);
       }
 
       &:focus {
-        box-shadow: inset 0 -2px 0 $c-tan;
+        box-shadow: inset 0 -2px 0 $c-advance;
         outline: none;
       }
     }
+  }
+}
+
+// Once the protected name lane and the chip block no longer fit side by side,
+// the chips use the full lane below the identity while the portrait stays at
+// the left. The named container follows the resizable sheet, not the viewport.
+@container character-sheet (max-width: 980px) {
+  .sheet-banner {
+    grid-template-columns: var(--portrait-size) minmax(280px, 1fr);
+    grid-template-areas:
+      'portrait identity'
+      'portrait chips';
+  }
+
+  .banner-chips {
+    justify-self: stretch;
+    justify-content: flex-start;
+    width: 100%;
+    max-width: none;
+  }
+}
+
+// At the extreme narrow end the portrait scales down and the title size yields
+// only after there is physically no 280px lane left. Normal sheet sizes retain
+// the protected title width above.
+@container character-sheet (max-width: 520px) {
+  .sheet-banner {
+    --portrait-size: clamp(132px, 30cqi, 150px);
+    grid-template-columns: var(--portrait-size) minmax(0, 1fr);
+    column-gap: 12px;
+  }
+
+  .banner-identity {
+    --banner-name-size: clamp(30px, 8cqi, 40px);
+    min-width: 0;
   }
 }
 
@@ -412,7 +545,7 @@
   gap: 8px;
   padding-left: 4px;
   font-size: var(--font-size-11, 11px);
-  color: $c-tan;
+  color: $c-beige;
 }
 
 // Styled as a subtitle rather than a form field, matching the name above it:
@@ -437,22 +570,22 @@
   font-family: inherit;
   font-size: inherit;
   line-height: 1.3;
-  color: $c-tan;
+  color: $c-beige;
   box-shadow: none;
   transition: box-shadow 0.15s ease;
 
   &::placeholder {
-    color: $c-tan;
+    color: $c-beige;
     opacity: 0.5;
     font-style: italic;
   }
 
   &:hover:not(:disabled) {
-    box-shadow: inset 0 -1px 0 $c-beige;
+    box-shadow: inset 0 -1px 0 rgba($c-white, 0.4);
   }
 
   &:focus {
-    box-shadow: inset 0 -2px 0 $c-tan;
+    box-shadow: inset 0 -2px 0 $c-advance;
     outline: none;
   }
 }

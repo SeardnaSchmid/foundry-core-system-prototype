@@ -1,8 +1,8 @@
 # Character Sheet - Product Requirements Document
 
-**Version:** 1.0
-**Last Updated:** 2026-07-21
-**Status:** Implementation Complete (v1) — open for iteration
+**Version:** 1.1
+**Last Updated:** 2026-08-03
+**Status:** Implementation Complete (v1.1) — open for iteration
 
 ---
 
@@ -10,7 +10,7 @@
 
 1. [Overview](#overview)
 2. [Layout](#layout)
-3. [Sidebar](#sidebar)
+3. [Banner](#banner)
 4. [Basics Tab: Attributes](#basics-tab-attributes)
 5. [Basics Tab: Skills](#basics-tab-skills)
 6. [Biography Tab](#biography-tab)
@@ -28,7 +28,7 @@ The character sheet (`TnoActorSheet`, actor type `character`) is the single-wind
 
 ### Design Philosophy
 
-- **Mirror a familiar reference layout:** left-docked portrait sidebar with meta stats, tabbed main body, right-docked vertical tab rail — deliberately modeled on the reference dnd5e character sheet so players coming from other Foundry systems have a head start.
+- **Mirror a familiar reference layout:** a horizontal character-profile banner with portrait, identity and meta stats above a tabbed body, plus a right-docked vertical tab rail — deliberately modeled on familiar Foundry character sheets so players have a head start.
 - **Everything important lives above the fold:** attributes, skills, and the problem-solving pool all sit in one "Basics" tab reachable by default, so the two things a player checks most during a session (what can I roll, what can I spend) never require a tab switch.
 - **Read-at-a-glance over drill-down:** the attribute heatmap and skill XP bars encode information (relative value, advancement readiness) in color and layout, not just numbers, so a glance answers "what's strong" and "what's about to level" without hovering.
 
@@ -36,23 +36,25 @@ The character sheet (`TnoActorSheet`, actor type `character`) is the single-wind
 
 ## Layout
 
-- **Fixed window size:** 1000×640 (`TnoActorSheet.defaultOptions`) — sized to fit the compact attribute matrix plus three skill columns without forcing a wider window than the reference sheet needed.
-- **Two-column shell:** `.sheet-columns` holds a fixed-width `<aside class="sidebar">` (portrait + derived stats, visible across every tab) and a `.sheet-main` column carrying the header band and tabbed body.
-- **Tab rail:** `<nav class="sheet-tabs tabs-right">` is docked as a vertical icon rail along the right edge (mirroring the reference sheet), each item showing an icon plus a text label that's hidden by default and revealed on hover/focus so the rail's purpose is discoverable without waiting on the native tooltip delay. After ApplicationV2 wires its actions, `_dockTabsRail()` moves it from `.window-content` onto the app root so it remains fixed outside the sheet's single scroll surface.
-- **Header band:** spans only the main columns (not the sidebar), holds the editable name field and a total-XP badge (`totalXpSpent` = attribute XP + skill XP combined) — the badge's home after being an orphaned footer line under the sidebar in an earlier layout.
+- **Default window size:** 1270×720 (`TnoActorSheet.DEFAULT_OPTIONS`), resizable. The width gives the Basics rows enough room for their attribute, skill and equipment columns; the entire character sheet shares one `.window-content` scroll surface.
+- **Banner:** `.sheet-banner` is a full-width grid above the tab body with three areas: square portrait, protected identity lane, and wrapping meta-chip block. The portrait remains in normal grid flow and only visually overhangs the band's bottom edge, so extra chip rows can increase banner height without manual clearance calculations. A decorative copy of `actor.img` supplies a cinematic image field beneath the content; the original gradient remains the load-failure fallback.
+- **Tab rail:** `<nav class="sheet-tabs tabs-right">` is docked as a vertical icon rail along the right edge, each item showing an icon plus a text label that's hidden by default and revealed on hover/focus. It remains inside `.window-content`, where ApplicationV2 resolves the tab actions, while CSS positions it outside the visible sheet edge.
+- **Responsive banner:** `.window-content` is the named `character-sheet` inline-size container. At 980px and below the chips move beneath the identity while the portrait stays left; only below 520px may the protected 280px name lane yield, with both portrait and headline scaling down.
 
 ---
 
-## Sidebar
+## Banner
 
-Docked left, visible on every tab.
+Visible above every tab as a compact character profile.
 
-- **Portrait:** `actor.img`, click-to-edit via Foundry's native `data-edit="img"`.
-- **Banner chips (top right):**
+- **Portrait:** `actor.img` in a responsive 150–170px square, cropped with `object-fit: cover` and a face-friendly `center 20%` focus. Owners can activate it by pointer or keyboard to use Foundry's native image picker; hover/focus reveals a quiet edit pill. Read-only viewers receive an ordinary image without edit action or false affordance.
+- **Backdrop:** one unmasked `aria-hidden` decorative copy of `actor.img` sits behind the banner, using the upper golden-ratio focal point (`center 38%`). A single warm-charcoal-to-transparent gradient protects the identity and replaces the former parchment wash, alpha mask and vignette. The same gradient is angled slightly as an editorial cut and carries a faint advancement-gold warmth at its trailing edge—this is the banner's one decorative motif, not an additional layer. Name text is off-white and slightly tightened, its subtitle muted beige, and the gold repeats on the accent rule and portrait rim; the image remains recognizable through a restrained darker, desaturated wash without background blur. The chips use a light translucent surface with a small local blur. The backdrop has no interaction or separate actor data.
+- **Identity:** the editable character name is the dominant headline. The free-text profession/role and the computed spent/acquired XP read-out form its subtitle. The name retains a 280px lane at normal sheet widths; chips wrap before they may squeeze it.
+- **Banner chips:**
   - **Initiative:** `1d10 + @derived.initiative`, rolled via the generic `data-roll` formula path. It replaces the former portrait overlay, so the portrait stays unobstructed.
   - **Sixth Sense (6. Sinn):** a plain standard 3d20 roll against `system.derived.sixthSense`, no modifiers/advantage, no Problem-Solving pre-edge (`edgeExempt: true`) — it's an instinctive reaction, not a deliberate check.
 - **Movement chip:** crawl | walk | sprint as one display-only chip, each figure with its own tooltip — no roll, no interaction. A tier the character has lost is **struck through in the warning red**: sprint whenever `derived.canSprint` is false (a load at half the carry budget *or* a damaged Beweglichkeit — the chip does not distinguish, the tooltip does), and walk as well once the load is `crawlOnly`. This is where the carry grid's `Kein Sprint` / `Nur Kriechen` badges went: the consequence belongs on the figure it takes away, since the question being asked is "how far can I move".
-- **Problem-Solving group:** the reserve pool (directly editable, clamped 0..max) plus three tiles — see [problem-solving-prd.md](problem-solving-prd.md) for full mechanics. Only "Fehler Analysieren" is clickable from here; "Idee haben" lives in the roll dialog and "Fehler finden"/"Neuer Versuch" live on a failed roll's chat card, so their sidebar tiles are display-only, shown for at-a-glance reference.
+- **Problem-Solving chip:** the reserve pool is directly editable and clamped to 0..max. Its pips and tooltip keep the derived thresholds available at a glance; the actual Problem-Solving actions remain in the roll dialog or chat card — see [problem-solving-prd.md](problem-solving-prd.md).
 
 ---
 
@@ -60,7 +62,7 @@ Docked left, visible on every tab.
 
 - **Heatmap grid:** one row per `CONFIG.TNO.attributeRows` entry, one column per category (physical/social/mental), reproducing the rulebook's "Attribute" table. Ported from the standalone "Attribut-Heatmap" prototype.
 - **Per-cell display:**
-  - Base→Temp value pair (`heatmap-value-pair`): when a temporary modifier is in play, shows `base → effective` (e.g. `6→4`) so the direction of change is explicit and isn't misread as an x/y ratio the way the sidebar's reserve/carry tiles are; effective (temp) stays the visually emphasized number.
+  - Base→Temp value pair (`heatmap-value-pair`): when a temporary modifier is in play, shows `base → effective` (e.g. `6→4`) so the direction of change is explicit and isn't misread as an x/y ratio; effective (temp) stays the visually emphasized number.
   - `±` steppers adjust the temp value by default, or the base value while holding Shift (base changes are the rarer, more deliberate edit).
   - A reset control (`heatmap-delta`) snaps temp back to base, shown only when they differ.
   - Cell background/text color are graded per-cell against a fixed absolute 1–10 scale (`colorForValue`), independent of every other cell on the sheet — not a relative heatmap across the grid.
@@ -109,13 +111,13 @@ The rules behind these views live in [`helpers/inventory.mjs`](../../module/help
 
 ## Accessibility
 
-Every custom clickable chip that isn't a native `<a href>`/`<button>`/form control (bare `<a>` anchors, `.skill-info` rows) is invisible to keyboard/screen-reader tab order by default. `_makeKeyboardAccessible()` promotes all such elements on render: adds `tabindex="0"` and `role="button"` where missing, and binds an Enter/Space keydown handler that forwards to whatever `click` listener is already bound — without needing every template or handler touched individually.
+Every custom clickable chip that isn't a native `<a href>`/`<button>`/form control (bare `<a>` anchors, `.skill-info` rows, and the editable portrait image) is invisible to keyboard/screen-reader tab order by default. `_makeKeyboardAccessible()` promotes all such elements on render: adds `tabindex="0"` and `role="button"` where missing, and binds an Enter/Space keydown handler that forwards to whatever `click` listener is already bound. The portrait additionally carries an action-specific accessible label; its visible edit pill is decorative and hidden from assistive technology.
 
 ---
 
 ## Implementation Notes
 
-- Sheet class: [`TnoActorSheet`](../../module/sheets/actor-sheet.mjs), extends Foundry's `ActorSheet`. Template resolved dynamically per actor type: `systems/tno/templates/actor/actor-${actor.type}-sheet.hbs` (character sheet: [actor-character-sheet.hbs](../../templates/actor/actor-character-sheet.hbs)).
+- Sheet class: [`TnoActorSheet`](../../module/sheets/actor-sheet.mjs), extends Foundry's `ActorSheetV2` through `HandlebarsApplicationMixin`. Template resolved dynamically per actor type: `systems/tno/templates/actor/actor-${actor.type}-sheet.hbs` (character sheet: [actor-character-sheet.hbs](../../templates/actor/actor-character-sheet.hbs)).
 - `getData()` builds `context.attributeGrid` and `context.skillGroups` only for `actor.type === 'character'` (`_prepareCharacterData`); NPCs get `_prepareItems()` only, no heatmap/skill grid.
 - Attribute and skill XP cost formulas are pure functions at module scope (`attributeRankXpCost`, `skillRankXpCost`) — cumulative "total cost to reach rank N", not per-step cost, matching the rulebook's "Charakterentwicklung" level-cost tables (attributes: N², triangular-summed; skills: 3N, triangular-summed).
 - Attribute stepper and reset actions (`_stepAttribute`, `_resetTemp`) write directly via `actor.update()`; no confirmation dialog, since these are meant to be quick, low-friction adjustments (unlike the Problem-Solving actions, which are point-costly and gated behind confirms).
@@ -132,12 +134,13 @@ Key prefixes used throughout the sheet (see `lang/de.json` / `lang/en.json`):
 - `TNO.Attribute*` — attribute labels, hints, zero-value consequences (`TNO.AttributeZero.<suffix>`), current/base tooltips, advance/increase/decrease action labels.
 - `TNO.Skill*` — skills tab title, search placeholder/hint, filter labels/hints, category-empty hint, advance action label.
 - `TNO.CustomSkill.*` — add button, badge, shift-click hint for custom skills.
-- `TNO.Derived.*` / `TNO.DerivedShort.*` / `TNO.DerivedHint.*` — sidebar meta stat labels (Initiative, Sixth Sense, movement tiers, carry slots) in long/short/tooltip variants.
+- `TNO.Derived.*` / `TNO.DerivedShort.*` / `TNO.DerivedHint.*` — banner meta-stat labels (Initiative, Sixth Sense, movement tiers, carry slots) in long/short/tooltip variants.
 - `TNO.TabBasics` / `TabDescription` / `TabItems` — tab rail labels (`TabItems` reads "Inventar" / "Inventory": the tab covers the inventory rules as a whole, not just a list of things).
 - `TNO.Inventory.*` — Trageslots view: title, slot-cost hints, the `Keine Tasche` badge, the add-dialog's labels, the cell/free-cell hints, and the Kleinkram column's title, `0 Slots` caption, explanation and empty state (`Trinkets*`). The two load-state hints moved to `TNO.DerivedHint.NoSprint` / `CrawlOnly`, where the movement chip reads them.
 - `TNO.Armor.*` — paper doll: its column caption (`WornTitle`), zone labels (`TNO.Armor.Zone.*`), the RH/RW/RA long/short/hint triples, the unequip action, the drop hint on an empty zone, the wrong-zone warning, and the Stärkevorraussetzung warning.
 - `TNO.Weapons.*` — the weapon item sheet's value labels. Nothing on the actor sheet reads them: weapons have no view of their own there.
 - `TNO.BasicsSplitterHint` — the Basics tab's column handles.
+- `TNO.PortraitEdit` — accessible label and visible edit hint for an owner's portrait.
 - `TNO.XpTotalAllHint` / `XpTotalAttributesHint` / `XpTotalSkillsHint` / `XpMaxBadge` — the three XP badge tooltips and the at-cap badge text.
 - `TNO.BiographyPlaceholder` — biography textarea placeholder.
 - Problem-Solving keys are documented in full in [problem-solving-prd.md](problem-solving-prd.md#localization).
@@ -149,7 +152,7 @@ Key prefixes used throughout the sheet (see `lang/de.json` / `lang/en.json`):
 1. **NPC sheet parity** — the character sheet's heatmap/skill-grid treatment doesn't extend to NPC actors (`actor-npc-sheet.hbs` uses a simpler layout); worth deciding whether NPCs ever need the same depth or should stay minimal by design.
 2. **Skill subgroup badges** — currently a compact glyph/abbreviation replacing what used to be spelled out in the skill name itself; worth checking these remain legible without hover once more subgroups are added.
 3. **Attribute stepper discoverability** — the Shift-to-edit-base modifier has no on-screen affordance beyond the tooltip; consider a visible toggle if new players consistently miss it.
-4. **Mobile/narrow-width layout** — a container query already shrinks header labels on narrow widths (per the heatmap comment in the template); no PRD-level pass has been done on how far this degrades below the fixed 1000px default width.
+4. **Mobile/narrow-width layout** — the banner and attribute matrix now have container-query fallbacks, but no PRD-level pass has been done on the complete sheet below its 1270px default width.
 
 ---
 
@@ -157,6 +160,7 @@ Key prefixes used throughout the sheet (see `lang/de.json` / `lang/en.json`):
 
 | Version | Date | Changes | Author |
 |---------|------|---------|--------|
+| 1.1 | 2026-08-03 | Replaced stale sidebar description with responsive profile-banner and portrait contract | System |
 | 1.0 | 2026-07-21 | Initial PRD creation, documenting existing implementation | System |
 
 ---

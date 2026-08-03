@@ -10,6 +10,13 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
   band's bottom edge; `.sheet-body` reserves the height it needs. --}}
   <header class="sheet-banner">
 
+    {{!-- One decorative copy forms the banner image and fades into parchment
+    behind the identity. The real portrait below remains the only semantic
+    image and edit target. --}}
+    <div class="banner-backdrop" aria-hidden="true">
+      <img class="banner-backdrop-image" src="{{actor.img}}" alt="" />
+    </div>
+
     <div class="banner-chips">
 
       {{!-- Bewegungsreichweiten sind reine Anzeigewerte, kein Wurf — drei
@@ -78,9 +85,17 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
     </div>
 
     {{!-- The portrait is only the character image. Initiative lives in the
-    rollable chip at the upper right of the banner. --}}
-    <div class="banner-portrait">
-      <img class="profile-img" src="{{actor.img}}" data-edit="img" data-action="editImage" title="{{actor.name}}" height="161" width="215"/>
+    rollable chip at the upper right of the banner. Owners get a quiet edit
+    affordance; read-only viewers get an ordinary image with no dead action. --}}
+    <div class="banner-portrait{{#if editable}} is-editable{{/if}}">
+      <img class="profile-img" src="{{actor.img}}" alt="{{actor.name}}" height="170" width="170"
+        {{#if editable}}data-edit="img" data-action="editImage" aria-label="{{localize 'TNO.PortraitEdit'}}" title="{{localize 'TNO.PortraitEdit'}}"{{else}}title="{{actor.name}}"{{/if}} />
+      {{#if editable}}
+      <span class="portrait-edit-hint" aria-hidden="true">
+        <i class="fa-solid fa-pen"></i>
+        <span>{{localize "TNO.PortraitEdit"}}</span>
+      </span>
+      {{/if}}
     </div>
 
     {{!-- Name, then a subtitle line the player owns: a free-text profession or

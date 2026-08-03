@@ -79,8 +79,8 @@ them in step with `BASICS_LAYOUT_DEFAULT`.
 | Partial | Covers |
 | --- | --- |
 | `components/_dice-dialog.scss`, `_dice-card.scss` | Roll dialogs and the chat roll card / edge panel |
+| `components/_forms.scss` | Shared form controls plus actor-sheet layout, including the dark-fade portrait banner, restrained glass chips, portrait edit affordance, responsive identity/chip grid and Basics split rows. Its banner breakpoints consume the named `character-sheet` inline-size container declared on `.window-content` in `global/_window.scss` |
 | `components/_resource.scss` | Largest component partial — attribute heatmap grid, skill groups, edge pool display |
-| `components/_forms.scss` | Shared form controls across dialogs and sheets |
 | `components/_items.scss` | Inventory list rendering, including the Rollen column's tags |
 | `components/_item-dialog.scss` | Both gear views: overview cards/profiles/actions plus the editor's label column, scales, cycleable range bands, repeatable consumable effects, resizable description editor, chips, segments, splits and steppers. Nested with `&.gear-dialog` because the class sits on the sheet root alongside `tno`, not inside it |
 | `components/_item-popover.scss` | The view-mode card in both its homes — the actor sheet's top-layer popover (`&.item-popover`) and the chat card (`&.item-chat-summary`). Badges, probe band, value tiles, warning banner, detail rows and the action bar are styled once for both |

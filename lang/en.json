@@ -60,6 +60,7 @@
     "EdgeValueHint": "Current edge reserve — type a new value to set it. Clamped to 0..max; every manual change is announced in chat.",
     "RolePlaceholder": "Profession or role",
     "RoleHint": "Flavour only — how you describe your character, with no mechanical effect. Nothing in the system reads this field; it grants no bonus and gates nothing.",
+    "PortraitEdit": "Change portrait",
     "BasicsSplitterHint": "Drag to move the boundary between these two columns. Double-click resets the whole row.",
     "TabBasics": "Basics",
     "TabDescription": "Description",
