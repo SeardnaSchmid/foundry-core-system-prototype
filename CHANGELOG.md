@@ -1,5 +1,14 @@
 # Changelog
 
+# [0.31.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.30.0...v0.31.0) (2026-08-04)
+
+
+### Features
+
+* add standalone combat roll workflows ([3025791](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/3025791c89054773e209ebf85dd242db30f61de4))
+* build the Inventar tab and close the urgent/high audit findings ([9d322b3](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/9d322b3d2296b3ce4f2cecb798e72627ec2890f4))
+* refine combat roll selection ([247b49b](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/247b49b1c790da6c28a12609b1231057a5cdeae3))
+
 # [0.30.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.29.2...v0.30.0) (2026-08-04)
 
 
