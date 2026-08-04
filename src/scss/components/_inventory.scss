@@ -713,25 +713,12 @@ $c-trinket-label: rgba($c-dark, 0.55);
   justify-content: flex-start;
 }
 
-// Common Basics heading: the category on the left and its cost on the right.
-.slot-trinkets-header {
-  gap: 6px;
-}
-
 // The only thing here that names a rule rather than a piece of gear, so it is
 // also the only place to say why this column sits outside the slot budget.
 // `help` because there is nothing to click — the label explains itself and does
 // nothing else.
 .slot-trinkets-title {
   cursor: help;
-}
-
-// The whole point of the column, stated once at the top so no reader has to
-// infer it from the absence of cells.
-.slot-trinkets-cost {
-  margin-left: auto;
-  font-size: var(--font-size-11, 11px);
-  color: $c-trinket-label;
 }
 
 .slot-trinkets-list {

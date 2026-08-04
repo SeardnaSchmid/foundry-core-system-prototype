@@ -3303,16 +3303,8 @@
   padding: 8px 10px;
   justify-content: flex-start;
 }
-.tno .slot-trinkets-header {
-  gap: 6px;
-}
 .tno .slot-trinkets-title {
   cursor: help;
-}
-.tno .slot-trinkets-cost {
-  margin-left: auto;
-  font-size: var(--font-size-11, 11px);
-  color: rgba(25, 24, 19, 0.55);
 }
 .tno .slot-trinkets-list {
   display: flex;

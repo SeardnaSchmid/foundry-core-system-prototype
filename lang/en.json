@@ -564,7 +564,6 @@
       "NoContainerHint": "Without a bag or backpack there is no slot budget — the character's hands are full.",
       "Trinkets": "Small Stuff",
       "TrinketsHint": "<strong>Small Stuff</strong><br>Papers and similar odds and ends — items the inventory rules cost at 0 carry slots. Money is tracked separately in the wallet below.<br>They take up no slot, so they sit beside the grid rather than in it. The character is still carrying them, and they can be opened and re-sorted like anything else.",
-      "TrinketsZeroSlots": "0 slots",
       "TrinketsEmpty": "Nothing carried is priced at 0 carry slots. The slot cost is set on the item itself.",
       "Overflow": "Overloaded: {excess} slot(s) more than the character can carry.",
       "Carried": "Carried",
