@@ -134,6 +134,9 @@ export class TnoItem extends Item {
       preRollContext: {
         label: game.i18n.localize(usesMelee(this.system) ? 'TNO.Combat.DkDifference' : 'TNO.Combat.RangeBand'),
         placeholder: game.i18n.localize('TNO.Combat.ContextPlaceholder'),
+        control: 'tiles',
+        tileLabels: !usesMelee(this.system),
+        tileColumns: usesMelee(this.system) ? 7 : 5,
         choices: contextChoices,
       },
       flavor: game.i18n.format('TNO.Combat.AttackFlavor', { weapon: this.name }),

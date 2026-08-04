@@ -51,7 +51,7 @@ export class TnoRollDialog extends FormApplication {
    * @param {{label: string, value: number}[]} [options.fixedModifiers]
    *   Immutable rule modifiers added to the threshold and shown separately
    *   from the editable situational bonus.
-   * @param {{label: string, placeholder: string, choices: Array<{key: string, label: string, value: number, componentLabel?: string}>}} [options.preRollContext]
+   * @param {{label: string, placeholder: string, control?: 'select'|'tiles', tileLabels?: boolean, tileColumns?: 5|7, choices: Array<{key: string, label: string, value: number, componentLabel?: string}>}} [options.preRollContext]
    *   One optional required choice that must be made before rolling. Its
    *   selected value becomes an immutable threshold component.
    * @param {string} [options.flavor]      Label shown as the roll's subject heading and chat flavor.
@@ -74,7 +74,7 @@ export class TnoRollDialog extends FormApplication {
    * Keep the optional context interface safe for all existing roll callers:
    * malformed or empty contexts simply behave as though no context was given.
    * @param {*} context
-   * @returns {{label: string, placeholder: string, choices: Array<{key: string, label: string, value: number, componentLabel?: string}>}|null}
+   * @returns {{label: string, placeholder: string, control: 'select'|'tiles', tileLabels: boolean, tileColumns: 5|7, choices: Array<{key: string, label: string, value: number, componentLabel?: string}>}|null}
    */
   _normalizePreRollContext(context) {
     if (!context?.label || !Array.isArray(context.choices)) return null;
@@ -90,6 +90,9 @@ export class TnoRollDialog extends FormApplication {
     return {
       label: String(context.label),
       placeholder: String(context.placeholder || game.i18n.localize('TNO.Roll.ContextPlaceholder')),
+      control: context.control === 'tiles' ? 'tiles' : 'select',
+      tileLabels: context.tileLabels === true,
+      tileColumns: Number(context.tileColumns) === 5 ? 5 : 7,
       choices,
     };
   }
@@ -142,7 +145,9 @@ export class TnoRollDialog extends FormApplication {
           ...choice,
           selected: choice.key === contextChoice?.key,
           display: this._formatBonus(choice.value),
+          state: choice.value > 0 ? 'positive' : choice.value < 0 ? 'negative' : 'neutral',
         })),
+        isTilePicker: this.preRollContext.control === 'tiles',
       },
       contextSelected: !!contextChoice,
       canSubmit: !this.preRollContext || !!contextChoice,
@@ -406,7 +411,7 @@ export class TnoRollDialog extends FormApplication {
 
     // Any threshold-affecting input (attribute selects, free skill value, the
     // "Idee haben" toggle) repaints the preview.
-    html.on('change', 'select[name="attributeA"], select[name="attributeB"], select[name="contextChoice"]', (ev) => this._refresh(ev.currentTarget.closest('form')));
+    html.on('change', 'select[name="attributeA"], select[name="attributeB"], select[name="contextChoice"], input[name="contextChoice"]', (ev) => this._refresh(ev.currentTarget.closest('form')));
     html.on('change input', 'input[name="skillValue"]', (ev) => this._refresh(ev.currentTarget.closest('form')));
     html.on('change', 'input[name="useIdea"]', (ev) => {
       ev.currentTarget.closest('.tno-idea-toggle')?.classList.toggle('active', ev.currentTarget.checked);
@@ -466,7 +471,10 @@ export class TnoRollDialog extends FormApplication {
 
     // A required combat context must be chosen before the commit button is
     // useful; every other roll keeps the existing one-Enter default path.
-    html.find(this.preRollContext ? 'select[name="contextChoice"]' : 'button[type="submit"]').trigger('focus');
+    const contextFocus = this.preRollContext?.control === 'tiles'
+      ? 'input[name="contextChoice"]:first'
+      : 'select[name="contextChoice"]';
+    html.find(this.preRollContext ? contextFocus : 'button[type="submit"]').trigger('focus');
   }
 
   /** @override */

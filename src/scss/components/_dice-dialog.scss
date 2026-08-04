@@ -63,14 +63,126 @@ $c-roll-negative: #c62828;
   }
 
   // Combat workflows supply one required, authored context (range or direct
-  // DK difference). It intentionally uses a normal select: there is one
-  // choice to make before the immutable modifier appears in the threshold.
+  // DK difference). Both weapon contexts use radio tiles, with the authored
+  // range-band caption beneath its signed modifier.
   .tno-context-field {
     margin-bottom: 0;
 
     select {
       width: 100%;
     }
+  }
+
+  .tno-context-tile-field {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+
+    > legend {
+      margin-bottom: 4px;
+      font-size: var(--font-size-13, 13px);
+      font-weight: bold;
+    }
+  }
+
+  .tno-context-tile-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .tno-context-tile-grid-5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .tno-context-tile-input {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .tno-context-tile {
+    min-width: 0;
+    min-height: 46px;
+    display: grid;
+    place-items: center;
+    gap: 2px;
+    padding: 4px 2px;
+    border: 1px solid rgba(25, 24, 19, 0.3);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.58);
+    cursor: pointer;
+    color: rgba(25, 24, 19, 0.75);
+
+    strong {
+      font-size: var(--font-size-12, 12px);
+      line-height: 1;
+    }
+
+    &.negative {
+      color: $c-roll-negative;
+    }
+
+    &.positive {
+      color: $c-primary;
+    }
+
+    &.has-caption {
+      min-height: 58px;
+    }
+  }
+
+  .tno-context-tile-caption {
+    font-size: var(--font-size-9, 9px);
+    line-height: 1;
+    color: rgba(25, 24, 19, 0.65);
+  }
+
+  .tno-context-tile-visual {
+    position: relative;
+    width: 70%;
+    height: 12px;
+
+    &::before,
+    i {
+      position: absolute;
+      left: 0;
+      right: 0;
+      content: '';
+    }
+
+    &::before {
+      top: 50%;
+      border-top: 1px solid rgba(25, 24, 19, 0.25);
+    }
+
+    i {
+      top: 50%;
+      border-top: 2px solid currentcolor;
+      transform: translateY(-50%);
+    }
+  }
+
+  .tno-context-tile.negative .tno-context-tile-visual i {
+    top: 82%;
+  }
+
+  .tno-context-tile.positive .tno-context-tile-visual i {
+    top: 18%;
+  }
+
+  .tno-context-tile-input:checked + .tno-context-tile {
+    border-color: currentcolor;
+    background: rgba($c-primary, 0.12);
+    box-shadow: 0 0 0 1px currentcolor;
+  }
+
+  .tno-context-tile-input:focus-visible + .tno-context-tile {
+    outline: 2px solid $c-primary;
+    outline-offset: 1px;
   }
 
   // Core's .form-group lays label/content out as a flex row, which squeezes

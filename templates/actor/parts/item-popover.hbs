@@ -1,22 +1,32 @@
 {{> 'systems/tno/templates/item/parts/item-gear-summary.hbs' showClose=true}}
 
-{{!-- Only actions backed by stored state. A weapon's attack is the one thing
-      the card is opened for, so it takes the full width above the rest; every
-      other item makes editing the primary action instead. --}}
+{{!-- Only actions backed by stored state. Weapon combat actions share the
+      primary row; every other item makes editing the primary action instead. --}}
 <footer class='item-popover-actions' aria-label='{{localize "TNO.Item.Overview.Actions"}}'>
   {{#if canWeaponCheck}}
-    <button type='button' class='primary wide' data-popover-action='weapon-check'
-            title='{{localize "TNO.Item.Overview.WeaponCheckHint"}}'>
-      <i class='fa-solid fa-dice-d20' aria-hidden='true'></i>{{localize 'TNO.Item.Overview.WeaponCheck'}}
-    </button>
+    <div class='item-popover-actions-row item-popover-combat-actions'>
+      <button type='button' class='primary wide' data-popover-action='weapon-check'
+              title='{{localize "TNO.Item.Overview.WeaponCheckHint"}}'>
+        <i class='fa-solid fa-dice-d20' aria-hidden='true'></i>{{localize 'TNO.Item.Overview.WeaponCheck'}}
+      </button>
+      {{#if canWeaponParry}}
+        <button type='button' data-popover-action='weapon-parry'
+                title='{{localize "TNO.Combat.ParryHint"}}'>
+          <i class='fa-solid fa-shield-halved' aria-hidden='true'></i>{{localize 'TNO.Combat.Parry'}}
+        </button>
+      {{/if}}
+    </div>
+  {{else}}
+    {{#if canWeaponParry}}
+      <div class='item-popover-actions-row item-popover-combat-actions'>
+        <button type='button' data-popover-action='weapon-parry'
+                title='{{localize "TNO.Combat.ParryHint"}}'>
+          <i class='fa-solid fa-shield-halved' aria-hidden='true'></i>{{localize 'TNO.Combat.Parry'}}
+        </button>
+      </div>
+    {{/if}}
   {{/if}}
   <div class='item-popover-actions-row'>
-    {{#if canWeaponParry}}
-      <button type='button' data-popover-action='weapon-parry'
-              title='{{localize "TNO.Combat.ParryHint"}}'>
-        <i class='fa-solid fa-shield-halved' aria-hidden='true'></i>{{localize 'TNO.Combat.Parry'}}
-      </button>
-    {{/if}}
     <button type='button' data-popover-action='post'>
       <i class='fa-solid fa-message' aria-hidden='true'></i>{{localize 'TNO.Item.Overview.Post'}}
     </button>

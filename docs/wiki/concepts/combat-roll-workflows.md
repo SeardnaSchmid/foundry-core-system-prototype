@@ -23,6 +23,9 @@ This page maps those workflows to their implementation.
 - [`apps/roll-dialog.mjs`](../../../module/apps/roll-dialog.mjs) owns the
   optional required pre-roll context. Its selected component is passed to
   `rollTno()` with the normal component list and stored in the message flags.
-- The item popover keeps Attack primary and places Parry in its secondary row.
+  Both weapon contexts use its compact radio-tile picker: melee shows direct
+  DK values, while ranged shows only usable bands with their modifier.
+- The item popover keeps Attack primary and places Parry alongside it in the
+  combat row.
   The character-sheet template places Dodge directly after Acrobatics in the
   normal Basics skill list; it is a roll action, not an advanceable rank.

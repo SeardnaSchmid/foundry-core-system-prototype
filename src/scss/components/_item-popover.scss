@@ -419,6 +419,20 @@
     }
   }
 
+  // Attack remains the primary combat action, while the melee-only parry is
+  // immediately alongside it rather than competing with utility controls.
+  .item-popover-combat-actions {
+    > button {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+
+    > button.wide {
+      flex: 2 1 0;
+      width: auto;
+    }
+  }
+
   .item-popover-actions button {
     display: inline-flex;
     align-items: center;

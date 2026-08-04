@@ -82,6 +82,21 @@
   {{#if hasPreRollContext}}
   <section class="tno-roll-section tno-roll-context">
     <span class="tno-roll-section-caption">{{localize "TNO.Roll.ContextCaption"}}</span>
+    {{#if preRollContext.isTilePicker}}
+    <fieldset class="tno-context-field tno-context-tile-field">
+      <legend>{{preRollContext.label}}</legend>
+      <div class="tno-context-tile-grid tno-context-tile-grid-{{preRollContext.tileColumns}}">
+        {{#each preRollContext.choices as |choice|}}
+        <input id="tno-roll-context-choice-{{choice.key}}" class="tno-context-tile-input" type="radio" name="contextChoice" value="{{choice.key}}" required {{#if choice.selected}}checked{{/if}}>
+        <label class="tno-context-tile {{choice.state}} {{#if ../preRollContext.tileLabels}}has-caption{{/if}}" for="tno-roll-context-choice-{{choice.key}}" title="{{choice.display}}">
+          <span class="tno-context-tile-visual" aria-hidden="true"><i></i></span>
+          <strong>{{choice.display}}</strong>
+          {{#if ../preRollContext.tileLabels}}<span class="tno-context-tile-caption">{{choice.label}}</span>{{/if}}
+        </label>
+        {{/each}}
+      </div>
+    </fieldset>
+    {{else}}
     <div class="form-group tno-context-field">
       <label for="tno-roll-context-choice">{{preRollContext.label}}</label>
       <select id="tno-roll-context-choice" name="contextChoice" required>
@@ -91,6 +106,7 @@
         {{/each}}
       </select>
     </div>
+    {{/if}}
   </section>
   {{/if}}
 
