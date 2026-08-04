@@ -5,7 +5,7 @@ description: Why a physical item has roles instead of a Foundry item type, and h
 tags: [items, roles, weapons, armor, sheets, schema]
 resource: [module/apps/roll-dialog.mjs, module/documents/item.mjs, module/helpers/items.mjs, module/helpers/item-presentation.mjs, module/helpers/item-summary.mjs, module/sheets/actor-sheet.mjs, module/sheets/item-gear-sheet.mjs, templates/actor/parts/item-popover.hbs, templates/apps/roll-dialog.hbs, templates/item/item-gear-sheet.hbs, templates/item/parts/item-gear-summary.hbs, templates/item/parts/item-role-weapon.hbs]
 spec: docs/design/character-sheet-prd.md
-related: [concepts/inventory, concepts/migrations, reference/ui-surfaces, architecture/data-schema]
+related: [concepts/combat-roll-workflows, concepts/inventory, concepts/migrations, reference/ui-surfaces, architecture/data-schema]
 ---
 
 # Item roles and the gear dialog
@@ -190,12 +190,12 @@ its primary tile, and delete the item through the same confirmation used by the
 inventory list. Stock never drops below zero. Worn armour must be taken off
 before deletion. The chat card renders the same partial without any of these
 live controls.
-An actor-owned weapon with FV can open the normal roll builder as a
-**Angriffswurf**, and takes the full-width primary action; every other item
-makes Bearbeiten primary instead. Its authored FV and Waffenattribut are
-required, shown as the two fixed threshold components, and cannot be changed in
-that dialog. That is not a full attack: it does not choose SS/WS and does not
-imply a readied state.
+An owned weapon with a valid profile exposes its independent Attack workflow as
+the full-width primary action. A melee profile also exposes Parry in the
+secondary row. The actor sheet owns the separate Dodge action. Their entry
+points, context dialog, and mechanics-spec link are mapped in
+[combat-roll-workflows.md](combat-roll-workflows.md); the popover still does
+not resolve an attack chain, readiness, or ammunition.
 
 The carry-cell tooltips flatten the same card into one line, dropping the `na`
 tiles — a box holding the layout together says nothing in a sentence.

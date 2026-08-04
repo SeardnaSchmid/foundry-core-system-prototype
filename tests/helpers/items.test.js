@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   armorZones,
+  canWeaponAttack,
+  canWeaponParry,
   clampGearNumber,
   cycleRangeModifier,
   hasRole,
@@ -15,6 +17,13 @@ import {
   usesMelee,
   usesRanged,
   weaponAttribute,
+  weaponBaseStrength,
+  weaponDkDifferenceChoices,
+  weaponHandlingModifier,
+  weaponRangeChoices,
+  weaponRequirementMalus,
+  weaponRequirementStatus,
+  weaponSkillRank,
   weaponUse,
 } from '../../module/helpers/items.mjs';
 
@@ -145,6 +154,76 @@ describe('weaponAttribute', () => {
     expect(weaponAttribute({ wa: 'inv' })).toBe('inv');
     expect(weaponAttribute({ wa: 'tail' })).toBe('str');
     expect(weaponAttribute({})).toBe('str');
+  });
+});
+
+describe('weapon roll helpers', () => {
+  const actor = ({ skill = 0, strengthBase = 4, strengthCurrent = strengthBase } = {}) => ({
+    system: {
+      abilities: { str: { base: strengthBase, value: strengthCurrent } },
+      skills: { swords: { value: skill } },
+    },
+  });
+  const system = (overrides = {}) => ({
+    use: 'melee',
+    fv: { skill: 'swords', rank: 2 },
+    wa: 'fin',
+    sv: 4,
+    dk: 3,
+    hh: { active: 2, passive: -1 },
+    range: { sn: null, near: null, mid: null, far: null, sf: null },
+    ...overrides,
+  });
+
+  it('uses the actor skill rank, not the item FV requirement', () => {
+    expect(weaponSkillRank(actor({ skill: 5 }), system({ fv: { skill: 'swords', rank: 1 } }))).toBe(5);
+  });
+
+  it('applies one −3 when FV, SV, or both requirements are unmet', () => {
+    expect(weaponRequirementMalus(actor({ skill: 1, strengthBase: 5 }), system())).toBe(-3);
+    expect(weaponRequirementMalus(actor({ skill: 2, strengthBase: 3 }), system())).toBe(-3);
+    expect(weaponRequirementMalus(actor({ skill: 1, strengthBase: 3 }), system())).toBe(-3);
+    expect(weaponRequirementMalus(actor({ skill: 2, strengthBase: 4 }), system())).toBe(0);
+  });
+
+  it('checks weapon SV against base Strength, not its current temporary value', () => {
+    const status = weaponRequirementStatus(actor({ skill: 2, strengthBase: 3, strengthCurrent: 8 }), system({ sv: 4 }));
+    expect(weaponBaseStrength(actor({ strengthBase: 3, strengthCurrent: 8 }))).toBe(3);
+    expect(status.svMet).toBe(false);
+    expect(status.malus).toBe(-3);
+  });
+
+  it('selects active versus passive handling without changing either value', () => {
+    const profile = system({ hh: { active: 3, passive: -2 } });
+    expect(weaponHandlingModifier(profile, 'active')).toBe(3);
+    expect(weaponHandlingModifier(profile, 'passive')).toBe(-2);
+  });
+
+  it('offers only authored ranged bands and preserves their modifiers', () => {
+    expect(weaponRangeChoices(system({
+      use: 'ranged',
+      range: { sn: -3, near: null, mid: 0, far: 3, sf: null },
+    }))).toEqual([
+      { key: 'sn', value: -3 },
+      { key: 'mid', value: 0 },
+      { key: 'far', value: 3 },
+    ]);
+  });
+
+  it('spans every direct DK difference from −6 through +6', () => {
+    expect(weaponDkDifferenceChoices().map((choice) => choice.value)).toEqual(
+      Array.from({ length: 13 }, (_, index) => index - 6)
+    );
+  });
+
+  it('requires attack context while keeping Parry melee-only', () => {
+    expect(canWeaponAttack(system())).toBe(true);
+    expect(canWeaponAttack(system({ dk: null }))).toBe(false);
+    expect(canWeaponParry(system({ dk: null }))).toBe(true);
+    expect(canWeaponParry(system({ use: 'ranged', range: { near: 0 } }))).toBe(false);
+    expect(canWeaponAttack(system({ use: 'ranged', range: { near: null } }))).toBe(false);
+    expect(canWeaponAttack(system({ use: 'ranged', range: { near: 0 } }))).toBe(true);
+    expect(canWeaponAttack(system(), { skillDefined: false })).toBe(false);
   });
 });
 

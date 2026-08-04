@@ -76,11 +76,38 @@
     {{/if}}
   </section>
 
+  {{!-- A weapon roll can require one table-state choice (range band or direct
+        DK difference) before it has a truthful threshold. Generic rolls omit
+        this section entirely. --}}
+  {{#if hasPreRollContext}}
+  <section class="tno-roll-section tno-roll-context">
+    <span class="tno-roll-section-caption">{{localize "TNO.Roll.ContextCaption"}}</span>
+    <div class="form-group tno-context-field">
+      <label for="tno-roll-context-choice">{{preRollContext.label}}</label>
+      <select id="tno-roll-context-choice" name="contextChoice" required>
+        <option value="" disabled {{#unless contextSelected}}selected{{/unless}}>{{preRollContext.placeholder}}</option>
+        {{#each preRollContext.choices as |choice|}}
+        <option value="{{choice.key}}" {{#if choice.selected}}selected{{/if}}>{{choice.label}} ({{choice.display}})</option>
+        {{/each}}
+      </select>
+    </div>
+  </section>
+  {{/if}}
+
   {{!-- ② Modifiers: everything that adjusts the threshold on top of the base
         (situational bonus/malus, and the "Idee haben" pre-edge). --}}
   {{#if hasModifiers}}
   <section class="tno-roll-section tno-roll-modifiers">
     <span class="tno-roll-section-caption">{{localize "TNO.Roll.ModifiersCaption"}}</span>
+
+    {{#if hasFixedModifiers}}
+    {{#each fixedModifiers as |modifier|}}
+    <div class="tno-roll-detail">
+      <span class="tno-roll-detail-label">{{modifier.label}}</span>
+      <span class="tno-roll-detail-value">{{modifier.display}}</span>
+    </div>
+    {{/each}}
+    {{/if}}
 
     {{#unless isFixedMode}}
     <div class="form-group tno-bonus-field">
@@ -139,7 +166,7 @@
   {{!-- ⑤ Commit — the dialog's primary action, styled to stand out from
         every secondary control above it. --}}
   <footer class="sheet-footer flexrow">
-    <button type="submit" class="tno-roll-submit">
+    <button type="submit" class="tno-roll-submit" {{#unless canSubmit}}disabled{{/unless}}>
       <span class="tno-roll-submit-main"><i class="fas fa-dice-d20"></i> {{localize "TNO.Roll.Submit"}}</span>
       <span class="tno-roll-submit-echo">{{targetLabel}} ≤ {{threshold}}</span>
     </button>

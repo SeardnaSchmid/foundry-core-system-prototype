@@ -280,6 +280,132 @@ export function weaponAttribute(system) {
 }
 
 /**
+ * Read the actor's current rank in the skill authored on a weapon profile.
+ * Weapon FV rank is a requirement, never the contribution to an actual roll.
+ * @param {Object} actor  An actor document (or plain actor data).
+ * @param {Object} system An item's `system` data.
+ * @returns {number}
+ */
+export function weaponSkillRank(actor, system) {
+  const key = system?.fv?.skill;
+  const value = actor?.system?.skills?.[key]?.value;
+  return Number.isFinite(Number(value)) ? Number(value) : 0;
+}
+
+/**
+ * The weapon SV comparison deliberately uses the actor's base Strength, not
+ * its current value. This is the same requirement axis armour already uses.
+ * @param {Object} actor  An actor document (or plain actor data).
+ * @returns {number}
+ */
+export function weaponBaseStrength(actor) {
+  const base = actor?.system?.abilities?.str?.base;
+  return Number.isFinite(Number(base)) ? Number(base) : 0;
+}
+
+/**
+ * Whether a value is an authored finite number. Blank nullable values must
+ * remain distinct from zero because `Number(null)` and `Number('')` are zero.
+ * @param {*} value
+ * @returns {boolean}
+ */
+function isAuthoredNumber(value) {
+  return value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
+}
+
+/**
+ * Read the two weapon requirements and their single shared malus. Falling
+ * short on FV, SV, or both is one -3 modifier rather than a stack.
+ * @param {Object} actor  An actor document (or plain actor data).
+ * @param {Object} system An item's `system` data.
+ * @returns {{skillRank: number, strength: number, fvMet: boolean, svMet: boolean, malus: number}}
+ */
+export function weaponRequirementStatus(actor, system) {
+  const skillRank = weaponSkillRank(actor, system);
+  const strength = weaponBaseStrength(actor);
+  const fvRequired = isAuthoredNumber(system?.fv?.rank) ? Number(system.fv.rank) : 0;
+  const svRequired = isAuthoredNumber(system?.sv) ? Number(system.sv) : 0;
+  const fvMet = skillRank >= fvRequired;
+  const svMet = strength >= svRequired;
+  return {
+    skillRank,
+    strength,
+    fvMet,
+    svMet,
+    malus: fvMet && svMet ? 0 : -3,
+  };
+}
+
+/**
+ * The one combined FV/SV requirement modifier for an attack or parry.
+ * @param {Object} actor  An actor document (or plain actor data).
+ * @param {Object} system An item's `system` data.
+ * @returns {number}
+ */
+export function weaponRequirementMalus(actor, system) {
+  return weaponRequirementStatus(actor, system).malus;
+}
+
+/**
+ * The authored handling contribution for the requested weapon workflow.
+ * @param {Object} system An item's `system` data.
+ * @param {'active'|'passive'} mode
+ * @returns {number}
+ */
+export function weaponHandlingModifier(system, mode) {
+  const value = Number(system?.hh?.[mode]);
+  if (!Number.isFinite(value)) return 0;
+  return Math.min(3, Math.max(-3, value));
+}
+
+/**
+ * The selectable parts of a ranged profile. A null/blank band means the
+ * weapon cannot attack at that range; finite legacy modifiers remain valid.
+ * @param {Object} system An item's `system` data.
+ * @returns {Array<{key: string, value: number}>}
+ */
+export function weaponRangeChoices(system) {
+  return RANGE_BANDS
+    .filter((key) => isAuthoredNumber(system?.range?.[key]))
+    .map((key) => ({ key, value: Number(system.range[key]) }));
+}
+
+/** Direct melee DK-difference options, applied to a roll without conversion. */
+export function weaponDkDifferenceChoices() {
+  return Array.from({ length: 13 }, (_, index) => {
+    const value = index - 6;
+    return { key: String(value), value };
+  });
+}
+
+/**
+ * Whether this authored weapon data can form an attack roll. Requirement
+ * shortfalls do not make the profile invalid; they merely produce its -3.
+ * @param {Object} system An item's `system` data.
+ * @param {{skillDefined?: boolean}} [options]
+ * @returns {boolean}
+ */
+export function canWeaponAttack(system, { skillDefined = true } = {}) {
+  const hasFv = typeof system?.fv?.skill === 'string' && system.fv.skill.trim().length > 0;
+  const basics = skillDefined && hasFv && WEAPON_ATTRIBUTES.includes(system?.wa);
+  if (!basics) return false;
+  if (usesMelee(system)) return isAuthoredNumber(system?.dk);
+  return weaponRangeChoices(system).length > 0;
+}
+
+/**
+ * Whether this authored weapon data can form an independent parry roll.
+ * Parry is a melee-only value and deliberately has no DK or range gate.
+ * @param {Object} system An item's `system` data.
+ * @param {{skillDefined?: boolean}} [options]
+ * @returns {boolean}
+ */
+export function canWeaponParry(system, { skillDefined = true } = {}) {
+  const hasFv = typeof system?.fv?.skill === 'string' && system.fv.skill.trim().length > 0;
+  return usesMelee(system) && skillDefined && hasFv && WEAPON_ATTRIBUTES.includes(system?.wa);
+}
+
+/**
  * The compact, recognisable icon for a physical item in an inventory view.
  * Item artwork is useful on an item's own sheet, but a repeated role icon is
  * quicker to scan in the dense carry grid and flat inventory list.

@@ -24,7 +24,7 @@ import {
 } from '../helpers/inventory.mjs';
 import { MONEY_CURRENCIES, normalizeMoneyAmount, prepareWallet } from '../helpers/money.mjs';
 import { prepareGearSummaryContext } from '../helpers/item-summary.mjs';
-import { ITEM_ROLES, WEAPON_ATTRIBUTES, armorZones, inventoryIcon, itemRoles, weaponUse } from '../helpers/items.mjs';
+import { ITEM_ROLES, armorZones, canWeaponAttack, canWeaponParry, inventoryIcon, itemRoles, weaponUse } from '../helpers/items.mjs';
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -428,6 +428,27 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           };
         })
         .sort((a, b) => a.label.localeCompare(b.label, game.i18n.lang));
+
+      // Dodge is a fixed defence probe rather than an advanceable skill. It
+      // belongs beside the Acrobatics rank it consumes, so it lives as a
+      // special roll row in the normal skills list without changing XP totals.
+      if (catKey === 'general') {
+        const acrobaticsIndex = groupSkills.findIndex((skill) => skill.key === 'acrobatics');
+        if (acrobaticsIndex >= 0) {
+          const dexterity = Number(context.system.abilities?.dex?.value) || 0;
+          const acrobatics = Number(skills.acrobatics?.value) || 0;
+          groupSkills.splice(acrobaticsIndex + 1, 0, {
+            key: 'dodge',
+            label: game.i18n.localize('TNO.Combat.Dodge'),
+            value: dexterity + acrobatics,
+            isDodgeAction: true,
+            rank: 0,
+            xp: 0,
+            starter: false,
+            custom: false,
+          });
+        }
+      }
       return {
         key: catKey,
         label: game.i18n.localize(catLabelKey),
@@ -857,7 +878,8 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     return {
       ...base,
       canEdit,
-      canWeaponCheck: !!(canEdit && item.actor?.isOwner && roles.weapon && skill && WEAPON_ATTRIBUTES.includes(item.system.wa)),
+      canWeaponCheck: !!(canEdit && item.actor?.isOwner && roles.weapon && canWeaponAttack(item.system, { skillDefined: !!skill })),
+      canWeaponParry: !!(canEdit && item.actor?.isOwner && roles.weapon && canWeaponParry(item.system, { skillDefined: !!skill })),
       canAdjustStock: canEdit && roles.consumable,
       canDecreaseStock: canEdit && roles.consumable && stock > 0,
       canDelete: canEdit && !item.isWorn,
@@ -939,6 +961,8 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         return item.roll();
       case 'weapon-check':
         return item.openWeaponCheck();
+      case 'weapon-parry':
+        return item.openWeaponParry();
       case 'stock':
         return item.adjustStock(Number(control.dataset.by));
       case 'delete':
@@ -1905,9 +1929,11 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         const xp = Number(rowEl.dataset.xp) || 0;
         const starter = rowEl.dataset.starter === 'true';
         const custom = rowEl.dataset.custom === 'true';
+        const alwaysVisible = rowEl.dataset.alwaysVisible === 'true';
         const visible = search
           ? fuzzyMatch(search, rowEl.querySelector('.skill-name-text')?.textContent ?? '')
           : filter === 'all' ||
+            alwaysVisible ||
             (filter === 'trained' && (rank !== 0 || custom || xp !== 0)) ||
             (filter === 'starter' && starter);
         rowEl.style.display = visible ? '' : 'none';
@@ -1988,6 +2014,24 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         return new TnoRollDialog(this.actor, {
           freeSkill: true,
           flavor: game.i18n.localize('TNO.Roll.FreeTitle'),
+        }).render(true);
+      }
+
+      // Dodge stays a self-contained defence probe: it needs neither an
+      // attacker nor an attack result. The existing derived armour check
+      // already answers whether its single SV malus applies.
+      if (dataset.rollType == 'dodge') {
+        const definition = getSkillDefinition(this.actor, 'acrobatics');
+        if (!definition) return;
+        const rank = this.actor.system.skills?.acrobatics?.value ?? 0;
+        return new TnoRollDialog(this.actor, {
+          attributeA: 'dex',
+          lockAttribute: true,
+          skill: { key: 'acrobatics', label: definition.label, value: rank },
+          fixedModifiers: this.actor.system.derived?.armorSvPenalty
+            ? [{ label: game.i18n.localize('TNO.Combat.ArmorSvMalus'), value: -3 }]
+            : [],
+          flavor: game.i18n.localize('TNO.Combat.Dodge'),
         }).render(true);
       }
 

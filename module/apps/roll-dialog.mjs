@@ -48,16 +48,50 @@ export class TnoRollDialog extends FormApplication {
    *   When set, the dialog switches to "fixed" mode: no attribute or skill
    *   is linked at all, the fixed value alone (plus the bonus field) forms
    *   the threshold.
+   * @param {{label: string, value: number}[]} [options.fixedModifiers]
+   *   Immutable rule modifiers added to the threshold and shown separately
+   *   from the editable situational bonus.
+   * @param {{label: string, placeholder: string, choices: Array<{key: string, label: string, value: number, componentLabel?: string}>}} [options.preRollContext]
+   *   One optional required choice that must be made before rolling. Its
+   *   selected value becomes an immutable threshold component.
    * @param {string} [options.flavor]      Label shown as the roll's subject heading and chat flavor.
    */
-  constructor(actor, { attributeA = '', lockAttribute = false, skill = null, freeSkill = false, fixedValue = null, flavor = '' } = {}) {
-    super({ attributeA, attributeB: '', skillValue: 0, bonus: 0, advantage: TNO_ADVANTAGE.none, useIdea: false });
+  constructor(actor, { attributeA = '', lockAttribute = false, skill = null, freeSkill = false, fixedValue = null, fixedModifiers = [], preRollContext = null, flavor = '' } = {}) {
+    super({ attributeA, attributeB: '', skillValue: 0, bonus: 0, advantage: TNO_ADVANTAGE.none, useIdea: false, contextChoice: '' });
     this.actor = actor;
     this.lockAttribute = !!(lockAttribute && attributeA);
     this.skill = skill;
     this.freeSkill = freeSkill;
     this.fixedValue = fixedValue;
+    this.fixedModifiers = fixedModifiers
+      .filter((modifier) => modifier?.label && Number.isFinite(Number(modifier.value)))
+      .map((modifier) => ({ label: modifier.label, value: Number(modifier.value) }));
+    this.preRollContext = this._normalizePreRollContext(preRollContext);
     this.flavor = flavor || game.i18n.localize('TNO.Roll.DialogTitle');
+  }
+
+  /**
+   * Keep the optional context interface safe for all existing roll callers:
+   * malformed or empty contexts simply behave as though no context was given.
+   * @param {*} context
+   * @returns {{label: string, placeholder: string, choices: Array<{key: string, label: string, value: number, componentLabel?: string}>}|null}
+   */
+  _normalizePreRollContext(context) {
+    if (!context?.label || !Array.isArray(context.choices)) return null;
+    const choices = context.choices
+      .filter((choice) => choice?.key !== undefined && choice?.label && Number.isFinite(Number(choice.value)))
+      .map((choice) => ({
+        key: String(choice.key),
+        label: String(choice.label),
+        value: Number(choice.value),
+        ...(choice.componentLabel ? { componentLabel: String(choice.componentLabel) } : {}),
+      }));
+    if (!choices.length) return null;
+    return {
+      label: String(context.label),
+      placeholder: String(context.placeholder || game.i18n.localize('TNO.Roll.ContextPlaceholder')),
+      choices,
+    };
   }
 
   /** @override */
@@ -85,6 +119,7 @@ export class TnoRollDialog extends FormApplication {
 
     const hasIdeaOption = this.actor.type === 'character';
     const bonus = Number(this.object.bonus) || 0;
+    const contextChoice = this._contextChoice(this.object);
 
     const data = {
       ...this.object,
@@ -95,13 +130,29 @@ export class TnoRollDialog extends FormApplication {
       isLockedAttribute: this.lockAttribute,
       isFreeMode: this.freeSkill,
       isFixedMode: !!this.fixedValue,
+      fixedModifiers: this.fixedModifiers.map((modifier) => ({
+        ...modifier,
+        display: this._formatBonus(modifier.value),
+      })),
+      hasFixedModifiers: this.fixedModifiers.length > 0,
+      hasPreRollContext: !!this.preRollContext,
+      preRollContext: this.preRollContext && {
+        ...this.preRollContext,
+        choices: this.preRollContext.choices.map((choice) => ({
+          ...choice,
+          selected: choice.key === contextChoice?.key,
+          display: this._formatBonus(choice.value),
+        })),
+      },
+      contextSelected: !!contextChoice,
+      canSubmit: !this.preRollContext || !!contextChoice,
       threshold: this._computeThreshold(this.object),
       breakdown: this._breakdownText(this.object),
       targetLabel: game.i18n.localize('TNO.Roll.SubmitTargetLabel'),
       subject: game.i18n.format('TNO.Roll.Subject', { name: this.flavor }),
       // The bonus stepper (fixed mode aside) and the "Idee haben" toggle both
       // live in the modifiers section; show it whenever either applies.
-      hasModifiers: !this.fixedValue || hasIdeaOption,
+      hasModifiers: !this.fixedValue || hasIdeaOption || this.fixedModifiers.length > 0,
       bonusDisplay: this._formatBonus(bonus),
       bonusSignClass: this._bonusSignClass(bonus),
       bonusAtMin: bonus <= BONUS_MIN,
@@ -211,6 +262,47 @@ export class TnoRollDialog extends FormApplication {
   }
 
   /**
+   * Resolve the selected optional pre-roll context from form data.
+   * @param {object} data Form data with contextChoice.
+   * @returns {{key: string, label: string, value: number, componentLabel?: string}|null}
+   */
+  _contextChoice(data) {
+    if (!this.preRollContext) return null;
+    const key = String(data?.contextChoice ?? '');
+    return this.preRollContext.choices.find((choice) => choice.key === key) ?? null;
+  }
+
+  /**
+   * The selected context as a signed, immutable threshold component.
+   * @param {object} data Form data with contextChoice.
+   * @returns {{key: string, choiceLabel: string, label: string, value: number, display: string}|null}
+   */
+  _contextComponent(data) {
+    const choice = this._contextChoice(data);
+    if (!choice) return null;
+    return {
+      key: choice.key,
+      choiceLabel: choice.label,
+      label: choice.componentLabel || `${this.preRollContext.label}: ${choice.label}`,
+      value: choice.value,
+      display: this._formatBonus(choice.value),
+    };
+  }
+
+  /**
+   * Rule modifiers supplied by the workflow that opened this dialog. They
+   * remain distinct from the user's situational bonus so authored weapon
+   * handling cannot be reset or overwritten in the UI.
+   * @returns {Array<{label: string, value: number, display: string}>}
+   */
+  _fixedModifierComponents() {
+    return this.fixedModifiers.map((modifier) => ({
+      ...modifier,
+      display: this._formatBonus(modifier.value),
+    }));
+  }
+
+  /**
    * Sum the fixed base with the bonus/malus and, if toggled, the "Idee haben"
    * bonus.
    * @param {object} data  Form data with attributeA/attributeB/skillValue/bonus/useIdea.
@@ -218,7 +310,9 @@ export class TnoRollDialog extends FormApplication {
    */
   _computeThreshold(data) {
     const base = this._baseComponents(data).reduce((sum, c) => sum + c.value, 0);
-    return base + (Number(data.bonus) || 0) + this._ideaBonus(data);
+    const fixedModifiers = this.fixedModifiers.reduce((sum, modifier) => sum + modifier.value, 0);
+    const context = this._contextComponent(data)?.value ?? 0;
+    return base + fixedModifiers + context + (Number(data.bonus) || 0) + this._ideaBonus(data);
   }
 
   /**
@@ -254,6 +348,9 @@ export class TnoRollDialog extends FormApplication {
    */
   _breakdownText(data) {
     const parts = this._baseComponents(data).map((c) => `${c.label} ${c.value}`);
+    parts.push(...this._fixedModifierComponents().map((modifier) => `${modifier.label} ${modifier.display}`));
+    const context = this._contextComponent(data);
+    if (context) parts.push(`${context.label} ${context.display}`);
     const bonus = Number(data.bonus) || 0;
     if (bonus !== 0) parts.push(`${game.i18n.localize('TNO.Roll.Bonus')} ${this._formatBonus(bonus)}`);
     const idea = this._ideaBonus(data);
@@ -275,6 +372,8 @@ export class TnoRollDialog extends FormApplication {
     if (breakdown) breakdown.textContent = this._breakdownText(data);
     const echo = form.querySelector('.tno-roll-submit-echo');
     if (echo) echo.textContent = `${game.i18n.localize('TNO.Roll.SubmitTargetLabel')} ≤ ${threshold}`;
+    const submit = form.querySelector('button[type="submit"]');
+    if (submit) submit.disabled = !!this.preRollContext && !this._contextChoice(data);
     const box = form.querySelector('.tno-threshold-box');
     if (box) {
       box.classList.remove('tno-threshold-flash');
@@ -307,7 +406,7 @@ export class TnoRollDialog extends FormApplication {
 
     // Any threshold-affecting input (attribute selects, free skill value, the
     // "Idee haben" toggle) repaints the preview.
-    html.on('change', 'select[name="attributeA"], select[name="attributeB"]', (ev) => this._refresh(ev.currentTarget.closest('form')));
+    html.on('change', 'select[name="attributeA"], select[name="attributeB"], select[name="contextChoice"]', (ev) => this._refresh(ev.currentTarget.closest('form')));
     html.on('change input', 'input[name="skillValue"]', (ev) => this._refresh(ev.currentTarget.closest('form')));
     html.on('change', 'input[name="useIdea"]', (ev) => {
       ev.currentTarget.closest('.tno-idea-toggle')?.classList.toggle('active', ev.currentTarget.checked);
@@ -365,15 +464,24 @@ export class TnoRollDialog extends FormApplication {
     // dice are rolled, not the threshold, so it needs no refresh callback.
     bindAdvantagePicker(html);
 
-    // Land focus on the roll button so the common path — accept the defaults
-    // and roll — is a single Enter press.
-    html.find('button[type="submit"]').trigger('focus');
+    // A required combat context must be chosen before the commit button is
+    // useful; every other roll keeps the existing one-Enter default path.
+    html.find(this.preRollContext ? 'select[name="contextChoice"]' : 'button[type="submit"]').trigger('focus');
   }
 
   /** @override */
   async _updateObject(event, formData) {
     if (this.lockAttribute) formData.attributeA = this.object.attributeA;
-    const components = this._baseComponents(formData);
+    const context = this._contextComponent(formData);
+    if (this.preRollContext && !context) {
+      ui.notifications.warn(game.i18n.localize('TNO.Roll.ContextRequired'));
+      return;
+    }
+    const components = [
+      ...this._baseComponents(formData),
+      ...this._fixedModifierComponents(),
+      ...(context ? [context] : []),
+    ];
 
     // "Insight" (pre-edge): compute the threshold and bonus off the
     // actor's state *before* spending the point — spending updates
@@ -412,6 +520,15 @@ export class TnoRollDialog extends FormApplication {
       // that same skill mode — it's what the post-failure XP claim credits.
       extraFlags: {
         edgeExempt: !this.skill,
+        ...(context
+          ? {
+              preRollContext: {
+                key: context.key,
+                label: context.choiceLabel,
+                value: context.value,
+              },
+            }
+          : {}),
         ...(this.skill
           ? {
               skillKey: this.skill.key,

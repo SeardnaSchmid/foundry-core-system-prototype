@@ -1194,7 +1194,7 @@
   outline: 2px solid #444;
   outline-offset: 1px;
 }
-.tno .slot-badge, .tno .skill-level, .tno .attribute-table.heatmap .heatmap-cell .heatmap-delta, .tno .xp-badge {
+.tno .slot-badge, .tno .skill-level, .tno .skill-derived-value, .tno .attribute-table.heatmap .heatmap-cell .heatmap-delta, .tno .xp-badge {
   font-size: var(--font-size-11, 11px);
   font-weight: bold;
   line-height: 1;
@@ -1685,6 +1685,16 @@
 .tno .skill-info:hover .skill-level {
   color: #191813;
   background: rgba(0, 0, 0, 0.08);
+}
+.tno .skill-info-derived {
+  grid-template-columns: 1fr auto;
+}
+.tno .skill-derived-value {
+  flex: none;
+  min-width: 2ch;
+  text-align: center;
+  color: #191813;
+  background: rgba(68, 68, 68, 0.2);
 }
 .tno .skill-name {
   display: flex;
@@ -3920,6 +3930,12 @@
 .tno .tno-roll-dialog .tno-roll-detail .tno-roll-detail-value {
   font-weight: bold;
 }
+.tno .tno-roll-dialog .tno-context-field {
+  margin-bottom: 0;
+}
+.tno .tno-roll-dialog .tno-context-field select {
+  width: 100%;
+}
 .tno .tno-roll-dialog .tno-attribute-field {
   flex-direction: column;
   align-items: stretch;
@@ -4317,6 +4333,10 @@
 .tno .tno-roll-dialog .tno-roll-submit:active {
   background: #1947c8;
   border-color: #1947c8;
+}
+.tno .tno-roll-dialog .tno-roll-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 .tno .tno-roll-dialog .tno-roll-submit:focus {
   box-shadow: none;

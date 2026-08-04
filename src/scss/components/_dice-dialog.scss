@@ -62,6 +62,17 @@ $c-roll-negative: #c62828;
     }
   }
 
+  // Combat workflows supply one required, authored context (range or direct
+  // DK difference). It intentionally uses a normal select: there is one
+  // choice to make before the immutable modifier appears in the threshold.
+  .tno-context-field {
+    margin-bottom: 0;
+
+    select {
+      width: 100%;
+    }
+  }
+
   // Core's .form-group lays label/content out as a flex row, which squeezes
   // the chip grid. Stack this one so the label sits above the full-width grid.
   .tno-attribute-field {
@@ -581,6 +592,11 @@ $c-roll-negative: #c62828;
     &:active {
       background: $c-primary-active;
       border-color: $c-primary-active;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
     }
 
     // Foundry glows buttons with a warm-gold box-shadow on :focus, which fires

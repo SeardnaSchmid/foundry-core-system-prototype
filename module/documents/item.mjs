@@ -1,7 +1,20 @@
 import { wornItemIds } from '../helpers/inventory.mjs';
 import { prepareGearSummaryContext } from '../helpers/item-summary.mjs';
 import { getSkillDefinitions } from '../helpers/skills.mjs';
-import { clampGearNumber, hasRole, isGear, weaponAttribute } from '../helpers/items.mjs';
+import {
+  canWeaponAttack,
+  canWeaponParry,
+  clampGearNumber,
+  hasRole,
+  isGear,
+  usesMelee,
+  weaponAttribute,
+  weaponDkDifferenceChoices,
+  weaponHandlingModifier,
+  weaponRangeChoices,
+  weaponRequirementMalus,
+  weaponSkillRank,
+} from '../helpers/items.mjs';
 
 /**
  * Extend the basic Item with some very simple modifications.
@@ -98,13 +111,70 @@ export class TnoItem extends Item {
     const actor = this.actor;
     const key = this.system.fv?.skill;
     const definition = getSkillDefinitions(actor)[key];
-    if (!actor || !key || !definition) return;
+    if (!actor?.isOwner || !hasRole(this, 'weapon') || !canWeaponAttack(this.system, { skillDefined: !!definition })) return;
+    const contextChoices = usesMelee(this.system)
+      ? weaponDkDifferenceChoices().map((choice) => ({
+          ...choice,
+          label: this.#signedValue(choice.value),
+          componentLabel: game.i18n.localize('TNO.Combat.DkDifference'),
+        }))
+      : weaponRangeChoices(this.system).map((choice) => {
+          const band = game.i18n.localize(`TNO.Weapons.Band.${choice.key.charAt(0).toUpperCase()}${choice.key.slice(1)}`);
+          return {
+            ...choice,
+            label: band,
+            componentLabel: game.i18n.format('TNO.Combat.RangeComponent', { band }),
+          };
+        });
     return new game.tno.TnoRollDialog(actor, {
       attributeA: weaponAttribute(this.system),
       lockAttribute: true,
-      skill: { key, label: definition.label, value: Number(this.system.fv?.rank) || 0 },
-      flavor: this.name,
+      skill: { key, label: definition.label, value: weaponSkillRank(actor, this.system) },
+      fixedModifiers: this.#weaponFixedModifiers(actor, 'active'),
+      preRollContext: {
+        label: game.i18n.localize(usesMelee(this.system) ? 'TNO.Combat.DkDifference' : 'TNO.Combat.RangeBand'),
+        placeholder: game.i18n.localize('TNO.Combat.ContextPlaceholder'),
+        choices: contextChoices,
+      },
+      flavor: game.i18n.format('TNO.Combat.AttackFlavor', { weapon: this.name }),
     }).render(true);
+  }
+
+  /** Open an independent melee parry with its authored WA and FV locked. */
+  openWeaponParry() {
+    const actor = this.actor;
+    const key = this.system.fv?.skill;
+    const definition = getSkillDefinitions(actor)[key];
+    if (!actor?.isOwner || !hasRole(this, 'weapon') || !canWeaponParry(this.system, { skillDefined: !!definition })) return;
+    return new game.tno.TnoRollDialog(actor, {
+      attributeA: weaponAttribute(this.system),
+      lockAttribute: true,
+      skill: { key, label: definition.label, value: weaponSkillRank(actor, this.system) },
+      fixedModifiers: this.#weaponFixedModifiers(actor, 'passive'),
+      flavor: game.i18n.format('TNO.Combat.ParryFlavor', { weapon: this.name }),
+    }).render(true);
+  }
+
+  /** Shared immutable handling and requirement components for weapon rolls. */
+  #weaponFixedModifiers(actor, handling) {
+    const requirementMalus = weaponRequirementMalus(actor, this.system);
+    return [
+      {
+        label: game.i18n.localize(handling === 'active' ? 'TNO.Combat.ActiveHandling' : 'TNO.Combat.PassiveHandling'),
+        value: weaponHandlingModifier(this.system, handling),
+      },
+      ...(requirementMalus ? [{
+        label: game.i18n.localize('TNO.Combat.RequirementMalus'),
+        value: requirementMalus,
+      }] : []),
+    ];
+  }
+
+  /** A localized signed integer for a direct DK-difference choice. */
+  #signedValue(value) {
+    if (value > 0) return `+${value}`;
+    if (value < 0) return `−${Math.abs(value)}`;
+    return '0';
   }
 
   /** Nudge a consumable stack's remaining stock without going below zero. */

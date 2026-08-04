@@ -37,6 +37,7 @@ New to the codebase? Read in this order:
 ## Concepts
 
 - [concepts/dice-resolution.md](concepts/dice-resolution.md) — the 3d20 roll-under mechanic
+- [concepts/combat-roll-workflows.md](concepts/combat-roll-workflows.md) — independent weapon Attack/Parry and character Dodge workflows
 - [concepts/edge-pool.md](concepts/edge-pool.md) — problem-solving edge actions (Trial & error / Retry / Post-mortem)
 - [concepts/attributes.md](concepts/attributes.md) — the 12 attributes and their derived values
 - [concepts/skills.md](concepts/skills.md) — built-in and custom skills

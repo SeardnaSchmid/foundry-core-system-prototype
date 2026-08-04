@@ -11,6 +11,12 @@
     </button>
   {{/if}}
   <div class='item-popover-actions-row'>
+    {{#if canWeaponParry}}
+      <button type='button' data-popover-action='weapon-parry'
+              title='{{localize "TNO.Combat.ParryHint"}}'>
+        <i class='fa-solid fa-shield-halved' aria-hidden='true'></i>{{localize 'TNO.Combat.Parry'}}
+      </button>
+    {{/if}}
     <button type='button' data-popover-action='post'>
       <i class='fa-solid fa-message' aria-hidden='true'></i>{{localize 'TNO.Item.Overview.Post'}}
     </button>
