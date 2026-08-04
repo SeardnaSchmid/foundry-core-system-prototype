@@ -42,12 +42,10 @@ When instructed to perform or prepare a release:
 
 Three GitHub Actions workflows:
 
-- **`.github/workflows/release.yml`** — triggers only on `v*.*.*` tags. Runs
-  the Playwright e2e suite first (`needs: e2e`); only if it passes does the
-  `release` job run the Vitest suite, generate coverage, package
-  `system.zip` from an explicit file list, and publish the GitHub release.
-  The e2e job needs the same `FOUNDRY_LICENSE_KEY`/`FOUNDRY_USERNAME`/
-  `FOUNDRY_PASSWORD` secrets as `e2e.yml` — see [e2e-testing.md](e2e-testing.md).
+- **`.github/workflows/release.yml`** — triggers only on `v*.*.*` tags. Its
+  `release` job runs the Vitest suite, generates coverage, packages
+  `system.zip` from an explicit file list, and publishes the GitHub release.
+  It does not run Playwright e2e tests.
 - **`.github/workflows/docs.yml`** — triggers on push/PR touching
   `docs/wiki/**`, `module/**`, `template.json`, or the validator itself.
   Runs `npm run docs:check`.
