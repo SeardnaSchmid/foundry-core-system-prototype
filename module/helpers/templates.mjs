@@ -4,11 +4,13 @@
  * @return {Promise}
  */
 export const preloadHandlebarsTemplates = async function () {
-  return loadTemplates([
+  // Namespaced rather than the bare `loadTemplates` global, which is
+  // deprecated — the rest of the system already calls
+  // `foundry.applications.handlebars.renderTemplate`.
+  return foundry.applications.handlebars.loadTemplates([
     // Actor partials.
     'systems/tno/templates/actor/parts/actor-features.hbs',
     'systems/tno/templates/actor/parts/actor-items.hbs',
-    'systems/tno/templates/actor/parts/actor-spells.hbs',
     'systems/tno/templates/actor/parts/actor-effects.hbs',
     'systems/tno/templates/actor/parts/actor-paperdoll.hbs',
     'systems/tno/templates/actor/parts/actor-slot-grid.hbs',

@@ -19,6 +19,7 @@ Command reference, CI wiring, and the full release procedure.
 | `npm run test:coverage` | Same, with v8 coverage (text + HTML + JSON summary) |
 | `npm run test:e2e` | Runs the Playwright suite against a disposable Foundry in Docker — see [e2e-testing.md](e2e-testing.md) |
 | `npm run docs:check` | Validates `docs/wiki/**` — see below |
+| `npm run css:check` | Fails if `css/tno.css` is not what `src/scss` currently compiles to — see below |
 | `npm run release` | Runs `release-it`: bumps version, updates `CHANGELOG.md`, tags, pushes |
 
 There is no bundler and no linter (`eslint`/`prettier`) in this repo —
@@ -58,6 +59,24 @@ Three GitHub Actions workflows:
 hook alongside `npm test`, so a release cannot ship with a stale wiki
 pointer (`resource:`/`spec:` path that no longer exists, broken link, or
 orphaned page).
+
+## The compiled stylesheet is an artifact under review
+
+`css/tno.css` is **committed**, because Foundry loads it straight from the
+manifest and there is no bundler in front of it. Nothing else in the pipeline
+looks at it: `npm test` covers the pure helpers and `docs:check` reads the
+wiki, so a `.scss` edit committed without `npm run build` used to ship a
+stylesheet that silently did not match its source.
+
+`npm run css:check`
+([`scripts/check-css-build.mjs`](../../../scripts/check-css-build.mjs))
+closes that. It compiles `src/scss/tno.scss` to a temporary file with the exact
+flags `npm run build` uses and compares byte for byte, so it can never disagree
+with the real build. It runs as part of `npm run release:verify` alongside
+`docs:check`.
+
+**If it fails, run `npm run build` and commit the result** — the checked-in CSS
+is out of date, not wrong.
 
 ## Wiki validation details
 

@@ -281,9 +281,13 @@ $gear-radius: 4px;
       font-size: 12px;
       text-align: right;
 
+      // The field is borderless and transparent by design, so removing the
+      // outline has to leave something behind — every other input in this
+      // dialog swaps the ring for an inset underline, and this one dropped the
+      // box-shadow too, which left keyboard focus completely invisible.
       &:focus {
         outline: none;
-        box-shadow: none;
+        box-shadow: inset 0 -2px 0 $c-tan;
       }
     }
 
@@ -508,19 +512,6 @@ $gear-radius: 4px;
     }
   }
 
-  // Rüstungsabdeckung as a share of full coverage, beside the number.
-  .coverage-bar {
-    flex: 1;
-    height: 6px;
-    border: 1px solid $c-dark;
-    border-radius: $gear-radius;
-    background: linear-gradient(
-      to right,
-      $c-dark 0 var(--coverage, 0%),
-      transparent var(--coverage, 0%)
-    );
-  }
-
   /* ---------------------------------------------- Choices */
 
   // The role (exclusive) and the armour zones (multi-select). Round so they
@@ -738,13 +729,6 @@ $gear-radius: 4px;
       flex: none;
       font-size: 9px;
     }
-  }
-
-  .gear-hint {
-    margin: 0 0 8px $gear-label-width + $gear-row-gap;
-    font-size: 10px;
-    font-style: italic;
-    color: rgba($c-dark, 0.55);
   }
 
   .gear-section-divider {

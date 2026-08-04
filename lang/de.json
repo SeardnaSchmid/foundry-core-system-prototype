@@ -12,18 +12,66 @@
       "Perceive": "Erfassen"
     },
     "Ability": {
-      "Str": { "long": "Stärke", "abbr": "str", "hint": "Bewege Dinge oder bleibe selbst unbewegt." },
-      "Dex": { "long": "Beweglichkeit", "abbr": "bew", "hint": "Bewege dich selbst, schnell, geschickt oder ausdauernd." },
-      "Fin": { "long": "Fingerfertigkeit", "abbr": "fin", "hint": "Hand-Augen-Koordination und manuelle Geschicklichkeit." },
-      "Per": { "long": "Sinnesschärfe", "abbr": "sin", "hint": "Nimm Dinge mit deinen Sinnen war." },
-      "Aut": { "long": "Autorität", "abbr": "aut", "hint": "Einschüchtern und Führungsstärke, erhalte Respekt." },
-      "Cha": { "long": "Charisma", "abbr": "cha", "hint": "Freundlichkeit und Verständnis, erhalte Zuneigung." },
-      "Man": { "long": "Manipulation", "abbr": "man", "hint": "Lügen und Täuschen, Verfälschen der Wahrnehmung." },
-      "Emp": { "long": "Menschenkenntnis", "abbr": "men", "hint": "Verstehe Menschen, ihre Motive und Kommunikation." },
-      "Wil": { "long": "Willenskraft", "abbr": "wil", "hint": "Entschlossenheit und Überzeugung." },
-      "Int": { "long": "Intelligenz", "abbr": "int", "hint": "Verstehen und Schlussfolgern." },
-      "Wis": { "long": "Wissen", "abbr": "wis", "hint": "Allgemeinbildung und die Fähigkeit sie zu erweitern." },
-      "Inv": { "long": "Untersuchen", "abbr": "unt", "hint": "Erkenne Dinge, die jeder sieht, aber nicht jeder wahrnimmt." }
+      "Str": {
+        "long": "Stärke",
+        "abbr": "str",
+        "hint": "Bewege Dinge oder bleibe selbst unbewegt."
+      },
+      "Dex": {
+        "long": "Beweglichkeit",
+        "abbr": "bew",
+        "hint": "Bewege dich selbst, schnell, geschickt oder ausdauernd."
+      },
+      "Fin": {
+        "long": "Fingerfertigkeit",
+        "abbr": "fin",
+        "hint": "Hand-Augen-Koordination und manuelle Geschicklichkeit."
+      },
+      "Per": {
+        "long": "Sinnesschärfe",
+        "abbr": "sin",
+        "hint": "Nimm Dinge mit deinen Sinnen war."
+      },
+      "Aut": {
+        "long": "Autorität",
+        "abbr": "aut",
+        "hint": "Einschüchtern und Führungsstärke, erhalte Respekt."
+      },
+      "Cha": {
+        "long": "Charisma",
+        "abbr": "cha",
+        "hint": "Freundlichkeit und Verständnis, erhalte Zuneigung."
+      },
+      "Man": {
+        "long": "Manipulation",
+        "abbr": "man",
+        "hint": "Lügen und Täuschen, Verfälschen der Wahrnehmung."
+      },
+      "Emp": {
+        "long": "Menschenkenntnis",
+        "abbr": "men",
+        "hint": "Verstehe Menschen, ihre Motive und Kommunikation."
+      },
+      "Wil": {
+        "long": "Willenskraft",
+        "abbr": "wil",
+        "hint": "Entschlossenheit und Überzeugung."
+      },
+      "Int": {
+        "long": "Intelligenz",
+        "abbr": "int",
+        "hint": "Verstehen und Schlussfolgern."
+      },
+      "Wis": {
+        "long": "Wissen",
+        "abbr": "wis",
+        "hint": "Allgemeinbildung und die Fähigkeit sie zu erweitern."
+      },
+      "Inv": {
+        "long": "Untersuchen",
+        "abbr": "unt",
+        "hint": "Erkenne Dinge, die jeder sieht, aber nicht jeder wahrnimmt."
+      }
     },
     "AttributeCurrent": "Aktueller Wert (durch Schaden reduziert)",
     "AttributeBase": "Basiswert (durch Charakterentwicklung erhöht)",
@@ -156,7 +204,7 @@
       "Stealth": "Heimlichkeit",
       "SelfControl": "Selbstbeherrschung",
       "Contortionist": "Contortionist",
-      "SleightOfHand": "Slight of Hand",
+      "SleightOfHand": "Sleight of Hand",
       "PreciseStrike": "Gezielter Stich",
       "CunningAttacks": "Geschickte Angriffe",
       "Footwork": "Beinarbeit",
@@ -233,11 +281,26 @@
       "CultHistory": "Geschichte"
     },
     "SkillSubgroup": {
-      "Med": { "Name": "Medizin", "Badge": "MED" },
-      "Pilot": { "Name": "Pilot", "Badge": "PIL" },
-      "Sci": { "Name": "Naturwissenschaft", "Badge": "NAT" },
-      "Hum": { "Name": "Geisteswissenschaft", "Badge": "GEI" },
-      "Cult": { "Name": "Kulturwissenschaften", "Badge": "KUL" }
+      "Med": {
+        "Name": "Medizin",
+        "Badge": "MED"
+      },
+      "Pilot": {
+        "Name": "Pilot",
+        "Badge": "PIL"
+      },
+      "Sci": {
+        "Name": "Naturwissenschaft",
+        "Badge": "NAT"
+      },
+      "Hum": {
+        "Name": "Geisteswissenschaft",
+        "Badge": "GEI"
+      },
+      "Cult": {
+        "Name": "Kulturwissenschaften",
+        "Badge": "KUL"
+      }
     },
     "CustomSkill": {
       "Add": "Eigene Fertigkeit hinzufügen",
@@ -439,17 +502,7 @@
         "Footprint": "Platz",
         "Value": "Wert"
       },
-      "Duration": {
-        "Label": "Dauer",
-        "Rounds": "Runden",
-        "Minutes": "Minuten",
-        "Hours": "Stunden",
-        "Days": "Tage"
-      },
-      "Spell": {
-        "SpellLVL": "Zauber Stufe {level}",
-        "AddLVL": "Stufe {level} hinzufügen"
-      }
+      "Edit": "Gegenstand bearbeiten"
     },
     "Roll": {
       "DialogTitle": "Würfelwurf",
@@ -575,7 +628,8 @@
         "2": "Mittlere Gegenstände, Zweihändige Waffen, Schlafrolle",
         "3": "Große Gegenstände, Schwere Waffen, Werkzeugkiste, Sauerstoffflasche",
         "4": "Rucksackgroße Gegenstände, Schweißgerät, Zelt, Fallschirm"
-      }
+      },
+      "Empty": "Noch nichts im Besitz. Über + einen Gegenstand, eine Rüstung oder eine Waffe anlegen."
     },
     "Money": {
       "Title": "Geldbörse",
@@ -644,9 +698,13 @@
         "Far": "Weit",
         "Sf": "SW"
       }
+    },
+    "Features": {
+      "Title": "Merkmale",
+      "Add": "Merkmal hinzufügen",
+      "Empty": "Noch keine Merkmale."
     }
   },
-
   "TYPES": {
     "Actor": {
       "character": "Charakter",

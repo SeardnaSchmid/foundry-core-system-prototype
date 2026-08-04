@@ -1,5 +1,10 @@
 import { tempValueForBase } from '../helpers/attributes.mjs';
 
+// Namespaced rather than the bare `FormApplication` global, which is
+// deprecated. Still ApplicationV1 — see the V1 apps note in
+// docs/wiki/reference/module-map.md.
+const { FormApplication } = foundry.appv1.api;
+
 const SKILL_MIN = 0;
 const ATTRIBUTE_MIN = 1;
 const RANK_MAX = 10;

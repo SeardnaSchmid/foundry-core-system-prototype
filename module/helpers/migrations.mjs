@@ -1,3 +1,5 @@
+import { GEAR_TYPES, RANGE_BANDS } from './items.mjs';
+
 /**
  * Ordered, version-gated migration steps. Each step must be idempotent,
  * since it may run again on a world that already applied it (e.g. if a
@@ -10,6 +12,8 @@ export const MIGRATIONS = [
   { version: '0.16.0', migrate: migrateNormalizeCustomSkills },
   { version: '0.25.0', migrate: migrateWeightToSlots },
   { version: '0.27.0', migrate: migrateItemTypesToRoles },
+  { version: '0.31.0', migrate: migrateWeightToSlotsLegacyTypes },
+  { version: '0.31.0', migrate: migrateZeroedNullableBands },
 ];
 
 /**
@@ -44,8 +48,18 @@ export async function migrateWorld() {
     ui.notifications.info(game.i18n.localize('TNO.Migration.Completed'));
   }
 
-  if (stored !== game.system.version) {
-    await game.settings.set('tno', 'systemMigrationVersion', game.system.version);
+  // Pin past everything that has now run, rather than to the system version
+  // alone. A step carries the version it is *scheduled* to ship in, which on a
+  // development install is ahead of the system actually loaded — recording the
+  // lower number would leave that step forever pending and re-run it, plus its
+  // notification, on every single load.
+  const applied = MIGRATIONS.reduce(
+    (highest, migration) =>
+      foundry.utils.isNewerVersion(migration.version, highest) ? migration.version : highest,
+    game.system.version
+  );
+  if (stored !== applied) {
+    await game.settings.set('tno', 'systemMigrationVersion', applied);
   }
 }
 
@@ -102,16 +116,75 @@ async function migrateNormalizeCustomSkills() {
  * skipped, and re-running after the unset therefore does nothing. Where both
  * keys somehow exist, the already-migrated `slots` wins and the stale
  * `weight` is simply dropped.
+ *
+ * @param {Array<string>} [types]  Which item types to touch. Defaults to the
+ *   single type this step shipped with in 0.25.0 — the published behaviour,
+ *   which must not change under a world that already ran it. The wider sweep
+ *   over every gear type is a separate, later step (see
+ *   {@link migrateWeightToSlotsLegacyTypes}).
  */
-async function migrateWeightToSlots() {
+async function migrateWeightToSlots(types = ['item']) {
   const migrate = async (item) => {
-    if (item.type !== 'item') return;
+    if (!types.includes(item.type)) return;
     const weight = item.system?.weight;
     if (weight === undefined) return;
 
     const update = { 'system.-=weight': null };
     if (item.system.slots === undefined) update['system.slots'] = Number(weight) || 0;
     await item.update(update);
+  };
+
+  for (const item of game.items) await migrate(item);
+  for (const actor of game.actors) {
+    for (const item of actor.items) await migrate(item);
+  }
+}
+
+/**
+ * Finish the `weight` -> `slots` rename for the two legacy gear types.
+ *
+ * The 0.25.0 step only looked at `item`, but `GEAR_TYPES` has always included
+ * `armor` and `weapon`, and the 0.27.0 role migration exists precisely to keep
+ * such documents alive rather than converting them away — a document's type
+ * cannot be changed after creation. So a breastplate authored before the role
+ * model kept its `system.weight` untouched and silently took the schema's
+ * default `slots` instead of the number its author typed.
+ *
+ * Runs the same routine over the full gear set. Idempotent for the same reason
+ * the original is: the key is gone after the first pass.
+ */
+async function migrateWeightToSlotsLegacyTypes() {
+  return migrateWeightToSlots(GEAR_TYPES);
+}
+
+/**
+ * Clear the zeroes out of the nullable weapon bands.
+ *
+ * The range bands and the Rückstoß are nullable on purpose — an empty band
+ * means the weapon cannot attack at that distance at all, which is a different
+ * statement from a modifier of 0 ("it attacks there, at no penalty"). The
+ * schema nonetheless defaulted all six to `0`, so every weapon Foundry has ever
+ * built claimed a full set of authored values and `missingRequired` could never
+ * report either field. The default is `null` now; this brings the documents
+ * already in the world in line with it.
+ *
+ * Only touches values that are exactly `0`, and only on items carrying the
+ * weapon role: a band a player deliberately set to 0 is indistinguishable from
+ * the old default, so the conservative reading is that nobody authored it. Any
+ * non-zero band is left alone, which also makes the step idempotent.
+ */
+async function migrateZeroedNullableBands() {
+  const migrate = async (item) => {
+    if (!GEAR_TYPES.includes(item.type)) return;
+    if (item._source?.system?.roles?.weapon !== true) return;
+
+    const update = {};
+    for (const band of RANGE_BANDS) {
+      if (item._source.system.range?.[band] === 0) update[`system.range.${band}`] = null;
+    }
+    if (item._source.system.rb === 0) update['system.rb'] = null;
+
+    if (!foundry.utils.isEmpty(update)) await item.update(update);
   };
 
   for (const item of game.items) await migrate(item);

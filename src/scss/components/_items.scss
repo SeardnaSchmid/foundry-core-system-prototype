@@ -36,28 +36,28 @@
 // Items Lists
 // -----------------------------------------
 
-.inventory-wip {
-  display: grid;
-  place-content: center;
-  justify-items: center;
-  min-height: min(55vh, 32rem);
-  margin: 8px;
-  border: 2px dashed rgba($c-tan, 0.7);
-  border-radius: 8px;
-  background: rgba($c-tan, 0.08);
-  color: $c-tan;
-  text-align: center;
+// The Inventar tab stacks three lists, each opening with the same quiet caption
+// line the Basics tab uses. Only the spacing between them lives here; the
+// header itself is shared (see `.basics-section-header` in _forms.scss).
+.tab.items {
+  padding: 0 8px 8px;
 
-  i {
-    margin-bottom: 10px;
-    font-size: clamp(3rem, 10vw, 6rem);
+  .basics-section-header {
+    margin-top: 14px;
   }
 
-  strong {
-    font-size: clamp(2rem, 8vw, 5rem);
-    letter-spacing: 0.12em;
-    line-height: 1;
+  > .basics-section-header:first-child {
+    margin-top: 4px;
   }
+}
+
+// A control that is present for layout but cannot be used — the delete on a
+// worn row, which is held back because `system.equipment` addresses the piece
+// by id. Dimmed rather than removed so the row keeps its shape down the list,
+// and `help` because the title is the whole point of it still being there.
+.item-control.is-disabled {
+  opacity: 0.3;
+  cursor: help;
 }
 
 .items-list {

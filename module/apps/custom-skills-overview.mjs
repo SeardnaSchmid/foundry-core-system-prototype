@@ -1,5 +1,10 @@
 import { getSkillDefinition } from '../helpers/skills.mjs';
 
+// Namespaced rather than the bare `FormApplication` global, which is
+// deprecated. Still ApplicationV1 — see the V1 apps note in
+// docs/wiki/reference/module-map.md.
+const { FormApplication } = foundry.appv1.api;
+
 /**
  * GM-only read-only overview of every custom skill defined across the
  * world's character actors. Custom skills live inline inside each actor's

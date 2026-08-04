@@ -908,43 +908,6 @@ button:focus-visible {
   }
 }
 
-// Always rendered (see the "skill-action-hidden" template comment) so every
-// row in a group reserves the same trailing width; without this, a custom
-// row's extra icons would shrink its skill-info column and knock its
-// rank/xp/advance-button out of alignment with the rest of the group.
-.skill-edit-button,
-.skill-delete-button {
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 3px;
-  font-size: var(--font-size-10, 10px);
-  color: $c-tan;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.1s ease;
-
-  &:hover {
-    background: rgba($c-beige, 0.3);
-    color: $c-dark;
-  }
-
-  &.skill-action-hidden {
-    visibility: hidden;
-    pointer-events: none;
-  }
-}
-
-.skill-row:hover {
-  .skill-edit-button:not(.skill-action-hidden),
-  .skill-delete-button:not(.skill-action-hidden) {
-    opacity: 1;
-  }
-}
-
 // GM overview of every custom skill defined across the world's actors.
 .tno-custom-skills-overview {
   padding: 6px 8px;

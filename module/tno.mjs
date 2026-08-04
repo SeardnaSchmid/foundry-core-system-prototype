@@ -59,7 +59,12 @@ Hooks.once('init', function () {
   // if the transfer property on the Active Effect is true.
   CONFIG.ActiveEffect.legacyTransferral = false;
 
-  // Register sheet application classes
+  // Register sheet application classes. The collections and the core sheet
+  // classes come from their namespaces rather than the bare `Actors`/`Items`/
+  // `ActorSheet`/`ItemSheet` globals, which are deprecated.
+  const { Actors, Items } = foundry.documents.collections;
+  const { ActorSheet, ItemSheet } = foundry.appv1.sheets;
+
   Actors.unregisterSheet('core', ActorSheet);
   Actors.registerSheet('tno', TnoActorSheet, {
     makeDefault: true,
@@ -182,11 +187,6 @@ function injectBaseRollButton(controls) {
 /* -------------------------------------------- */
 /*  Handlebars Helpers                          */
 /* -------------------------------------------- */
-
-// If you need to add Handlebars helpers, here is a useful example:
-Handlebars.registerHelper('toLowerCase', function (str) {
-  return str.toLowerCase();
-});
 
 Handlebars.registerHelper('ifEquals', function (a, b, options) {
   return a === b ? options.fn(this) : options.inverse(this);

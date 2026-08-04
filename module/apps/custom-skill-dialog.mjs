@@ -1,5 +1,10 @@
 import { getSkillDefinitions, generateCustomSkillKey } from '../helpers/skills.mjs';
 
+// Namespaced rather than the bare `FormApplication` global, which is
+// deprecated. Still ApplicationV1 — see the V1 apps note in
+// docs/wiki/reference/module-map.md.
+const { FormApplication } = foundry.appv1.api;
+
 /**
  * Add or edit a custom, actor-defined skill. In add mode (no `key` given) a
  * new skill is created under the clicked group's category, starting at rank

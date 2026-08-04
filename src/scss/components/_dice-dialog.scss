@@ -62,10 +62,6 @@ $c-roll-negative: #c62828;
     }
   }
 
-  .tno-hidden {
-    display: none !important;
-  }
-
   // Core's .form-group lays label/content out as a flex row, which squeezes
   // the chip grid. Stack this one so the label sits above the full-width grid.
   .tno-attribute-field {

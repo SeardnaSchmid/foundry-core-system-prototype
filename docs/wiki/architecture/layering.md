@@ -26,6 +26,7 @@ module/tno.mjs                          (entry point, imports everything below)
 │                 → inventory.mjs → items.mjs,
 │                   item-presentation.mjs → {inventory,items}.mjs,
 │                   config.mjs → {inventory,items}.mjs,
+│                   migrations.mjs → items.mjs,
 │                   chat.mjs → dice.mjs
 └── apps/       roll-dialog, base-roll-dialog, roll-dialog-shared,
                 advance-dialog, heatmap-lab, custom-skill-dialog,

@@ -78,8 +78,20 @@ never receive it. Consequences worth knowing when editing the sheet:
   and `document` refer to the parent window — DOM lookups go through
   `this.element`.
 
-`TnoItemSheet` and every app under `module/apps/` are still **V1**
-(`FormApplication`/`ItemSheet`) and therefore cannot be detached — a known
-forward-compat item, tracked but out of scope for this wiki (see
+`TnoItemSheet` and every app under `module/apps/` are still **V1** and
+therefore cannot be detached — a known forward-compat item (see
 [datamodel-migration.md](../architecture/datamodel-migration.md) for the
 sibling schema-side deprecation).
+
+They no longer reach for the bare `FormApplication` / `ItemSheet` globals,
+which are deprecated: each takes its base class off `foundry.appv1` at the top
+of its own file. That is a namespacing change only — the classes are still
+ApplicationV1 and still use `getData()`, jQuery `activateListeners(html)` and
+`_updateObject()`. Converting them to ApplicationV2 is roughly 1100 lines
+across seven classes with no e2e coverage on any of them, so it wants to be
+its own change with tests in front of it, not a side effect of another one.
+
+Because `foundry.appv1`, `foundry.documents.collections`,
+`foundry.applications.handlebars` and `foundry.applications.ux` are all **v13+**
+namespaces, `system.json` declares `compatibility.minimum: "13"`. It previously
+said `"12"`, which the code could not honour.

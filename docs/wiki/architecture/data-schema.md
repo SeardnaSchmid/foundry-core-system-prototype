@@ -24,9 +24,14 @@ in Foundry v14+.
   - `character.abilities.<key>` — `{ base, value, xp }` for each of the 12
     keys in `CONFIG.TNO.abilities` (see
     [attributes.md](../concepts/attributes.md)).
-  - `character.skills.<key>` — `{ value, xp, lastAttribute }` for the
-    starter skills only (14 entries); every other built-in skill and any
-    custom skill is added lazily when first touched, not pre-seeded here.
+  - `character.skills.<key>` — `{ value, xp, lastAttribute }` for **every**
+    built-in skill in `CONFIG.TNO.skills` (91 entries), in the same source
+    order. Custom skills are still added lazily when first defined, since only
+    the actor knows about those. The block used to declare the 14 starter
+    skills alone and let the rest materialise on first write; that worked only
+    by way of the sheet's `?? 0` fallbacks and Foundry accepting writes to
+    undeclared paths, and it left `lastAttribute` undeclared for the other 77.
+    Keep it in step with `config.mjs` when a skill is added.
     See [skills.md](../concepts/skills.md).
   - `character.problemSolving.spent` — how many edge points have been used
     since the pool last refilled. See

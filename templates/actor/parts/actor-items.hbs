@@ -1,7 +1,116 @@
-{{!-- The former flat inventory table is intentionally hidden while this
-surface is redesigned. The carried-gear and worn-armour views remain in the
-character sheet's Basics tab. --}}
-<section class='inventory-wip' role='status' aria-label='WIP'>
-  <i class='fa-solid fa-person-digging' aria-hidden='true'></i>
-  <strong>WIP</strong>
-</section>
+{{!-- The Inventar tab: the three administrative lists.
+
+This is deliberately *not* a second carry view. The Basics tab answers "what am
+I wearing" and "what am I hauling" — questions asked mid-roll — and both are
+derived views that show a piece only while it is in that state. This tab is the
+ledger behind them: every object the character owns appears here exactly once,
+whatever state it is in, which is what makes a piece that is neither worn nor
+carried reachable at all. Creating, editing and deleting live here for the same
+reason.
+
+Features and Active Effects follow it because they are the other two things an
+actor owns that are not objects — they cost no slots, so they can never appear
+in the carry raster, and before this tab existed they had nowhere to be. --}}
+
+{{!-- ------------------------------------------------------------------
+Gear. One row per object, whatever roles it carries: the role buckets are
+views onto this list, and listing them separately would show a piece once per
+role it has. --}}
+<div class='basics-section-header'>
+  <h3 class='basics-section-title'>{{localize 'TNO.Inventory.CarrySlots'}}</h3>
+  {{#if editable}}
+    {{!-- `.section-add` is the look, `.inventory-add` is the action — the two
+    are separate classes so the Merkmale button below can wear the same control
+    without also triggering the gear-authoring dialog this one opens. --}}
+    <a class='section-add inventory-add' title='{{localize "TNO.Inventory.AddHint"}}'>
+      <i class='fas fa-plus'></i>
+    </a>
+  {{/if}}
+</div>
+
+{{#if inventory.length}}
+  <ol class='items-list'>
+    <li class='item flexrow items-header'>
+      <div class='item-name'>{{localize 'TNO.Inventory.AddName'}}</div>
+      <div class='item-roles'>{{localize 'TNO.Item.Roles'}}</div>
+      <div class='item-prop'>{{localize 'TNO.Inventory.Slots'}}</div>
+      <div class='item-prop'>{{localize 'TNO.Inventory.Quantity'}}</div>
+      <div class='item-controls'></div>
+    </li>
+
+    {{#each inventory as |item|}}
+      <li class='item flexrow draggable' data-item-id='{{item._id}}' draggable='true'>
+        <div class='item-name'>
+          {{!-- The role icon rather than the artwork, matching the carry grid:
+          a repeated, recognisable glyph is quicker to scan down a list than
+          ninety different portraits. --}}
+          <div class='item-image'>
+            <i class='fa-solid {{item.inventoryIcon}} inventory-item-icon' aria-hidden='true'></i>
+          </div>
+          <h4 title='{{item.name}}'>{{item.name}}</h4>
+        </div>
+
+        {{!-- What the piece *does*. An object with no role at all is the
+        common case, so the column stays empty rather than carrying a
+        "plain item" tag that would say nothing. --}}
+        <div class='item-roles'>
+          {{#each item.roleLabels as |label|}}
+            <span class='item-role-tag'>{{localize label}}</span>
+          {{/each}}
+        </div>
+
+        {{!-- Worn gear is exempt from the slot economy, so its cost reads as a
+        dash rather than a zero: nothing is being spent, as opposed to a piece
+        that genuinely costs nothing to carry. --}}
+        <div class='item-prop'>
+          {{#if item.isWorn}}—{{else}}{{item.slotCost}}{{/if}}
+        </div>
+        <div class='item-prop'>{{item.system.quantity}}</div>
+
+        <div class='item-controls'>
+          {{#if item.isWorn}}
+            {{!-- A marker, not a control: taking a piece off belongs to the
+            paper doll, which is the only view that knows which zones it
+            occupies. --}}
+            <span class='item-state' title='{{localize "TNO.Inventory.WornHint"}}'>
+              <i class='fas fa-shield-halved'></i>
+            </span>
+          {{/if}}
+          <a class='item-control item-edit' title='{{localize "TNO.Item.Edit"}}'>
+            <i class='fas fa-edit'></i>
+          </a>
+          {{!-- `@root.editable`, not `editable`: inside an `each` a bare name
+          resolves against the item, which has no such key, so the whole block
+          silently vanished. --}}
+          {{#if @root.editable}}
+            {{#unless item.isWorn}}
+              <a class='item-control item-delete' title='{{localize "TNO.Item.Delete"}}'>
+                <i class='fas fa-trash'></i>
+              </a>
+            {{else}}
+              {{!-- Held back rather than hidden, so the row keeps its shape and
+              says why: `system.equipment` addresses the piece by id, and
+              deleting it out from under the doll would strand a zone. --}}
+              <span class='item-control is-disabled' title='{{localize "TNO.Item.DeleteWornHint"}}'>
+                <i class='fas fa-trash'></i>
+              </span>
+            {{/unless}}
+          {{/if}}
+        </div>
+      </li>
+    {{/each}}
+  </ol>
+{{else}}
+  <p class='items-empty'>{{localize 'TNO.Inventory.Empty'}}</p>
+{{/if}}
+
+{{> "systems/tno/templates/actor/parts/actor-features.hbs"}}
+
+{{!-- ------------------------------------------------------------------
+Active Effects. Foundry's own mechanic rather than one of this system's, but
+an effect applied to the character was previously visible nowhere on the
+sheet at all. --}}
+<div class='basics-section-header'>
+  <h3 class='basics-section-title'>{{localize 'TNO.TabEffects'}}</h3>
+</div>
+{{> "systems/tno/templates/actor/parts/actor-effects.hbs"}}

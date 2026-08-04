@@ -15,8 +15,9 @@ related: [reference/module-map]
 | --- | --- |
 | `actor/actor-character-sheet.hbs` | `TnoActorSheet` (type `character`) |
 | `actor/actor-npc-sheet.hbs` | `TnoActorSheet` (type `npc`) |
-| `actor/parts/actor-items.hbs` | WIP placeholder in the actor sheet's Inventar tab |
-| `actor-features.hbs`, `actor-spells.hbs`, `actor-effects.hbs` | Included by the actor sheet templates above |
+| `actor/parts/actor-items.hbs` | The actor sheet's Inventar tab, on both actor types: the flat administrative gear ledger, then Merkmale, then Active Effects. Not a second carry view — see the note below |
+| `actor/parts/actor-effects.hbs` | Included by `actor-items.hbs`, once, under its own heading |
+| `actor/parts/actor-features.hbs` | Included by `actor-items.hbs`, once, under its own heading |
 | `actor/parts/actor-paperdoll.hbs`, `actor-money-wallet.hbs`, `actor-trinkets.hbs`, `actor-slot-grid.hbs` | The equipment/money surfaces of the character sheet's Basics tab — see [inventory.md](../concepts/inventory.md). The paper doll and stacked Kleinkram/wallet column sit in the top row, the carry raster in the bottom one |
 | `actor/parts/item-popover.hbs` | The actor-sheet item popover: the shared view-mode card plus the live item actions |
 | `actor/parts/money-popover.hbs` | Body-level five-currency wallet editor with money forms, rates and live euro conversions; reuses the item-popover component structure |

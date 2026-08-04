@@ -12,18 +12,66 @@
       "Perceive": "Perceive"
     },
     "Ability": {
-      "Str": { "long": "Strength", "abbr": "str", "hint": "Move things, or stay put yourself." },
-      "Dex": { "long": "Agility", "abbr": "dex", "hint": "Move yourself, fast, nimble or with stamina." },
-      "Fin": { "long": "Dexterity", "abbr": "fin", "hint": "Hand-eye coordination and manual dexterity." },
-      "Per": { "long": "Perception", "abbr": "per", "hint": "Perceive things with your senses." },
-      "Aut": { "long": "Authority", "abbr": "aut", "hint": "Intimidate and lead, earn respect." },
-      "Cha": { "long": "Charisma", "abbr": "cha", "hint": "Kindness and understanding, earn affection." },
-      "Man": { "long": "Manipulation", "abbr": "man", "hint": "Lying and deception, distorting perception." },
-      "Emp": { "long": "Empathy", "abbr": "emp", "hint": "Understand people, their motives and communication." },
-      "Wil": { "long": "Willpower", "abbr": "wil", "hint": "Determination and conviction." },
-      "Int": { "long": "Intelligence", "abbr": "int", "hint": "Understanding and reasoning." },
-      "Wis": { "long": "Knowledge", "abbr": "wis", "hint": "General education and the ability to expand it." },
-      "Inv": { "long": "Investigation", "abbr": "inv", "hint": "Notice things everyone sees, but not everyone perceives." }
+      "Str": {
+        "long": "Strength",
+        "abbr": "str",
+        "hint": "Move things, or stay put yourself."
+      },
+      "Dex": {
+        "long": "Agility",
+        "abbr": "dex",
+        "hint": "Move yourself, fast, nimble or with stamina."
+      },
+      "Fin": {
+        "long": "Dexterity",
+        "abbr": "fin",
+        "hint": "Hand-eye coordination and manual dexterity."
+      },
+      "Per": {
+        "long": "Perception",
+        "abbr": "per",
+        "hint": "Perceive things with your senses."
+      },
+      "Aut": {
+        "long": "Authority",
+        "abbr": "aut",
+        "hint": "Intimidate and lead, earn respect."
+      },
+      "Cha": {
+        "long": "Charisma",
+        "abbr": "cha",
+        "hint": "Kindness and understanding, earn affection."
+      },
+      "Man": {
+        "long": "Manipulation",
+        "abbr": "man",
+        "hint": "Lying and deception, distorting perception."
+      },
+      "Emp": {
+        "long": "Empathy",
+        "abbr": "emp",
+        "hint": "Understand people, their motives and communication."
+      },
+      "Wil": {
+        "long": "Willpower",
+        "abbr": "wil",
+        "hint": "Determination and conviction."
+      },
+      "Int": {
+        "long": "Intelligence",
+        "abbr": "int",
+        "hint": "Understanding and reasoning."
+      },
+      "Wis": {
+        "long": "Knowledge",
+        "abbr": "wis",
+        "hint": "General education and the ability to expand it."
+      },
+      "Inv": {
+        "long": "Investigation",
+        "abbr": "inv",
+        "hint": "Notice things everyone sees, but not everyone perceives."
+      }
     },
     "AttributeCurrent": "Current value (reduced by damage)",
     "AttributeBase": "Base value (increased by character development)",
@@ -233,11 +281,26 @@
       "CultHistory": "History"
     },
     "SkillSubgroup": {
-      "Med": { "Name": "Medicine", "Badge": "MED" },
-      "Pilot": { "Name": "Pilot", "Badge": "PIL" },
-      "Sci": { "Name": "Natural Science", "Badge": "SCI" },
-      "Hum": { "Name": "Humanities", "Badge": "HUM" },
-      "Cult": { "Name": "Culture", "Badge": "CULT" }
+      "Med": {
+        "Name": "Medicine",
+        "Badge": "MED"
+      },
+      "Pilot": {
+        "Name": "Pilot",
+        "Badge": "PIL"
+      },
+      "Sci": {
+        "Name": "Natural Science",
+        "Badge": "SCI"
+      },
+      "Hum": {
+        "Name": "Humanities",
+        "Badge": "HUM"
+      },
+      "Cult": {
+        "Name": "Culture",
+        "Badge": "CULT"
+      }
     },
     "CustomSkill": {
       "Add": "Add Custom Skill",
@@ -439,17 +502,7 @@
         "Footprint": "Space",
         "Value": "Value"
       },
-      "Duration": {
-        "Label": "Duration",
-        "Rounds": "Rounds",
-        "Minutes": "Minutes",
-        "Hours": "Hours",
-        "Days": "Days"
-      },
-      "Spell": {
-        "SpellLVL": "Level {level} Spells",
-        "AddLVL": "Add LVL {level}"
-      }
+      "Edit": "Edit item"
     },
     "Roll": {
       "DialogTitle": "Dice Roll",
@@ -575,7 +628,8 @@
         "2": "Medium items, two-handed weapons, bedrolls",
         "3": "Large items, heavy weapons, toolboxes, oxygen tanks",
         "4": "Backpack-sized items, welding gear, tents, parachutes"
-      }
+      },
+      "Empty": "Nothing owned yet. Use + to add an item, a piece of armour or a weapon."
     },
     "Money": {
       "Title": "Wallet",
@@ -644,9 +698,13 @@
         "Far": "Far",
         "Sf": "SF"
       }
+    },
+    "Features": {
+      "Title": "Features",
+      "Add": "Add feature",
+      "Empty": "No features yet."
     }
   },
-
   "TYPES": {
     "Actor": {
       "character": "Character",

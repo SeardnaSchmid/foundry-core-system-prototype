@@ -360,12 +360,15 @@ $c-trinket-label: rgba($c-dark, 0.55);
   background: $c-tan;
 }
 
-// Authoring a new item from the block that shows what the character is hauling.
-// Only the icon here — the header is a title, a number and a badge already, and
-// the same control carries its full label on the Inventar tab, where it sits in
-// a row of labelled controls. Pushed to the far right by `margin-left: auto`,
-// unless the "no bag" badge already claimed it and it follows the badge.
-.slot-grid-header .inventory-add {
+// The "add one of these" control that closes a section header. Only the icon —
+// the header is a title and possibly a badge already, and what gets added is
+// the section the button sits in. Used by the carry block and by each list on
+// the Inventar tab, so it is keyed off its own look-class rather than off any
+// one action: `.inventory-add` and `.item-create` are the two actions that wear
+// it, and they must not both land on one element.
+// Pushed to the far right by `margin-left: auto`, unless the "no bag" badge
+// already claimed it and it follows the badge.
+.section-add {
   margin-left: auto;
   align-self: center;
   flex: 0 0 auto;
@@ -387,20 +390,26 @@ $c-trinket-label: rgba($c-dark, 0.55);
 // Spelled out rather than nested as `.slot-badge + &`: this file is nested
 // under `.tno`, so `&` carries that ancestor and the sibling half would compile
 // to a selector that can never match.
-.slot-grid-header .slot-badge + .inventory-add {
+.slot-grid-header .slot-badge + .section-add {
   margin-left: 0;
 }
 
-// One column per slot, one cell per slot. A multi-slot item is a run of
-// adjacent cells rather than one spanning element: a grid item cannot wrap, so
-// spanning made a wide block jump to the next row and hold the columns behind
-// it open — a gap the player could not fill. Joining the run visually gets the
-// same read without that.
+// One cell per slot. A multi-slot item is a run of adjacent cells rather than
+// one spanning element: a grid item cannot wrap, so spanning made a wide block
+// jump to the next row and hold the columns behind it open — a gap the player
+// could not fill. Joining the run visually gets the same read without that.
+//
+// The column count follows the width the player has dragged this cell to,
+// rather than being fixed: the raster used to read `var(--slot-columns, 5)`,
+// and nothing ever set that variable, so widening the Inventar column only ever
+// stretched the same five cells. `auto-fill` keeps the track floor — below
+// about 130px a cell has no room for an icon, a name and a subcategory — and
+// lets the row take as many as fit.
 .slot-grid {
   --slot-gap: 6px;
 
   display: grid;
-  grid-template-columns: repeat(var(--slot-columns, 5), minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   gap: var(--slot-gap);
   // Bounds both things a run is allowed to push past its own cell: the welded
   // edge of a run that wraps, and a label spilling across the cells behind it.
@@ -460,9 +469,14 @@ $c-trinket-label: rgba($c-dark, 0.55);
   padding-right: calc(var(--slot-gap) + 6px);
 }
 
+// The other half of the weld. Dropping only the rounding left the following
+// cell's own left border standing exactly where the previous cell's right
+// border had been removed from — so a two-slot item still read as two boxes
+// with a hairline between them, which is the split this rule exists to close.
 .slot-cell.slot-joined + .slot-cell {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
+  border-left: 0;
 }
 
 // Only the first cell of a run carries the icon and name, but the run is what

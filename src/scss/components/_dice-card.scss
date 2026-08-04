@@ -509,10 +509,6 @@
     }
   }
 
-  .tno-find-flaw-idea-value {
-    font-weight: bold;
-  }
-
   .tno-find-flaw-reroll {
     display: flex;
     align-items: center;
@@ -536,21 +532,6 @@
     }
   }
 
-  .tno-find-flaw-done {
-    margin-top: 4px;
-    text-align: center;
-    font-size: var(--font-size-11, 11px);
-    font-weight: bold;
-    text-transform: uppercase;
-
-    &.success {
-      color: #2e7d32;
-    }
-
-    &.failure {
-      color: #c62828;
-    }
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -1025,13 +1006,4 @@ $parch-panel: rgba(255, 255, 255, 0.35);
     color: $parch-gold-ink;
   }
 
-  .tno-find-flaw-done {
-    &.success {
-      color: $parch-pass;
-    }
-
-    &.failure {
-      color: $parch-fail;
-    }
-  }
 }

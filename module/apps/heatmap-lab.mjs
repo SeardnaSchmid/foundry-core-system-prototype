@@ -10,6 +10,11 @@ import {
   CURVE_MAX,
 } from '../helpers/heatmap.mjs';
 
+// Namespaced rather than the bare `FormApplication` global, which is
+// deprecated. Still ApplicationV1 — see the V1 apps note in
+// docs/wiki/reference/module-map.md.
+const { FormApplication } = foundry.appv1.api;
+
 const PREVIEW_VALUES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 const CONFIG_FIELDS = ['low', 'mid', 'high', 'midValue', 'lowCurve', 'highCurve', 'critical'];
 

@@ -2,6 +2,11 @@ import { TNO_ADVANTAGE, describeAdvantage, rollTno } from '../helpers/dice.mjs';
 import { colorForValue } from '../helpers/heatmap.mjs';
 import { advantageOptions, bindAdvantagePicker } from './roll-dialog-shared.mjs';
 
+// Namespaced rather than the bare `FormApplication` global, which is
+// deprecated. Still ApplicationV1 — see the V1 apps note in
+// docs/wiki/reference/module-map.md.
+const { FormApplication } = foundry.appv1.api;
+
 /** Bounds and step for the situational modification value. */
 const BONUS_MIN = -30;
 const BONUS_MAX = 30;

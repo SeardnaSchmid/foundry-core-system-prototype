@@ -14,7 +14,7 @@ the same grid, marked over capacity. --}}
     behind it — and the container is a flex row, so the newlines between them
     collapse away rather than becoming spaces around the slash. --}}
     <span class='slot-grid-count'>
-      <strong{{#if slotGrid.over}} class='over-capacity'{{/if}}>{{slotGrid.used}}</strong>
+      <strong{{#if slotGrid.atCapacity}} class='over-capacity'{{/if}}>{{slotGrid.used}}</strong>
       <span class='slot-grid-sep' aria-hidden='true'>/</span>
       <span class='slot-grid-max'>{{slotGrid.capacity}}</span>
     </span>
@@ -31,7 +31,7 @@ the same grid, marked over capacity. --}}
     {{/ifEquals}}
 
     {{#if @root.editable}}
-      <a class='inventory-add' title='{{localize "TNO.Inventory.AddHint"}}'>
+      <a class='section-add inventory-add' title='{{localize "TNO.Inventory.AddHint"}}'>
         <i class='fas fa-plus'></i>
       </a>
     {{/if}}
@@ -61,7 +61,10 @@ the same grid, marked over capacity. --}}
           {{#if cell.over}}<i class='fas fa-triangle-exclamation slot-overflow-icon'></i>{{/if}}
           <i class='fa-solid {{cell.icon}} slot-icon' aria-hidden='true'></i>
           <span class='slot-content'>
-            <span class='slot-name'>{{cell.item.name}}</span>
+            {{!-- The name is clipped to the run's width, so the full one has to
+            stay reachable on hover as well as through the popover a click
+            opens — the skill list carries its own title for the same reason. --}}
+            <span class='slot-name' title='{{cell.item.name}}'>{{cell.item.name}}</span>
             {{#if cell.subcategory}}<span class='slot-subcategory'>{{cell.subcategory}}</span>{{/if}}
           </span>
           {{#if cell.showQty}}<span class='slot-qty'>×{{cell.quantity}}</span>{{/if}}

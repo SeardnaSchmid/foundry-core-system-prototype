@@ -21,7 +21,10 @@ export function onManageActiveEffect(event, owner) {
           name: game.i18n.format('DOCUMENT.New', {
             type: game.i18n.localize('DOCUMENT.ActiveEffect'),
           }),
-          icon: 'icons/svg/aura.svg',
+          // `img`, not `icon`: ActiveEffect renamed the field in v11, so the
+          // old key was silently dropped and every created effect came out
+          // with no artwork at all.
+          img: 'icons/svg/aura.svg',
           origin: owner.uuid,
           'duration.rounds':
             li.dataset.effectType === 'temporary' ? 1 : undefined,

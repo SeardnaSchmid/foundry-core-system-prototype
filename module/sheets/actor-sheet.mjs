@@ -18,6 +18,7 @@ import {
 } from '../helpers/attributes.mjs';
 import {
   buildSlotGrid,
+  itemSlotCost,
   ARMOR_ADDON_ZONES,
   wornItemIds,
 } from '../helpers/inventory.mjs';
@@ -494,27 +495,16 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    * @param {object} context The context object to mutate
    */
   _prepareItems(context) {
-    // Initialize containers.
-    const gear = [];
+    // Initialize containers. There are only two, because there are only two
+    // lists: everything physical, and the features that are not objects.
+    //
+    // Per-role buckets (`armory`, `weapons`) and a spell-level map used to be
+    // built here too. Nothing ever read them — the role buckets are views onto
+    // `inventory`, and listing a piece from one of them would list it once per
+    // role it carries. When the Waffen block is designed it wants a view over
+    // `inventory`, not a fourth copy of the same items.
+    const inventory = [];
     const features = [];
-    const spells = {
-      0: [],
-      1: [],
-      2: [],
-      3: [],
-      4: [],
-      5: [],
-      6: [],
-      7: [],
-      8: [],
-      9: [],
-    };
-
-    // Gear the item's role singles out. Disjoint from each other, since a piece
-    // has at most one role — but *not* from `gear`, which holds every object
-    // whatever it does. Only `gear` may be counted.
-    const armory = [];
-    const weapons = [];
 
     // Which items are on the body. Worn gear is exempt from the slot economy
     // and its state belongs to the paper doll, so those rows show a static
@@ -531,15 +521,16 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         features.push(i);
         continue;
       }
-      if (i.type === 'spell') {
-        if (i.system.spellLevel != undefined) spells[i.system.spellLevel].push(i);
-        continue;
-      }
+      // The `spell` type stays registered — a document's type cannot change
+      // after creation, so unregistering it would break any world holding one —
+      // but the system has no magic and no sheet surface lists spells. Skipped
+      // so it cannot fall through into the inventory.
+      if (i.type === 'spell') continue;
 
       // Everything else is an object, and every object is inventory. What it
       // *does* is a matter of the roles it carries, which is a second question
       // asked of the same item rather than a different bucket to put it in.
-      gear.push(i);
+      inventory.push(i);
       const roles = itemRoles(i);
       // The flat list labels each row with what it is; the tooltip in the carry
       // grid says the same thing at more length.
@@ -547,26 +538,20 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         (role) => CONFIG.TNO.itemRoles[role]
       );
       i.inventoryIcon = inventoryIcon(i);
-      if (roles.armor) armory.push(i);
-      // Weapons are gear the slot economy already accounts for; the Waffen
-      // block that will list them by readiness is not designed yet, so for now
-      // this bucket only feeds the flat list and the carry grid.
-      if (roles.weapon) weapons.push(i);
+      // What this piece costs the slot budget, for the administrative list's
+      // own column. Worn gear is exempt by rule, so it reports no cost rather
+      // than the number it *would* cost if it came off — the row already says
+      // "worn", and two different truths in one line would be worse than one.
+      i.slotCost = i.isWorn ? 0 : itemSlotCost(i);
     }
 
-    // Assign and return
-    context.gear = gear;
     context.features = features;
-    context.spells = spells;
-    context.armory = armory;
-    context.weapons = weapons;
 
     // The flat administrative list covers everything the inventory rules touch,
     // armour and weapons included: a piece that is neither worn nor carried
     // appears in no other view, so leaving it out of the list would strand it
-    // entirely. That is just `gear` now — the role buckets are views onto it,
-    // and merging them in would list a piece once per role it has.
-    context.inventory = gear;
+    // entirely.
+    context.inventory = inventory;
 
     if (context.actor.type === 'character') this._prepareEquipment(context);
   }
@@ -647,6 +632,11 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       used,
       capacity,
       over: used > capacity,
+      // A load that exactly fills the budget already costs every movement tier
+      // but the crawl, so the figure has to warn from there — not only once it
+      // spills. `over` stays strict, because the overflow note below the grid
+      // counts cells the character has no slot for and there are none at 7/7.
+      atCapacity: capacity > 0 && used >= capacity,
       // How far past the budget the load runs, for the over-capacity read-out.
       excess: Math.max(0, used - capacity),
       state: derived.carryState ?? 'ok',
@@ -742,6 +732,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   /** Open the complete wallet editor beside its compact Basics component. */
   async #openMoneyPopover(anchor) {
     if (!this._moneyPopover || !this.isEditable) return;
+    this.#mountPopovers();
     this._moneyPopoverAnchor = anchor;
     this._moneyPopover.innerHTML = await foundry.applications.handlebars.renderTemplate(
       'systems/tno/templates/actor/parts/money-popover.hbs',
@@ -797,20 +788,59 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     await this.actor.update(update);
   }
 
+  /**
+   * The document the sheet is currently living in. Not necessarily the one this
+   * code is *running* in: a detached ApplicationV2 window moves `this.element`
+   * into a second browser window while its JS keeps executing in the parent, so
+   * the bare `document` global still points at the workspace. Anything that has
+   * to appear beside the sheet has to be built in, and measured against, this
+   * document instead.
+   * @returns {Document}
+   * @private
+   */
+  #hostDocument() {
+    return this.element?.ownerDocument ?? document;
+  }
+
+  /**
+   * Move both popovers into whichever document the sheet is in now. Called on
+   * every render rather than once at mount: detaching and re-attaching are
+   * things the player does whenever they like, and a popover left behind in the
+   * old window would open on the wrong screen — or, once the detached window is
+   * closed, on no screen at all.
+   *
+   * `append` adopts a node across documents, so re-homing is the whole of it.
+   * The open state does not survive the move, which is why anything open is
+   * closed first rather than left in a half-adopted top layer.
+   * @private
+   */
+  #mountPopovers() {
+    const host = this.#hostDocument();
+    for (const popover of [this._itemPopover, this._moneyPopover]) {
+      if (!popover || popover.ownerDocument === host) continue;
+      if (popover.matches(':popover-open')) popover.hidePopover();
+      host.body.append(popover);
+    }
+  }
+
   /** Place a native top-layer popover inside the viewport beside its anchor. */
   #positionPopover(popover, anchor) {
     if (!popover || !anchor) return;
+    // The popover's own window, not the one this code runs in — see
+    // `#hostDocument`. A detached sheet is measured against the parent
+    // workspace's dimensions otherwise, and lands off-screen.
+    const view = popover.ownerDocument.defaultView ?? window;
     const gap = 6;
     const edge = 8;
     const anchorRect = anchor.getBoundingClientRect();
     const popoverRect = popover.getBoundingClientRect();
     const left = Math.min(
       Math.max(edge, anchorRect.left),
-      Math.max(edge, window.innerWidth - popoverRect.width - edge)
+      Math.max(edge, view.innerWidth - popoverRect.width - edge)
     );
     const below = anchorRect.bottom + gap;
     const above = anchorRect.top - popoverRect.height - gap;
-    const top = below + popoverRect.height <= window.innerHeight - edge
+    const top = below + popoverRect.height <= view.innerHeight - edge
       ? below
       : Math.max(edge, above);
     popover.style.left = `${Math.round(left)}px`;
@@ -845,11 +875,9 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       return;
     }
 
-    const focused = popover.contains(document.activeElement)
-      ? {
-          action: document.activeElement.dataset.popoverAction,
-          by: document.activeElement.dataset.by,
-        }
+    const active = popover.ownerDocument.activeElement;
+    const focused = popover.contains(active)
+      ? { action: active.dataset.popoverAction, by: active.dataset.by }
       : null;
     const html = await foundry.applications.handlebars.renderTemplate(
       'systems/tno/templates/actor/parts/item-popover.hbs',
@@ -867,11 +895,12 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   /** Open and place the compact item popover beside the clicked sheet cell. */
   async #openItemPopover(item, anchor) {
     if (!this._itemPopover || !item) return;
+    this.#mountPopovers();
     this._itemPopoverItemId = item.id;
     this._itemPopoverAnchor = anchor;
     await this.#refreshItemPopover();
     if (!this._itemPopover.matches(':popover-open')) this._itemPopover.showPopover();
-    if (!this._itemPopover.contains(document.activeElement)) {
+    if (!this._itemPopover.contains(this._itemPopover.ownerDocument.activeElement)) {
       this._itemPopover.querySelector('[autofocus]')?.focus();
     }
     this.#positionItemPopover();
@@ -1047,12 +1076,16 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   async _onFirstRender(context, options) {
     await super._onFirstRender(context, options);
 
-    // The sheet body is replaced on every render, so the native popover lives
-    // at document.body and delegates its own stable listeners there.
-    this._itemPopover = document.createElement('div');
+    // The sheet body is replaced on every render, so the native popovers live
+    // on the host document's body and delegate their own stable listeners
+    // there. Built in whichever document the sheet is in now and re-homed by
+    // `#mountPopovers` if that ever changes — see `#hostDocument`.
+    const host = this.#hostDocument();
+
+    this._itemPopover = host.createElement('div');
     this._itemPopover.className = 'tno item-popover';
     this._itemPopover.setAttribute('popover', 'auto');
-    document.body.append(this._itemPopover);
+    host.body.append(this._itemPopover);
     this._itemPopover.addEventListener('click', (event) => this.#onItemPopoverClick(event));
     this._itemPopover.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && this._itemPopover.matches(':popover-open')) {
@@ -1067,10 +1100,10 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       this._itemPopoverAnchor = null;
     });
 
-    this._moneyPopover = document.createElement('div');
+    this._moneyPopover = host.createElement('div');
     this._moneyPopover.className = 'tno item-popover money-popover';
     this._moneyPopover.setAttribute('popover', 'auto');
-    document.body.append(this._moneyPopover);
+    host.body.append(this._moneyPopover);
     this._moneyPopover.addEventListener('submit', (event) => this.#saveMoney(event));
     this._moneyPopover.addEventListener('input', () => this.#updateMoneyPreview());
     this._moneyPopover.addEventListener('click', (event) => {
@@ -1289,8 +1322,9 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       }).render(true);
     }, editable);
 
-    // Edge pool is now set via the input field instead of clicking pips.
-    // The pips are read-only display, input goes through .edge-pool-input.
+    // Edge pool is set via the banner's number field rather than by clicking
+    // pips; the pips are read-only display. That field is `.chip-value-input`,
+    // handled above.
 
     // Add Inventory Item
     this.#delegate('click', '.item-create', (event, target) => {
@@ -1430,6 +1464,9 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     this._applySkillFilter();
     this._applyColumnSplit();
     this.#resizeBiography();
+    // Detaching moves the sheet into a second window; the popovers have to
+    // follow it there before either is opened again.
+    this.#mountPopovers();
 
     if (this._itemPopover?.matches(':popover-open')) {
       await this.#refreshItemPopover();
@@ -1819,12 +1856,17 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    */
   async _onItemCreate(event, target) {
     event.preventDefault();
-    // Get the type of item to create.
+    // Get the type of item to create. A control without one is a template bug,
+    // but it used to reach `type.capitalize()` and throw there instead of
+    // saying so.
     const type = target.dataset.type;
+    if (!type) return;
     // Grab any data associated with this control.
     const data = { ...target.dataset };
     // Initialize a default name.
-    const name = `New ${type.capitalize()}`;
+    const name = game.i18n.format('DOCUMENT.New', {
+      type: game.i18n.localize(`TYPES.Item.${type}`),
+    });
     // Prepare the item object.
     const itemData = {
       name: name,

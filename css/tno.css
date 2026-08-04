@@ -929,12 +929,6 @@
   color: rgba(25, 24, 19, 0.4);
   font-style: italic;
 }
-.tno .tox .tox-editor-container {
-  background: #fff;
-}
-.tno .tox .tox-edit-area {
-  padding: 0 8px;
-}
 .tno .tno-advance-dialog {
   gap: 10px;
   padding: 6px 4px 4px;
@@ -1814,35 +1808,6 @@
   background: rgba(181, 179, 164, 0.3);
   color: #191813;
 }
-.tno .skill-edit-button,
-.tno .skill-delete-button {
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 3px;
-  font-size: var(--font-size-10, 10px);
-  color: #444;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.1s ease;
-}
-.tno .skill-edit-button:hover,
-.tno .skill-delete-button:hover {
-  background: rgba(181, 179, 164, 0.3);
-  color: #191813;
-}
-.tno .skill-edit-button.skill-action-hidden,
-.tno .skill-delete-button.skill-action-hidden {
-  visibility: hidden;
-  pointer-events: none;
-}
-.tno .skill-row:hover .skill-edit-button:not(.skill-action-hidden),
-.tno .skill-row:hover .skill-delete-button:not(.skill-action-hidden) {
-  opacity: 1;
-}
 .tno .tno-custom-skills-overview {
   padding: 6px 8px;
 }
@@ -1915,26 +1880,18 @@
   font-style: italic;
   text-align: center;
 }
-.tno .inventory-wip {
-  display: grid;
-  place-content: center;
-  justify-items: center;
-  min-height: min(55vh, 32rem);
-  margin: 8px;
-  border: 2px dashed rgba(68, 68, 68, 0.7);
-  border-radius: 8px;
-  background: rgba(68, 68, 68, 0.08);
-  color: #444;
-  text-align: center;
+.tno .tab.items {
+  padding: 0 8px 8px;
 }
-.tno .inventory-wip i {
-  margin-bottom: 10px;
-  font-size: clamp(3rem, 10vw, 6rem);
+.tno .tab.items .basics-section-header {
+  margin-top: 14px;
 }
-.tno .inventory-wip strong {
-  font-size: clamp(2rem, 8vw, 5rem);
-  letter-spacing: 0.12em;
-  line-height: 1;
+.tno .tab.items > .basics-section-header:first-child {
+  margin-top: 4px;
+}
+.tno .item-control.is-disabled {
+  opacity: 0.3;
+  cursor: help;
 }
 .tno .items-list {
   list-style: none;
@@ -2258,7 +2215,7 @@
 .tno.gear-dialog .field input:focus,
 .tno.gear-dialog .field select:focus {
   outline: none;
-  box-shadow: none;
+  box-shadow: inset 0 -2px 0 #444;
 }
 .tno.gear-dialog .field > .cap + input,
 .tno.gear-dialog .field > .cap + select,
@@ -2456,13 +2413,6 @@
 .tno.gear-dialog .stepper:focus-within {
   border-color: #2f6bff;
 }
-.tno.gear-dialog .coverage-bar {
-  flex: 1;
-  height: 6px;
-  border: 1px solid #191813;
-  border-radius: 4px;
-  background: linear-gradient(to right, #191813 0 var(--coverage, 0%), transparent var(--coverage, 0%));
-}
 .tno.gear-dialog {
   /* ---------------------------------------------- Choices */
 }
@@ -2651,12 +2601,6 @@
 .tno.gear-dialog .memo-help i {
   flex: none;
   font-size: 9px;
-}
-.tno.gear-dialog .gear-hint {
-  margin: 0 0 8px 106px;
-  font-size: 10px;
-  font-style: italic;
-  color: rgba(25, 24, 19, 0.55);
 }
 .tno.gear-dialog .gear-section-divider {
   display: flex;
@@ -3073,7 +3017,7 @@
   color: #fff;
   background: #444;
 }
-.tno .slot-grid-header .inventory-add {
+.tno .section-add {
   margin-left: auto;
   align-self: center;
   flex: 0 0 auto;
@@ -3086,17 +3030,17 @@
   color: #444;
   cursor: pointer;
 }
-.tno .slot-grid-header .inventory-add:hover {
+.tno .section-add:hover {
   border-color: #b8860b;
   color: #b8860b;
 }
-.tno .slot-grid-header .slot-badge + .inventory-add {
+.tno .slot-grid-header .slot-badge + .section-add {
   margin-left: 0;
 }
 .tno .slot-grid {
   --slot-gap: 6px;
   display: grid;
-  grid-template-columns: repeat(var(--slot-columns, 5), minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   gap: var(--slot-gap);
   overflow: hidden;
 }
@@ -3134,6 +3078,7 @@
 .tno .slot-cell.slot-joined + .slot-cell {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
+  border-left: 0;
 }
 .tno .slot-cell.slot-first.slot-joined {
   overflow: visible;
@@ -3975,9 +3920,6 @@
 .tno .tno-roll-dialog .tno-roll-detail .tno-roll-detail-value {
   font-weight: bold;
 }
-.tno .tno-roll-dialog .tno-hidden {
-  display: none !important;
-}
 .tno .tno-roll-dialog .tno-attribute-field {
   flex-direction: column;
   align-items: stretch;
@@ -4801,9 +4743,6 @@
 .tno-roll-card .tno-find-flaw-idea.disabled input {
   pointer-events: none;
 }
-.tno-roll-card .tno-find-flaw-idea-value {
-  font-weight: bold;
-}
 .tno-roll-card .tno-find-flaw-reroll {
   display: flex;
   align-items: center;
@@ -4824,19 +4763,6 @@
   background: #444;
   border-color: #444;
   color: #fff;
-}
-.tno-roll-card .tno-find-flaw-done {
-  margin-top: 4px;
-  text-align: center;
-  font-size: var(--font-size-11, 11px);
-  font-weight: bold;
-  text-transform: uppercase;
-}
-.tno-roll-card .tno-find-flaw-done.success {
-  color: #2e7d32;
-}
-.tno-roll-card .tno-find-flaw-done.failure {
-  color: #c62828;
 }
 
 .tno-roll-card:has(.tno-roll-outcome.failure),
@@ -5273,14 +5199,6 @@
   padding: 12px;
   background: rgba(169, 120, 44, 0.12);
   color: #8a6421;
-}
-.tno-roll-card:has(.tno-roll-outcome.failure) .tno-find-flaw-done.success,
-.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-find-flaw-done.success {
-  color: #4d6642;
-}
-.tno-roll-card:has(.tno-roll-outcome.failure) .tno-find-flaw-done.failure,
-.tno-roll-card:has(.tno-roll-outcome.criticalFailure) .tno-find-flaw-done.failure {
-  color: #a23328;
 }
 
 .tno-base-roll-button {
