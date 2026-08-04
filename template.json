@@ -12,6 +12,13 @@
       "problemSolving": {
         "spent": 0
       },
+      "money": {
+        "templeOr": 0,
+        "imperialQian": 0,
+        "orNior": 0,
+        "orOdur": 0,
+        "orForseti": 0
+      },
       "hasContainer": true,
       "equipment": {
         "suit": null,

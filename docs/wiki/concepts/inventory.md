@@ -1,9 +1,9 @@
 ---
 type: concept
 title: Inventory (carrying and wearing)
-description: The two independent equipment axes — the Trageslots budget for carried gear, and the armour paper doll for worn gear.
-tags: [inventory, armor, slots, equipment, derived-data]
-resource: [module/helpers/inventory.mjs, module/documents/actor.mjs, module/sheets/actor-sheet.mjs]
+description: Carrying, wearing, and the character wallet on the Basics sheet.
+tags: [inventory, armor, slots, equipment, money, currency, derived-data]
+resource: [module/helpers/inventory.mjs, module/helpers/money.mjs, module/documents/actor.mjs, module/sheets/actor-sheet.mjs]
 spec: docs/design/character-sheet-prd.md
 related: [concepts/attributes, concepts/item-roles, reference/ui-surfaces, architecture/data-schema]
 ---
@@ -29,6 +29,10 @@ other owned physical item is carried and participates in the slot budget; the
 rules define no persisted “stowed” state. Removing an item from the character
 therefore means deleting or transferring the embedded item.
 
+Money is separate actor state under `actor.system.money`: one whole-unit
+balance per supported currency. It is not represented by zero-slot Items, so
+the wallet and Kleinkram cannot show the same balance twice.
+
 ## Where the maths lives
 
 [`module/helpers/inventory.mjs`](../../../module/helpers/inventory.mjs) is
@@ -52,6 +56,33 @@ calls `computeCarry` and `resolveArmor` and writes `carrySlots`,
 `carrySlotsUsed`, `carryState`, `armor`, `armorSv` and `armorSvPenalty`
 into `system.derived` — see
 [data-schema.md](../architecture/data-schema.md).
+
+[`module/helpers/money.mjs`](../../../module/helpers/money.mjs) is the matching
+pure helper for the wallet. `MONEY_CURRENCIES` defines display order, integer
+euro-cent rates; `prepareWallet()` normalises the five balances, builds the
+visible non-zero rows and computes the total.
+
+## Money
+
+The Basics sheet places a compact Geldbörse at the bottom of the Kleinkram
+column. The column stretches to the top row's height and an automatic flex gap
+holds the wallet against its bottom edge; a growing Kleinkram list instead
+extends the complete row and pushes the wallet down naturally. Its thin rows
+are summaries rather than balances: both express the complete combined wallet
+value, once in OR and once in Imperial Qian, regardless of the actual currency
+mix. The euro total stays secondary in the header. Owners can open a body-level
+native popover with all five actual balances. Every row states its money form
+and exchange rate; typing updates every euro conversion and the secondary
+total immediately, while saving writes all balances in one actor update. That
+editor carries both
+`item-popover` and `money-popover`: the former supplies the established popup
+frame/components, while the latter only specializes the currency form grid.
+Read-only sheets render no edit affordance.
+
+Conversions stay in integer cents: OR = 100, Imperialer Qian = 1, Or Nior =
+50, Or Odur = 20 and Or Forseti = 10 cents per native unit. Odur and Forseti
+are approximate; a non-zero balance in either prefixes its conversion and the
+combined total with `≈`.
 
 ## Carrying
 
@@ -148,10 +179,11 @@ persisting.
 **Three columns, not two, and they sit in different rows.** The paper doll is in
 the Basics tab's top row and the carry raster in its bottom one, because the
 raster is a long list and belongs beside the other long list on the sheet. The
-zero-slot items are the third: `buildSlotGrid` splits them off as `trinkets`,
-and they render as a Kleinkram column of their own
-(`parts/actor-trinkets.hbs`) rather than as a pocket inside the armour card,
-where reading them off the doll implied they were worn.
+wallet and zero-slot items share the third: `buildSlotGrid` splits those items
+off as `trinkets`, and they render as Kleinkram above the wallet
+(`parts/actor-money-wallet.hbs` and `parts/actor-trinkets.hbs`) rather than as
+a pocket inside the armour card, where reading them off the doll implied they
+were worn.
 
 **The Kleinkram column has no create control and no drop target.** Nothing there
 is a state a piece can be put *into*: an item is Kleinkram exactly when its

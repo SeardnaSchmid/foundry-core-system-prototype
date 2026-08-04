@@ -21,6 +21,7 @@ import {
   ARMOR_ADDON_ZONES,
   wornItemIds,
 } from '../helpers/inventory.mjs';
+import { MONEY_CURRENCIES, normalizeMoneyAmount, prepareWallet } from '../helpers/money.mjs';
 import { prepareGearSummaryContext } from '../helpers/item-summary.mjs';
 import { ITEM_ROLES, WEAPON_ATTRIBUTES, armorZones, inventoryIcon, itemRoles, weaponUse } from '../helpers/items.mjs';
 
@@ -263,6 +264,8 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    * @param {object} context The context object to mutate
    */
   _prepareCharacterData(context) {
+    context.money = this.#moneyContext(context.system.money);
+
     // Build the primary attribute grid (one row per CONFIG.TNO.attributeRows
     // entry, one column per physical/social/mental category), mirroring the
     // layout of the "Attribute" table in the rulebook. Cells and row/column
@@ -698,6 +701,122 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     return null;
   }
 
+  /** Format integer cents as the sheet user's localized euro amount. */
+  #formatEuro(cents) {
+    return new Intl.NumberFormat(game.i18n.lang, {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: 2,
+    }).format(cents / 100);
+  }
+
+  /** Build the wallet's localized read/editor context from stored balances. */
+  #moneyContext(money = this.actor.system.money) {
+    const wallet = prepareWallet(money);
+    const amountFormatter = new Intl.NumberFormat(game.i18n.lang, { maximumFractionDigits: 0 });
+    const rows = wallet.rows.map((row) => ({
+      ...row,
+      label: game.i18n.localize(row.label),
+      medium: game.i18n.localize(row.medium),
+      inputId: `money-${this.actor.id}-${row.key}`,
+      amountDisplay: amountFormatter.format(row.amount),
+      euroDisplay: this.#formatEuro(row.euroCents),
+      rateDisplay: this.#formatEuro(row.cents),
+    }));
+    const summaryRows = wallet.summaryRows.map((row) => ({
+      ...row,
+      label: game.i18n.localize(row.label),
+      summaryDisplay: new Intl.NumberFormat(game.i18n.lang, {
+        maximumFractionDigits: row.cents === 1 ? 0 : 2,
+      }).format(row.summaryAmount),
+      summaryApproximate: wallet.approximate,
+    }));
+    return {
+      ...wallet,
+      rows,
+      summaryRows,
+      totalDisplay: this.#formatEuro(wallet.totalCents),
+    };
+  }
+
+  /** Open the complete wallet editor beside its compact Basics component. */
+  async #openMoneyPopover(anchor) {
+    if (!this._moneyPopover || !this.isEditable) return;
+    this._moneyPopoverAnchor = anchor;
+    this._moneyPopover.innerHTML = await foundry.applications.handlebars.renderTemplate(
+      'systems/tno/templates/actor/parts/money-popover.hbs',
+      { money: this.#moneyContext() }
+    );
+    this._moneyPopover.setAttribute('aria-label', game.i18n.localize('TNO.Money.Edit'));
+    if (!this._moneyPopover.matches(':popover-open')) this._moneyPopover.showPopover();
+    this._moneyPopover.querySelector('[autofocus]')?.focus();
+    this.#positionMoneyPopover();
+  }
+
+  /** Keep the body-level wallet editor beside its current sheet anchor. */
+  #positionMoneyPopover() {
+    if (!this._moneyPopover?.matches(':popover-open')) return;
+    if (!this._moneyPopoverAnchor?.isConnected) {
+      this._moneyPopoverAnchor = this.element.querySelector('.money-wallet-block.editable');
+    }
+    this.#positionPopover(this._moneyPopover, this._moneyPopoverAnchor);
+  }
+
+  /** Recalculate row conversions and the total while wallet fields are typed. */
+  #updateMoneyPreview() {
+    if (!this._moneyPopover) return;
+    let totalCents = 0;
+    let approximate = false;
+    for (const input of this._moneyPopover.querySelectorAll('[data-money-key]')) {
+      const amount = normalizeMoneyAmount(input.value);
+      const cents = amount * normalizeMoneyAmount(input.dataset.rateCents);
+      const isApproximate = input.dataset.approximate === 'true';
+      totalCents += cents;
+      approximate ||= isApproximate && amount > 0;
+      const output = this._moneyPopover.querySelector(`[data-money-euro="${input.dataset.moneyKey}"]`);
+      if (output) output.textContent = `${isApproximate ? '≈' : ''}${this.#formatEuro(cents)}`;
+    }
+    const total = this._moneyPopover.querySelector('[data-money-total]');
+    if (total) total.textContent = `${approximate ? '≈' : ''}${this.#formatEuro(totalCents)}`;
+  }
+
+  /** Persist the complete wallet in one actor update. */
+  async #saveMoney(event) {
+    event.preventDefault();
+    if (!this.isEditable) return;
+    const form = event.target.closest('.money-editor-form');
+    if (!form) return;
+    const data = new FormData(form);
+    const update = Object.fromEntries(
+      MONEY_CURRENCIES.map(({ key }) => [
+        `system.money.${key}`,
+        normalizeMoneyAmount(data.get(key)),
+      ])
+    );
+    this._moneyPopover?.hidePopover();
+    await this.actor.update(update);
+  }
+
+  /** Place a native top-layer popover inside the viewport beside its anchor. */
+  #positionPopover(popover, anchor) {
+    if (!popover || !anchor) return;
+    const gap = 6;
+    const edge = 8;
+    const anchorRect = anchor.getBoundingClientRect();
+    const popoverRect = popover.getBoundingClientRect();
+    const left = Math.min(
+      Math.max(edge, anchorRect.left),
+      Math.max(edge, window.innerWidth - popoverRect.width - edge)
+    );
+    const below = anchorRect.bottom + gap;
+    const above = anchorRect.top - popoverRect.height - gap;
+    const top = below + popoverRect.height <= window.innerHeight - edge
+      ? below
+      : Math.max(edge, above);
+    popover.style.left = `${Math.round(left)}px`;
+    popover.style.top = `${Math.round(top)}px`;
+  }
+
   /** Build the popover's template context from the live embedded item. */
   #itemPopoverContext(item) {
     const base = prepareGearSummaryContext(item);
@@ -770,21 +889,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     }
     if (!anchor) return;
 
-    const gap = 6;
-    const edge = 8;
-    const anchorRect = anchor.getBoundingClientRect();
-    const popoverRect = popover.getBoundingClientRect();
-    const left = Math.min(
-      Math.max(edge, anchorRect.left),
-      Math.max(edge, window.innerWidth - popoverRect.width - edge)
-    );
-    const below = anchorRect.bottom + gap;
-    const above = anchorRect.top - popoverRect.height - gap;
-    const top = below + popoverRect.height <= window.innerHeight - edge
-      ? below
-      : Math.max(edge, above);
-    popover.style.left = `${Math.round(left)}px`;
-    popover.style.top = `${Math.round(top)}px`;
+    this.#positionPopover(popover, anchor);
   }
 
   /** Dispatch actions from the body-level popover to its live item document. */
@@ -962,11 +1067,28 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       this._itemPopoverAnchor = null;
     });
 
+    this._moneyPopover = document.createElement('div');
+    this._moneyPopover.className = 'tno item-popover money-popover';
+    this._moneyPopover.setAttribute('popover', 'auto');
+    document.body.append(this._moneyPopover);
+    this._moneyPopover.addEventListener('submit', (event) => this.#saveMoney(event));
+    this._moneyPopover.addEventListener('input', () => this.#updateMoneyPreview());
+    this._moneyPopover.addEventListener('click', (event) => {
+      const action = event.target.closest('[data-money-action]')?.dataset.moneyAction;
+      if (action === 'close' || action === 'cancel') this._moneyPopover.hidePopover();
+    });
+    this._moneyPopover.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && this._moneyPopover.matches(':popover-open')) event.stopPropagation();
+    });
+    this._moneyPopover.addEventListener('toggle', (event) => {
+      if (event.newState === 'closed') this._moneyPopoverAnchor = null;
+    });
+
     // Custom clickable chips (anchors without `href`, plus `.skill-info` and
     // the carry grid's cells) are promoted to real keyboard targets in
     // _onRender; this forwards their Enter/Space to the same click listeners
     // bound below.
-    this.#delegate('keydown', 'a:not([href]), .skill-info, .slot-cell, .slot-trinket, .armor-row[data-item-id], .banner-portrait .profile-img[data-action="editImage"]', (event, target) => {
+    this.#delegate('keydown', 'a:not([href]), .skill-info, .slot-cell, .slot-trinket, .armor-row[data-item-id], .money-wallet-block.editable, .banner-portrait .profile-img[data-action="editImage"]', (event, target) => {
       if (event.key !== 'Enter' && event.key !== ' ') return;
       event.preventDefault();
       target.click();
@@ -1194,6 +1316,11 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       this._promptCreateItem();
     }, editable);
 
+    this.#delegate('click', '.money-wallet-block.editable', (event, target) => {
+      event.preventDefault();
+      this.#openMoneyPopover(target);
+    }, editable);
+
     // Carry cells, loose trinkets and worn armour open a compact action
     // popover. The full editor remains one level below its Edit action. The
     // unequip x belongs to the row but keeps its dedicated state-change action.
@@ -1308,6 +1435,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       await this.#refreshItemPopover();
       this.#positionItemPopover();
     }
+    this.#positionMoneyPopover();
   }
 
   /** @inheritDoc */
@@ -1315,6 +1443,9 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (this._itemPopover?.matches(':popover-open')) this._itemPopover.hidePopover();
     this._itemPopover?.remove();
     this._itemPopover = null;
+    if (this._moneyPopover?.matches(':popover-open')) this._moneyPopover.hidePopover();
+    this._moneyPopover?.remove();
+    this._moneyPopover = null;
     return super._onClose(options);
   }
 
@@ -1337,7 +1468,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // four-slot item four times to reach the next one is worse than not
     // reaching its tail at all.
     const targets = this.element.querySelectorAll(
-      'a:not([href]), .skill-info, .slot-cell.slot-first, .slot-trinket, .armor-row[data-item-id], .banner-portrait .profile-img[data-action="editImage"]'
+      'a:not([href]), .skill-info, .slot-cell.slot-first, .slot-trinket, .armor-row[data-item-id], .money-wallet-block.editable, .banner-portrait .profile-img[data-action="editImage"]'
     );
     for (const el of targets) {
       if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');

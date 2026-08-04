@@ -17,8 +17,9 @@ related: [reference/module-map]
 | `actor/actor-npc-sheet.hbs` | `TnoActorSheet` (type `npc`) |
 | `actor/parts/actor-items.hbs` | WIP placeholder in the actor sheet's Inventar tab |
 | `actor-features.hbs`, `actor-spells.hbs`, `actor-effects.hbs` | Included by the actor sheet templates above |
-| `actor/parts/actor-paperdoll.hbs`, `actor-trinkets.hbs`, `actor-slot-grid.hbs` | Three of the five columns of the character sheet's Basics tab — see [inventory.md](../concepts/inventory.md). The paper doll and the Kleinkram column sit in the top row, the carry raster in the bottom one |
+| `actor/parts/actor-paperdoll.hbs`, `actor-money-wallet.hbs`, `actor-trinkets.hbs`, `actor-slot-grid.hbs` | The equipment/money surfaces of the character sheet's Basics tab — see [inventory.md](../concepts/inventory.md). The paper doll and stacked Kleinkram/wallet column sit in the top row, the carry raster in the bottom one |
 | `actor/parts/item-popover.hbs` | The actor-sheet item popover: the shared view-mode card plus the live item actions |
+| `actor/parts/money-popover.hbs` | Body-level five-currency wallet editor with money forms, rates and live euro conversions; reuses the item-popover component structure |
 | `apps/roll-dialog.hbs` | `TnoRollDialog` |
 | `apps/base-roll-dialog.hbs` | `TnoBaseRollDialog` |
 | `apps/parts/advantage-picker.hbs` | Included by both roll dialogs, via `roll-dialog-shared.mjs` |
@@ -83,8 +84,8 @@ them in step with `BASICS_LAYOUT_DEFAULT`.
 | `components/_resource.scss` | Largest component partial — attribute heatmap grid, skill groups, edge pool display |
 | `components/_items.scss` | Inventory list rendering, including the Rollen column's tags |
 | `components/_item-dialog.scss` | Both gear views: overview cards/profiles/actions plus the editor's label column, scales, cycleable range bands, repeatable consumable effects, resizable description editor, chips, segments, splits and steppers. Nested with `&.gear-dialog` because the class sits on the sheet root alongside `tno`, not inside it |
-| `components/_item-popover.scss` | The view-mode card in both its homes — the actor sheet's top-layer popover (`&.item-popover`) and the chat card (`&.item-chat-summary`). Badges, probe band, value tiles, warning banner, detail rows and the action bar are styled once for both |
-| `components/_inventory.scss` | The paper doll, the Kleinkram column and the Trageslots grid — see [inventory.md](../concepts/inventory.md). The narrower padding they take inside a Basics column is set on `.basics-cell` in `_forms.scss`, not here |
+| `components/_item-popover.scss` | The view-mode card in both its homes — the actor sheet's top-layer popover (`&.item-popover`) and the chat card (`&.item-chat-summary`) — plus the wallet editor variant (`&.item-popover.money-popover`). Header, value tiles, detail rows and action bar are shared |
+| `components/_inventory.scss` | The paper doll, compact borderless wallet, Kleinkram column and Trageslots grid — see [inventory.md](../concepts/inventory.md). The narrower padding they take inside a Basics column is set on `.basics-cell` in `_forms.scss`, not here |
 | `components/_effects.scss` | Active effect list rendering |
 | `components/_base-roll-button.scss` | The chat-log "Basiswürfel" quick-roll button |
 | `global/_flex.scss`, `_grid.scss`, `_window.scss` | Layout primitives |

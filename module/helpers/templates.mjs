@@ -13,7 +13,9 @@ export const preloadHandlebarsTemplates = async function () {
     'systems/tno/templates/actor/parts/actor-paperdoll.hbs',
     'systems/tno/templates/actor/parts/actor-slot-grid.hbs',
     'systems/tno/templates/actor/parts/actor-trinkets.hbs',
+    'systems/tno/templates/actor/parts/actor-money-wallet.hbs',
     'systems/tno/templates/actor/parts/item-popover.hbs',
+    'systems/tno/templates/actor/parts/money-popover.hbs',
     // Item partials
     'systems/tno/templates/item/parts/item-delete.hbs',
     'systems/tno/templates/item/parts/item-scale.hbs',

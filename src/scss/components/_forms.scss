@@ -761,6 +761,13 @@
   flex-grow: 0.25;
 }
 
+// Unlike the other compact top-row cells, this column uses the row's full
+// height so the wallet can sit on its bottom edge. Kleinkram still owns its
+// natural height and expands the whole row when its list grows.
+.cell-loose {
+  align-self: stretch;
+}
+
 .cell-gear {
   flex-grow: 0.5;
 }

@@ -102,7 +102,7 @@ posted rule text still has an unresolved sign-versus-roll-direction issue, but
 that affects resolution, not the authored base value.
 
 `price` is an optional **euro base price**. The currency section explicitly compares
-all currencies against euros (with one Tempel Or equal to one euro), so a
+all currencies against euros (with one OR equal to one euro), so a
 currency-specific item price would bake an exchange choice into the catalog.
 In the edit view, quantity, base price and availability form the separate
 **Trade** group; the calculated slot footprint stays beside quantity because

@@ -776,3 +776,88 @@ $c-trinket-label: rgba($c-dark, 0.55);
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+// ---------------------------------------------------------------------------
+// Wallet. Native money forms lead, while the euro comparison stays secondary.
+// It follows Kleinkram and uses thin rows so bookkeeping does not visually
+// outweigh the character's actual zero-slot gear.
+
+.money-wallet-block {
+  flex: 0 0 auto;
+  margin-top: auto;
+  padding-top: 14px;
+
+  &.editable {
+    cursor: pointer;
+
+    &:hover .money-wallet-edit,
+    &:focus-visible .money-wallet-edit {
+      opacity: 1;
+    }
+
+    &:focus-visible {
+      outline: none;
+    }
+  }
+}
+
+.money-wallet-header {
+  gap: 5px;
+}
+
+.money-wallet-total {
+  margin-left: auto;
+  color: $c-tan;
+  font-size: var(--font-size-11, 11px);
+  font-weight: normal;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.money-wallet-edit {
+  flex: 0 0 auto;
+  color: $c-tan;
+  font-size: var(--font-size-10, 10px);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.money-wallet {
+  display: flex;
+  flex-direction: column;
+  padding: 5px 8px;
+}
+
+.money-wallet-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 3px 0;
+  color: $c-tan;
+  font-size: var(--font-size-11, 11px);
+
+  + .money-wallet-row {
+    border-top: 1px solid rgba($c-dark, 0.08);
+  }
+}
+
+.money-wallet-currency-icon {
+  flex: 0 0 13px;
+  width: 13px;
+  color: $c-tan;
+  font-size: var(--font-size-10, 10px);
+  text-align: center;
+}
+
+.money-wallet-currency {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.money-wallet-amount {
+  margin-left: auto;
+  color: $c-dark;
+  font-variant-numeric: tabular-nums;
+}

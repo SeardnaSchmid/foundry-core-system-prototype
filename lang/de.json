@@ -563,7 +563,7 @@
       "NoContainer": "Keine Tasche",
       "NoContainerHint": "Ohne Tasche oder Rucksack gibt es keine Slotrechnung — die Hände sind belegt.",
       "Trinkets": "Kleinkram",
-      "TrinketsHint": "<strong>Kleinkram</strong><br>Geld, Papiere und ähnlicher Krimskrams — Gegenstände, die die Inventarregeln mit 0 Inventarslots ansetzen.<br>Sie belegen keinen Slot und stehen deshalb neben dem Raster statt darin. Mitgeführt werden sie trotzdem, und sie lassen sich wie jeder andere Gegenstand öffnen und umsortieren.",
+      "TrinketsHint": "<strong>Kleinkram</strong><br>Papiere und ähnlicher Krimskrams — Gegenstände, die die Inventarregeln mit 0 Inventarslots ansetzen. Geld wird separat in der Geldbörse darunter geführt.<br>Sie belegen keinen Slot und stehen deshalb neben dem Raster statt darin. Mitgeführt werden sie trotzdem, und sie lassen sich wie jeder andere Gegenstand öffnen und umsortieren.",
       "TrinketsZeroSlots": "0 Slots",
       "TrinketsEmpty": "Nichts dabei, was mit 0 Inventarslots angesetzt ist. Die Slotzahl steht auf dem Gegenstand selbst.",
       "Overflow": "Überlast: {excess} Slot(s) mehr, als der Charakter tragen kann.",
@@ -576,6 +576,33 @@
         "2": "Mittlere Gegenstände, Zweihändige Waffen, Schlafrolle",
         "3": "Große Gegenstände, Schwere Waffen, Werkzeugkiste, Sauerstoffflasche",
         "4": "Rucksackgroße Gegenstände, Schweißgerät, Zelt, Fallschirm"
+      }
+    },
+    "Money": {
+      "Title": "Geldbörse",
+      "Edit": "Geldbörse bearbeiten",
+      "EditHint": "Geldbestände bearbeiten",
+      "EditorHint": "Bestände in der jeweiligen Währung; der Euro-Gegenwert wird automatisch berechnet.",
+      "Empty": "Kein Geld eingetragen.",
+      "Total": "Gesamtwert",
+      "ExchangeRate": "1 OR = 100 Qian = 1 €",
+      "ApproximateHint": "Enthält Geld mit einem ungefähren Wechselkurs.",
+      "Save": "Speichern",
+      "Cancel": "Abbrechen",
+      "Close": "Schließen",
+      "Currency": {
+        "Or": "OR",
+        "ImperialQian": "Imperialer Qian",
+        "OrNior": "Or Nior",
+        "OrOdur": "Or Odur",
+        "OrForseti": "Or Forseti"
+      },
+      "Medium": {
+        "Or": "Tempelgeld · Papiergeld",
+        "ImperialQian": "Digitaler Chip",
+        "OrNior": "Marmorierter Kunststoffchip",
+        "OrOdur": "Metallmünzen",
+        "OrForseti": "Grobes Papiergeld"
       }
     },
     "Weapons": {

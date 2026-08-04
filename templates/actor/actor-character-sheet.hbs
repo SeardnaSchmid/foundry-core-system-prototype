@@ -225,11 +225,12 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
       <div class="basics-splitter" role="separator" aria-orientation="vertical" tabindex="0"
            title="{{localize 'TNO.BasicsSplitterHint'}}"></div>
 
-      {{!-- Geld, Papiere, Krimskrams: carried, but priced at zero slots, so they
-      never take a cell in the raster below and get a column of their own here
-      instead. --}}
+      {{!-- Papers and other zero-slot gear remain ordinary draggable items.
+      Money is separate actor state and follows Kleinkram as the quieter,
+      secondary bookkeeping surface in the same column. --}}
       <section class="basics-cell cell-loose flexcol">
         {{> "systems/tno/templates/actor/parts/actor-trinkets.hbs"}}
+        {{> "systems/tno/templates/actor/parts/actor-money-wallet.hbs"}}
       </section>
 
       </div>

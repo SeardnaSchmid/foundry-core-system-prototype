@@ -563,7 +563,7 @@
       "NoContainer": "No Bag",
       "NoContainerHint": "Without a bag or backpack there is no slot budget — the character's hands are full.",
       "Trinkets": "Small Stuff",
-      "TrinketsHint": "<strong>Small Stuff</strong><br>Money, papers and similar odds and ends — items the inventory rules cost at 0 carry slots.<br>They take up no slot, so they sit beside the grid rather than in it. The character is still carrying them, and they can be opened and re-sorted like anything else.",
+      "TrinketsHint": "<strong>Small Stuff</strong><br>Papers and similar odds and ends — items the inventory rules cost at 0 carry slots. Money is tracked separately in the wallet below.<br>They take up no slot, so they sit beside the grid rather than in it. The character is still carrying them, and they can be opened and re-sorted like anything else.",
       "TrinketsZeroSlots": "0 slots",
       "TrinketsEmpty": "Nothing carried is priced at 0 carry slots. The slot cost is set on the item itself.",
       "Overflow": "Overloaded: {excess} slot(s) more than the character can carry.",
@@ -576,6 +576,33 @@
         "2": "Medium items, two-handed weapons, bedrolls",
         "3": "Large items, heavy weapons, toolboxes, oxygen tanks",
         "4": "Backpack-sized items, welding gear, tents, parachutes"
+      }
+    },
+    "Money": {
+      "Title": "Wallet",
+      "Edit": "Edit Wallet",
+      "EditHint": "Edit currency balances",
+      "EditorHint": "Balances in each native currency; the euro equivalent is calculated automatically.",
+      "Empty": "No money recorded.",
+      "Total": "Total value",
+      "ExchangeRate": "1 OR = 100 Qian = €1",
+      "ApproximateHint": "Includes money with an approximate exchange rate.",
+      "Save": "Save",
+      "Cancel": "Cancel",
+      "Close": "Close",
+      "Currency": {
+        "Or": "OR",
+        "ImperialQian": "Imperial Qian",
+        "OrNior": "Or Nior",
+        "OrOdur": "Or Odur",
+        "OrForseti": "Or Forseti"
+      },
+      "Medium": {
+        "Or": "Temple money · paper notes",
+        "ImperialQian": "Digital chip",
+        "OrNior": "Marbled polymer chip",
+        "OrOdur": "Metal coins",
+        "OrForseti": "Coarse paper money"
       }
     },
     "Weapons": {

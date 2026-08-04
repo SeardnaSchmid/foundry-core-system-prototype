@@ -34,6 +34,10 @@ in Foundry v14+.
   - `character.equipment.<zone>` — the worn-gear store: `suit`, `head`,
     `torso`, `arms`, `legs`, each holding an owned item id or `null`. See
     [inventory.md](../concepts/inventory.md).
+  - `character.money.<currency>` — non-negative whole-unit balances for
+    OR (`templeOr`), `imperialQian`, `orNior`, `orOdur` and `orForseti`. The
+    euro comparison value is calculated for display rather than persisted. See
+    [inventory.md](../concepts/inventory.md#money).
   - `character.hasContainer` — whether the character carries a bag or
     backpack. Without one there is no slot economy at all.
   - `npc.cr` — challenge rating; XP is derived from it (`cr² × 100`).

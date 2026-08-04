@@ -483,3 +483,165 @@
   }
 
 }
+
+// The wallet editor is an item-popover variant, not a second popover system.
+// Only its currency form layout is specific; frame, header, row separators,
+// buttons and action bar all come from the shared rules above.
+&.item-popover.money-popover {
+  width: min(350px, calc(100vw - 16px));
+
+  .money-editor-form {
+    margin: 0;
+  }
+
+  .item-popover-head {
+    gap: 9px;
+    padding: 11px 12px;
+  }
+
+  .item-popover-title strong {
+    font-size: var(--font-size-15, 15px);
+    line-height: 1.3;
+  }
+
+  .money-popover-icon {
+    flex: 0 0 34px;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border: 1px solid rgba($c-dark, 0.14);
+    border-radius: 6px;
+    background: rgba($c-white, 0.5);
+    color: $c-tan;
+  }
+
+  .money-popover-subtitle {
+    color: rgba($c-dark, 0.55);
+    font-size: var(--font-size-12, 12px);
+    line-height: 1.35;
+  }
+
+  .money-popover-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 8px 12px 0;
+    padding: 5px 0 7px;
+    border-bottom: 1px solid rgba($c-dark, 0.1);
+  }
+
+  .money-popover-rate {
+    color: $c-tan;
+    font-size: var(--font-size-11, 11px);
+    white-space: nowrap;
+  }
+
+  .money-popover-total {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    min-width: 0;
+
+    small {
+      color: $c-tan;
+      font-size: var(--font-size-9, 9px);
+      line-height: 1.1;
+      text-transform: uppercase;
+    }
+
+    strong {
+      color: $c-dark;
+      font-size: var(--font-size-13, 13px);
+      font-variant-numeric: tabular-nums;
+      line-height: 1.25;
+      white-space: nowrap;
+    }
+  }
+
+  .money-editor-rows {
+    margin: 4px 12px 10px;
+  }
+
+  .money-editor-row {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr) 90px 76px;
+    gap: 8px;
+    min-height: 62px;
+    padding: 7px 0;
+  }
+
+  .money-editor-icon {
+    color: $c-tan;
+    font-size: var(--font-size-11, 11px);
+    text-align: center;
+  }
+
+  .money-editor-currency {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+
+    strong {
+      overflow: hidden;
+      font-size: var(--font-size-13, 13px);
+      line-height: 1.35;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    small {
+      overflow: hidden;
+      color: rgba($c-dark, 0.55);
+      font-size: var(--font-size-10, 10px);
+      line-height: 1.35;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .money-editor-rate {
+      color: $c-tan;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  .money-editor-row input {
+    width: 90px;
+    height: 32px;
+    margin: 0;
+    padding: 4px 8px;
+    border: 1px solid rgba($c-dark, 0.2);
+    border-radius: 6px;
+    background: rgba($c-white, 0.55);
+    color: $c-dark;
+    font-family: inherit;
+    font-size: var(--font-size-13, 13px);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    box-shadow: none;
+
+    &:focus {
+      border-color: rgba($c-dark, 0.4);
+      outline: none;
+      background: rgba($c-white, 0.85);
+    }
+  }
+
+  .money-editor-euro {
+    color: $c-tan;
+    font-size: var(--font-size-11, 11px);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .item-popover-actions {
+    padding: 9px 12px;
+  }
+
+  .item-popover-actions button {
+    padding: 5px 10px;
+    font-size: var(--font-size-12, 12px);
+  }
+}

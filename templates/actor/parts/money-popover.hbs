@@ -1,0 +1,49 @@
+<form class='money-editor-form'>
+  <header class='item-popover-head'>
+    <span class='money-popover-icon' aria-hidden='true'><i class='fa-solid fa-wallet'></i></span>
+    <div class='item-popover-title'>
+      <strong>{{localize 'TNO.Money.Edit'}}</strong>
+      <span class='money-popover-subtitle'>{{localize 'TNO.Money.EditorHint'}}</span>
+    </div>
+    <button type='button' class='item-popover-close' data-money-action='close'
+            aria-label='{{localize "TNO.Money.Close"}}' title='{{localize "TNO.Money.Close"}}'>
+      <i class='fa-solid fa-xmark' aria-hidden='true'></i>
+    </button>
+  </header>
+
+  <div class='money-popover-summary'>
+    <span class='money-popover-rate'>{{localize 'TNO.Money.ExchangeRate'}}</span>
+    <span class='money-popover-total'>
+      <small>{{localize 'TNO.Money.Total'}}</small>
+      <strong data-money-total>{{#if money.approximate}}≈{{/if}}{{money.totalDisplay}}</strong>
+    </span>
+  </div>
+
+  <div class='item-popover-rows money-editor-rows'>
+    {{#each money.rows as |currency|}}
+      <div class='money-editor-row'>
+        <i class='fa-solid {{currency.icon}} money-editor-icon' aria-hidden='true'></i>
+        <label class='money-editor-currency' for='{{currency.inputId}}'>
+          <strong>{{currency.label}}</strong>
+          <small title='{{currency.medium}}'>{{currency.medium}}</small>
+          <small class='money-editor-rate'>{{#if currency.approximate}}≈ {{/if}}1 = {{currency.rateDisplay}}</small>
+        </label>
+        <input id='{{currency.inputId}}' type='number' name='{{currency.key}}' value='{{currency.amount}}'
+               min='0' step='1' inputmode='numeric' data-money-key='{{currency.key}}'
+               data-rate-cents='{{currency.cents}}' data-approximate='{{currency.approximate}}'
+               {{#if @first}}autofocus{{/if}} />
+        <output class='money-editor-euro' data-money-euro='{{currency.key}}'>
+          {{#if currency.approximate}}≈{{/if}}{{currency.euroDisplay}}
+        </output>
+      </div>
+    {{/each}}
+  </div>
+
+  <footer class='item-popover-actions'>
+    <div class='item-popover-actions-row'>
+      <button type='button' data-money-action='cancel'>{{localize 'TNO.Money.Cancel'}}</button>
+      <span class='spacer'></span>
+      <button type='submit' class='primary'>{{localize 'TNO.Money.Save'}}</button>
+    </div>
+  </footer>
+</form>
