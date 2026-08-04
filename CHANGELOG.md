@@ -1,5 +1,17 @@
 # Changelog
 
+# [0.30.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.29.2...v0.30.0) (2026-08-04)
+
+
+### Bug Fixes
+
+* polish character sheet labels ([7381a4b](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/7381a4b85a40f30dbacb292bd8f8e4a2002416d4))
+
+
+### Features
+
+* add multi-currency character wallet ([84160c5](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/84160c581da3195212e9a030342942c3d505fee0))
+
 ## [0.29.2](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.29.1...v0.29.2) (2026-08-03)
 
 ## [0.29.1](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.29.0...v0.29.1) (2026-08-03)
