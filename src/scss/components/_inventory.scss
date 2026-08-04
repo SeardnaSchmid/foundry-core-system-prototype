@@ -479,6 +479,8 @@ $c-trinket-label: rgba($c-dark, 0.55);
     // of the run. At its natural width it overflows the cell instead — which
     // the rule above permits — and `max-width` stops it at the end of the run,
     // so it can never reach the next item.
+    position: relative;
+    z-index: 1;
     flex: 0 0 auto;
     width: max-content;
     max-width: calc(var(--slot-run, 1) * (100% + var(--slot-gap)) - var(--slot-gap) - 22px);

@@ -455,8 +455,10 @@
   color: #fff;
 }
 .tno .chip-sense:hover .chip-icon,
+.tno .chip-sense:hover .chip-label,
 .tno .chip-sense:hover .chip-info,
 .tno .chip-initiative:hover .chip-icon,
+.tno .chip-initiative:hover .chip-label,
 .tno .chip-initiative:hover .chip-info {
   color: #fff;
 }
@@ -3137,6 +3139,8 @@
   overflow: visible;
 }
 .tno .slot-cell.slot-first.slot-joined .slot-content {
+  position: relative;
+  z-index: 1;
   flex: 0 0 auto;
   width: max-content;
   max-width: calc(var(--slot-run, 1) * (100% + var(--slot-gap)) - var(--slot-gap) - 22px);
