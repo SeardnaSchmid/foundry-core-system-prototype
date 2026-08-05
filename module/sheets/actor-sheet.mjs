@@ -429,26 +429,6 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         })
         .sort((a, b) => a.label.localeCompare(b.label, game.i18n.lang));
 
-      // Dodge is a fixed defence probe rather than an advanceable skill. It
-      // belongs beside the Acrobatics rank it consumes, so it lives as a
-      // special roll row in the normal skills list without changing XP totals.
-      if (catKey === 'general') {
-        const acrobaticsIndex = groupSkills.findIndex((skill) => skill.key === 'acrobatics');
-        if (acrobaticsIndex >= 0) {
-          const dexterity = Number(context.system.abilities?.dex?.value) || 0;
-          const acrobatics = Number(skills.acrobatics?.value) || 0;
-          groupSkills.splice(acrobaticsIndex + 1, 0, {
-            key: 'dodge',
-            label: game.i18n.localize('TNO.Combat.Dodge'),
-            value: dexterity + acrobatics,
-            isDodgeAction: true,
-            rank: 0,
-            xp: 0,
-            starter: false,
-            custom: false,
-          });
-        }
-      }
       return {
         key: catKey,
         label: game.i18n.localize(catLabelKey),

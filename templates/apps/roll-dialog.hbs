@@ -139,7 +139,16 @@
 
     {{#if hasIdeaOption}}
     <div class="form-group tno-idea-field">
-      <label class="tno-idea-toggle {{#if useIdea}}active{{/if}} {{#if ideaDisabled}}tno-idea-disabled{{/if}}" title="{{#if ideaDisabled}}{{localize 'TNO.Notify.NoReserve'}}{{else}}{{localize 'TNO.DerivedHint.Insight'}} — {{localize 'TNO.Notify.ProblemSolvingGate'}}{{/if}}">
+      <label class="tno-idea-toggle {{#if useIdea}}active{{/if}} {{#if ideaDisabled}}tno-idea-disabled{{/if}}"
+             data-tooltip-html='<dl class="tno-tooltip">
+{{#if ideaDisabled}}
+<div class="tno-tooltip-row"><dt>{{localize "TNO.Roll.IdeaToggle"}}</dt><dd>{{localize "TNO.Notify.NoReserve"}}</dd></div>
+{{else}}
+<div class="tno-tooltip-row"><dt>{{localize "TNO.Roll.IdeaToggle"}} <span class="tno-tooltip-value">+{{insightValue}}</span></dt><dd>{{localize "TNO.DerivedHint.Insight"}}</dd></div>
+<div class="tno-tooltip-row"><dd>{{localize "TNO.Notify.ProblemSolvingGate"}}</dd></div>
+{{/if}}
+</dl>'
+             data-tooltip-direction='UP'>
         <input type="checkbox" name="useIdea" {{#if useIdea}}checked{{/if}} {{#if ideaDisabled}}disabled{{/if}}/>
         {{!-- Redundant on/off cue #1: a literal checkbox square with a
               checkmark, since the border/icon-colour shift alone read as too
@@ -148,7 +157,9 @@
         <i class="fas fa-lightbulb tno-idea-icon" aria-hidden="true"></i>
         <span class="tno-idea-text">{{localize "TNO.Roll.IdeaToggle"}}</span>
         <span class="tno-idea-value">+{{insightValue}}</span>
-        <span class="tno-idea-reserve" title="{{localize 'TNO.Roll.IdeaReserve'}} {{edgePool}}/{{edgePoolMax}}">
+        <span class="tno-idea-reserve"
+              data-tooltip-html='<dl class="tno-tooltip"><div class="tno-tooltip-row"><dt>{{localize "TNO.Roll.IdeaReserve"}} <span class="tno-tooltip-value">{{edgePool}}/{{edgePoolMax}}</span></dt></div></dl>'
+              data-tooltip-direction='UP'>
           {{#if hasIdeaPips}}
           <span class="tno-idea-pips" aria-hidden="true">
             {{#each ideaPips}}<span class="tno-idea-pip {{#if this.filled}}filled{{/if}}"></span>{{/each}}

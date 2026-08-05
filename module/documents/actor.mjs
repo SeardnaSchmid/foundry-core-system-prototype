@@ -104,6 +104,10 @@ export class TnoActor extends Actor {
       // every Beweglichkeit roll; the sheet surfaces it as a warning line.
       armorSvPenalty: armor.sv > 0 && base('str') < armor.sv,
       sixthSense: Math.round((base('per') + base('emp') + base('inv')) / 3),
+      // Unlike the other derived probes, dodge uses the damage-adjusted
+      // Beweglichkeit (value, not base): a character with a hobbled leg
+      // dodges worse right now, not just once the damage is healed.
+      dodge: value('dex') + (systemData.skills?.acrobatics?.value ?? 0),
       insight: Math.ceil((base('int') + base('wis')) / 2),
       trialErrorMax: Math.ceil((base('int') + base('wil')) / 2),
       edgePoolMax: edgePoolMax,

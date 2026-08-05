@@ -746,21 +746,6 @@ button:focus-visible {
   }
 }
 
-// Dodge is a fixed roll derived from Dexterity + Acrobatics. It shares the
-// normal skill-row interaction, but has no rank, XP track, or advance action.
-.skill-info-derived {
-  grid-template-columns: 1fr auto;
-}
-
-.skill-derived-value {
-  @extend %stat-chip;
-  flex: none;
-  min-width: 2ch;
-  text-align: center;
-  color: $c-dark;
-  background: rgba($c-tan, 0.2);
-}
-
 .skill-name {
   display: flex;
   align-items: center;

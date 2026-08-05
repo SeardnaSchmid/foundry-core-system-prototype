@@ -1,0 +1,76 @@
+// Rich `data-tooltip-html` content. Foundry mounts #tooltip on <body>, outside
+// any `.tno`-classed sheet element, so these rules live at the top level of
+// tno.scss rather than nested under `.tno` like the sheet components.
+//
+// Palette matches the item popover's parchment card (_item-popover.scss):
+// same background, same rgba($c-dark, …) hairlines, so a hover tooltip and a
+// click-opened popover read as the same design language.
+.tno-tooltip {
+  display: block;
+  min-width: 220px;
+  max-width: 320px;
+  margin: 0;
+  font-family: $font-primary;
+  text-align: left;
+
+  // Legacy content (Trinkets/Slots hints) still hands over a bare
+  // <strong>title</strong><br>paragraph — not the <dl> row scheme below —
+  // so it gets its own light styling rather than being rebuilt.
+  > strong:first-child {
+    display: block;
+    margin-bottom: 4px;
+    font-size: var(--font-size-13, 13px);
+  }
+
+  table {
+    width: 100%;
+    margin-top: 6px;
+    border-collapse: collapse;
+    font-size: var(--font-size-11, 11px);
+  }
+
+  th,
+  td {
+    padding: 2px 6px;
+    border-bottom: 1px solid rgba($c-white, 0.14);
+    text-align: left;
+  }
+
+  th {
+    font-weight: 700;
+  }
+}
+
+.tno-tooltip-row {
+  padding: 6px 0;
+  border-bottom: 1px solid rgba($c-white, 0.14);
+
+  &:first-child {
+    padding-top: 0;
+  }
+
+  &:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  dt {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-weight: 700;
+    font-size: var(--font-size-13, 13px);
+  }
+
+  dd {
+    margin: 2px 0 0;
+    font-size: var(--font-size-12, 12px);
+    line-height: 1.35;
+    opacity: 0.85;
+  }
+}
+
+.tno-tooltip-value {
+  color: $c-idea;
+  font-weight: 700;
+}
