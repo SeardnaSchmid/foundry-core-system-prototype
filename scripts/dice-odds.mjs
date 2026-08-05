@@ -35,7 +35,7 @@ const STATES = [
   { key: 'strongDisadvantage', label: 'Strong Dis' },
 ];
 
-const SAMPLES = 1000000;
+const SAMPLES = 10000000;
 const OUT = 'docs/design/dice-odds.md';
 
 /** Every possible result of `n` d20, in order. */

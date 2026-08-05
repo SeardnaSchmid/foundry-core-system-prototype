@@ -97,18 +97,18 @@ counting die alone. The gap against the table above is the crit rate.
 
 ## Monte Carlo cross-check
 
-A 1,000,000-roll simulation per state, scored through the same helpers,
+A 10,000,000-roll simulation per state, scored through the same helpers,
 agrees with the enumeration:
 
 | Simulated | Strong Adv | Advantage | None | Disadv. | Strong Dis |
 | ---: | ---: | ---: | ---: | ---: | ---: |
-| Critical success | 14.27% | 9.77% | 0.73% | 0.24% | 0.01% |
-| Critical fumble | 0.01% | 0.25% | 0.72% | 9.79% | 14.25% |
-| At threshold 10 | 87.52% | 74.97% | 49.99% | 24.99% | 12.52% |
-| At threshold 14 | 97.28% | 90.97% | 78.37% | 48.97% | 34.34% |
+| Critical success | 14.26% | 9.75% | 0.72% | 0.25% | 0.01% |
+| Critical fumble | 0.01% | 0.25% | 0.72% | 9.75% | 14.27% |
+| At threshold 10 | 87.51% | 74.99% | 49.99% | 24.99% | 12.51% |
+| At threshold 14 | 97.31% | 91.00% | 78.39% | 48.98% | 34.30% |
 
-Largest deviation across all 105 threshold cells: **0.06 pp**, against a
-±0.10 pp 95% band for a single cell at this sample size. The *largest* of
+Largest deviation across all 105 threshold cells: **0.02 pp**, against a
+±0.03 pp 95% band for a single cell at this sample size. The *largest* of
 105 cells is expected to sit somewhat past a per-cell band — the run is
 consistent as long as it stays in the same order of magnitude, and a
 deviation of several pp would mean the enumeration and the dice disagree.
