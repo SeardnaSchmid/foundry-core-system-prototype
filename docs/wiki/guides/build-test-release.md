@@ -20,6 +20,7 @@ Command reference, CI wiring, and the full release procedure.
 | `npm run test:e2e` | Runs the Playwright suite against a disposable Foundry in Docker — see [e2e-testing.md](e2e-testing.md) |
 | `npm run docs:check` | Validates `docs/wiki/**` — see below |
 | `npm run css:check` | Fails if `css/tno.css` is not what `src/scss` currently compiles to — see below |
+| `npm run docs:odds` | Regenerates `docs/design/dice-odds.md` from the shipped dice helpers — see [dice-resolution.md](../concepts/dice-resolution.md) |
 | `npm run release` | Runs `release-it`: bumps version, updates `CHANGELOG.md`, tags, pushes |
 
 There is no bundler and no linter (`eslint`/`prettier`) in this repo —
