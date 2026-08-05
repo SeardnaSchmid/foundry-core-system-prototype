@@ -1,5 +1,17 @@
 # Changelog
 
+# [0.32.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.31.1...v0.32.0) (2026-08-05)
+
+
+### Bug Fixes
+
+* keep the pointer steady over tooltips, mark text triggers instead ([62be930](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/62be93062b38c31eec5153dc9b085e129b8d8a2f))
+
+
+### Features
+
+* styled rich tooltips, promote Ausweichen to a banner chip ([e4fdd69](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/e4fdd6969b59f6a4bae3f72585a203f14db192be))
+
 ## [0.31.1](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.31.0...v0.31.1) (2026-08-04)
 
 # [0.31.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.30.0...v0.31.0) (2026-08-04)
