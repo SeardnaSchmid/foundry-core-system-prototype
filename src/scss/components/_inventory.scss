@@ -729,10 +729,11 @@ $c-trinket-label: rgba($c-dark, 0.55);
 
 // The only thing here that names a rule rather than a piece of gear, so it is
 // also the only place to say why this column sits outside the slot budget.
-// `help` because there is nothing to click — the label explains itself and does
-// nothing else.
+// There is nothing to click — the label explains itself and does nothing else,
+// so the pointer stays the plain arrow and `.tno-tooltip-hint` on the element
+// carries the discovery cue instead (see `components/_tooltip.scss`).
 .slot-trinkets-title {
-  cursor: help;
+  cursor: default;
 }
 
 .slot-trinkets-list {

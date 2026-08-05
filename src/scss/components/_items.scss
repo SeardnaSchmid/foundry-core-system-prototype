@@ -54,10 +54,12 @@
 // A control that is present for layout but cannot be used — the delete on a
 // worn row, which is held back because `system.equipment` addresses the piece
 // by id. Dimmed rather than removed so the row keeps its shape down the list,
-// and `help` because the title is the whole point of it still being there.
+// and the title is the whole point of it still being there. `default` rather
+// than the `help` it used to carry: the pointer holds its shape across the
+// row's controls instead of flickering as it crosses the one dead entry.
 .item-control.is-disabled {
   opacity: 0.3;
-  cursor: help;
+  cursor: default;
 }
 
 .items-list {
@@ -109,7 +111,8 @@
     margin: 0 6px;
     font-size: 12px;
     color: $c-beige;
-    cursor: help;
+    // A marker, not a control — it keeps the plain arrow.
+    cursor: default;
   }
 
   // Individual Item

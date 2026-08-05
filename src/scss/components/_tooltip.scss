@@ -74,3 +74,24 @@
   color: $c-idea;
   font-weight: 700;
 }
+
+// The trigger side of the tooltip system. Everything above styles the card
+// once it is open; this marks the element it hangs off, so the tooltip can be
+// found without hovering the sheet at random to discover it.
+//
+// Only for plain-text triggers. An icon trigger (`.gear-info`) is already its
+// own affordance, and a chip (`.xp-badge`, the banner chips) is a bounded
+// object that brings its own hover treatment — underlining either would be a
+// second cue for something already cued.
+//
+// Cursor is deliberately not part of this. A cursor change is only visible
+// once the pointer has already arrived, so it can confirm a tooltip but never
+// lead anyone to one; the triggers here keep the default arrow.
+//
+// `text-decoration` rather than `border-bottom`: these sit in flex rows where
+// an added bottom border shifts the baseline against the text beside them.
+.tno-tooltip-hint {
+  text-decoration: underline dotted currentColor;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}

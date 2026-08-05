@@ -88,6 +88,7 @@ them in step with `BASICS_LAYOUT_DEFAULT`.
 | `components/_item-popover.scss` | The view-mode card in both its homes — the actor sheet's top-layer popover (`&.item-popover`) and the chat card (`&.item-chat-summary`) — plus the wallet editor variant (`&.item-popover.money-popover`). Header, value tiles, detail rows and action bar are shared |
 | `components/_inventory.scss` | The paper doll, compact borderless wallet, Kleinkram column and Trageslots grid — see [inventory.md](../concepts/inventory.md). The narrower padding they take inside a Basics column is set on `.basics-cell` in `_forms.scss`, not here |
 | `components/_effects.scss` | Active effect list rendering |
+| `components/_tooltip.scss` | Both halves of the rich `data-tooltip-html` tooltip: the `.tno-tooltip` card itself, declared at the top level of `tno.scss` because Foundry mounts `#tooltip` on `<body>` outside any `.tno` element, and `.tno-tooltip-hint`, the dotted underline marking a plain-text trigger. Icon and chip triggers are left unmarked — they already carry their own affordance |
 | `components/_base-roll-button.scss` | The chat-log "Basiswürfel" quick-roll button |
 | `global/_flex.scss`, `_grid.scss`, `_window.scss` | Layout primitives |
 | `utils/_colors.scss`, `_mixins.scss`, `_typography.scss`, `_variables.scss` | Shared tokens |
