@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.33.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.32.0...v0.33.0) (2026-08-06)
+
+
+### Features
+
+* show a roll's success chance on the threshold ([6131296](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/6131296bef4cd9c9bd4d99d80e5cb323c903ef22))
+
 # [0.32.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.31.1...v0.32.0) (2026-08-05)
 
 
