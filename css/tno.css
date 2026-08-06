@@ -3029,6 +3029,17 @@
 .tno .armor-values.armor-values-suit {
   opacity: 0.6;
 }
+.tno .armor-value-stacked {
+  cursor: help;
+}
+.tno .armor-value-stacked .armor-stack-mark {
+  margin-left: 1px;
+  vertical-align: super;
+  font-size: 0.7em;
+  font-weight: bold;
+  line-height: 0;
+  color: #444;
+}
 .tno .armor-key {
   margin-right: 4px;
   font-size: var(--font-size-11, 11px);

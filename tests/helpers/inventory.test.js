@@ -223,6 +223,13 @@ describe('resolveArmor', () => {
     expect(zones.head.rw).toBe(4);
   });
 
+  it('reports the two summands the armour value is made of', () => {
+    const { zones } = resolveArmor({ suit: 'suit', head: 'helm' }, [suit, helm]);
+    expect(zones.head).toMatchObject({ rw: 4, rwSuit: 1, rwAddon: 3 });
+    // A zone with no addon still names where its padding came from.
+    expect(zones.torso).toMatchObject({ rw: 1, rwSuit: 1, rwAddon: 0 });
+  });
+
   it('applies the suit in every zone, not just the one it is worn in', () => {
     const { zones } = resolveArmor({ suit: 'suit' }, [suit]);
     expect(zones.legs.rw).toBe(1);

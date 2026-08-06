@@ -267,7 +267,9 @@ export function buildSlotGrid(items, equipment, capacity) {
  *
  * @param {Object} equipment  actor.system.equipment — zone key -> item id.
  * @param {Array<Object>} items  All of the actor's items.
- * @returns {{zones: Object, sv: number}}
+ * @returns {{zones: Object, sv: number}}  Each zone carries the effective
+ *   `rh`/`rw`/`ra` plus `rwSuit`/`rwAddon`, the two contributions the `rw` sum
+ *   is made of.
  */
 export function resolveArmor(equipment, items) {
   const byId = new Map((items ?? []).map((item) => [item._id ?? item.id, item]));
@@ -287,6 +289,12 @@ export function resolveArmor(equipment, items) {
       rh: num(addon?.system?.rh),
       rw: suitRw + num(addon?.system?.rw),
       ra: num(addon?.system?.ra),
+      // The two halves of that sum, kept apart so the sheet can say where the
+      // padding came from. RW is the only layered number on the doll, and a
+      // bare "4" on a zone whose helmet reads 3 is exactly the kind of value a
+      // player checks against the item — the breakdown is what answers it.
+      rwSuit: suitRw,
+      rwAddon: num(addon?.system?.rw),
     };
   }
 

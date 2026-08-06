@@ -153,6 +153,13 @@ budget reads 0.
   ruling. The table's own combined rows (Handschuhe + Ellenbogenschoner) add SV
   and RA but leave RH and RW at the single piece's value, which reads the other
   way; the ruling was confirmed against that and governs.
+
+  Because it is a sum, RW is the one number on the doll that does not match what
+  the worn item's own sheet says, so each zone also carries `rwSuit` and
+  `rwAddon` — the two summands. The doll marks a zone where both are non-zero
+  with a superscript `+` (`.armor-value-stacked`) and puts the breakdown in the
+  value's tooltip; a zone the suit contributes nothing to is left unmarked, so
+  the mark means "differs from the item" and nothing else.
 - **SV is the sum of every worn piece**, suit included:
   "Stärkevorraussetzungen aller Kleidung und Rüstung wird aufaddiert um die
   finale SV zu erhalten". The Rüstungen table writes Unterkleidung rows as

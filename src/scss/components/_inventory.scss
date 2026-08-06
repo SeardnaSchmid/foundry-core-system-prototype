@@ -272,6 +272,31 @@ $c-trinket-label: rgba($c-dark, 0.55);
   }
 }
 
+// An RW that is the sum of the Unterkleidung and the zone's addon. Marked
+// because it is the one read-out on the doll that does not match what the
+// worn item's own sheet says, and a player checking the helmet against the
+// row would otherwise find a discrepancy with nothing to explain it. The
+// tooltip carries the summands; this is only the flag that says to hover.
+//
+// The mark rides in the value's own slot rather than widening the column: it
+// is a superscript sitting on the number's right, so the three-column grid
+// (see --armor-value-col) is untouched and a marked row stays aligned with
+// the rows around it.
+.armor-value-stacked {
+  cursor: help;
+
+  // Deliberately not one of the accent colours: $c-advance and $c-primary both
+  // mean "you can act on this", and a summed number is a fact, not an offer.
+  .armor-stack-mark {
+    margin-left: 1px;
+    vertical-align: super;
+    font-size: 0.7em;
+    font-weight: bold;
+    line-height: 0;
+    color: $c-tan;
+  }
+}
+
 // The label half of a value pair: present but recessive, so the eye lands on
 // the number.
 .armor-key {

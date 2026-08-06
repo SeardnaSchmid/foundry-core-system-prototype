@@ -582,6 +582,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         .format(derived.armorSv ?? 0),
       zones: ARMOR_ADDON_ZONES.map((zone) => {
         const item = this.actor.items.get(equipment[zone]) ?? null;
+        const armor = derived.armor?.[zone] ?? { rh: 0, rw: 0, ra: 0, rwSuit: 0, rwAddon: 0 };
         return {
           zone,
           label: CONFIG.TNO.armorZones[zone],
@@ -590,7 +591,13 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           // addon is a smaller plate of its own, so the remaining rim can keep
           // showing whether Unterkleidung is present underneath it.
           baseState: suit ? 'suited' : 'bare',
-          ...(derived.armor?.[zone] ?? { rh: 0, rw: 0, ra: 0 }),
+          ...armor,
+          // Whether the RW shown is a sum rather than one piece's own value.
+          // Marked only when both layers actually contribute: a suit worn at
+          // RW 0 leaves the addon's number untouched, and flagging that as
+          // "added up" would send the reader looking for a second summand that
+          // changes nothing.
+          rwStacked: !!item && armor.rwSuit > 0 && armor.rwAddon > 0,
         };
       }),
     };

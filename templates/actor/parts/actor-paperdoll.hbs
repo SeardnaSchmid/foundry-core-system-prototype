@@ -78,8 +78,19 @@ worn, and reading them off the armour card said otherwise. --}}
             <span class='armor-value armor-value-rh' title='{{localize "TNO.Armor.Rh"}}'>
               <span class='armor-key'>{{localize 'TNO.Armor.RhShort'}}</span>{{z.rh}}
             </span>
-            <span class='armor-value armor-value-rw' title='{{localize "TNO.Armor.Rw"}}'>
-              <span class='armor-key'>{{localize 'TNO.Armor.RwShort'}}</span>{{z.rw}}
+            {{!-- RW is the only number on the doll that is a sum, and it is the
+            one the reader is most likely to check against the piece itself. A
+            summed value is marked and carries its summands in the tooltip; a
+            value that equals the addon's own RW is left unmarked, so the mark
+            means "this differs from what the item says" and nothing else. --}}
+            <span class='armor-value armor-value-rw{{#if z.rwStacked}} armor-value-stacked{{/if}}'
+                  data-tooltip-html='<dl class="tno-tooltip">
+<div class="tno-tooltip-row"><dt>{{localize "TNO.Armor.Rw"}} <span class="tno-tooltip-value">{{z.rw}}</span></dt><dd>{{localize "TNO.Armor.RwHint"}}</dd></div>
+{{#if z.rwStacked}}<div class="tno-tooltip-row"><dt>{{localize "TNO.Armor.Zone.Suit"}} · {{../paperdoll.suit.name}} <span class="tno-tooltip-value">+{{z.rwSuit}}</span></dt></div>
+<div class="tno-tooltip-row"><dt>{{localize z.label}} · {{z.item.name}} <span class="tno-tooltip-value">+{{z.rwAddon}}</span></dt><dd>{{localize "TNO.Armor.RwStackedHint"}}</dd></div>{{/if}}
+</dl>'
+                  data-tooltip-direction='LEFT'>
+              <span class='armor-key'>{{localize 'TNO.Armor.RwShort'}}</span>{{z.rw}}{{#if z.rwStacked}}<span class='armor-stack-mark' aria-hidden='true'>+</span>{{/if}}
             </span>
             <span class='armor-value armor-value-ra' title='{{localize "TNO.Armor.Ra"}}'>
               <span class='armor-key'>{{localize 'TNO.Armor.RaShort'}}</span>{{z.ra}}
@@ -96,7 +107,12 @@ worn, and reading them off the armour card said otherwise. --}}
           about the missing addon, not a value of the suit. --}}
           {{#if ../paperdoll.suit}}
             <span class='armor-values armor-values-suit'>
-              <span class='armor-value armor-value-rw' title='{{localize "TNO.Armor.Rw"}}'>
+              <span class='armor-value armor-value-rw'
+                    data-tooltip-html='<dl class="tno-tooltip">
+<div class="tno-tooltip-row"><dt>{{localize "TNO.Armor.Rw"}} <span class="tno-tooltip-value">{{z.rw}}</span></dt><dd>{{localize "TNO.Armor.RwHint"}}</dd></div>
+<div class="tno-tooltip-row"><dt>{{localize "TNO.Armor.Zone.Suit"}} · {{../paperdoll.suit.name}} <span class="tno-tooltip-value">+{{z.rwSuit}}</span></dt><dd>{{localize "TNO.Armor.RwFromSuitHint"}}</dd></div>
+</dl>'
+                    data-tooltip-direction='LEFT'>
                 <span class='armor-key'>{{localize 'TNO.Armor.RwShort'}}</span>{{z.rw}}
               </span>
             </span>
@@ -124,7 +140,14 @@ worn, and reading them off the armour card said otherwise. --}}
         same, so the layer that adds to every zone reads down the same line as
         what it adds to. --}}
         <span class='armor-values'>
-          <span class='armor-value armor-value-rw' title='{{localize "TNO.Armor.Rw"}}'>
+          {{!-- The summand every marked zone above points back at, so it
+          explains itself the same way from this end too. --}}
+          <span class='armor-value armor-value-rw'
+                data-tooltip-html='<dl class="tno-tooltip">
+<div class="tno-tooltip-row"><dt>{{localize "TNO.Armor.Rw"}} <span class="tno-tooltip-value">{{paperdoll.suit.system.rw}}</span></dt><dd>{{localize "TNO.Armor.RwHint"}}</dd></div>
+<div class="tno-tooltip-row"><dt>{{localize "TNO.Armor.Zone.Suit"}}</dt><dd>{{localize "TNO.Armor.RwSuitAddsHint"}}</dd></div>
+</dl>'
+                data-tooltip-direction='LEFT'>
             <span class='armor-key'>{{localize 'TNO.Armor.RwShort'}}</span>{{paperdoll.suit.system.rw}}
           </span>
         </span>
