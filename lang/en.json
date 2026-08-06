@@ -524,6 +524,13 @@
         "StrongAdvantage": "3d20 — lowest counts"
       },
       "Threshold": "Threshold",
+      "Odds": {
+        "InfoLabel": "Success chance",
+        "Chance": "Success chance",
+        "Basis": "{effect} · target ≤ {threshold}.",
+        "CritsIncluded": "A critical success counts as a success, a fumble as a failure.",
+        "Capped": "Outside 1–19 the threshold changes nothing: a 20 never passes, and a 1 is already a critical."
+      },
       "Submit": "Roll",
       "SubmitTargetLabel": "Target",
       "BaseCaption": "Base",

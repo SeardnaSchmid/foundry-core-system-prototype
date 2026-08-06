@@ -102,12 +102,12 @@ agrees with the enumeration:
 
 | Simulated | Strong Adv | Advantage | None | Disadv. | Strong Dis |
 | ---: | ---: | ---: | ---: | ---: | ---: |
-| Critical success | 14.26% | 9.75% | 0.72% | 0.25% | 0.01% |
-| Critical fumble | 0.01% | 0.25% | 0.72% | 9.75% | 14.27% |
-| At threshold 10 | 87.51% | 74.99% | 49.99% | 24.99% | 12.51% |
-| At threshold 14 | 97.31% | 91.00% | 78.39% | 48.98% | 34.30% |
+| Critical success | 14.28% | 9.75% | 0.72% | 0.25% | 0.01% |
+| Critical fumble | 0.01% | 0.25% | 0.73% | 9.75% | 14.26% |
+| At threshold 10 | 87.49% | 75.02% | 49.98% | 24.99% | 12.50% |
+| At threshold 14 | 97.30% | 91.01% | 78.39% | 49.00% | 34.30% |
 
-Largest deviation across all 105 threshold cells: **0.02 pp**, against a
+Largest deviation across all 105 threshold cells: **0.03 pp**, against a
 ±0.03 pp 95% band for a single cell at this sample size. The *largest* of
 105 cells is expected to sit somewhat past a per-cell band — the run is
 consistent as long as it stays in the same order of magnitude, and a

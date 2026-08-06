@@ -539,6 +539,61 @@ $c-roll-negative: #c62828;
     line-height: 1.1;
   }
 
+  // What the threshold is actually worth, riding alongside the hero number at
+  // a size that answers it without arguing with it. Tabular figures so the
+  // number does not jitter as it steps between "8%" and "78.4%".
+  //
+  // Deliberately neutral, not a red-to-green scale — here and on the meter
+  // below. Every accent in this palette already means something specific
+  // ($c-ready "affordable", $c-warning "a rule is working against you",
+  // $c-advance "ready to level") and a long-odds roll is none of those.
+  // Whether 15% is bad news is the player's call; the dialog states it rather
+  // than grading it.
+  .tno-odds {
+    margin-left: 6px;
+    font-size: var(--font-size-13, 13px);
+    font-weight: normal;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0;
+    color: $c-tan;
+    vertical-align: 2px;
+
+    &:focus-visible {
+      outline: 1px solid $c-primary;
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+  }
+
+  // The same figure as a strip across the foot of the box: the odds land
+  // pre-attentively, before the number beside them has been read. Flush to the
+  // box's edges (the box clips it to its own radius) so it reads as part of
+  // the box rather than another row stacked inside it.
+  // `display: block` is load-bearing: this is a <span>, and height does not
+  // apply to an inline box. The negative margins carry it out over the box's
+  // padding to meet the border, and it rounds its own bottom corners to the
+  // box's inner radius — the box cannot use `overflow: hidden` to clip it,
+  // since that would resolve its `min-height: auto` to 0 and let the flex
+  // parent squeeze it under its own content.
+  .tno-odds-meter {
+    display: block;
+    align-self: stretch;
+    height: 3px;
+    margin: 6px (-$padding-md) (-$padding-sm);
+    border-radius: 0 0 3px 3px;
+    background: rgba($c-tan, 0.16);
+    overflow: hidden;
+  }
+
+  .tno-odds-fill {
+    display: block;
+    height: 100%;
+    background: rgba($c-tan, 0.55);
+    // The box flashes when the threshold changes; the strip sliding to its new
+    // length is that same signal, in this readout's quieter register.
+    transition: width 0.2s ease-out;
+  }
+
   .tno-roll-breakdown {
     font-size: var(--font-size-11, 11px);
     color: $c-tan;

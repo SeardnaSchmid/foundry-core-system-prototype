@@ -178,8 +178,20 @@
         live breakdown of the parts that produced it. The hero of the dialog. --}}
   <div class="tno-roll-result tno-threshold-box">
     <span class="tno-roll-result-label">{{localize "TNO.Roll.Threshold"}}</span>
-    <span class="tno-roll-result-value">≤ <span class="tno-threshold-value">{{threshold}}</span></span>
+    {{!-- What that threshold is actually worth, answered next to the number
+          that raises the question rather than parked behind an icon. Rebuilt by
+          _refresh on every threshold *and* roll-type change. --}}
+    <span class="tno-roll-result-value">≤ <span class="tno-threshold-value">{{threshold}}</span>
+      <span class="tno-odds tno-tooltip-hint"
+            tabindex="0"
+            role="img"
+            aria-label="{{localize "TNO.Roll.Odds.InfoLabel"}}: {{oddsLabel}}"
+            data-tooltip-html="{{oddsTooltip}}">{{oddsLabel}}</span>
+    </span>
     <span class="tno-roll-breakdown">{{breakdown}}</span>
+    {{!-- The same figure as a strip across the foot of the box, so the odds
+          are legible before the number is read. --}}
+    <span class="tno-odds-meter" aria-hidden="true"><span class="tno-odds-fill" style="width: {{oddsPercent}}%"></span></span>
   </div>
 
   {{!-- ④ Roll type: changes which dice are rolled, not the threshold. --}}

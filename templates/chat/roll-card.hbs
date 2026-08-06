@@ -12,7 +12,10 @@
       <span class="tno-die{{#if die.isCounted}} counted{{/if}}">{{die.value}}</span>
       {{/each}}
       {{#if hasThreshold}}
-      <span class="tno-roll-threshold" title="{{localize "TNO.Roll.Threshold"}}">&le; {{threshold}}</span>
+      {{!-- The threshold chip carries the odds it was rolled against. No
+            separate marker: a chip is already a bounded, hoverable object, and
+            the odds belong to this number rather than sitting beside it. --}}
+      <span class="tno-roll-threshold" data-tooltip-html="{{oddsTooltip}}">&le; {{threshold}}</span>
       {{/if}}
     </div>
 

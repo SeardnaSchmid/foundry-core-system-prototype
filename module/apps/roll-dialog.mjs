@@ -1,4 +1,5 @@
 import { TNO_ADVANTAGE, describeAdvantage, rollTno } from '../helpers/dice.mjs';
+import { formatChance, oddsTooltipHtml, successChanceFor } from '../helpers/dice-odds.mjs';
 import { colorForValue } from '../helpers/heatmap.mjs';
 import { advantageOptions, bindAdvantagePicker } from './roll-dialog-shared.mjs';
 
@@ -152,6 +153,7 @@ export class TnoRollDialog extends FormApplication {
       contextSelected: !!contextChoice,
       canSubmit: !this.preRollContext || !!contextChoice,
       threshold: this._computeThreshold(this.object),
+      ...this._oddsData(this.object),
       breakdown: this._breakdownText(this.object),
       targetLabel: game.i18n.localize('TNO.Roll.SubmitTargetLabel'),
       subject: game.i18n.format('TNO.Roll.Subject', { name: this.flavor }),
@@ -364,9 +366,47 @@ export class TnoRollDialog extends FormApplication {
   }
 
   /**
+   * The odds readout for the roll as currently built: the chance itself, the
+   * meter's fill width, and the hover breakdown.
+   * @param {object} data  Form data.
+   * @returns {{oddsLabel: string, oddsPercent: number, oddsTooltip: string}}
+   */
+  _oddsData(data) {
+    const threshold = this._computeThreshold(data);
+    const advantage = Number(data.advantage) || 0;
+    const { success } = successChanceFor(threshold, advantage);
+    return {
+      oddsLabel: formatChance(success),
+      // Rounded, since it only drives a bar's width — the exact figure is the
+      // label beside it.
+      oddsPercent: Math.round(success * 100),
+      oddsTooltip: oddsTooltipHtml(threshold, advantage),
+    };
+  }
+
+  /**
+   * Repaint the odds readout. Split out of {@link _refresh} because the
+   * roll-type picker also has to call it: the roll type leaves the threshold
+   * untouched but changes which dice are rolled, so the odds move while the
+   * number above them does not — and flashing that number would be a lie.
+   * @param {HTMLElement} root  The form, or any element containing it — the
+   *   roll-type picker hands over the dialog root rather than the form.
+   */
+  _refreshOdds(root) {
+    const form = root instanceof HTMLFormElement ? root : root.querySelector('form');
+    const odds = form?.querySelector('.tno-odds');
+    if (!odds) return;
+    const { oddsLabel, oddsPercent, oddsTooltip } = this._oddsData(new FormDataExtended(form).object);
+    odds.textContent = oddsLabel;
+    odds.dataset.tooltipHtml = oddsTooltip;
+    odds.setAttribute('aria-label', `${game.i18n.localize('TNO.Roll.Odds.InfoLabel')}: ${oddsLabel}`);
+    form.querySelector('.tno-odds-fill').style.width = `${oddsPercent}%`;
+  }
+
+  /**
    * Recompute and repaint everything downstream of a threshold-affecting
    * change: the threshold number, its breakdown line, the roll button's
-   * echo, and a brief highlight so the change is noticed.
+   * echo, the odds readout, and a brief highlight so the change is noticed.
    * @param {HTMLFormElement} form
    */
   _refresh(form) {
@@ -377,6 +417,7 @@ export class TnoRollDialog extends FormApplication {
     if (breakdown) breakdown.textContent = this._breakdownText(data);
     const echo = form.querySelector('.tno-roll-submit-echo');
     if (echo) echo.textContent = `${game.i18n.localize('TNO.Roll.SubmitTargetLabel')} ≤ ${threshold}`;
+    this._refreshOdds(form);
     const submit = form.querySelector('button[type="submit"]');
     if (submit) submit.disabled = !!this.preRollContext && !this._contextChoice(data);
     const box = form.querySelector('.tno-threshold-box');
@@ -466,8 +507,9 @@ export class TnoRollDialog extends FormApplication {
     });
 
     // Roll-type picker, shared with the base-dice dialog. It changes which
-    // dice are rolled, not the threshold, so it needs no refresh callback.
-    bindAdvantagePicker(html);
+    // dice are rolled, not the threshold — so the threshold preview stays put
+    // (no flash on a number that did not move) and only the odds are rebuilt.
+    bindAdvantagePicker(html, () => this._refreshOdds(html[0]));
 
     // A required combat context must be chosen before the commit button is
     // useful; every other roll keeps the existing one-Enter default path.

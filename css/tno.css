@@ -4370,6 +4370,35 @@
   font-weight: bold;
   line-height: 1.1;
 }
+.tno .tno-roll-dialog .tno-odds {
+  margin-left: 6px;
+  font-size: var(--font-size-13, 13px);
+  font-weight: normal;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  color: #444;
+  vertical-align: 2px;
+}
+.tno .tno-roll-dialog .tno-odds:focus-visible {
+  outline: 1px solid #2f6bff;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+.tno .tno-roll-dialog .tno-odds-meter {
+  display: block;
+  align-self: stretch;
+  height: 3px;
+  margin: 6px -10px -5px;
+  border-radius: 0 0 3px 3px;
+  background: rgba(68, 68, 68, 0.16);
+  overflow: hidden;
+}
+.tno .tno-roll-dialog .tno-odds-fill {
+  display: block;
+  height: 100%;
+  background: rgba(68, 68, 68, 0.55);
+  transition: width 0.2s ease-out;
+}
 .tno .tno-roll-dialog .tno-roll-breakdown {
   font-size: var(--font-size-11, 11px);
   color: #444;

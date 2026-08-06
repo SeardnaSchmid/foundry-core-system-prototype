@@ -19,15 +19,19 @@ module/tno.mjs                          (entry point, imports everything below)
 ├── sheets/     actor-sheet.mjs, item-sheet.mjs, item-gear-sheet.mjs
 │                 → helpers/{effects,heatmap,dice,skills,inventory,items}.mjs
 │                 → apps/{roll-dialog,advance-dialog,heatmap-lab,custom-skill-dialog}.mjs
-├── helpers/    config, dice, chat, heatmap, skills, effects, inventory, items,
-│               item-presentation, migrations, templates
+├── helpers/    config, dice, dice-odds, dice-odds-table, chat, heatmap, skills,
+│               effects, inventory, items, item-presentation, migrations,
+│               templates
 │                 → items.mjs is the base of the helper graph: it imports
 │                   nothing, and inventory.mjs and config.mjs import it
 │                 → inventory.mjs → items.mjs,
 │                   item-presentation.mjs → {inventory,items}.mjs,
 │                   config.mjs → {inventory,items}.mjs,
 │                   migrations.mjs → items.mjs,
-│                   chat.mjs → dice.mjs
+│                   chat.mjs → dice.mjs,
+│                   dice.mjs → dice-odds.mjs → dice-odds-table.mjs
+│                   (one-way: the odds side never imports dice.mjs back, so
+│                    dice.mjs stays the base of the roll graph)
 └── apps/       roll-dialog, base-roll-dialog, roll-dialog-shared,
                 advance-dialog, heatmap-lab, custom-skill-dialog,
                 custom-skills-overview

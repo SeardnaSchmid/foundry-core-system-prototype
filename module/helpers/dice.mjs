@@ -1,3 +1,8 @@
+// The one import this module makes. `dice-odds.mjs` is a pure read side over a
+// generated constant table and deliberately imports nothing back from here, so
+// this module stays the base of the roll graph.
+import { oddsTooltipHtml } from './dice-odds.mjs';
+
 /**
  * Advantage/disadvantage levels for the Tno 3d20 roll mechanic.
  * @type {Object<string, number>}
@@ -193,6 +198,9 @@ export async function rollTno({
     flavor,
     hasThreshold,
     threshold,
+    // Only meaningful against a threshold; a base roll has nothing to be
+    // likely or unlikely against.
+    oddsTooltip: hasThreshold ? oddsTooltipHtml(threshold, advantage) : '',
     dice,
     countingValue: counting.value,
     success,

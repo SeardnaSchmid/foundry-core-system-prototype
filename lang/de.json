@@ -524,6 +524,13 @@
         "StrongAdvantage": "3W20 — niedrigster zählt"
       },
       "Threshold": "Schwelle",
+      "Odds": {
+        "InfoLabel": "Erfolgschance",
+        "Chance": "Erfolgschance",
+        "Basis": "{effect} · Ziel ≤ {threshold}.",
+        "CritsIncluded": "Ein kritischer Erfolg zählt als Erfolg, ein Patzer als Misserfolg.",
+        "Capped": "Außerhalb von 1–19 ändert die Schwelle nichts mehr: Eine 20 gelingt nie, eine 1 ist bereits kritisch."
+      },
       "Submit": "Würfeln",
       "SubmitTargetLabel": "Ziel",
       "BaseCaption": "Basis",
