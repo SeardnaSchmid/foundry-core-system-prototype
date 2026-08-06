@@ -3000,13 +3000,25 @@
   font-weight: bold;
 }
 .tno .armor-values {
-  display: flex;
+  --armor-value-col: 4.1em;
+  display: grid;
   flex: 0 0 auto;
+  grid-template-columns: repeat(3, var(--armor-value-col));
   align-items: baseline;
-  gap: 8px;
+  justify-items: end;
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
   font-weight: bold;
   color: #191813;
+}
+.tno .armor-values .armor-value-rh {
+  grid-column: 1;
+}
+.tno .armor-values .armor-value-rw {
+  grid-column: 2;
+}
+.tno .armor-values .armor-value-ra {
+  grid-column: 3;
 }
 .tno .armor-values .armor-value + .armor-value::before {
   content: "·";

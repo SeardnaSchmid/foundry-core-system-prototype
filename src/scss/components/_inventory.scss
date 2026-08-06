@@ -222,16 +222,42 @@ $c-trinket-label: rgba($c-dark, 0.55);
 }
 
 .armor-values {
-  display: flex;
+  // One slot per value, held open whether or not the row fills it, so RH, RW
+  // and RA read as three columns down the whole doll. A row that carries RW
+  // alone — the Unterkleidung, or a bare zone padded by it — otherwise packed
+  // its single value against the unequip control, which put the suit's RW under
+  // the addons' RA and invited reading one as the other.
+  //
+  // The slot width is the one constant here, in em so it tracks the row's font
+  // size. It is a fixed track rather than a `minmax` floor on purpose: the
+  // point of the slot is that every row's RW sits at the same x, and a track
+  // that grows to its content would buy a wide value its own alignment at the
+  // cost of the column. Sized for the widest read-out the tables produce
+  // ("· RA 10", two digits behind a separator and a label); a value past that
+  // reaches left into the empty space beside it rather than clipping or
+  // shoving the column over.
+  --armor-value-col: 4.1em;
+
+  display: grid;
   flex: 0 0 auto;
+  grid-template-columns: repeat(3, var(--armor-value-col));
   align-items: baseline;
-  gap: 8px;
+  justify-items: end;
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
   font-weight: bold;
   color: $c-dark;
 
+  // Which slot each value owns. Placing them by name rather than by source
+  // order is what lets a row skip a value without the rest sliding along.
+  .armor-value-rh { grid-column: 1; }
+  .armor-value-rw { grid-column: 2; }
+  .armor-value-ra { grid-column: 3; }
+
   // Middot separators between the pairs, so RH/RW/RA read as one read-out
   // rather than three loose labels — cheaper than a divider element each.
+  // They sit inside the following slot, ahead of its label, so a row missing
+  // the value before them simply has no separator to draw.
   .armor-value + .armor-value::before {
     content: '·';
     margin-right: 8px;
