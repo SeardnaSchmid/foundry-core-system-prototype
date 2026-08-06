@@ -337,6 +337,10 @@ describe('missingRequired', () => {
     ).toEqual([]);
   });
 
+  it('asks the Unterkleidung for neither, having a fixed RH 0 and no location to cover', () => {
+    expect(missingRequired(item({ armor: true }, { ...complete, zone: 'suit' }))).toEqual([]);
+  });
+
   it('asks a consumable for at least one described effect', () => {
     expect(missingRequired(item({ consumable: true }, complete))).toEqual(['effects']);
     expect(missingRequired(item({ consumable: true }, { ...complete, consumableEffects: [{ text: 'Heilt 2W.' }] }))).toEqual([]);

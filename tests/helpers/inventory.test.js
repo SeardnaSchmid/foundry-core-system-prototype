@@ -203,7 +203,8 @@ describe('buildSlotGrid', () => {
 });
 
 describe('resolveArmor', () => {
-  const suit = armor('suit', { zone: 'suit', rh: 2, rw: 1, ra: 10, sv: 1 });
+  // A suit as the Rüstungstabelle writes it: RH 0, RW authored, no RA at all.
+  const suit = armor('suit', { zone: 'suit', rh: null, rw: 1, ra: null, sv: 1 });
   const helm = armor('helm', { zone: 'head', rh: 5, rw: 3, ra: 8, sv: 2 });
 
   it('gives an unarmoured zone no hardness even under a suit', () => {
@@ -212,8 +213,8 @@ describe('resolveArmor', () => {
   });
 
   it('takes hardness from the addon alone, never the Unterkleidung', () => {
-    // Komposithelm RH 5 over Vakuumanzug RH 2 resolves to 5, not 7.
-    const { zones } = resolveArmor({ suit: 'suit', head: 'helm' }, [suit, helm]);
+    const stray = armor('stray', { zone: 'suit', rh: 2, rw: 1, ra: 10, sv: 1 });
+    const { zones } = resolveArmor({ suit: 'stray', head: 'helm' }, [stray, helm]);
     expect(zones.head.rh).toBe(5);
   });
 
@@ -225,12 +226,13 @@ describe('resolveArmor', () => {
   it('applies the suit in every zone, not just the one it is worn in', () => {
     const { zones } = resolveArmor({ suit: 'suit' }, [suit]);
     expect(zones.legs.rw).toBe(1);
-    expect(zones.legs.ra).toBe(10);
   });
 
-  it('clamps summed coverage to the documented 1-10 band', () => {
-    const { zones } = resolveArmor({ suit: 'suit', head: 'helm' }, [suit, helm]);
-    expect(zones.head.ra).toBe(10);
+  it('takes coverage from the addon alone — a suit covers no single location', () => {
+    const stray = armor('stray', { zone: 'suit', rh: 2, rw: 1, ra: 10, sv: 1 });
+    const { zones } = resolveArmor({ suit: 'stray', head: 'helm' }, [stray, helm]);
+    expect(zones.head.ra).toBe(8);
+    expect(zones.legs.ra).toBe(0);
   });
 
   it('takes the strength requirement from the most demanding piece worn', () => {

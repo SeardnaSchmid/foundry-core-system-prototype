@@ -97,8 +97,9 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
       label: CONFIG.TNO.armorZones[zone],
       on: selectedArmorZone === zone,
     }));
-    // The base layer has no Rüstungshärte by rule, so its RH row is n/a rather
-    // than an authorable scale — the same treatment a ranged weapon's DK gets.
+    // The base layer has no hit location, so its RH is the fixed 0 the table
+    // gives it and its RA does not exist. Both rows drop their scale rather
+    // than disappearing — the same treatment a ranged weapon's DK gets.
     context.armorSuit = selectedArmorZone === ARMOR_SUIT_ZONE;
     context.useSegments = WEAPON_USES.map((use) => ({
       use,

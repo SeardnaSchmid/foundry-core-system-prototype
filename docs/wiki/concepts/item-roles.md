@@ -113,7 +113,10 @@ it changes with the stack size.
 `zone` is one of Unterkleidung, head, torso, arms or legs. The edit chips are
 an exclusive, clearable selection and the paper doll fills that one target
 when the piece is worn. Unterkleidung remains a special base-layer location
-which contributes beneath every hit zone during armour resolution.
+which contributes beneath every hit zone during armour resolution — padding
+only, since it has no hit location to harden or cover. Its RH row shows the
+table's fixed `0` and its RA row is hatched; both are authorable on every other
+location.
 
 ## The editor and compact summary
 
@@ -177,9 +180,9 @@ hatches instead of hiding, and it is what keeps a shelf of cards aligned.
 
 **One list decides both the tile and the banner.** A `missing` tile and the
 warning banner both read `missingRequired`, so they cannot disagree. The one
-place that list encodes a rule is the Unterkleidung: a suit never grants RH, so
-a blank RH on a suit is not a missing value — the tile is `na` and the piece is
-complete.
+place that list encodes a rule is the Unterkleidung: the Rüstungstabelle writes
+every suit row as RH 0 and RA `–`, so neither is a value a suit is missing. The
+RH tile reads the fixed `0`, the RA tile is `na`, and the piece is complete.
 
 **No price, no availability.** Those are facts about acquiring the thing. The
 card is what is on the table.
@@ -224,8 +227,8 @@ intercepted where a native control does not already own them.
 ## Deliberately not implemented
 
 - **`stapelbarMit`** from the handoff's data model. It is a second layering
-  model, and the one that governs is already settled: the suit never gives RH,
-  everything else adds. Two would contradict.
+  model, and the one that governs is already settled: the suit gives neither RH
+  nor RA, and its RW adds. Two would contradict.
 - **Einhändig/zweihändig, holsters, vacuum sealing, clothing category.** Real
   properties in the rules, but nothing reads them — adding fields nothing reads
   is how the old `roll.diceNum` boxes got there.

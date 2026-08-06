@@ -136,16 +136,16 @@ describe('item presentation', () => {
       name: 'Armour',
       type: 'item',
       isWorn: true,
-      system: { roles: { armor: true }, zone: 'suit', slots: 3, quantity: 1, rw: 2, ra: 6, sv: 3 },
+      system: { roles: { armor: true }, zone: 'suit', slots: 3, quantity: 1, rw: 2, sv: 3 },
     };
     const summary = buildGearSummary(suit);
 
-    // Underclothing never grants RH, so the tile is hatched and the piece is
-    // not counted as incomplete.
+    // Underclothing is RH 0 and has no coverage at all, so the hardness tile
+    // reads zero, the coverage tile is hatched, and the piece is complete.
     expect(summary.tiles).toEqual([
-      { key: 'rh', labelKey: 'TNO.Armor.RhShort', value: null, state: 'na' },
+      { key: 'rh', labelKey: 'TNO.Armor.RhShort', value: '0', state: 'value' },
       { key: 'rw', labelKey: 'TNO.Armor.RwShort', value: '2', state: 'value' },
-      { key: 'ra', labelKey: 'TNO.Armor.RaShort', value: '6', state: 'value' },
+      { key: 'ra', labelKey: 'TNO.Armor.RaShort', value: null, state: 'na' },
     ]);
     expect(summary.missing).toEqual([]);
     expect(summary.badges[1]).toEqual({

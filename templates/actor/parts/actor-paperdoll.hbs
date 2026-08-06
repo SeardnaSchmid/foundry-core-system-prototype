@@ -71,7 +71,7 @@ worn, and reading them off the armour card said otherwise. --}}
         {{#if z.item}}
           <span class='armor-name'>{{localize z.label}} · {{z.item.name}}</span>
           {{!-- Effective values, already layered with the Unterkleidung in
-          prepareDerivedData: RH from the addon alone, RW and RA summed. --}}
+          prepareDerivedData: RH and RA from the addon alone, RW summed. --}}
           <span class='armor-values'>
             <span class='armor-value' title='{{localize "TNO.Armor.Rh"}}'>
               <span class='armor-key'>{{localize 'TNO.Armor.RhShort'}}</span>{{z.rh}}
@@ -88,15 +88,14 @@ worn, and reading them off the armour card said otherwise. --}}
           </a>
         {{else}}
           <span class='armor-name'>{{localize z.label}} · {{localize 'TNO.Armor.Empty'}}</span>
-          {{!-- A bare suit still covers this zone, so show what it contributes
-          rather than implying the location is unprotected. --}}
+          {{!-- A bare suit still pads this zone, so show the RW it contributes
+          rather than implying the location is unprotected. Hardness and
+          coverage are the addon's alone and are both 0 here, which is a fact
+          about the missing addon, not a value of the suit. --}}
           {{#if ../paperdoll.suit}}
             <span class='armor-values armor-values-suit'>
               <span class='armor-value' title='{{localize "TNO.Armor.Rw"}}'>
                 <span class='armor-key'>{{localize 'TNO.Armor.RwShort'}}</span>{{z.rw}}
-              </span>
-              <span class='armor-value' title='{{localize "TNO.Armor.Ra"}}'>
-                <span class='armor-key'>{{localize 'TNO.Armor.RaShort'}}</span>{{z.ra}}
               </span>
             </span>
           {{/if}}
@@ -117,12 +116,12 @@ worn, and reading them off the armour card said otherwise. --}}
         a piece is worn left the base layer indistinguishable from a fifth hit
         location — exactly when knowing which row is which matters most. --}}
         <span class='armor-name'>{{localize 'TNO.Armor.Zone.Suit'}} · {{paperdoll.suit.name}}</span>
+        {{!-- The padding is the only value a suit carries. Its RH is the fixed 0
+        of the Rüstungstabelle and it has no RA at all, so neither is worth a
+        box on the play surface. --}}
         <span class='armor-values'>
           <span class='armor-value' title='{{localize "TNO.Armor.Rw"}}'>
             <span class='armor-key'>{{localize 'TNO.Armor.RwShort'}}</span>{{paperdoll.suit.system.rw}}
-          </span>
-          <span class='armor-value' title='{{localize "TNO.Armor.Ra"}}'>
-            <span class='armor-key'>{{localize 'TNO.Armor.RaShort'}}</span>{{paperdoll.suit.system.ra}}
           </span>
         </span>
         <a class='armor-unequip' data-zone='suit' title='{{localize "TNO.Armor.Unequip"}}'>

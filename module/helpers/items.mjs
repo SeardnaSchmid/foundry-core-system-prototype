@@ -543,11 +543,14 @@ export function missingRequired(item) {
 
   if (roles.armor) {
     const zones = armorZones(item);
+    const suit = zones.includes(ARMOR_SUIT_ZONE);
     if (!zones.length) missing.push('zone');
-    // Underclothing never grants Armour Hardness, so RH is not a value the
-    // suit is missing — it is one the suit does not have.
-    if (blank(system.rh) && !zones.includes(ARMOR_SUIT_ZONE)) missing.push('rh');
-    if (blank(system.ra)) missing.push('ra');
+    // The Rüstungstabelle writes every Unterkleidung row as RH 0 and RA "–":
+    // the base layer is padding without a hit location, so its hardness is a
+    // fixed zero and coverage is a value it cannot have at all. Neither is
+    // therefore missing on a suit.
+    if (blank(system.rh) && !suit) missing.push('rh');
+    if (blank(system.ra) && !suit) missing.push('ra');
   }
 
   if (roles.consumable && !normalizeConsumableEffects(system).some((effect) => effect.text.trim())) {

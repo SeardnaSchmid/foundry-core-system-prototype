@@ -12,17 +12,18 @@ chip again clears it. --}}
   </div>
 </div>
 
-{{!-- The Unterkleidung layers under every zone at once and by rule contributes
-no Rüstungshärte, so a suit has no RH to author. Hatched in place rather than
-hidden, like a ranged weapon's Distanzklasse: dropping the row would move RW and
-RA up under the cursor every time the location chip changes. --}}
+{{!-- Every Unterkleidung row of the Rüstungstabelle reads RH 0, so a suit's
+hardness is shown as that fixed zero rather than as an authorable scale. Hatched
+in place rather than hidden, like a ranged weapon's Distanzklasse: dropping the
+row would move RW and RA up under the cursor every time the location chip
+changes. --}}
 <div class='gear-row {{#if missing.rh}}is-missing{{/if}}' data-row='rh'>
   <span class='gear-label' title='{{localize "TNO.Armor.RhHint"}}'>{{localize 'TNO.Armor.Rh'}}</span>
   {{#if armorSuit}}
     <div class='gear-ctl'>
-      <span class='field na' title='{{localize "TNO.Armor.SuitNoRhHint"}}'>
-        <span class='cap'>1–10</span>
-        <span class='val'>{{localize 'TNO.Armor.NaSuit'}}</span>
+      <span class='field na' title='{{localize "TNO.Armor.SuitRhZeroHint"}}'>
+        <span class='cap'>{{localize 'TNO.Armor.Zone.Suit'}}</span>
+        <span class='val'>0</span>
       </span>
     </div>
   {{else}}
@@ -35,7 +36,19 @@ RA up under the cursor every time the location chip changes. --}}
   {{> 'systems/tno/templates/item/parts/item-scale.hbs' cells=scales.rw key='rw'}}
 </div>
 
+{{!-- Rüstungsabdeckung is how hard one hit location is to shoot around, and the
+Unterkleidung has no hit location — the table writes its RA as "–". So a suit
+has no RA to author. --}}
 <div class='gear-row {{#if missing.ra}}is-missing{{/if}}' data-row='ra'>
   <span class='gear-label' title='{{localize "TNO.Armor.RaHint"}}'>{{localize 'TNO.Armor.Ra'}}</span>
-  {{> 'systems/tno/templates/item/parts/item-scale.hbs' cells=scales.ra key='ra'}}
+  {{#if armorSuit}}
+    <div class='gear-ctl'>
+      <span class='field na' title='{{localize "TNO.Armor.SuitNoRaHint"}}'>
+        <span class='cap'>1–10</span>
+        <span class='val'>{{localize 'TNO.Armor.NaSuit'}}</span>
+      </span>
+    </div>
+  {{else}}
+    {{> 'systems/tno/templates/item/parts/item-scale.hbs' cells=scales.ra key='ra'}}
+  {{/if}}
 </div>

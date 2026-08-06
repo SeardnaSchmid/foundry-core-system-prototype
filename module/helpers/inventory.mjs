@@ -238,13 +238,14 @@ export function buildSlotGrid(items, equipment, capacity) {
  * Resolve the effective armour values for each of the four hit locations,
  * layering the Unterkleidung under each zone's addon.
  *
- * Per Ojster: the Unterkleidung never contributes Rüstungshärte, but
- * otherwise counts in every zone with all values added. So RH comes from the
- * addon alone, while RW and RA are the sum of suit and addon.
+ * The Rüstungstabelle writes every Unterkleidung row as RH 0 and RA "–", so the
+ * base layer is padding alone: it contributes its RW to every zone and neither
+ * hardness nor coverage anywhere. RH and RA therefore come from the zone's
+ * addon by itself.
  *
- * RA is clamped to the 1-10 band the Rüstungen table documents. Summing RA is
- * an inference — the "alle Werte addiert" answer was given about RW — so the
- * clamp keeps an unconfirmed reading from producing out-of-band coverage.
+ * Suit and addon RW are summed, per Ojster's "alle Werte addiert" ruling. The
+ * table's own combined rows (Handschuhe + Ellenbogenschoner) add SV and RA but
+ * leave RH and RW untouched, which reads the other way — the ruling governs.
  *
  * Only plain numbers are returned, never the Item documents themselves:
  * this lands in `system.derived`, and embedding live documents there would
@@ -261,18 +262,18 @@ export function resolveArmor(equipment, items) {
 
   const suit = get('suit');
   const suitRw = num(suit?.system?.rw);
-  const suitRa = num(suit?.system?.ra);
 
   const zones = {};
   for (const zone of ARMOR_ADDON_ZONES) {
     const addon = get(zone);
     zones[zone] = {
       equipped: !!addon,
-      // The Unterkleidung gives no RH, so an unarmoured zone under a suit is
-      // still RH 0 — the suit closes coverage, it does not harden the zone.
+      // A zone with no addon is RH 0 and RA 0 even under a suit: the base layer
+      // pads the location, it neither hardens nor covers it. RA 0 is what
+      // "Rüstung umgehen" reads, so a bare zone costs nothing to shoot around.
       rh: num(addon?.system?.rh),
       rw: suitRw + num(addon?.system?.rw),
-      ra: Math.min(10, suitRa + num(addon?.system?.ra)),
+      ra: num(addon?.system?.ra),
     };
   }
 

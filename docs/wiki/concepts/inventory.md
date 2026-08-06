@@ -144,13 +144,14 @@ budget reads 0.
 `system.equipment` maps a zone key to an item id (`suit`, `head`, `torso`,
 `arms`, `legs`). `resolveArmor` layers the Unterkleidung under each zone:
 
-- **RH comes from the addon alone.** Per Ojster, the Unterkleidung never
-  contributes Rüstungshärte, so a bare zone under a suit is still RH 0 —
-  the suit closes coverage, it does not harden the zone.
-- **RW and RA are summed**, RA clamped to the 1–10 band the Rüstungen table
-  documents. (Summing RA is an inference — the "alle Werte addiert" answer
-  was given about RW — so the clamp keeps an unconfirmed reading from
-  producing out-of-band coverage.)
+- **RH and RA come from the addon alone.** The Rüstungstabelle writes every
+  Unterkleidung row as RH 0 and RA `–`: the base layer is padding without a hit
+  location, and Rüstungsabdeckung is what the "Rüstung umgehen" manoeuvre pays
+  to bypass one location. A bare zone under a suit is therefore RH 0 and RA 0.
+- **RW is summed** with the Unterkleidung, per Ojster's "alle Werte addiert"
+  ruling. The table's own combined rows (Handschuhe + Ellenbogenschoner) add SV
+  and RA but leave RH and RW at the single piece's value, which reads the other
+  way; the ruling was confirmed against that and governs.
 - **SV is the maximum, not the sum.** The Stärkevorraussetzung malus is a
   single penalty on all Beweglichkeit rolls, so what matters is the most
   demanding piece worn. Falling short sets `armorSvPenalty`.

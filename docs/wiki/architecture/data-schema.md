@@ -80,7 +80,7 @@ computes them in `TnoActor.prepareDerivedData()`, writing to
 | `canSprint` | `value(dex) >= base(dex)` **and** the load is under half capacity | the one derived value compared against damaged `value`, not `base` — detects Beweglichkeit damage. Either blocker alone rules sprinting out |
 | `carrySlots` / `carrySlotsUsed` | `2·base(str) + base(dex)` / sum of carried `slots × quantity` | worn gear is excluded; `used` is never clamped to capacity — see [inventory.md](../concepts/inventory.md) |
 | `carryState` | `ok` \| `noSprint` \| `crawlOnly` \| `noContainer` | the movement consequence of the current load |
-| `armor.<zone>` | `{ equipped, rh, rw, ra }` per hit location | RH from the addon alone, RW/RA summed with the Unterkleidung, RA capped at 10 |
+| `armor.<zone>` | `{ equipped, rh, rw, ra }` per hit location | RH and RA from the addon alone — a suit is RH 0 with no hit location to cover — while RW is summed with the Unterkleidung |
 | `armorSv` / `armorSvPenalty` | max `sv` of all worn pieces / `armorSv > 0 && base(str) < armorSv` | the Stärkevorraussetzung malus is one penalty from the most demanding piece, never a sum |
 | `sixthSense` | `round((base(per) + base(emp) + base(inv)) / 3)` | |
 | `insight` | `ceil((base(int) + base(wis)) / 2)` | edge-pool "Idee haben" bonus, see [edge-pool.md](../concepts/edge-pool.md) |

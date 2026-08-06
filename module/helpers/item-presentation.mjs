@@ -123,9 +123,15 @@ export function buildGearSummary(item) {
     );
   } else if (roles.armor) {
     tiles.push(
-      zones.includes(ARMOR_SUIT_ZONE) ? na('rh', 'TNO.Armor.RhShort') : tile('rh', 'TNO.Armor.RhShort', system.rh),
+      // A suit's hardness is the fixed 0 of the Rüstungstabelle — a real value
+      // the RD comparison uses — while its coverage does not exist at all.
+      zones.includes(ARMOR_SUIT_ZONE)
+        ? tile('rh', 'TNO.Armor.RhShort', 0)
+        : tile('rh', 'TNO.Armor.RhShort', system.rh),
       tile('rw', 'TNO.Armor.RwShort', system.rw),
-      tile('ra', 'TNO.Armor.RaShort', system.ra),
+      zones.includes(ARMOR_SUIT_ZONE)
+        ? na('ra', 'TNO.Armor.RaShort')
+        : tile('ra', 'TNO.Armor.RaShort', system.ra),
     );
   } else if (roles.consumable) {
     // Stock is the only number a consumable has, so it takes the emphasis the
