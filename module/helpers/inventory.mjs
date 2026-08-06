@@ -47,6 +47,15 @@ export const ARMOR_ADDON_ZONES = ARMOR_ZONES.filter((zone) => zone !== ARMOR_SUI
 export const CARRY_THRESHOLDS = { noSprint: 0.5, crawlOnly: 1 };
 
 /**
+ * The granularity the Rüstungen table writes Stärkevorraussetzungen in: whole
+ * values for Unterkleidung, quarter-point increments for the addons. The summed
+ * SV is snapped to this step so a total stays a value the table can express and
+ * float arithmetic can never leak 2.4499999999999997 into the sheet.
+ * @type {number}
+ */
+export const ARMOR_SV_STEP = 0.25;
+
+/**
  * Coerce a possibly-missing numeric system field to a number. Actors and
  * items created under an older schema (or hand-edited) can hold strings or
  * nulls where a number is expected; every read here goes through this so a
@@ -247,6 +256,10 @@ export function buildSlotGrid(items, equipment, capacity) {
  * table's own combined rows (Handschuhe + Ellenbogenschoner) add SV and RA but
  * leave RH and RW untouched, which reads the other way — the ruling governs.
  *
+ * SV is the sum of every worn piece, suit included, and comes in quarter
+ * steps — see ARMOR_SV_STEP. It is one number for the whole body rather than
+ * per zone, because the malus it may cost lands on all Beweglichkeitswürfe.
+ *
  * Only plain numbers are returned, never the Item documents themselves:
  * this lands in `system.derived`, and embedding live documents there would
  * make derived data circular and break anything that serializes it. Callers
@@ -277,9 +290,14 @@ export function resolveArmor(equipment, items) {
     };
   }
 
-  // The Stärkevorraussetzung malus is a single penalty on all Beweglichkeit
-  // rolls, so what matters is the most demanding piece worn, not the sum.
-  const sv = Math.max(0, ...[suit, ...ARMOR_ADDON_ZONES.map(get)].map((item) => num(item?.system?.sv)));
+  // "Stärkevorraussetzungen aller Kleidung und Rüstung wird aufaddiert um die
+  // finale SV zu erhalten": every worn piece contributes. The Unterkleidung
+  // rows carry whole values, the addons quarter-point increments, so the total
+  // is snapped back onto ARMOR_SV_STEP. What the single Malusstufe costs is
+  // decided against this one total, not per piece.
+  const svTotal = [suit, ...ARMOR_ADDON_ZONES.map(get)]
+    .reduce((sum, item) => sum + num(item?.system?.sv), 0);
+  const sv = Math.max(0, Math.round(svTotal / ARMOR_SV_STEP) * ARMOR_SV_STEP);
 
   return { zones, sv };
 }

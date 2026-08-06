@@ -177,7 +177,13 @@ export function buildGearSummary(item) {
   if (required > 0) {
     // The shortfall is plain arithmetic against the owner's Strength. How many
     // penalty steps it costs is combat resolution and is not decided here.
-    const actual = numberOrNull(item?.actor?.system?.abilities?.str?.base);
+    //
+    // Armour carries no note at all: its SV is one addend in the sum of
+    // everything worn, so comparing this piece's share against Strength on its
+    // own would report "met" for a glove that pushes the body's total out of
+    // reach. The comparison that matters is on the paper doll, against
+    // `derived.armorSv`.
+    const actual = roles.armor ? null : numberOrNull(item?.actor?.system?.abilities?.str?.base);
     rows.push({
       key: 'sv',
       labelKey: 'TNO.Item.Cap.Sv',

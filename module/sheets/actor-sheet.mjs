@@ -576,6 +576,10 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       suit,
       svPenalty: derived.armorSvPenalty ?? false,
       sv: derived.armorSv ?? 0,
+      // The summed SV lands on quarter steps, so it needs a decimal separator
+      // the reader's locale actually uses — the table writes +0,25 in German.
+      svLabel: new Intl.NumberFormat(game.i18n.lang, { maximumFractionDigits: 2 })
+        .format(derived.armorSv ?? 0),
       zones: ARMOR_ADDON_ZONES.map((zone) => {
         const item = this.actor.items.get(equipment[zone]) ?? null;
         return {

@@ -45,6 +45,7 @@ without a game world (`tests/helpers/inventory.test.js`).
 | `ARMOR_ADDON_ZONES` | The four hit locations (`head`, `torso`, `arms`, `legs`). `suit` is deliberately absent — it is not a hit location, it applies in all four at once |
 | `CARRIED_ITEM_TYPES` | The types the slot economy applies to — an alias of `GEAR_TYPES`. `feature` and `spell` are not objects and never appear in the grid or the sum. Which *roles* a piece has took over from its type everywhere else, but not here: the budget applies to anything that is an object at all — see [item-roles.md](item-roles.md) |
 | `CARRY_THRESHOLDS` | The fractions of capacity at which movement degrades |
+| `ARMOR_SV_STEP` | The quarter step the Rüstungen table writes SV increments in, and the granularity the summed SV is snapped to |
 | `wornItemIds(equipment)` | The id set currently on the body, used to exclude worn gear from the carry sum |
 | `itemSlotCost(item)` | `slots × quantity` for one stack, floored at 1 slot per piece for anything carrying the armour role |
 | `computeCarry(items, equipment, hasContainer, capacity)` | `{ used, capacity, state }` |
@@ -152,9 +153,29 @@ budget reads 0.
   ruling. The table's own combined rows (Handschuhe + Ellenbogenschoner) add SV
   and RA but leave RH and RW at the single piece's value, which reads the other
   way; the ruling was confirmed against that and governs.
-- **SV is the maximum, not the sum.** The Stärkevorraussetzung malus is a
-  single penalty on all Beweglichkeit rolls, so what matters is the most
-  demanding piece worn. Falling short sets `armorSvPenalty`.
+- **SV is the sum of every worn piece**, suit included:
+  "Stärkevorraussetzungen aller Kleidung und Rüstung wird aufaddiert um die
+  finale SV zu erhalten". The Rüstungen table writes Unterkleidung rows as
+  whole values and every addon as an increment (+0,25 / +0,5 / +1 / +1,5), and
+  its own "kombiniert" rows pre-add them, so the total runs in quarter steps
+  (`ARMOR_SV_STEP`) and is snapped onto that step. Falling short sets
+  `armorSvPenalty` — **one** Malusstufe on all Beweglichkeitswürfe however far
+  short, which is what makes a single body-wide total the right shape. Stärke
+  is a whole number, so a total of 2.25 is met only at Stärke 3.
+
+  The **weapon** SV rule is a different one and must not be folded in here: it
+  is per weapon and graded ("eine Malusstufe für jeden Angriff und eine weitere
+  für je 2 weitere Punkte darunter"). It lives with the weapon requirements in
+  `weaponRequirementStatus`
+  ([`module/helpers/items.mjs`](../../../module/helpers/items.mjs)), which
+  currently resolves it as one flat −3 modifier shared with FV rather than the
+  graded ladder. The armour total therefore stays whole-body and single-step,
+  and the weapon field on the gear sheet stays in whole steps.
+
+  Because a piece's SV is only an addend, the item card shows an armour piece's
+  SV without a met/short note: comparing one glove's +0,25 against Strength
+  would report "met" while the body's total is out of reach. The comparison
+  belongs on the paper doll, against `derived.armorSv`.
 
 `resolveArmor` returns only plain numbers, never the Item documents: the
 result lands in `system.derived`, and embedding live documents there would

@@ -99,9 +99,13 @@ export class TnoActor extends Actor {
       carrySlotsUsed: carry.used,
       carryState: carry.state,
       armor: armor.zones,
+      // The summed requirement of everything worn, in quarter steps.
       armorSv: armor.sv,
       // Falling short of the Stärkevorraussetzung costs one Malusstufe on
-      // every Beweglichkeit roll; the sheet surfaces it as a warning line.
+      // every Beweglichkeit roll — a single step however far short it is,
+      // unlike the graded weapon SV rule. The sheet surfaces it as a warning
+      // line. Stärke is a whole number, so a quarter-step SV is met only by
+      // reaching the next whole value: SV 2.25 needs Stärke 3.
       armorSvPenalty: armor.sv > 0 && base('str') < armor.sv,
       sixthSense: Math.round((base('per') + base('emp') + base('inv')) / 3),
       // Unlike the other derived probes, dodge uses the damage-adjusted

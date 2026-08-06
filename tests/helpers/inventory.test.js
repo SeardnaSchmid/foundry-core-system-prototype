@@ -235,9 +235,29 @@ describe('resolveArmor', () => {
     expect(zones.legs.ra).toBe(0);
   });
 
-  it('takes the strength requirement from the most demanding piece worn', () => {
+  it('sums the strength requirement over every worn piece', () => {
     const { sv } = resolveArmor({ suit: 'suit', head: 'helm' }, [suit, helm]);
-    expect(sv).toBe(2);
+    expect(sv).toBe(3);
+  });
+
+  it('adds the addons quarter-step increments onto the Unterkleidung', () => {
+    // Gummischutzanzug SV 2 with Gummischutzhandschuhe +0,25 on the arms and
+    // Gummischutzstiefel +0,5 on the legs: the table's own "kombiniert" rows
+    // pre-add exactly this way.
+    const rubber = armor('rubber', { zone: 'suit', sv: 2 });
+    const gloves = armor('gloves', { zone: 'arms', sv: 0.25 });
+    const boots = armor('boots', { zone: 'legs', sv: 0.5 });
+    const { sv } = resolveArmor(
+      { suit: 'rubber', arms: 'gloves', legs: 'boots' },
+      [rubber, gloves, boots]
+    );
+    expect(sv).toBe(2.75);
+  });
+
+  it('snaps a total onto the quarter step the table is written in', () => {
+    const odd = armor('odd', { zone: 'head', sv: 0.3 });
+    const { sv } = resolveArmor({ suit: 'suit', head: 'odd' }, [suit, odd]);
+    expect(sv).toBe(1.25);
   });
 
   it('reports no strength requirement when nothing is worn', () => {

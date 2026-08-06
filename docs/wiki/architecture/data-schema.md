@@ -81,7 +81,7 @@ computes them in `TnoActor.prepareDerivedData()`, writing to
 | `carrySlots` / `carrySlotsUsed` | `2·base(str) + base(dex)` / sum of carried `slots × quantity` | worn gear is excluded; `used` is never clamped to capacity — see [inventory.md](../concepts/inventory.md) |
 | `carryState` | `ok` \| `noSprint` \| `crawlOnly` \| `noContainer` | the movement consequence of the current load |
 | `armor.<zone>` | `{ equipped, rh, rw, ra }` per hit location | RH and RA from the addon alone — a suit is RH 0 with no hit location to cover — while RW is summed with the Unterkleidung |
-| `armorSv` / `armorSvPenalty` | max `sv` of all worn pieces / `armorSv > 0 && base(str) < armorSv` | the Stärkevorraussetzung malus is one penalty from the most demanding piece, never a sum |
+| `armorSv` / `armorSvPenalty` | sum of `sv` over all worn pieces, snapped to `ARMOR_SV_STEP` (0.25) / `armorSv > 0 && base(str) < armorSv` | the requirements of all worn clothing and armour add up; falling short is a single Malusstufe however far short, and Stärke being whole means a quarter-step total is only met at the next whole value |
 | `sixthSense` | `round((base(per) + base(emp) + base(inv)) / 3)` | |
 | `insight` | `ceil((base(int) + base(wis)) / 2)` | edge-pool "Idee haben" bonus, see [edge-pool.md](../concepts/edge-pool.md) |
 | `trialErrorMax` | `ceil((base(int) + base(wil)) / 2)` | |
