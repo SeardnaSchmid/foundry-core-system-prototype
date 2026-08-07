@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import {
+  armorPenetrationChoices,
+  armorSvMalus,
   armorZones,
+  maneuverWeaponChoices,
   canWeaponAttack,
   canWeaponParry,
   clampGearNumber,
@@ -21,7 +24,7 @@ import {
   weaponDkDifferenceChoices,
   weaponHandlingModifier,
   weaponRangeChoices,
-  weaponRequirementMalus,
+  requirementMalusSteps,
   weaponRequirementStatus,
   weaponSkillRank,
   weaponUse,
@@ -179,18 +182,41 @@ describe('weapon roll helpers', () => {
     expect(weaponSkillRank(actor({ skill: 5 }), system({ fv: { skill: 'swords', rank: 1 } }))).toBe(5);
   });
 
-  it('applies one −3 when FV, SV, or both requirements are unmet', () => {
-    expect(weaponRequirementMalus(actor({ skill: 1, strengthBase: 5 }), system())).toBe(-3);
-    expect(weaponRequirementMalus(actor({ skill: 2, strengthBase: 3 }), system())).toBe(-3);
-    expect(weaponRequirementMalus(actor({ skill: 1, strengthBase: 3 }), system())).toBe(-3);
-    expect(weaponRequirementMalus(actor({ skill: 2, strengthBase: 4 }), system())).toBe(0);
+  // "eine Malusstufe … und eine weitere für je 2 weitere Punkte darunter": the
+  // further points are counted from the one that already cost the first step,
+  // so the ladder is the rounded-up half of the shortfall.
+  it('grades a shortfall one step per two points, rounded up', () => {
+    expect(requirementMalusSteps(2, 2)).toBe(0);
+    expect(requirementMalusSteps(3, 2)).toBe(0);
+    expect(requirementMalusSteps(1, 2)).toBe(1);
+    expect(requirementMalusSteps(0, 2)).toBe(1);
+    expect(requirementMalusSteps(-1, 2)).toBe(2);
+    expect(requirementMalusSteps(-2, 2)).toBe(2);
+    expect(requirementMalusSteps(-3, 2)).toBe(3);
+    // The table's own worst case: SV 10 met with Strength 1.
+    expect(requirementMalusSteps(1, 10)).toBe(5);
+  });
+
+  it('reports FV and SV separately, and never grades FV', () => {
+    // FV 2 / SV 4. Rank 0 is 2 short and Strength 0 is 4 short, but only SV
+    // climbs: "alle Manöver mit einem Malus" is one step however far under.
+    expect(weaponRequirementStatus(actor({ skill: 0, strengthBase: 0 }), system()))
+      .toMatchObject({ fvSteps: 1, svSteps: 2, fvMalus: -3, svMalus: -6 });
+
+    // Each requirement stands alone: missing one says nothing about the other.
+    expect(weaponRequirementStatus(actor({ skill: 1, strengthBase: 5 }), system()))
+      .toMatchObject({ fvSteps: 1, svSteps: 0, svMalus: 0 });
+    expect(weaponRequirementStatus(actor({ skill: 2, strengthBase: 3 }), system()))
+      .toMatchObject({ fvSteps: 0, svSteps: 1, fvMalus: 0 });
+    expect(weaponRequirementStatus(actor({ skill: 2, strengthBase: 4 }), system()))
+      .toMatchObject({ fvSteps: 0, svSteps: 0, fvMalus: 0, svMalus: 0 });
   });
 
   it('checks weapon SV against base Strength, not its current temporary value', () => {
     const status = weaponRequirementStatus(actor({ skill: 2, strengthBase: 3, strengthCurrent: 8 }), system({ sv: 4 }));
     expect(weaponBaseStrength(actor({ strengthBase: 3, strengthCurrent: 8 }))).toBe(3);
     expect(status.svMet).toBe(false);
-    expect(status.malus).toBe(-3);
+    expect(status.svMalus).toBe(-3);
   });
 
   it('selects active versus passive handling without changing either value', () => {
@@ -210,10 +236,11 @@ describe('weapon roll helpers', () => {
     ]);
   });
 
-  it('spans every direct DK difference from −6 through +6', () => {
-    expect(weaponDkDifferenceChoices().map((choice) => choice.value)).toEqual(
-      Array.from({ length: 13 }, (_, index) => index - 6)
-    );
+  // Reach is a comparison, not a scale: "+3 erleichtert wenn man den längeren
+  // hat". A DK gap of four is worth exactly what a gap of one is worth, so the
+  // picker must not offer a number the rule cannot produce.
+  it('offers the reach advantage as three outcomes, not a range', () => {
+    expect(weaponDkDifferenceChoices().map((choice) => choice.value)).toEqual([-3, 0, 3]);
   });
 
   it('requires attack context while keeping Parry melee-only', () => {
@@ -224,6 +251,106 @@ describe('weapon roll helpers', () => {
     expect(canWeaponAttack(system({ use: 'ranged', range: { near: null } }))).toBe(false);
     expect(canWeaponAttack(system({ use: 'ranged', range: { near: 0 } }))).toBe(true);
     expect(canWeaponAttack(system(), { skillDefined: false })).toBe(false);
+  });
+});
+
+describe('armour SV malus', () => {
+  const actor = (penalised) => ({ system: { derived: { armorSvPenalty: penalised } } });
+
+  // "Eine Malusstufe auf alle Beweglichkeitswürfe": the rule names the
+  // attribute, not the workflow, so the attribute is what decides.
+  it('costs one flat step on a Beweglichkeit roll and nothing on any other attribute', () => {
+    expect(armorSvMalus(actor(true), ['dex'])).toBe(-3);
+    expect(armorSvMalus(actor(true), ['str'])).toBe(0);
+    expect(armorSvMalus(actor(true), [])).toBe(0);
+  });
+
+  // Ability mode's two slots are peers, so Stärke + Beweglichkeit is a
+  // Beweglichkeitswurf — but filling both slots with it is still one roll.
+  it('costs the same one step however many Beweglichkeit slots a roll fills', () => {
+    expect(armorSvMalus(actor(true), ['str', 'dex'])).toBe(-3);
+    expect(armorSvMalus(actor(true), ['dex', 'dex'])).toBe(-3);
+  });
+
+  it('costs nothing while the summed requirement is met', () => {
+    expect(armorSvMalus(actor(false), ['dex'])).toBe(0);
+    expect(armorSvMalus({ system: {} }, ['dex'])).toBe(0);
+  });
+});
+
+describe('armour penetration outcomes', () => {
+  // "Rüstung härter als RB/RD: Widerstandswurf +3". The other two rows of the
+  // damage table change which Schadenswert is taken, not the threshold.
+  it('offers the penetration comparison as three outcomes, only the hardest worth a bonus step', () => {
+    expect(armorPenetrationChoices().map((choice) => [choice.key, choice.value])).toEqual([
+      ['softer', 0],
+      ['equal', 0],
+      ['harder', 3],
+    ]);
+  });
+
+  it('names the damage value each penetration outcome calls for', () => {
+    expect(armorPenetrationChoices().map((choice) => choice.damage)).toEqual(['ss', 'ws', 'ws']);
+  });
+});
+
+describe('Manöver weapon choices', () => {
+  const actor = ({ skill = 5, strength = 4 } = {}) => ({
+    system: {
+      abilities: { str: { base: strength, value: strength } },
+      skills: { swords: { value: skill } },
+    },
+  });
+
+  const weapon = (id, name, overrides = {}) => ({
+    id,
+    name,
+    system: {
+      roles: { weapon: true },
+      use: 'melee',
+      wa: 'fin',
+      fv: { skill: 'swords', rank: 0 },
+      sv: 0,
+      dk: 3,
+      hh: { active: 0, passive: 0 },
+      ...overrides,
+    },
+  });
+
+  it('leads the Manöver weapon list with the unarmed option, which costs nothing', () => {
+    expect(maneuverWeaponChoices(actor(), [])).toEqual([
+      { key: 'unarmed', name: 'TNO.Combat.ManeuverUnarmed', value: 0 },
+    ]);
+  });
+
+  it('prices a weapon whose FV rank the character misses at one flat step', () => {
+    // Rank 5 against FV 9 is four short, and still one step: the FV rule is a
+    // flat "alle Manöver mit einem Malus", never a ladder.
+    const choices = maneuverWeaponChoices(actor({ skill: 5 }), [
+      weapon('blade', 'Langschwert', { fv: { skill: 'swords', rank: 9 } }),
+    ]);
+    expect(choices.at(-1)).toEqual({ key: 'blade', name: 'Langschwert', value: -3 });
+  });
+
+  it('keeps a weapon whose FV is met on the list at no cost', () => {
+    // Unlike a weapon roll's own modifiers, which omit a met requirement: here
+    // naming the weapon is the answer to a mandatory question.
+    const choices = maneuverWeaponChoices(actor({ skill: 5 }), [
+      weapon('blade', 'Langschwert', { fv: { skill: 'swords', rank: 2 } }),
+    ]);
+    expect(choices.at(-1)).toEqual({ key: 'blade', name: 'Langschwert', value: 0 });
+  });
+
+  it('leaves half-authored gear off the Manöver weapon list', () => {
+    const choices = maneuverWeaponChoices(actor(), [
+      // No Distanzklasse and no parry-capable profile at all: nothing to declare.
+      weapon('draft', 'Rohentwurf', { dk: null, use: 'ranged', range: {} }),
+      // Armour is not a weapon, whatever else it is authored with.
+      { id: 'plate', name: 'Brustpanzer', system: { roles: { armor: true }, zone: 'torso', rh: 4, ra: 5 } },
+      // The FV skill exists on the item but not on this actor.
+      weapon('exotic', 'Fremdwaffe', { fv: { skill: 'gunKata', rank: 1 } }),
+    ], (key) => key === 'swords');
+    expect(choices.map((choice) => choice.key)).toEqual(['unarmed']);
   });
 });
 

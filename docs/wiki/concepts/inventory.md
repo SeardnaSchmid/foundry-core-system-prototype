@@ -172,12 +172,12 @@ budget reads 0.
 
   The **weapon** SV rule is a different one and must not be folded in here: it
   is per weapon and graded ("eine Malusstufe für jeden Angriff und eine weitere
-  für je 2 weitere Punkte darunter"). It lives with the weapon requirements in
-  `weaponRequirementStatus`
-  ([`module/helpers/items.mjs`](../../../module/helpers/items.mjs)), which
-  currently resolves it as one flat −3 modifier shared with FV rather than the
-  graded ladder. The armour total therefore stays whole-body and single-step,
-  and the weapon field on the gear sheet stays in whole steps.
+  für je 2 weitere Punkte darunter"), and it lands on attacks and parries rather
+  than on Beweglichkeit. It lives with the weapon requirements in
+  `weaponRequirementStatus` / `requirementMalusSteps`
+  ([`module/helpers/items.mjs`](../../../module/helpers/items.mjs)). The armour
+  total therefore stays whole-body and single-step, and the weapon field on the
+  gear sheet stays in whole steps.
 
   Because a piece's SV is only an addend, the item card shows an armour piece's
   SV without a met/short note: comparing one glove's +0,25 against Strength

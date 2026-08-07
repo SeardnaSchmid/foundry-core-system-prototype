@@ -12,7 +12,7 @@ import {
   weaponDkDifferenceChoices,
   weaponHandlingModifier,
   weaponRangeChoices,
-  weaponRequirementMalus,
+  weaponRequirementStatus,
   weaponSkillRank,
 } from '../helpers/items.mjs';
 
@@ -113,11 +113,7 @@ export class TnoItem extends Item {
     const definition = getSkillDefinitions(actor)[key];
     if (!actor?.isOwner || !hasRole(this, 'weapon') || !canWeaponAttack(this.system, { skillDefined: !!definition })) return;
     const contextChoices = usesMelee(this.system)
-      ? weaponDkDifferenceChoices().map((choice) => ({
-          ...choice,
-          label: this.#signedValue(choice.value),
-          componentLabel: game.i18n.localize('TNO.Combat.DkDifference'),
-        }))
+      ? this.#dkChoices()
       : weaponRangeChoices(this.system).map((choice) => {
           const band = game.i18n.localize(`TNO.Weapons.Band.${choice.key.charAt(0).toUpperCase()}${choice.key.slice(1)}`);
           return {
@@ -136,14 +132,20 @@ export class TnoItem extends Item {
         placeholder: game.i18n.localize('TNO.Combat.ContextPlaceholder'),
         control: 'tiles',
         tileLabels: !usesMelee(this.system),
-        tileColumns: usesMelee(this.system) ? 7 : 5,
+        tileColumns: usesMelee(this.system) ? 3 : 5,
         choices: contextChoices,
       },
       flavor: game.i18n.format('TNO.Combat.AttackFlavor', { weapon: this.name }),
     }).render(true);
   }
 
-  /** Open an independent melee parry with its authored WA and FV locked. */
+  /**
+   * Open an independent melee parry with its authored WA and FV locked.
+   *
+   * A parry asks for the reach comparison exactly like an attack does: "Angriffe
+   * und Paraden sind um +3 erleichtert wenn man den längeren hat" — who holds
+   * the longer weapon is a fact about the pairing, not about who is swinging.
+   */
   openWeaponParry() {
     const actor = this.actor;
     const key = this.system.fv?.skill;
@@ -154,22 +156,46 @@ export class TnoItem extends Item {
       lockAttribute: true,
       skill: { key, label: definition.label, value: weaponSkillRank(actor, this.system) },
       fixedModifiers: this.#weaponFixedModifiers(actor, 'passive'),
+      preRollContext: {
+        label: game.i18n.localize('TNO.Combat.DkDifference'),
+        placeholder: game.i18n.localize('TNO.Combat.ContextPlaceholder'),
+        control: 'tiles',
+        tileColumns: 3,
+        choices: this.#dkChoices(),
+      },
       flavor: game.i18n.format('TNO.Combat.ParryFlavor', { weapon: this.name }),
     }).render(true);
   }
 
-  /** Shared immutable handling and requirement components for weapon rolls. */
+  /** The three reach outcomes, as pre-roll context tiles. */
+  #dkChoices() {
+    return weaponDkDifferenceChoices().map((choice) => ({
+      ...choice,
+      label: this.#signedValue(choice.value),
+      componentLabel: game.i18n.localize('TNO.Combat.DkDifference'),
+    }));
+  }
+
+  /**
+   * Immutable handling and requirement components for weapon rolls.
+   *
+   * Only the SV malus is here. The FV shortfall is a Manöver rule — "würfelt er
+   * alle Manöver mit einem Malus", and a Standardangriff is not a Manöver — so
+   * it must not touch a plain attack or parry. `weaponRequirementStatus` still
+   * reports it for the item card and for whatever announces a Manöver later.
+   *
+   * The SV component is labelled with its Malusstufen, because the ladder is
+   * what lets it exceed the −3 the dice system otherwise moves in.
+   */
   #weaponFixedModifiers(actor, handling) {
-    const requirementMalus = weaponRequirementMalus(actor, this.system);
+    const { svSteps, svMalus } = weaponRequirementStatus(actor, this.system);
+
     return [
       {
         label: game.i18n.localize(handling === 'active' ? 'TNO.Combat.ActiveHandling' : 'TNO.Combat.PassiveHandling'),
         value: weaponHandlingModifier(this.system, handling),
       },
-      ...(requirementMalus ? [{
-        label: game.i18n.localize('TNO.Combat.RequirementMalus'),
-        value: requirementMalus,
-      }] : []),
+      ...(svSteps ? [{ label: game.i18n.format('TNO.Combat.SvMalus', { steps: svSteps }), value: svMalus }] : []),
     ];
   }
 

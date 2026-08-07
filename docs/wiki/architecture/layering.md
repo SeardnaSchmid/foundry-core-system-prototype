@@ -16,6 +16,9 @@ circular dependencies:
 module/tno.mjs                          (entry point, imports everything below)
 ├── documents/  {actor,item}.mjs        — reach no further than helpers/
 │                 → both import helpers/inventory.mjs
+│                 → both import helpers/{items,skills}.mjs for the combat
+│                   workflows they open; the dialog itself is reached through
+│                   game.tno.TnoRollDialog, never imported from apps/
 ├── sheets/     actor-sheet.mjs, item-sheet.mjs, item-gear-sheet.mjs
 │                 → helpers/{effects,heatmap,dice,skills,inventory,items}.mjs
 │                 → apps/{roll-dialog,advance-dialog,heatmap-lab,custom-skill-dialog}.mjs

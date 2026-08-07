@@ -309,41 +309,201 @@ export function weaponBaseStrength(actor) {
  * @param {*} value
  * @returns {boolean}
  */
-function isAuthoredNumber(value) {
+export function isAuthoredNumber(value) {
   return value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
 }
 
 /**
- * Read the two weapon requirements and their single shared malus. Falling
- * short on FV, SV, or both is one -3 modifier rather than a stack.
+ * What one Malusstufe is worth on the threshold. The dice system moves in
+ * ±3 steps, so a count of steps and a modifier are the same statement twice.
+ * @type {number}
+ */
+export const MALUS_STEP = -3;
+
+/**
+ * What one Bonusstufe is worth, the mirror of {@link MALUS_STEP}. Only the
+ * resistance roll's "armour harder than the weapon's penetration" case earns
+ * one today, but a step is a step in either direction.
+ * @type {number}
+ */
+export const BONUS_STEP = 3;
+
+/**
+ * How many Malusstufen a shortfall against the weapon's **SV** costs:
+ * "eine Malusstufe für jeden Angriff/Parade mit dieser Waffe und eine weitere
+ * für je 2 weitere Punkte darunter".
+ *
+ * Falling short at all is the first step, and every *further* two points below
+ * is another — the "weitere Punkte" are counted from the point that already
+ * cost the first step, not from the requirement. Against a requirement of 2: 1
+ * and 0 are one step, −1 and −2 are two, −3 and −4 are three. That is the
+ * rounded-up half of the shortfall.
+ *
+ * Exceeding the requirement buys nothing: this is a floor, not a scale.
+ *
+ * The ladder is unbounded on purpose. Nothing in the rule caps it, and a
+ * character that far under the requirement is meant to be unable to use the
+ * weapon rather than merely bad with it — SV 10 at Strength 1 is five steps.
+ *
+ * **Only SV grades.** The FV rule is a flat "würfelt er alle Manöver mit einem
+ * Malus", so it never reaches this function.
+ *
+ * @param {number} value  What the character brings — skill rank, or Strength.
+ * @param {number} required  What the weapon asks for.
+ * @returns {number}  Malusstufen, 0 when the requirement is met.
+ */
+export function requirementMalusSteps(value, required) {
+  const short = required - value;
+  if (short <= 0) return 0;
+  return Math.ceil(short / 2);
+}
+
+/**
+ * Read the two weapon requirements and what each of them costs. FV and SV are
+ * *separate* requirements and their maluses add: they are two different things
+ * the character cannot do with this weapon, and one covering for the other
+ * would make the second requirement free whenever the first is already missed.
+ *
+ * They are shaped differently, and the difference is the whole point:
+ *
+ *  - **SV** grades with the shortfall and lands on every Angriff and Parade.
+ *  - **FV** is a flat single step and lands on **Manöver only** — "würfelt er
+ *    alle Manöver mit einem Malus", and the Manöver chapter is explicit that a
+ *    Standardangriff is not a Manöver. Manöver are not implemented, so `fvMalus`
+ *    currently reaches no roll; it is reported here for the item card and for
+ *    whatever announces a Manöver later.
+ *
+ * Both are unlike the *armour* SV, which is a single Malusstufe on every
+ * Beweglichkeitswurf however far short the character falls. Three rules, three
+ * shapes, and none of them may be folded into another.
+ *
  * @param {Object} actor  An actor document (or plain actor data).
  * @param {Object} system An item's `system` data.
- * @returns {{skillRank: number, strength: number, fvMet: boolean, svMet: boolean, malus: number}}
+ * @returns {{skillRank: number, strength: number, fvMet: boolean, svMet: boolean,
+ *   fvSteps: number, svSteps: number, fvMalus: number, svMalus: number}}
  */
 export function weaponRequirementStatus(actor, system) {
   const skillRank = weaponSkillRank(actor, system);
   const strength = weaponBaseStrength(actor);
   const fvRequired = isAuthoredNumber(system?.fv?.rank) ? Number(system.fv.rank) : 0;
   const svRequired = isAuthoredNumber(system?.sv) ? Number(system.sv) : 0;
-  const fvMet = skillRank >= fvRequired;
-  const svMet = strength >= svRequired;
+  const fvSteps = skillRank >= fvRequired ? 0 : 1;
+  const svSteps = requirementMalusSteps(strength, svRequired);
+  // Guarded against -0: `0 * -3` is negative zero, which formats as "−0" the
+  // moment a requirement that costs nothing reaches a signed read-out.
+  const malusFor = (steps) => (steps === 0 ? 0 : steps * MALUS_STEP);
   return {
     skillRank,
     strength,
-    fvMet,
-    svMet,
-    malus: fvMet && svMet ? 0 : -3,
+    fvMet: fvSteps === 0,
+    svMet: svSteps === 0,
+    fvSteps,
+    svSteps,
+    fvMalus: malusFor(fvSteps),
+    svMalus: malusFor(svSteps),
   };
 }
 
 /**
- * The one combined FV/SV requirement modifier for an attack or parry.
- * @param {Object} actor  An actor document (or plain actor data).
- * @param {Object} system An item's `system` data.
- * @returns {number}
+ * The attribute the armour SV malus attaches to. The rule says "alle
+ * Beweglichkeitswürfe", so it is the *attribute* that decides, not the
+ * workflow: any roll built on Beweglichkeit carries it, Dodge included.
+ * @type {string}
  */
-export function weaponRequirementMalus(actor, system) {
-  return weaponRequirementStatus(actor, system).malus;
+export const ARMOR_MALUS_ATTRIBUTE = 'dex';
+
+/**
+ * What the summed armour Stärkevorraussetzung costs a roll built on the given
+ * attributes.
+ *
+ * **One step, however many Beweglichkeit slots the roll fills.** The flatness
+ * is enforced here rather than at the call site so a Stärke + Beweglichkeit
+ * ability roll — and even a Beweglichkeit + Beweglichkeit one — cannot double
+ * it. Unlike the weapon SV, this malus does not grade with the shortfall: it is
+ * a single Malusstufe however far short the character falls.
+ *
+ * @param {Object} actor  An actor document (or plain actor data).
+ * @param {Array<string>} [attributeKeys]  The attributes the roll is built on.
+ * @returns {number}  MALUS_STEP, or 0.
+ */
+export function armorSvMalus(actor, attributeKeys = []) {
+  if (!actor?.system?.derived?.armorSvPenalty) return 0;
+  return attributeKeys.includes(ARMOR_MALUS_ATTRIBUTE) ? MALUS_STEP : 0;
+}
+
+/**
+ * The RH-versus-RB/RD comparison, as the three outcomes the damage table can
+ * produce.
+ *
+ * A defender's sheet knows no attacker, so it cannot compare the armour's
+ * Rüstungshärte against the weapon's Rüstungsbrechung/-durchdringung itself.
+ * The player states which of the three rows applies; what they must not be able
+ * to state is a row the table does not have.
+ *
+ * Only the third outcome is worth anything on the threshold — "Rüstung härter
+ * als RB/RD: Widerstandswurf +3". The other two exist so the player says out
+ * loud which Schadenswert they took, which is the same choice under a different
+ * name and is what `damage` reports.
+ *
+ * @returns {Array<{key: 'softer'|'equal'|'harder', value: number, damage: 'ss'|'ws'}>}
+ */
+export function armorPenetrationChoices() {
+  return [
+    { key: 'softer', value: 0, damage: 'ss' },
+    { key: 'equal', value: 0, damage: 'ws' },
+    { key: 'harder', value: BONUS_STEP, damage: 'ws' },
+  ];
+}
+
+/**
+ * The key of the option every Manöver keeps, whatever the character carries.
+ * @type {string}
+ */
+export const MANEUVER_UNARMED_KEY = 'unarmed';
+
+/**
+ * The weapons a Manöver can be declared with, and what each one's FV shortfall
+ * costs it: "würfelt er alle Manöver mit einem Malus". Naming the weapon is the
+ * mandatory question — a Manöver is always performed *with* something — and the
+ * answer is what makes the flat FV step land on a roll at last.
+ *
+ * Membership is exactly the set the item popover already offers a combat action
+ * for: gear in the weapon role that can attack or parry. A half-authored
+ * profile offers neither and is therefore not declarable.
+ *
+ * **A weapon whose FV is met stays on the list at 0.** Deliberately unlike a
+ * weapon roll's own fixed modifiers, which omit a met requirement as a
+ * non-event: here *which weapon* is the answer to a question that must be
+ * answered, so it has to be nameable whether or not it costs anything.
+ *
+ * The unarmed option leads the list and is always free — an empty choice list
+ * would make the requirement vanish silently, so a character carrying nothing
+ * still has to say so. Its `name` is an i18n *key*, the way MISSING_FIELD_LABELS
+ * carries them; every other entry carries the item's own name.
+ *
+ * @param {Object} actor  An actor document (or plain actor data).
+ * @param {Iterable<Object>} items  The actor's items.
+ * @param {(key: string) => boolean} [skillDefined]  Whether the weapon's FV
+ *   skill exists on this actor, which only the skill catalogue can answer.
+ * @returns {Array<{key: string, name: string, value: number}>}
+ */
+export function maneuverWeaponChoices(actor, items, skillDefined = () => true) {
+  const choices = [{ key: MANEUVER_UNARMED_KEY, name: 'TNO.Combat.ManeuverUnarmed', value: 0 }];
+
+  for (const item of items ?? []) {
+    if (!hasRole(item, 'weapon')) continue;
+    const defined = skillDefined(item?.system?.fv?.skill);
+    if (!canWeaponAttack(item.system, { skillDefined: defined }) && !canWeaponParry(item.system, { skillDefined: defined })) {
+      continue;
+    }
+    choices.push({
+      key: String(item.id ?? item._id),
+      name: String(item.name ?? ''),
+      value: weaponRequirementStatus(actor, item.system).fvMalus,
+    });
+  }
+
+  return choices;
 }
 
 /**
@@ -370,12 +530,22 @@ export function weaponRangeChoices(system) {
     .map((key) => ({ key, value: Number(system.range[key]) }));
 }
 
-/** Direct melee DK-difference options, applied to a roll without conversion. */
+/**
+ * The melee DK modifier, applied to a roll without conversion.
+ *
+ * Three options rather than a scale: the rule is a comparison, not an
+ * arithmetic difference — "Angriffe und Paraden sind um +3 erleichtert wenn man
+ * den längeren hat". Reach is either yours, theirs, or neither, and a DK gap of
+ * four is worth exactly as much as a gap of one.
+ *
+ * The comparison itself cannot be computed here: these workflows know no
+ * opponent, so the player states the outcome. What they must not be able to
+ * state is a number the rule cannot produce.
+ *
+ * @returns {Array<{key: string, value: number}>}
+ */
 export function weaponDkDifferenceChoices() {
-  return Array.from({ length: 13 }, (_, index) => {
-    const value = index - 6;
-    return { key: String(value), value };
-  });
+  return [-3, 0, 3].map((value) => ({ key: String(value), value }));
 }
 
 /**

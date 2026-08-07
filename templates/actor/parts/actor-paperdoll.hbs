@@ -96,6 +96,12 @@ worn, and reading them off the armour card said otherwise. --}}
               <span class='armor-key'>{{localize 'TNO.Armor.RaShort'}}</span>{{z.ra}}
             </span>
           </span>
+          {{!-- The resistance roll of this location. The silhouette answers the
+          same click; this is the keyboard's way to it, and the only one that
+          says in words which zone is being rolled. --}}
+          <a class='armor-resist' data-zone='{{z.zone}}' title='{{localize "TNO.Armor.Resist"}}'>
+            <i class='fas fa-shield-heart'></i>
+          </a>
           <a class='armor-unequip' data-zone='{{z.zone}}' title='{{localize "TNO.Armor.Unequip"}}'>
             <i class='fas fa-times'></i>
           </a>
@@ -117,6 +123,11 @@ worn, and reading them off the armour card said otherwise. --}}
               </span>
             </span>
           {{/if}}
+          {{!-- An empty location is still a location: the Unterkleidung pads
+          it, and even bare it is what a blow lands on. --}}
+          <a class='armor-resist' data-zone='{{z.zone}}' title='{{localize "TNO.Armor.Resist"}}'>
+            <i class='fas fa-shield-heart'></i>
+          </a>
         {{/if}}
       </div>
     {{/each}}

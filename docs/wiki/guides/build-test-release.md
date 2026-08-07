@@ -15,10 +15,10 @@ Command reference, CI wiring, and the full release procedure.
 | --- | --- |
 | `npm run build` | Compiles `src/scss/tno.scss` → `css/tno.css` (Sass, expanded, no source map) |
 | `npm run watch` | Same, with source maps and `--watch` |
-| `npm test` | Runs the Vitest suite (`tests/helpers/*.test.js`) |
+| `npm test` | Runs the Vitest suite (`tests/{helpers,documents}/**/*.test.js`) |
 | `npm run test:coverage` | Same, with v8 coverage (text + HTML + JSON summary) |
 | `npm run test:e2e` | Runs the Playwright suite against a disposable Foundry in Docker — see [e2e-testing.md](e2e-testing.md) |
-| `npm run docs:check` | Validates `docs/wiki/**` — see below |
+| `npm run docs:check` | Validates `docs/wiki/**` and the Proof citations in `docs/design/**` — see below |
 | `npm run css:check` | Fails if `css/tno.css` is not what `src/scss` currently compiles to — see below |
 | `npm run docs:odds` | Regenerates `docs/design/dice-odds.md` from the shipped dice helpers — see [dice-resolution.md](../concepts/dice-resolution.md) |
 | `npm run release` | Runs `release-it`: bumps version, updates `CHANGELOG.md`, tags, pushes |
@@ -48,8 +48,8 @@ Three GitHub Actions workflows:
   `system.zip` from an explicit file list, and publishes the GitHub release.
   It does not run Playwright e2e tests.
 - **`.github/workflows/docs.yml`** — triggers on push/PR touching
-  `docs/wiki/**`, `module/**`, `template.json`, or the validator itself.
-  Runs `npm run docs:check`.
+  `docs/wiki/**`, `docs/design/**`, `module/**`, `template.json`, or either
+  validator. Runs `npm run docs:check`.
 - **`.github/workflows/e2e.yml`** — triggers on push to `main` and on pull
   requests from branches in this repository, for fast feedback while
   developing. Runs the same Playwright suite against Foundry in Docker.
@@ -76,6 +76,26 @@ with the real build. It runs as part of `npm run release:verify` alongside
 
 **If it fails, run `npm run build` and commit the result** — the checked-in CSS
 is out of date, not wrong.
+
+## Proof citations in docs/design
+
+`docs/design/**` carries no prose status field. Instead every rule row cites the
+test that pins it down, as one code span holding a spec path, an `›`, and the
+test title:
+
+```
+| rule row | … | `tests/helpers/items.test.js › grades a shortfall …` |
+| rule row | … | —                                                   |
+```
+
+`scripts/validate-proofs.mjs` fails the build when a citation names a test that
+does not exist, so a citation cannot rot silently the way a hand-written
+"Status: implemented" can. An em dash means "specified, not proven" — which for
+these documents is the same statement as "not implemented", because a rule the
+suite does not exercise is a rule nothing is holding in place.
+
+It matches `it(` and `test(` alike, so a Playwright spec satisfies a citation
+whether or not the e2e suite has been run.
 
 ## Wiki validation details
 

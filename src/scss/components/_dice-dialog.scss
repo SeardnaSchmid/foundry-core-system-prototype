@@ -57,18 +57,37 @@ $c-roll-negative: #c62828;
     gap: 10px;
     padding: 2px 0;
 
+    // A conditional row — the armour step — is rendered up front and toggled
+    // with `hidden`. The `display` above is an author rule and would otherwise
+    // outrank the browser's own `[hidden] { display: none }`.
+    &[hidden] {
+      display: none;
+    }
+
     .tno-roll-detail-value {
       font-weight: bold;
     }
   }
 
-  // Combat workflows supply one required, authored context (range or direct
-  // DK difference). Both weapon contexts use radio tiles, with the authored
-  // range-band caption beneath its signed modifier.
+  // Combat workflows supply one required, authored context (range, direct DK
+  // difference, penetration comparison, the weapon a Manöver is declared with).
+  // The weapon contexts use radio tiles, with the authored range-band caption
+  // beneath its signed modifier; a weapon list uses the plain select.
   .tno-context-field {
     margin-bottom: 0;
 
     select {
+      width: 100%;
+    }
+  }
+
+  // A number only the table knows — the Schadenswert an attacker announced.
+  // Above the context picker, since it is the fact the player was just told
+  // while the comparison is one they can work out themselves.
+  .tno-required-value-field {
+    margin-bottom: $padding-sm;
+
+    input {
       width: 100%;
     }
   }
@@ -94,6 +113,10 @@ $c-roll-negative: #c62828;
 
   .tno-context-tile-grid-5 {
     grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .tno-context-tile-grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .tno-context-tile-input {

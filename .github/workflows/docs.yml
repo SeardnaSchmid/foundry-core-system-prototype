@@ -6,16 +6,20 @@ on:
       - main
     paths:
       - "docs/wiki/**"
+      - "docs/design/**"
       - "module/**"
       - "template.json"
       - "scripts/validate-wiki.mjs"
+      - "scripts/validate-proofs.mjs"
       - "package.json"
   pull_request:
     paths:
       - "docs/wiki/**"
+      - "docs/design/**"
       - "module/**"
       - "template.json"
       - "scripts/validate-wiki.mjs"
+      - "scripts/validate-proofs.mjs"
       - "package.json"
 
 jobs:

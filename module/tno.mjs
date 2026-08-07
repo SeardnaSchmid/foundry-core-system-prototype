@@ -185,6 +185,31 @@ function injectBaseRollButton(controls) {
 }
 
 /* -------------------------------------------- */
+/*  Setup Hook                                  */
+/* -------------------------------------------- */
+
+/**
+ * Every sheet, chat card and dialog in this system is painted for a light
+ * background, so a client that has never picked a colour scheme starts on
+ * Foundry's light theme instead of its dark default.
+ *
+ * Only the *default* moves: the write happens once, and only while nothing is
+ * stored under `core.uiConfig` for this client, so anyone who has been through
+ * the UI Configuration menu — including anyone who deliberately chose dark —
+ * keeps their own setting. `core.uiConfig` is registered by core during
+ * `Game#initialize`, after the `init` hook, hence `setup`.
+ */
+Hooks.once('setup', function () {
+  const stored = game.settings.storage.get('client')?.getItem('core.uiConfig');
+  if (stored !== null && stored !== undefined) return;
+
+  const uiConfig = foundry.utils.deepClone(game.settings.get('core', 'uiConfig'));
+  uiConfig.colorScheme.applications = 'light';
+  uiConfig.colorScheme.interface = 'light';
+  game.settings.set('core', 'uiConfig', uiConfig);
+});
+
+/* -------------------------------------------- */
 /*  Handlebars Helpers                          */
 /* -------------------------------------------- */
 

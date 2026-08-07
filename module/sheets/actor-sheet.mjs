@@ -1377,12 +1377,22 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       'click',
       '.slot-cell[data-item-id], .slot-trinket, .armor-row[data-item-id]',
       (event, target) => {
-        if (event.target.closest('.armor-unequip')) return;
+        if (event.target.closest('.armor-unequip, .armor-resist')) return;
         event.preventDefault();
         const item = this.actor.items.get(target.dataset.itemId);
         if (item) this.#openItemPopover(item, target);
       }
     );
+
+    // A hit location rolls its own resistance. The silhouette is the primary
+    // way in — clicking where you were hit — and does not disturb drag-to-equip,
+    // since a click does not follow a drag. The row's anchor is the same action
+    // for anyone not using a mouse, and sits on empty zones too: a bare
+    // location still carries whatever the Unterkleidung pads it with.
+    this.#delegate('click', '.paperdoll-figure .zone[data-zone], .armor-resist', (event, target) => {
+      event.preventDefault();
+      this.actor.openResistanceCheck(target.dataset.zone);
+    });
 
     // Equipment: the x on a filled paper doll zone takes the piece off, which
     // hands it back to the carry budget. Putting a piece *on* is drag-only
@@ -2009,8 +2019,9 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       }
 
       // Dodge stays a self-contained defence probe: it needs neither an
-      // attacker nor an attack result. The existing derived armour check
-      // already answers whether its single SV malus applies.
+      // attacker nor an attack result. Its armour SV malus is not this
+      // handler's business — the rule attaches to Beweglichkeit, not to Dodge,
+      // and the dialog adds the step for whatever roll is built on it.
       if (dataset.rollType == 'dodge') {
         const definition = getSkillDefinition(this.actor, 'acrobatics');
         if (!definition) return;
@@ -2019,9 +2030,6 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           attributeA: 'dex',
           lockAttribute: true,
           skill: { key: 'acrobatics', label: definition.label, value: rank },
-          fixedModifiers: this.actor.system.derived?.armorSvPenalty
-            ? [{ label: game.i18n.localize('TNO.Combat.ArmorSvMalus'), value: -3 }]
-            : [],
           flavor: game.i18n.localize('TNO.Combat.Dodge'),
         }).render(true);
       }
@@ -2040,9 +2048,14 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           return new TnoCustomSkillDialog(this.actor, { key: dataset.skill }).render(true);
         }
         const rank = this.actor.system.skills?.[dataset.skill]?.value ?? 0;
+        // A Manöver is always performed *with* something, and naming that
+        // weapon is what finally lets its FV shortfall — "würfelt er alle
+        // Manöver mit einem Malus" — land on a roll.
+        const maneuver = getSkillDefinition(this.actor, dataset.skill)?.category === 'maneuvers';
         return new TnoRollDialog(this.actor, {
           attributeA: dataset.ability,
           skill: { key: dataset.skill, label: dataset.label, value: rank },
+          ...(maneuver ? { preRollContext: this.actor.maneuverPreRollContext() } : {}),
           flavor: dataset.label,
         }).render(true);
       }

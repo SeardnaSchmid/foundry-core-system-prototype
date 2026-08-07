@@ -2942,7 +2942,7 @@
   gap: 6px;
 }
 .tno .armor-row {
-  --armor-unequip-size: 1.25em;
+  --armor-action-size: 1.25em;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -2953,9 +2953,10 @@
   background: #dfe8d5;
   font-size: var(--font-size-13, 13px);
 }
-.tno .armor-row:not(:has(.armor-unequip))::after {
+.tno .armor-row:not(:has(.armor-unequip))::after, .tno .armor-row:not(:has(.armor-resist))::before {
   content: "";
-  flex: 0 0 var(--armor-unequip-size);
+  order: 1;
+  flex: 0 0 var(--armor-action-size);
 }
 .tno .armor-row.armor-empty {
   border-style: dashed;
@@ -3048,12 +3049,20 @@
   color: #444;
 }
 .tno .armor-unequip {
-  flex: 0 0 var(--armor-unequip-size);
+  flex: 0 0 var(--armor-action-size);
   text-align: center;
   color: #444;
 }
 .tno .armor-unequip:hover {
   color: #b3212b;
+}
+.tno .armor-resist {
+  flex: 0 0 var(--armor-action-size);
+  text-align: center;
+  color: #444;
+}
+.tno .armor-resist:hover {
+  color: #2f6bff;
 }
 .tno .armor-warning {
   margin-top: 6px;
@@ -4018,6 +4027,9 @@
   gap: 10px;
   padding: 2px 0;
 }
+.tno .tno-roll-dialog .tno-roll-detail[hidden] {
+  display: none;
+}
 .tno .tno-roll-dialog .tno-roll-detail .tno-roll-detail-value {
   font-weight: bold;
 }
@@ -4025,6 +4037,12 @@
   margin-bottom: 0;
 }
 .tno .tno-roll-dialog .tno-context-field select {
+  width: 100%;
+}
+.tno .tno-roll-dialog .tno-required-value-field {
+  margin-bottom: 5px;
+}
+.tno .tno-roll-dialog .tno-required-value-field input {
   width: 100%;
 }
 .tno .tno-roll-dialog .tno-context-tile-field {
@@ -4045,6 +4063,9 @@
 }
 .tno .tno-roll-dialog .tno-context-tile-grid-5 {
   grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.tno .tno-roll-dialog .tno-context-tile-grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 .tno .tno-roll-dialog .tno-context-tile-input {
   position: absolute;

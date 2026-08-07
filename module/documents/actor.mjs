@@ -1,4 +1,10 @@
-import { computeCarry, resolveArmor } from '../helpers/inventory.mjs';
+import { ARMOR_ADDON_ZONES, computeCarry, resolveArmor } from '../helpers/inventory.mjs';
+import {
+  MANEUVER_UNARMED_KEY,
+  armorPenetrationChoices,
+  maneuverWeaponChoices,
+} from '../helpers/items.mjs';
+import { getSkillDefinitions } from '../helpers/skills.mjs';
 
 /**
  * Extend the base Actor document by defining a custom roll data structure which is ideal for the Simple system.
@@ -117,6 +123,97 @@ export class TnoActor extends Actor {
       edgePoolMax: edgePoolMax,
       edgePool: Math.max(0, edgePoolMax - edgePoolSpent),
       postMortem: 2 * base('inv'),
+    };
+  }
+
+  /**
+   * Open the resistance roll of one hit location: Stärke + RW(Stelle) − the
+   * damage value the attacker announced, plus a Bonusstufe when the armour is
+   * harder than what the weapon brings through it.
+   *
+   * The defender's sheet knows no attacker, and this method deliberately does
+   * not try to become one: it neither determines the hit location — the player
+   * states it by clicking one — nor applies any damage. Both numbers it cannot
+   * know are asked for: the Schadenswert as a typed value, the RH-versus-RB/RD
+   * comparison as a choice.
+   *
+   * Stärke enters at its damage-adjusted `value`, not its trained `base`. The
+   * `base` axis is for requirements ("did you train up to what this gear
+   * demands"); resisting a blow is a statement about performance right now, the
+   * same reading `derived.dodge` already takes.
+   *
+   * The dialog is reached through `game.tno.TnoRollDialog` rather than by
+   * importing it, which keeps `documents/` from reaching up into `apps/`.
+   *
+   * @param {string} zone  One of the four addon zones. The Unterkleidung is not
+   *   a hit location — it applies in all four at once — and is refused.
+   * @returns {TnoRollDialog|void}
+   */
+  openResistanceCheck(zone) {
+    if (!this.isOwner || !ARMOR_ADDON_ZONES.includes(zone)) return;
+    const armor = this.system.derived?.armor?.[zone];
+    if (!armor) return;
+
+    const zoneLabel = game.i18n.localize(CONFIG.TNO.armorZones[zone]);
+    return new game.tno.TnoRollDialog(this, {
+      attributeA: 'str',
+      lockAttribute: true,
+      // Already summed over the Unterkleidung and this zone's addon by
+      // `resolveArmor`, which is the value the paper doll shows.
+      fixedModifiers: [
+        { label: game.i18n.format('TNO.Combat.ResistanceRw', { zone: zoneLabel }), value: armor.rw },
+      ],
+      requiredValue: {
+        label: game.i18n.localize('TNO.Combat.DamageValue'),
+        componentLabel: game.i18n.localize('TNO.Combat.DamageValue'),
+        sign: -1,
+        min: 0,
+      },
+      preRollContext: {
+        label: game.i18n.localize('TNO.Combat.Penetration.Label'),
+        placeholder: game.i18n.localize('TNO.Combat.ContextPlaceholder'),
+        control: 'tiles',
+        tileLabels: true,
+        tileColumns: 3,
+        choices: armorPenetrationChoices().map((choice) => ({
+          ...choice,
+          label: game.i18n.localize(`TNO.Combat.Penetration.${choice.key.charAt(0).toUpperCase()}${choice.key.slice(1)}`),
+          componentLabel: game.i18n.localize('TNO.Combat.Penetration.Label'),
+        })),
+      },
+      flavor: game.i18n.format('TNO.Combat.ResistanceFlavor', { zone: zoneLabel }),
+    }).render(true);
+  }
+
+  /**
+   * The required choice every Manöver opens with: which weapon it is declared
+   * with, and what that weapon's FV shortfall costs it.
+   *
+   * A `select`, not the tile picker the two weapon workflows use. Those are
+   * fixed-arity, value-first pickers where the signed number is the content;
+   * a weapon list is name-first and unbounded, and the select already reads
+   * "Langschwert (−3)", which is exactly the right way round.
+   *
+   * @returns {{label: string, placeholder: string, control: 'select', choices: Array<{key: string, label: string, value: number, componentLabel: string}>}}
+   */
+  maneuverPreRollContext() {
+    const definitions = getSkillDefinitions(this);
+    const choices = maneuverWeaponChoices(this, this.items, (key) => !!definitions[key]);
+    return {
+      label: game.i18n.localize('TNO.Combat.ManeuverWeapon'),
+      placeholder: game.i18n.localize('TNO.Combat.ManeuverWeaponPlaceholder'),
+      control: 'select',
+      choices: choices.map((choice) => {
+        // Only the unarmed entry carries an i18n key as its name; every other
+        // one carries what the player called the weapon.
+        const label = choice.key === MANEUVER_UNARMED_KEY ? game.i18n.localize(choice.name) : choice.name;
+        return {
+          key: choice.key,
+          label,
+          value: choice.value,
+          componentLabel: game.i18n.format('TNO.Combat.FvMalusFor', { weapon: label }),
+        };
+      }),
     };
   }
 

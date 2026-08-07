@@ -14,6 +14,7 @@ related: [architecture/bootstrap]
 | Hook | File:line | Purpose |
 | --- | --- | --- |
 | `Hooks.once('init')` | [`tno.mjs:23`](../../../module/tno.mjs) | Bootstrap — see [bootstrap.md](bootstrap.md) |
+| `Hooks.once('setup')` | [`tno.mjs:203`](../../../module/tno.mjs) | Default a fresh client's `core.uiConfig` colour scheme to light |
 | `Hooks.once('ready')` | [`tno.mjs:180`](../../../module/tno.mjs) | Register `hotbarDrop`, run migrations |
 | `Hooks.on('renderChatInput')` | [`tno.mjs:129`](../../../module/tno.mjs) | Inject "Basiswürfel" button (Foundry v14+ chat layout) |
 | `Hooks.on('renderChatLog')` | [`tno.mjs:130`](../../../module/tno.mjs) | Same, for v12–v13's `#chat-controls` layout |
@@ -38,6 +39,16 @@ the sheet (`BASICS_LAYOUT_DEFAULT` in
 only thing that writes it: the value is dragged on the sheet itself, never
 typed into a form. Client-scoped so a player's layout follows them across every
 character sheet they open rather than living on the actor.
+
+### The core colour scheme
+
+The system does not register a theme setting of its own; it only nudges
+Foundry's `core.uiConfig`. Every sheet, chat card and dialog here is painted
+for a light background, so the `setup` hook writes `colorScheme.applications`
+and `colorScheme.interface` to `light` — but only while nothing is stored under
+`core.uiConfig` for that client, so a chosen scheme (dark included) is never
+overwritten. `core.uiConfig` is registered by core *after* the `init` hook,
+hence `setup`.
 
 One world-scoped hidden setting, registered by
 `registerMigrationSettings()` in

@@ -128,10 +128,11 @@ $c-trinket-label: rgba($c-dark, 0.55);
 }
 
 .armor-row {
-  // The unequip control's column, in em so it tracks the row's own font size —
-  // the icon is a 1.25em glyph, and a px constant would drift the moment the
-  // doll is trimmed inside a Basics column.
-  --armor-unequip-size: 1.25em;
+  // One row-action column — resist, unequip, or the placeholder standing in for
+  // either. In em so it tracks the row's own font size: the icons are 1.25em
+  // glyphs, and a px constant would drift the moment the doll is trimmed inside
+  // a Basics column.
+  --armor-action-size: 1.25em;
 
   display: flex;
   align-items: center;
@@ -143,13 +144,20 @@ $c-trinket-label: rgba($c-dark, 0.55);
   background: $c-zone-filled-bg;
   font-size: var(--font-size-13, 13px);
 
-  // A row with nothing to take off still reserves that column, so the RH/RW/RA
+  // A row missing either action still reserves its column, so the RH/RW/RA
   // read-outs stay in one line down the whole doll instead of stepping right
-  // wherever a zone happens to be empty. As a flex item the placeholder also
-  // picks up the row's gap, which is the other half of the offset.
-  &:not(:has(.armor-unequip))::after {
+  // wherever a zone happens to be empty. As flex items the placeholders also
+  // pick up the row's gap, which is the other half of the offset.
+  //
+  // Two of them, because the two actions are missing on different rows: an
+  // empty zone has nothing to take off, and the Unterkleidung has nothing to
+  // resist with — it is not a hit location. The `::before` is ordered last so
+  // it stands in for the tail column rather than leading the row.
+  &:not(:has(.armor-unequip))::after,
+  &:not(:has(.armor-resist))::before {
     content: '';
-    flex: 0 0 var(--armor-unequip-size);
+    order: 1;
+    flex: 0 0 var(--armor-action-size);
   }
 
   // An empty zone is a drop target, not a button — no pointer cursor, since
@@ -309,12 +317,26 @@ $c-trinket-label: rgba($c-dark, 0.55);
 
 .armor-unequip {
   // Same width as the placeholder above, so both kinds of row end identically.
-  flex: 0 0 var(--armor-unequip-size);
+  flex: 0 0 var(--armor-action-size);
   text-align: center;
   color: $c-tan;
 
   &:hover {
     color: $c-warning;
+  }
+}
+
+// The resistance roll of this location. Present on all four zone rows, filled
+// or empty, so it takes a constant column and leaves the RH/RW/RA read-outs
+// aligned. The Unterkleidung row deliberately has none — it is not a hit
+// location — which is the one row that ends a column short.
+.armor-resist {
+  flex: 0 0 var(--armor-action-size);
+  text-align: center;
+  color: $c-tan;
+
+  &:hover {
+    color: $c-primary;
   }
 }
 
