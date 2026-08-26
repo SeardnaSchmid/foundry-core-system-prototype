@@ -309,7 +309,6 @@
 }
 
 .chip-sense,
-.chip-dodge,
 .chip-initiative {
   cursor: pointer;
   transition: background 0.15s ease;
@@ -324,36 +323,6 @@
       color: $c-white;
     }
   }
-}
-
-// A defence the current Haltung does not allow. Dimmed rather than hidden, and
-// it keeps its number: the value is still what this character would dodge at,
-// and what changed is that the stance does not let them — the same reading the
-// struck-through movement tiers take.
-.chip-dodge.chip-unavailable {
-  cursor: default;
-  opacity: 0.5;
-
-  &:hover {
-    background: rgba($c-white, 0.66);
-    color: inherit;
-
-    .chip-icon,
-    .chip-label {
-      color: $c-tan;
-    }
-  }
-}
-
-.chip-defense-malus {
-  padding: 2px 5px;
-  border-radius: 999px;
-  background: rgba($c-warning, 0.18);
-  color: $c-warning;
-  font-size: var(--font-size-10, 10px);
-  font-weight: bold;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
 }
 
 // The Haltung picker. The select is the chip's value, so it carries no chrome

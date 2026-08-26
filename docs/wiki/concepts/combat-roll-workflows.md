@@ -52,9 +52,9 @@ another user's permissions.
   [`sheets/actor-sheet.mjs`](../../../module/sheets/actor-sheet.mjs) exposes
   Dodge and the Haltung picker, including the explicit repeat action needed to
   take the current Haltung again, routes paper-doll clicks to the resistance
-  roll, and gates the popover's Parry action on `canDefend`. The Dodge chip and
-  an available Parry action show the next repeated-defence malus before the
-  player opens its dialog.
+  roll, and gates the popover's Parry action on `canDefend`. The compact Dodge
+  action below the silhouette and an available Parry action show the next
+  repeated-defence malus before the player opens its dialog.
 - [`apps/roll-dialog.mjs`](../../../module/apps/roll-dialog.mjs) owns every
   optional input a combat roll can carry, all of them feeding one component list
   that the threshold, the live breakdown, the chat card and the message flags
@@ -86,9 +86,8 @@ another user's permissions.
   tooltip, because the card is the only record of what was announced.
 - The item popover keeps Attack primary and places Parry alongside it in the
   combat row.
-  The character-sheet template places Dodge directly after Acrobatics in the
-  normal Basics skill list; it is a roll action, not an advanceable rank.
   [`actor-paperdoll.hbs`](../../../templates/actor/parts/actor-paperdoll.hbs)
-  carries the resistance trigger twice: the silhouette's four `data-zone`
-  shapes, and an `.armor-resist` anchor on every zone row — filled or empty,
-  never on the Unterkleidung, which is not a hit location.
+  places the location-independent Dodge action beneath the silhouette and
+  carries each location's resistance trigger twice: the silhouette's four
+  `data-zone` shapes, and an `.armor-resist` anchor on every zone row — filled
+  or empty, never on the Unterkleidung, which is not a hit location.

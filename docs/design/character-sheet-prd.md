@@ -1,8 +1,8 @@
 # Character Sheet - Product Requirements Document
 
-**Version:** 1.1
-**Last Updated:** 2026-08-03
-**Status:** Implementation Complete (v1.1) — open for iteration
+**Version:** 1.2
+**Last Updated:** 2026-08-26
+**Status:** Implementation Complete (v1.2) — open for iteration
 
 ---
 
@@ -54,11 +54,8 @@ Visible above every tab as a compact character profile.
   - **Haltung:** a persisted combat-stance picker. Choosing a different stance
     takes it immediately; the adjacent repeat action takes the current stance
     again, because that is a meaningful rules action that clears both repeated
-    defence counters. The selected stance gates Dodge here and Parry in a
-    weapon popover.
-  - **Dodge (Ausweichen):** Beweglichkeit + Akrobatik, available only when the
-    current Haltung permits it. After the first dodge in a stance, the chip
-    shows the flat next-defence malus before opening the roll dialog.
+    defence counters. The selected stance gates Dodge below the silhouette and
+    Parry in a weapon popover.
   - **Initiative:** `1d10 + @derived.initiative`, rolled via the generic `data-roll` formula path. It replaces the former portrait overlay, so the portrait stays unobstructed.
   - **Sixth Sense (6. Sinn):** a plain standard 3d20 roll against `system.derived.sixthSense`, no modifiers/advantage, no Problem-Solving pre-edge (`edgeExempt: true`) — it's an instinctive reaction, not a deliberate check.
 - **Movement chip:** crawl | walk | sprint as one display-only chip, each figure with its own tooltip — no roll, no interaction. A tier the character has lost is **struck through in the warning red**: sprint whenever `derived.canSprint` is false (a load at half the carry budget *or* a damaged Beweglichkeit — the chip does not distinguish, the tooltip does), and walk as well once the load is `crawlOnly`. This is where the carry grid's `Kein Sprint` / `Nur Kriechen` badges went: the consequence belongs on the figure it takes away, since the question being asked is "how far can I move".
@@ -107,7 +104,7 @@ Renders `templates/actor/parts/actor-items.hbs` as a prominent **WIP** banner. T
 
 The visual views used to sit above that flat list and now live in the Basics tab as columns of its own — they answer "what am I wearing / hauling right now?", which is asked mid-roll rather than while bookkeeping. The paper doll and the stacked Kleinkram/Geldbörse column sit in the top row beside the attribute matrix; the carry raster sits in the bottom row beside the skill list, because the raster is a long list and belongs next to the other long list on the sheet. All are character-only. The equipment arrangements are derived on every render from `_prepareEquipment()`; the wallet instead reads its five persisted native-currency balances from `system.money`:
 
-- **Paper doll** (`parts/actor-paperdoll.hbs`) — the Unterkleidung as a separated base-layer row beneath the four hit locations (Kopf, Torso, Arme, Beine), each with its effective RH/RW/RA. Every silhouette zone keeps a full-size base shape, painted from `z.baseState` as `bare` (grey — no Unterkleidung) or `suited` (pale green — covered by Unterkleidung, which closes coverage but grants no hardness). A worn zone addon is a smaller green plate drawn above that base, so its exposed rim still shows whether Unterkleidung is present underneath. **An empty zone is a drop target and nothing else:** a piece is worn by dragging it out of the carry grid onto the zone it was authored for, and while one is in flight that zone lights up. Clicking an empty zone used to offer to author a piece on the spot, which conjured armour out of an empty doll — wearing something is a state change on gear already in hand, so the click path is gone. A filled row is itself draggable, and dropping it back into the carry grid takes the piece off: the row's `x` is the same act, but a player who learned to equip by dragging has no reason to expect the way back to be a different gesture. Clicking a filled row opens the piece's own sheet — the doll is the only place a worn piece appears, so nothing else would reach it.
+- **Paper doll** (`parts/actor-paperdoll.hbs`) — the Unterkleidung as a separated base-layer row beneath the four hit locations (Kopf, Torso, Arme, Beine), each with its effective RH/RW/RA. Every silhouette zone keeps a full-size base shape, painted from `z.baseState` as `bare` (grey — no Unterkleidung) or `suited` (pale green — covered by Unterkleidung, which closes coverage but grants no hardness). A worn zone addon is a smaller green plate drawn above that base, so its exposed rim still shows whether Unterkleidung is present underneath. **An empty zone is a drop target and nothing else:** a piece is worn by dragging it out of the carry grid onto the zone it was authored for, and while one is in flight that zone lights up. Clicking an empty zone used to offer to author a piece on the spot, which conjured armour out of an empty doll — wearing something is a state change on gear already in hand, so the click path is gone. A filled row is itself draggable, and dropping it back into the carry grid takes the piece off: the row's `x` is the same act, but a player who learned to equip by dragging has no reason to expect the way back to be a different gesture. Clicking a filled row opens the piece's own sheet — the doll is the only place a worn piece appears, so nothing else would reach it. The compact **Dodge (Ausweichen)** icon/value button sits directly beneath the silhouette: it rolls Beweglichkeit + Akrobatik when the current Haltung permits it and carries the flat next-defence malus as a small badge after the first dodge in that stance. It is deliberately separate from the four zone interactions beside it, which continue to start Resistance for their specific hit location.
 - **Geldbörse** (`parts/actor-money-wallet.hbs`) — a compact, borderless section pinned to the bottom of the Kleinkram column. The empty space between both surfaces is flexible; when the Kleinkram list grows, it extends the complete top row and naturally pushes the wallet downward rather than introducing an inner scrollbar. The sheet never exposes the individual holdings: its two thin summary rows express the complete combined value once in OR and once in Imperial Qian, regardless of which five currencies compose it. The euro total remains secondary in the header. Owners click the section to open a top-layer editor for the actual five balances, with their money forms, individual exchange rates, live euro conversions and a live total. Or Odur and Or Forseti are approximate and prefix every combined summary and total containing them with `≈`. The editor is an `item-popover` variant and reuses that surface's head, fact rows and action bar rather than introducing parallel popup chrome. Read-only viewers get the same compact summaries without a dead edit affordance.
 - **Trageslots** (`parts/actor-slot-grid.hbs`) — every owned physical item is packed into the slot budget in `sort` order unless it is worn or priced at zero slots. Cells can be opened, re-sorted, or dragged onto the paper doll to wear armour. The grid contains exactly the character's capacity and renders excess gear as overload rather than refusing it.
 - **Kleinkram** (`parts/actor-trinkets.hbs`) — Papiere und Krimskrams: carried gear the rules price at 0 slots, so it never takes a cell in the raster and sits above the wallet. Same interactions as a cell (open, sort, wear), but **no create control and no drop target**: an item is Kleinkram exactly when its `slots` is 0, which is authored on the item's own sheet, and there is no state here to put a piece into. Currency balances are not Items and appear only in the wallet.
@@ -169,6 +166,7 @@ Key prefixes used throughout the sheet (see `lang/de.json` / `lang/en.json`):
 
 | Version | Date | Changes | Author |
 |---------|------|---------|--------|
+| 1.2 | 2026-08-26 | Moved Dodge from the banner to the paper-doll defence surface | System |
 | 1.1 | 2026-08-03 | Replaced stale sidebar description with responsive profile-banner and portrait contract | System |
 | 1.0 | 2026-07-21 | Initial PRD creation, documenting existing implementation | System |
 

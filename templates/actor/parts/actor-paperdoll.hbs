@@ -12,55 +12,77 @@ in the row (see `actor-trinkets.hbs`) — the loose items are carried, not
 worn, and reading them off the armour card said otherwise. --}}
 <div class='paperdoll'>
 
-  {{!-- The viewBox is cropped to the drawing's actual bounds (x 22-98,
-  y 4-160, plus a stroke's worth of margin) rather than a round 120x178 canvas,
-  so the figure fills its box instead of floating in dead space. --}}
-  <svg class='paperdoll-figure' viewBox='19 1 82 162' role='img'
-       aria-label='{{localize "TNO.Armor.FigureAlt"}}'>
-    <title>{{localize 'TNO.Armor.Zones'}}</title>
-    {{!-- Every location keeps a full-size base shape for the Unterkleidung
-    state (`bare` or `suited`). A worn addon is drawn as a smaller plate above
-    it, leaving the base visible around the edge. That way the figure can show
-    both layers at once instead of replacing the suit state with `filled`. --}}
-    {{#each paperdoll.zones as |z|}}
-      {{#ifEquals z.zone 'head'}}
-        <g class='zone zone-{{z.baseState}}' data-zone='head'>
-          <circle class='zone-base' cx='60' cy='20' r='16'/>
-          {{#if z.item}}
-            <circle class='zone-plate' cx='60' cy='20' r='12.5'/>
-          {{/if}}
-        </g>
-      {{/ifEquals}}
-      {{#ifEquals z.zone 'torso'}}
-        <g class='zone zone-{{z.baseState}}' data-zone='torso'>
-          <rect class='zone-base' x='41' y='40' width='38' height='54' rx='5'/>
-          {{#if z.item}}
-            <rect class='zone-plate' x='45' y='44' width='30' height='46' rx='4'/>
-          {{/if}}
-        </g>
-      {{/ifEquals}}
-      {{#ifEquals z.zone 'arms'}}
-        <g class='zone zone-{{z.baseState}}' data-zone='arms'>
-          <rect class='zone-base' x='22' y='42' width='15' height='50' rx='6'/>
-          <rect class='zone-base' x='83' y='42' width='15' height='50' rx='6'/>
-          {{#if z.item}}
-            <rect class='zone-plate' x='24' y='46' width='11' height='42' rx='4'/>
-            <rect class='zone-plate' x='85' y='46' width='11' height='42' rx='4'/>
-          {{/if}}
-        </g>
-      {{/ifEquals}}
-      {{#ifEquals z.zone 'legs'}}
-        <g class='zone zone-{{z.baseState}}' data-zone='legs'>
-          <rect class='zone-base' x='43' y='98' width='15' height='62' rx='5'/>
-          <rect class='zone-base' x='62' y='98' width='15' height='62' rx='5'/>
-          {{#if z.item}}
-            <rect class='zone-plate' x='45' y='102' width='11' height='54' rx='4'/>
-            <rect class='zone-plate' x='64' y='102' width='11' height='54' rx='4'/>
-          {{/if}}
-        </g>
-      {{/ifEquals}}
-    {{/each}}
-  </svg>
+  <div class='paperdoll-figure-column'>
+    {{!-- The viewBox is cropped to the drawing's actual bounds (x 22-98,
+    y 4-160, plus a stroke's worth of margin) rather than a round 120x178 canvas,
+    so the figure fills its box instead of floating in dead space. --}}
+    <svg class='paperdoll-figure' viewBox='19 1 82 162' role='img'
+         aria-label='{{localize "TNO.Armor.FigureAlt"}}'>
+      <title>{{localize 'TNO.Armor.Zones'}}</title>
+      {{!-- Every location keeps a full-size base shape for the Unterkleidung
+      state (`bare` or `suited`). A worn addon is drawn as a smaller plate above
+      it, leaving the base visible around the edge. That way the figure can show
+      both layers at once instead of replacing the suit state with `filled`. --}}
+      {{#each paperdoll.zones as |z|}}
+        {{#ifEquals z.zone 'head'}}
+          <g class='zone zone-{{z.baseState}}' data-zone='head'>
+            <circle class='zone-base' cx='60' cy='20' r='16'/>
+            {{#if z.item}}
+              <circle class='zone-plate' cx='60' cy='20' r='12.5'/>
+            {{/if}}
+          </g>
+        {{/ifEquals}}
+        {{#ifEquals z.zone 'torso'}}
+          <g class='zone zone-{{z.baseState}}' data-zone='torso'>
+            <rect class='zone-base' x='41' y='40' width='38' height='54' rx='5'/>
+            {{#if z.item}}
+              <rect class='zone-plate' x='45' y='44' width='30' height='46' rx='4'/>
+            {{/if}}
+          </g>
+        {{/ifEquals}}
+        {{#ifEquals z.zone 'arms'}}
+          <g class='zone zone-{{z.baseState}}' data-zone='arms'>
+            <rect class='zone-base' x='22' y='42' width='15' height='50' rx='6'/>
+            <rect class='zone-base' x='83' y='42' width='15' height='50' rx='6'/>
+            {{#if z.item}}
+              <rect class='zone-plate' x='24' y='46' width='11' height='42' rx='4'/>
+              <rect class='zone-plate' x='85' y='46' width='11' height='42' rx='4'/>
+            {{/if}}
+          </g>
+        {{/ifEquals}}
+        {{#ifEquals z.zone 'legs'}}
+          <g class='zone zone-{{z.baseState}}' data-zone='legs'>
+            <rect class='zone-base' x='43' y='98' width='15' height='62' rx='5'/>
+            <rect class='zone-base' x='62' y='98' width='15' height='62' rx='5'/>
+            {{#if z.item}}
+              <rect class='zone-plate' x='45' y='102' width='11' height='54' rx='4'/>
+              <rect class='zone-plate' x='64' y='102' width='11' height='54' rx='4'/>
+            {{/if}}
+          </g>
+        {{/ifEquals}}
+      {{/each}}
+    </svg>
+
+    {{!-- Ausweichen belongs to the defender as a whole, never to one hit
+    location. Its compact control sits directly beneath the silhouette while
+    every zone click beside it remains the Widerstand action for that specific
+    location. The Haltung can make the action unavailable without hiding the
+    value the character would otherwise roll against. --}}
+    <button type='button'
+            class='paperdoll-dodge{{#if dodgeDefense.available}} rollable{{/if}}'
+            {{#if dodgeDefense.available}}data-roll-type='dodge' data-label='{{localize "TNO.Combat.Dodge"}}'{{/if}}
+            {{#if dodgeDefense.disabled}}disabled{{/if}}
+            aria-label='{{localize "TNO.Combat.Dodge"}}: {{system.derived.dodge}}{{#if dodgeDefense.malus}}, {{dodgeDefense.hint}}{{/if}}'
+            data-tooltip-html='<dl class="tno-tooltip">
+<div class="tno-tooltip-row"><dt>{{localize "TNO.Combat.Dodge"}} <span class="tno-tooltip-value">{{system.derived.dodge}}</span></dt><dd>{{#if dodgeDefense.available}}{{localize "TNO.Combat.DodgeHint"}}{{else}}{{localize "TNO.Combat.StanceNoDefense"}}{{/if}}</dd></div>
+{{#if dodgeDefense.malus}}<div class="tno-tooltip-row"><dt>{{localize "TNO.Combat.RepeatedDefenseLabel"}}</dt><dd>{{dodgeDefense.hint}}</dd></div>{{/if}}
+</dl>'
+            data-tooltip-direction='UP'>
+      <i class='fa-solid fa-person-running' aria-hidden='true'></i>
+      <span class='paperdoll-dodge-value'>{{system.derived.dodge}}</span>
+      {{#if dodgeDefense.malus}}<span class='defense-malus'>{{dodgeDefense.malus}}</span>{{/if}}
+    </button>
+  </div>
 
   <div class='paperdoll-zones'>
 

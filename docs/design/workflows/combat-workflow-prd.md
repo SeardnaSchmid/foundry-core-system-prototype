@@ -234,7 +234,7 @@ again — clears both counters
 The character banner takes a different Haltung directly from its picker and
 provides a separate repeat action for the currently selected one; a native
 select cannot emit a change when its current option is chosen again. The next
-repeated-defence malus is visible on the Dodge chip and on an available Parry
+repeated-defence malus is visible on the Dodge action and on an available Parry
 action before either dialog opens.
 Defensiver Kampf buys the parry malus back a point at a time in Einfache
 Bewegung and En Garde, Deckung nutzen the dodge malus in Vorsichtige Bewegung and

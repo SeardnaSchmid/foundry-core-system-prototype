@@ -287,4 +287,7 @@ The paper doll's silhouette renders each zone as two possible layers. The
 full-size base uses the sheet-derived `baseState` (`bare` / `suited`), and a
 worn addon adds a smaller green plate above it. The exposed base rim therefore
 continues to show whether Unterkleidung is present even when that zone also has
-armour on top.
+armour on top. The silhouette column closes with the character's compact Dodge
+action; the icon and value sit directly beneath the figure because Dodge belongs
+to no hit location. The silhouette and the resistance icon in each zone row
+remain the location-specific Resistance entry points.

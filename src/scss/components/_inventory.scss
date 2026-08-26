@@ -45,6 +45,13 @@ $c-trinket-label: rgba($c-dark, 0.55);
   padding: 14px 16px;
 }
 
+.paperdoll-figure-column {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
 // One shared quiet surface below the common Basics heading. Armour, loose
 // items and the slot raster remain distinct interactions, not distinct panel
 // systems.
@@ -348,6 +355,84 @@ $c-trinket-label: rgba($c-dark, 0.55);
 
   i {
     margin-right: 6px;
+  }
+}
+
+// The one location-independent defence on the doll. Resistance remains on the
+// four body zones beside it; this compact action stays in the silhouette column
+// so it cannot read as belonging to an armour row. Its neutral pill treatment
+// matches the sheet's meta controls: this is a quick entry point into a dialog,
+// not the final Roll button itself and not another piece of worn armour.
+.paperdoll-dodge {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  min-height: 28px;
+  margin: 0;
+  padding: 3px 5px;
+  border: 1px solid rgba($c-dark, 0.22);
+  border-radius: 999px;
+  background: rgba($c-white, 0.58);
+  box-shadow: inset 0 1px 0 rgba($c-white, 0.76), 0 1px 2px rgba($c-dark, 0.12);
+  color: $c-dark;
+  font-size: var(--font-size-12, 12px);
+  font-weight: bold;
+  line-height: 1;
+  transition: background 0.12s ease, border-color 0.12s ease;
+
+  &:hover:not(:disabled) {
+    border-color: rgba($c-dark, 0.36);
+    background: rgba($c-white, 0.82);
+  }
+
+  &:active:not(:disabled) {
+    border-color: rgba($c-dark, 0.42);
+    background: rgba($c-dark, 0.1);
+  }
+
+  &:focus {
+    box-shadow: none;
+  }
+
+  &:disabled {
+    cursor: default;
+    border-color: rgba($c-dark, 0.14);
+    background: rgba($c-white, 0.34);
+    color: $c-tan;
+    opacity: 0.65;
+  }
+
+  > i {
+    color: $c-tan;
+  }
+
+  .paperdoll-dodge-value,
+  .defense-malus {
+    padding: 2px 5px;
+    border-radius: 999px;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+
+  .paperdoll-dodge-value {
+    background: rgba($c-dark, 0.08);
+    font-size: var(--font-size-11, 11px);
+  }
+
+  .defense-malus {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: $c-white;
+    color: $c-warning;
+    font-size: var(--font-size-10, 10px);
+  }
+
+  &:disabled .paperdoll-dodge-value {
+    background: rgba($c-dark, 0.08);
   }
 }
 

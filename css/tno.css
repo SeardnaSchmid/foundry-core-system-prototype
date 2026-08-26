@@ -510,13 +510,11 @@
   color: #b5b3a4;
 }
 .tno .chip-sense,
-.tno .chip-dodge,
 .tno .chip-initiative {
   cursor: pointer;
   transition: background 0.15s ease;
 }
 .tno .chip-sense:hover,
-.tno .chip-dodge:hover,
 .tno .chip-initiative:hover {
   background: #444;
   color: #fff;
@@ -524,35 +522,10 @@
 .tno .chip-sense:hover .chip-icon,
 .tno .chip-sense:hover .chip-label,
 .tno .chip-sense:hover .chip-info,
-.tno .chip-dodge:hover .chip-icon,
-.tno .chip-dodge:hover .chip-label,
-.tno .chip-dodge:hover .chip-info,
 .tno .chip-initiative:hover .chip-icon,
 .tno .chip-initiative:hover .chip-label,
 .tno .chip-initiative:hover .chip-info {
   color: #fff;
-}
-.tno .chip-dodge.chip-unavailable {
-  cursor: default;
-  opacity: 0.5;
-}
-.tno .chip-dodge.chip-unavailable:hover {
-  background: rgba(255, 255, 255, 0.66);
-  color: inherit;
-}
-.tno .chip-dodge.chip-unavailable:hover .chip-icon,
-.tno .chip-dodge.chip-unavailable:hover .chip-label {
-  color: #444;
-}
-.tno .chip-defense-malus {
-  padding: 2px 5px;
-  border-radius: 999px;
-  background: rgba(179, 33, 43, 0.18);
-  color: #b3212b;
-  font-size: var(--font-size-10, 10px);
-  font-weight: bold;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
 }
 .tno .chip-stance .chip-stance-select {
   width: auto;
@@ -2954,6 +2927,12 @@
   align-items: stretch;
   padding: 14px 16px;
 }
+.tno .paperdoll-figure-column {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
 .tno .basics-section-card {
   border: 1px solid rgba(25, 24, 19, 0.14);
   border-radius: 8px;
@@ -3137,6 +3116,69 @@
 }
 .tno .armor-warning i {
   margin-right: 6px;
+}
+.tno .paperdoll-dodge {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  min-height: 28px;
+  margin: 0;
+  padding: 3px 5px;
+  border: 1px solid rgba(25, 24, 19, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.76), 0 1px 2px rgba(25, 24, 19, 0.12);
+  color: #191813;
+  font-size: var(--font-size-12, 12px);
+  font-weight: bold;
+  line-height: 1;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+.tno .paperdoll-dodge:hover:not(:disabled) {
+  border-color: rgba(25, 24, 19, 0.36);
+  background: rgba(255, 255, 255, 0.82);
+}
+.tno .paperdoll-dodge:active:not(:disabled) {
+  border-color: rgba(25, 24, 19, 0.42);
+  background: rgba(25, 24, 19, 0.1);
+}
+.tno .paperdoll-dodge:focus {
+  box-shadow: none;
+}
+.tno .paperdoll-dodge:disabled {
+  cursor: default;
+  border-color: rgba(25, 24, 19, 0.14);
+  background: rgba(255, 255, 255, 0.34);
+  color: #444;
+  opacity: 0.65;
+}
+.tno .paperdoll-dodge > i {
+  color: #444;
+}
+.tno .paperdoll-dodge .paperdoll-dodge-value,
+.tno .paperdoll-dodge .defense-malus {
+  padding: 2px 5px;
+  border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.tno .paperdoll-dodge .paperdoll-dodge-value {
+  background: rgba(25, 24, 19, 0.08);
+  font-size: var(--font-size-11, 11px);
+}
+.tno .paperdoll-dodge .defense-malus {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #fff;
+  color: #b3212b;
+  font-size: var(--font-size-10, 10px);
+}
+.tno .paperdoll-dodge:disabled .paperdoll-dodge-value {
+  background: rgba(25, 24, 19, 0.08);
 }
 .tno .slot-grid-block {
   flex: 0 0 auto;

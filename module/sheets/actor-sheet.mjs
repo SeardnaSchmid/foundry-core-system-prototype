@@ -269,7 +269,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     context.money = this.#moneyContext(context.system.money);
 
     // The Haltung picker. Rendered as its own control rather than folded into
-    // the defence chips because it is announced *before* anything is rolled —
+    // a defence action because it is announced *before* anything is rolled —
     // "kündigt er zuerst seine beabsichtigte Handlung und Haltung an" — and it
     // is the one value the defence side of an exchange cannot do without.
     context.stanceOptions = Object.entries(CONFIG.TNO.stances).map(([key, stance]) => ({
@@ -277,8 +277,11 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       label: game.i18n.localize(stance.label),
       selected: key === context.system.derived?.stance,
     }));
+    const dodgeAvailable = context.system.derived?.defenses?.dodge?.available === true;
     const dodgeMalus = Number(context.system.derived?.defenses?.dodge?.malus) || 0;
     context.dodgeDefense = {
+      available: dodgeAvailable,
+      disabled: !dodgeAvailable || !context.editable,
       malus: dodgeMalus,
       hint: dodgeMalus < 0
         ? game.i18n.format('TNO.Combat.NextDefenseMalus', { value: dodgeMalus })
