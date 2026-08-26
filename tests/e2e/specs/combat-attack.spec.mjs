@@ -1,6 +1,6 @@
 /**
  * The one combat journey the e2e suite pins down, per
- * `docs/design/combat-workflow-prd.md`.
+ * `docs/design/workflows/combat-workflow-prd.md`.
  *
  * Deliberately *not* a second home for the rules: the malus ladder, which
  * shortfall costs what, and which Strength is compared are arithmetic and live
@@ -88,10 +88,11 @@ test('a weapon attack carries its requirement maluses from dialog to chat card',
 
   // 2. A melee attack requires the reach comparison: until it is answered there
   // is nothing to roll, and the dialog must say so by refusing to submit. Only
-  // the three outcomes the rule can produce are on offer.
+  // the two outcomes the rule can produce are on offer — it grants `+3` to the
+  // longer weapon and says nothing about the shorter one.
   const submit = dialog.locator('button[type="submit"]');
   await expect(submit).toBeDisabled();
-  await expect(dialog.locator('input[name="contextChoice"]')).toHaveCount(3);
+  await expect(dialog.locator('input[name="contextChoice"]')).toHaveCount(2);
 
   await dialog.locator(`input[name="contextChoice"][value="${ATTACK.reach}"]`).evaluate((input) => input.click());
   await expect(submit).toBeEnabled();

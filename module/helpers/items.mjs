@@ -369,9 +369,9 @@ export function requirementMalusSteps(value, required) {
  *  - **SV** grades with the shortfall and lands on every Angriff and Parade.
  *  - **FV** is a flat single step and lands on **Manöver only** — "würfelt er
  *    alle Manöver mit einem Malus", and the Manöver chapter is explicit that a
- *    Standardangriff is not a Manöver. Manöver are not implemented, so `fvMalus`
- *    currently reaches no roll; it is reported here for the item card and for
- *    whatever announces a Manöver later.
+ *    Standardangriff is not a Manöver. Whether a given attack is one is decided
+ *    in the roll dialog by what the player declares, so `fvMalus` reaches a roll
+ *    only once an Ansage is on it.
  *
  * Both are unlike the *armour* SV, which is a single Malusstufe on every
  * Beweglichkeitswurf however far short the character falls. Three rules, three
@@ -456,57 +456,6 @@ export function armorPenetrationChoices() {
 }
 
 /**
- * The key of the option every Manöver keeps, whatever the character carries.
- * @type {string}
- */
-export const MANEUVER_UNARMED_KEY = 'unarmed';
-
-/**
- * The weapons a Manöver can be declared with, and what each one's FV shortfall
- * costs it: "würfelt er alle Manöver mit einem Malus". Naming the weapon is the
- * mandatory question — a Manöver is always performed *with* something — and the
- * answer is what makes the flat FV step land on a roll at last.
- *
- * Membership is exactly the set the item popover already offers a combat action
- * for: gear in the weapon role that can attack or parry. A half-authored
- * profile offers neither and is therefore not declarable.
- *
- * **A weapon whose FV is met stays on the list at 0.** Deliberately unlike a
- * weapon roll's own fixed modifiers, which omit a met requirement as a
- * non-event: here *which weapon* is the answer to a question that must be
- * answered, so it has to be nameable whether or not it costs anything.
- *
- * The unarmed option leads the list and is always free — an empty choice list
- * would make the requirement vanish silently, so a character carrying nothing
- * still has to say so. Its `name` is an i18n *key*, the way MISSING_FIELD_LABELS
- * carries them; every other entry carries the item's own name.
- *
- * @param {Object} actor  An actor document (or plain actor data).
- * @param {Iterable<Object>} items  The actor's items.
- * @param {(key: string) => boolean} [skillDefined]  Whether the weapon's FV
- *   skill exists on this actor, which only the skill catalogue can answer.
- * @returns {Array<{key: string, name: string, value: number}>}
- */
-export function maneuverWeaponChoices(actor, items, skillDefined = () => true) {
-  const choices = [{ key: MANEUVER_UNARMED_KEY, name: 'TNO.Combat.ManeuverUnarmed', value: 0 }];
-
-  for (const item of items ?? []) {
-    if (!hasRole(item, 'weapon')) continue;
-    const defined = skillDefined(item?.system?.fv?.skill);
-    if (!canWeaponAttack(item.system, { skillDefined: defined }) && !canWeaponParry(item.system, { skillDefined: defined })) {
-      continue;
-    }
-    choices.push({
-      key: String(item.id ?? item._id),
-      name: String(item.name ?? ''),
-      value: weaponRequirementStatus(actor, item.system).fvMalus,
-    });
-  }
-
-  return choices;
-}
-
-/**
  * The authored handling contribution for the requested weapon workflow.
  * @param {Object} system An item's `system` data.
  * @param {'active'|'passive'} mode
@@ -533,10 +482,12 @@ export function weaponRangeChoices(system) {
 /**
  * The melee DK modifier, applied to a roll without conversion.
  *
- * Three options rather than a scale: the rule is a comparison, not an
- * arithmetic difference — "Angriffe und Paraden sind um +3 erleichtert wenn man
- * den längeren hat". Reach is either yours, theirs, or neither, and a DK gap of
- * four is worth exactly as much as a gap of one.
+ * Two outcomes, not three: "Angriffe und Paraden sind um +3 erleichtert wenn man
+ * den längeren hat" grants the longer weapon `+3` and says nothing whatsoever
+ * about the shorter one, so holding the shorter weapon and holding an equally
+ * long one are the same roll. The rule is also a comparison rather than an
+ * arithmetic difference — a DK gap of four is worth exactly as much as a gap of
+ * one.
  *
  * The comparison itself cannot be computed here: these workflows know no
  * opponent, so the player states the outcome. What they must not be able to
@@ -545,7 +496,7 @@ export function weaponRangeChoices(system) {
  * @returns {Array<{key: string, value: number}>}
  */
 export function weaponDkDifferenceChoices() {
-  return [-3, 0, 3].map((value) => ({ key: String(value), value }));
+  return [0, 3].map((value) => ({ key: String(value), value }));
 }
 
 /**

@@ -1,20 +1,7 @@
+import { angriffOptions, paradeOptions } from '../helpers/combat-actions.mjs';
 import { wornItemIds } from '../helpers/inventory.mjs';
 import { prepareGearSummaryContext } from '../helpers/item-summary.mjs';
-import { getSkillDefinitions } from '../helpers/skills.mjs';
-import {
-  canWeaponAttack,
-  canWeaponParry,
-  clampGearNumber,
-  hasRole,
-  isGear,
-  usesMelee,
-  weaponAttribute,
-  weaponDkDifferenceChoices,
-  weaponHandlingModifier,
-  weaponRangeChoices,
-  weaponRequirementStatus,
-  weaponSkillRank,
-} from '../helpers/items.mjs';
+import { clampGearNumber, hasRole, isGear } from '../helpers/items.mjs';
 
 /**
  * Extend the basic Item with some very simple modifications.
@@ -108,102 +95,23 @@ export class TnoItem extends Item {
 
   /** Open a weapon attack with its authored WA and FV locked in place. */
   openWeaponCheck() {
-    const actor = this.actor;
-    const key = this.system.fv?.skill;
-    const definition = getSkillDefinitions(actor)[key];
-    if (!actor?.isOwner || !hasRole(this, 'weapon') || !canWeaponAttack(this.system, { skillDefined: !!definition })) return;
-    const contextChoices = usesMelee(this.system)
-      ? this.#dkChoices()
-      : weaponRangeChoices(this.system).map((choice) => {
-          const band = game.i18n.localize(`TNO.Weapons.Band.${choice.key.charAt(0).toUpperCase()}${choice.key.slice(1)}`);
-          return {
-            ...choice,
-            label: band,
-            componentLabel: game.i18n.format('TNO.Combat.RangeComponent', { band }),
-          };
-        });
-    return new game.tno.TnoRollDialog(actor, {
-      attributeA: weaponAttribute(this.system),
-      lockAttribute: true,
-      skill: { key, label: definition.label, value: weaponSkillRank(actor, this.system) },
-      fixedModifiers: this.#weaponFixedModifiers(actor, 'active'),
-      preRollContext: {
-        label: game.i18n.localize(usesMelee(this.system) ? 'TNO.Combat.DkDifference' : 'TNO.Combat.RangeBand'),
-        placeholder: game.i18n.localize('TNO.Combat.ContextPlaceholder'),
-        control: 'tiles',
-        tileLabels: !usesMelee(this.system),
-        tileColumns: usesMelee(this.system) ? 3 : 5,
-        choices: contextChoices,
-      },
-      flavor: game.i18n.format('TNO.Combat.AttackFlavor', { weapon: this.name }),
-    }).render(true);
+    return this.#openCombatRoll(angriffOptions(this.actor, this));
   }
 
-  /**
-   * Open an independent melee parry with its authored WA and FV locked.
-   *
-   * A parry asks for the reach comparison exactly like an attack does: "Angriffe
-   * und Paraden sind um +3 erleichtert wenn man den längeren hat" — who holds
-   * the longer weapon is a fact about the pairing, not about who is swinging.
-   */
+  /** Open an independent melee parry with its authored WA and FV locked. */
   openWeaponParry() {
-    const actor = this.actor;
-    const key = this.system.fv?.skill;
-    const definition = getSkillDefinitions(actor)[key];
-    if (!actor?.isOwner || !hasRole(this, 'weapon') || !canWeaponParry(this.system, { skillDefined: !!definition })) return;
-    return new game.tno.TnoRollDialog(actor, {
-      attributeA: weaponAttribute(this.system),
-      lockAttribute: true,
-      skill: { key, label: definition.label, value: weaponSkillRank(actor, this.system) },
-      fixedModifiers: this.#weaponFixedModifiers(actor, 'passive'),
-      preRollContext: {
-        label: game.i18n.localize('TNO.Combat.DkDifference'),
-        placeholder: game.i18n.localize('TNO.Combat.ContextPlaceholder'),
-        control: 'tiles',
-        tileColumns: 3,
-        choices: this.#dkChoices(),
-      },
-      flavor: game.i18n.format('TNO.Combat.ParryFlavor', { weapon: this.name }),
-    }).render(true);
-  }
-
-  /** The three reach outcomes, as pre-roll context tiles. */
-  #dkChoices() {
-    return weaponDkDifferenceChoices().map((choice) => ({
-      ...choice,
-      label: this.#signedValue(choice.value),
-      componentLabel: game.i18n.localize('TNO.Combat.DkDifference'),
-    }));
+    return this.#openCombatRoll(paradeOptions(this.actor, this));
   }
 
   /**
-   * Immutable handling and requirement components for weapon rolls.
+   * Render a built combat roll, or nothing when the actor cannot form it.
    *
-   * Only the SV malus is here. The FV shortfall is a Manöver rule — "würfelt er
-   * alle Manöver mit einem Malus", and a Standardangriff is not a Manöver — so
-   * it must not touch a plain attack or parry. `weaponRequirementStatus` still
-   * reports it for the item card and for whatever announces a Manöver later.
-   *
-   * The SV component is labelled with its Malusstufen, because the ladder is
-   * what lets it exceed the −3 the dice system otherwise moves in.
+   * The dialog is reached through `game.tno.TnoRollDialog` rather than by
+   * importing it, which keeps `documents/` from reaching up into `apps/`.
    */
-  #weaponFixedModifiers(actor, handling) {
-    const { svSteps, svMalus } = weaponRequirementStatus(actor, this.system);
-
-    return [
-      {
-        label: game.i18n.localize(handling === 'active' ? 'TNO.Combat.ActiveHandling' : 'TNO.Combat.PassiveHandling'),
-        value: weaponHandlingModifier(this.system, handling),
-      },
-      ...(svSteps ? [{ label: game.i18n.format('TNO.Combat.SvMalus', { steps: svSteps }), value: svMalus }] : []),
-    ];
-  }
-
-  /** A localized signed integer for a direct DK-difference choice. */
-  #signedValue(value) {
-    if (value > 0) return `+${value}`;
-    if (value < 0) return `−${Math.abs(value)}`;
-    return '0';
+  #openCombatRoll(options) {
+    if (!options) return;
+    return new game.tno.TnoRollDialog(this.actor, options).render(true);
   }
 
   /** Nudge a consumable stack's remaining stock without going below zero. */

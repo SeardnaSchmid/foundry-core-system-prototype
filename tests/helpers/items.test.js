@@ -3,7 +3,6 @@ import {
   armorPenetrationChoices,
   armorSvMalus,
   armorZones,
-  maneuverWeaponChoices,
   canWeaponAttack,
   canWeaponParry,
   clampGearNumber,
@@ -238,9 +237,11 @@ describe('weapon roll helpers', () => {
 
   // Reach is a comparison, not a scale: "+3 erleichtert wenn man den längeren
   // hat". A DK gap of four is worth exactly what a gap of one is worth, so the
-  // picker must not offer a number the rule cannot produce.
-  it('offers the reach advantage as three outcomes, not a range', () => {
-    expect(weaponDkDifferenceChoices().map((choice) => choice.value)).toEqual([-3, 0, 3]);
+  // picker must not offer a number the rule cannot produce — and the rule gives
+  // the shorter weapon nothing at all, which makes "shorter" and "equal" one
+  // outcome rather than two.
+  it('offers the reach advantage as two outcomes, and nothing to the shorter weapon', () => {
+    expect(weaponDkDifferenceChoices().map((choice) => choice.value)).toEqual([0, 3]);
   });
 
   it('requires attack context while keeping Parry melee-only', () => {
@@ -291,66 +292,6 @@ describe('armour penetration outcomes', () => {
 
   it('names the damage value each penetration outcome calls for', () => {
     expect(armorPenetrationChoices().map((choice) => choice.damage)).toEqual(['ss', 'ws', 'ws']);
-  });
-});
-
-describe('Manöver weapon choices', () => {
-  const actor = ({ skill = 5, strength = 4 } = {}) => ({
-    system: {
-      abilities: { str: { base: strength, value: strength } },
-      skills: { swords: { value: skill } },
-    },
-  });
-
-  const weapon = (id, name, overrides = {}) => ({
-    id,
-    name,
-    system: {
-      roles: { weapon: true },
-      use: 'melee',
-      wa: 'fin',
-      fv: { skill: 'swords', rank: 0 },
-      sv: 0,
-      dk: 3,
-      hh: { active: 0, passive: 0 },
-      ...overrides,
-    },
-  });
-
-  it('leads the Manöver weapon list with the unarmed option, which costs nothing', () => {
-    expect(maneuverWeaponChoices(actor(), [])).toEqual([
-      { key: 'unarmed', name: 'TNO.Combat.ManeuverUnarmed', value: 0 },
-    ]);
-  });
-
-  it('prices a weapon whose FV rank the character misses at one flat step', () => {
-    // Rank 5 against FV 9 is four short, and still one step: the FV rule is a
-    // flat "alle Manöver mit einem Malus", never a ladder.
-    const choices = maneuverWeaponChoices(actor({ skill: 5 }), [
-      weapon('blade', 'Langschwert', { fv: { skill: 'swords', rank: 9 } }),
-    ]);
-    expect(choices.at(-1)).toEqual({ key: 'blade', name: 'Langschwert', value: -3 });
-  });
-
-  it('keeps a weapon whose FV is met on the list at no cost', () => {
-    // Unlike a weapon roll's own modifiers, which omit a met requirement: here
-    // naming the weapon is the answer to a mandatory question.
-    const choices = maneuverWeaponChoices(actor({ skill: 5 }), [
-      weapon('blade', 'Langschwert', { fv: { skill: 'swords', rank: 2 } }),
-    ]);
-    expect(choices.at(-1)).toEqual({ key: 'blade', name: 'Langschwert', value: 0 });
-  });
-
-  it('leaves half-authored gear off the Manöver weapon list', () => {
-    const choices = maneuverWeaponChoices(actor(), [
-      // No Distanzklasse and no parry-capable profile at all: nothing to declare.
-      weapon('draft', 'Rohentwurf', { dk: null, use: 'ranged', range: {} }),
-      // Armour is not a weapon, whatever else it is authored with.
-      { id: 'plate', name: 'Brustpanzer', system: { roles: { armor: true }, zone: 'torso', rh: 4, ra: 5 } },
-      // The FV skill exists on the item but not on this actor.
-      weapon('exotic', 'Fremdwaffe', { fv: { skill: 'gunKata', rank: 1 } }),
-    ], (key) => key === 'swords');
-    expect(choices.map((choice) => choice.key)).toEqual(['unarmed']);
   });
 });
 

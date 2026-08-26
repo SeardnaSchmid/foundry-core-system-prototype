@@ -4,6 +4,7 @@ import {
   dieCountFor,
   pickCountingDie,
   criticalResultFor,
+  envelopeLines,
 } from '../../module/helpers/dice.mjs';
 
 function determineSuccess(countingDie, threshold, critical) {
@@ -389,5 +390,96 @@ describe('Tno Dice System', () => {
       expect(result.value).toBe(12);
       expect(result.index).toBe(2);
     });
+  });
+});
+
+// The envelope as the defender actually meets it. Asserting `flags.tno.envelope`
+// alone would leave the sentence they read untested, and it is the sentence —
+// not the flag — that the manual path depends on.
+describe('envelopeLines', () => {
+  const zones = {
+    head: 'Head',
+    torso: 'Torso',
+    arms: 'Arms',
+    legs: 'Legs',
+  };
+
+  const withGlobals = (fn) => {
+    const priorGame = globalThis.game;
+    const priorConfig = globalThis.CONFIG;
+    globalThis.game = {
+      i18n: {
+        localize: (key) => key,
+        format: (key, values) => `${key}(${Object.values(values ?? {}).join(',')})`,
+      },
+    };
+    globalThis.CONFIG = { TNO: { armorZones: zones } };
+    try {
+      return fn();
+    } finally {
+      globalThis.game = priorGame;
+      globalThis.CONFIG = priorConfig;
+    }
+  };
+
+  const full = {
+    from: 'Anton',
+    dk: 4,
+    parry: 3,
+    dodge: 3,
+    resistance: 0,
+    zone: 'head',
+    bypassArmor: false,
+    penetration: 5,
+    sharp: 4,
+    blunt: 2,
+  };
+
+  it('says nothing at all for a roll that carried no envelope', () => {
+    // Every non-combat roll in the system goes through the same renderer.
+    expect(withGlobals(() => envelopeLines(null))).toBeNull();
+    expect(withGlobals(() => envelopeLines({ parry: 3 }))).toBeNull();
+  });
+
+  it('names each defence separately, and only the ones that were worsened', () => {
+    const { lines } = withGlobals(() => envelopeLines(full));
+    expect(lines).toContain('TNO.Combat.Envelope.Parry(3)');
+    expect(lines).toContain('TNO.Combat.Envelope.Dodge(3)');
+    // A resistance of 0 is not a penalty and must not read as one.
+    expect(lines.some((line) => line.startsWith('TNO.Combat.Envelope.Resistance'))).toBe(false);
+  });
+
+  it('carries the Distanzklasse as information, and only for melee', () => {
+    // Reach stays a shared observation each side answers for itself — this is
+    // the fact it is answered from.
+    expect(withGlobals(() => envelopeLines(full)).lines).toContain('TNO.Combat.Envelope.Dk(4)');
+    // A ranged weapon has no melee Distanzklasse, so the line is absent rather
+    // than showing a null.
+    const ranged = withGlobals(() => envelopeLines({ ...full, dk: null }));
+    expect(ranged.lines.some((line) => line.startsWith('TNO.Combat.Envelope.Dk'))).toBe(false);
+  });
+
+  it('always names a Stelle, defaulting to Torso', () => {
+    expect(withGlobals(() => envelopeLines(full)).lines).toContain('Head');
+    // An attack that announced nothing still tells the defender where it landed.
+    const plain = withGlobals(() => envelopeLines({ from: 'Anton', sharp: 4, blunt: 2 }));
+    expect(plain.lines).toContain('Torso');
+  });
+
+  it('reads out the weapon card so the defender can make the comparison', () => {
+    // The penetration comparison needs one number from each side; this is the
+    // direction that keeps the armour private.
+    expect(withGlobals(() => envelopeLines(full)).lines)
+      .toContain('TNO.Combat.Envelope.Damage(5,4,2)');
+    // A weapon with no authored damage says nothing rather than "undefined".
+    const unauthored = withGlobals(() => envelopeLines({ from: 'Anton', sharp: null, blunt: null }));
+    expect(unauthored.lines.some((line) => line.startsWith('TNO.Combat.Envelope.Damage'))).toBe(false);
+  });
+
+  it('flags a bypassed location only when one was announced', () => {
+    expect(withGlobals(() => envelopeLines({ ...full, bypassArmor: true })).lines)
+      .toContain('TNO.Combat.Envelope.BypassArmor');
+    expect(withGlobals(() => envelopeLines(full)).lines)
+      .not.toContain('TNO.Combat.Envelope.BypassArmor');
   });
 });

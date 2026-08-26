@@ -4,14 +4,14 @@ title: Edge pool (problem-solving)
 description: The edge point resource and its four post-roll actions (Trial & error, Retry, Post-mortem, XP claim).
 tags: [edge-pool, problem-solving, chat-flags]
 resource: [module/helpers/dice.mjs, module/helpers/chat.mjs]
-spec: docs/design/problem-solving-prd.md
+spec: docs/design/workflows/problem-solving-prd.md
 related: [concepts/dice-resolution, concepts/attributes]
 ---
 
 # Edge pool (problem-solving)
 
 Full rules (state matrix, eligibility, localization):
-[`docs/design/problem-solving-prd.md`](../../design/problem-solving-prd.md).
+[`docs/design/workflows/problem-solving-prd.md`](../../design/workflows/problem-solving-prd.md).
 This page covers the implementation shape.
 
 ## The resource

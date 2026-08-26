@@ -211,6 +211,7 @@ export async function rollTno({
     components,
     showBonus: bonus !== 0,
     bonusDisplay: bonus > 0 ? `+${bonus}` : `${bonus}`,
+    envelope: envelopeLines(extraFlags.envelope),
   });
 
   // Failed rolls carry enough context in flags.tno (threshold, advantage) for
@@ -261,6 +262,57 @@ export async function rollTno({
  * @param {Actor} [options.actor]       Optional rolling actor, used for the chat speaker.
  * @returns {Promise<{roll: Roll, success: boolean|null, message: ChatMessage}>}
  */
+/**
+ * The attacker's envelope as the lines a defender reads off the chat card.
+ *
+ * Exported for the unit tier: this is the entire A→B channel as the defender
+ * actually meets it, and asserting the flags alone would leave the sentence they
+ * read untested.
+ *
+ * Plain text on purpose. There is no target, no second document and no
+ * permission check anywhere in this path: the attacker's card states what it
+ * did, and the defender enters what applies to them. That is the same division
+ * the announced Schadenswert has always worked on, and it is what keeps two
+ * sheets from having to know about each other at all.
+ *
+ * @param {Object} [envelope]  `flags.tno.envelope`, if this roll carried one.
+ * @returns {{from: string, lines: Array<string>}|null}
+ */
+export function envelopeLines(envelope) {
+  if (!envelope?.from) return null;
+
+  const lines = [];
+  const penalty = (key, label) => {
+    if (envelope[key] > 0) lines.push(game.i18n.format(label, { value: envelope[key] }));
+  };
+  // Parry and dodge are listed apart because they can differ: a Weiter Schwung
+  // worsens only the dodge, a Starker Schwung only the parry and the resistance.
+  penalty('parry', 'TNO.Combat.Envelope.Parry');
+  penalty('dodge', 'TNO.Combat.Envelope.Dodge');
+  penalty('resistance', 'TNO.Combat.Envelope.Resistance');
+
+  // Information only: reach is a shared observation each side answers for
+  // itself, but this is the fact it is answered from.
+  if (Number.isFinite(envelope.dk)) lines.push(game.i18n.format('TNO.Combat.Envelope.Dk', { dk: envelope.dk }));
+
+  const zone = envelope.zone ?? 'torso';
+  lines.push(game.i18n.localize(CONFIG.TNO.armorZones[zone] ?? CONFIG.TNO.armorZones.torso));
+  if (envelope.bypassArmor) lines.push(game.i18n.localize('TNO.Combat.Envelope.BypassArmor'));
+
+  // The three weapon numbers the penetration comparison needs. The defender owns
+  // the other half of it — their RH — and therefore makes the comparison.
+  const damage = [envelope.sharp, envelope.blunt];
+  if (damage.every((value) => Number.isFinite(value))) {
+    lines.push(game.i18n.format('TNO.Combat.Envelope.Damage', {
+      penetration: Number.isFinite(envelope.penetration) ? envelope.penetration : '—',
+      sharp: envelope.sharp,
+      blunt: envelope.blunt,
+    }));
+  }
+
+  return { from: envelope.from, lines };
+}
+
 export async function rollTnoBase({ advantage = TNO_ADVANTAGE.none, flavor = '', actor = null } = {}) {
   return rollTno({
     threshold: null,

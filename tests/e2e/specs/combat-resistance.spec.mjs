@@ -1,6 +1,6 @@
 /**
  * The resistance roll of one hit location, per
- * `docs/design/combat-workflow-prd.md`.
+ * `docs/design/workflows/combat-workflow-prd.md`.
  *
  * Two things only a real Foundry can answer, and this spec asserts nothing
  * else: that clicking a location on the paper doll opens *that* location's

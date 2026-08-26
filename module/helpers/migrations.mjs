@@ -14,6 +14,7 @@ export const MIGRATIONS = [
   { version: '0.27.0', migrate: migrateItemTypesToRoles },
   { version: '0.31.0', migrate: migrateWeightToSlotsLegacyTypes },
   { version: '0.31.0', migrate: migrateZeroedNullableBands },
+  { version: '0.34.0', migrate: migrateSeedCombatStance },
 ];
 
 /**
@@ -190,6 +191,32 @@ async function migrateZeroedNullableBands() {
   for (const item of game.items) await migrate(item);
   for (const actor of game.actors) {
     for (const item of actor.items) await migrate(item);
+  }
+}
+
+/**
+ * Seed the Haltung and its defence counters on characters created before the
+ * combat block existed.
+ *
+ * `open` is the honest default rather than a convenience: it is the Haltung a
+ * character is in when nobody has said otherwise, and it grants no defence at
+ * all — so a migrated actor cannot silently keep parrying on a stance the
+ * rules never gave them.
+ *
+ * Idempotent by only writing where the block is absent; a character who has
+ * already taken a Haltung is left exactly as they are.
+ */
+async function migrateSeedCombatStance() {
+  for (const actor of game.actors) {
+    if (actor.type !== 'character') continue;
+    if (actor._source?.system?.combat?.stance) continue;
+    await actor.update({
+      'system.combat': {
+        stance: 'open',
+        defenses: { parry: 0, dodge: 0 },
+        pending: { from: '', parry: 0, dodge: 0, resistance: 0, zone: '', bypassArmor: false },
+      },
+    });
   }
 }
 

@@ -565,19 +565,42 @@
       "Dodge": "Dodge",
       "DodgeHint": "Roll Dexterity + Acrobatics to dodge.",
       "Resistance": "Resistance",
-      "ResistanceFlavor": "Resistance: {zone}",
+      "ResistanceFlavor": "Resistance: {zone} → {damage}",
       "ResistanceRw": "RW ({zone})",
       "DamageValue": "Damage value",
-      "ManeuverWeapon": "Manoeuvre with",
-      "ManeuverWeaponPlaceholder": "Choose weapon",
-      "ManeuverUnarmed": "Unarmed",
-      "FvMalusFor": "FV requirement: {weapon}",
       "ActiveHandling": "Handling (attack)",
       "PassiveHandling": "Handling (parry)",
       "SvMalus": "SV requirement ({steps}×)",
       "ArmorSvMalus": "Armour SV",
       "RangeBand": "Range band",
       "DkDifference": "Reach advantage",
+      "Reach": {
+        "Longer": "Longer weapon",
+        "NotLonger": "Not longer"
+      },
+      "RepeatedDefense": "Defence #{count} this stance",
+      "RepeatedDefenseLabel": "Repeated defence",
+      "NextDefenseMalus": "Next defence: {value}",
+      "FvMalus": "FV requirement (manoeuvre)",
+      "AnsageCaption": "Manoeuvres",
+      "AnsageCost": "Declarations ({count})",
+      "AnsageReadout": "costs you {cost} · {effect}",
+      "AnsageNeedsReach": "needs the longer weapon",
+      "StanceLabel": "Stance",
+      "StanceHint": "Announced when you activate, held until your next one. It decides which defence you may make, and taking one — even the same one again — clears the repeated-defence malus.",
+      "StanceRetake": "Take the current stance again and clear defence penalties",
+      "StanceNoDefense": "This stance allows no defence",
+      "Stance": {
+        "Open": "Open",
+        "SimpleMove": "Simple movement",
+        "CarefulMove": "Careful movement",
+        "FastMove": "Fast movement",
+        "InCover": "In cover",
+        "EnGarde": "En garde",
+        "SuppressiveFire": "Suppressive fire",
+        "Grappling": "Grappling",
+        "CatchBreath": "Catching breath"
+      },
       "ContextPlaceholder": "Choose distance",
       "RangeComponent": "Range: {band}",
       "Penetration": {
@@ -585,7 +608,26 @@
         "Softer": "softer · SS",
         "Equal": "equal · WS",
         "Harder": "harder · WS"
-      }
+      },
+      "OpposingAnsage": "Announced against you",
+      "Envelope": {
+        "From": "From",
+        "Parry": "Parry −{value}",
+        "Dodge": "Dodge −{value}",
+        "Resistance": "Resistance −{value}",
+        "BypassArmor": "armour on that location bypassed",
+        "Damage": "RB/RD {penetration} · sharp {sharp} / blunt {blunt}",
+        "Dk": "DK {dk}",
+        "Take": "Announced against me",
+        "TakeFor": "Take announcement",
+        "TakeForLabel": "Onto which sheet?",
+        "Taken": "Announcement noted for {name} — it will be filled in on your next defence."
+      },
+      "BypassArmorHint": "The attacker paid this location's RA to bypass its armour, so its padding does not apply — and the hit always counts as sharp.",
+      "AnsageMore": "Rarely-used manoeuvres",
+      "AnsageNone": "none",
+      "AnsageSummary": "{count} declared · {cost}",
+      "AnsageOption": "{label} ({cost})"
     },
     "Advantage": {
       "StrongDisadvantage": "Strong Disadvantage",
@@ -608,6 +650,48 @@
       "Inactive": "Inactive Effects"
     },
     "TabEffects": "Effects",
+    "Maneuver": {
+      "Feint": {
+        "Label": "Feint",
+        "Effect": "their defence −{betrag}"
+      },
+      "Riposte": {
+        "Label": "Riposte",
+        "Effect": "your next attack on them +{betrag}"
+      },
+      "StrongSwing": {
+        "Label": "Strong swing",
+        "Effect": "their resistance and parry −{betrag}"
+      },
+      "WideSwing": {
+        "Label": "Wide swing",
+        "Effect": "their dodge −{betrag}"
+      },
+      "Arms": {
+        "Label": "Arms",
+        "Effect": "damage split over Fingerfertigkeit and Stärke"
+      },
+      "Legs": {
+        "Label": "Legs",
+        "Effect": "damage split over Beweglichkeit and Stärke"
+      },
+      "Head": {
+        "Label": "Head",
+        "Effect": "damage doubled after the resistance roll"
+      },
+      "BypassArmor": {
+        "Label": "Bypass armour",
+        "Effect": "their armour on that location does not apply"
+      },
+      "WeakSpot": {
+        "Label": "Weak spot",
+        "Effect": "whatever the GM sets"
+      },
+      "Zone": {
+        "Label": "Hit location",
+        "None": "not announced"
+      }
+    },
     "Armor": {
       "WornTitle": "Worn Equipment",
       "Zones": "Armour zones",

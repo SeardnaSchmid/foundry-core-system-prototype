@@ -249,6 +249,44 @@ TNO.armorZones = {
 TNO.armorAddonZones = ARMOR_ADDON_ZONES;
 
 /**
+ * The Haltungen from the Kampfregeln, in the order the rules list them.
+ *
+ * `defenses` is the entire reason this table exists: "Je nach Haltung hat der
+ * Charakter eine Parade, ein Ausweichen oder beides" — which defence a character
+ * may make, and whether they may make one at all, is answered by their own
+ * Haltung and by nothing the attacker brings. It is the single most important
+ * value in an exchange that never has to cross between two sheets.
+ *
+ * A Haltung is announced on activation and held until the next one ("kündigt er
+ * zuerst seine beabsichtigte Handlung und Haltung an … welche er bis zu seiner
+ * nächsten Aktivierung behält").
+ *
+ * The Bedingungen the rules also give each Haltung — "nicht wenn aus dem
+ * Gleichgewicht", "nicht wenn gebunden", "nur nach Handlung X" — are deliberately
+ * absent: neither Gleichgewicht nor Bindung exists in the system yet, and a
+ * gate nothing can evaluate is worse than no gate.
+ * @type {Object<string, {label: string, defenses: Array<'parry'|'dodge'>}>}
+ */
+TNO.stances = {
+  open: { label: 'TNO.Combat.Stance.Open', defenses: [] },
+  simpleMove: { label: 'TNO.Combat.Stance.SimpleMove', defenses: ['parry', 'dodge'] },
+  carefulMove: { label: 'TNO.Combat.Stance.CarefulMove', defenses: ['dodge'] },
+  fastMove: { label: 'TNO.Combat.Stance.FastMove', defenses: ['dodge'] },
+  inCover: { label: 'TNO.Combat.Stance.InCover', defenses: ['dodge'] },
+  enGarde: { label: 'TNO.Combat.Stance.EnGarde', defenses: ['parry', 'dodge'] },
+  suppressiveFire: { label: 'TNO.Combat.Stance.SuppressiveFire', defenses: ['dodge'] },
+  grappling: { label: 'TNO.Combat.Stance.Grappling', defenses: [] },
+  catchBreath: { label: 'TNO.Combat.Stance.CatchBreath', defenses: [] },
+};
+
+/**
+ * The Haltung a character is in before anyone has said otherwise: "Kann immer
+ * gewählt werden, aber bringt halt nix."
+ * @type {string}
+ */
+TNO.defaultStance = 'open';
+
+/**
  * The Richtwert table from the Inventarregeln: what an item costs in
  * Inventarslots when its own entry does not say. Shown as help text on the
  * item sheet's slot field; never applied automatically, since "Alles andere —

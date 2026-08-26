@@ -113,6 +113,31 @@
     </div>
     {{/if}}
 
+    {{!-- What the attacker announced against this roll. Optional and never
+          gating: a defender who was told nothing types nothing. From here a
+          Finte, a Starker Schwung and a Weiter Schwung are the same
+          statement — one number — which is exactly why nothing on this side
+          needs to know which of them it was. --}}
+    {{#if hasOpposingAnsage}}
+    <div class="form-group tno-required-value-field">
+      <label for="tno-roll-opposing-ansage">{{localize "TNO.Combat.OpposingAnsage"}}</label>
+      <input id="tno-roll-opposing-ansage" type="number" name="opposingAnsage" min="0" step="1"
+             value="{{opposingAnsage}}" placeholder="0" autocomplete="off"/>
+    </div>
+    {{/if}}
+
+    {{!-- Eine Regel, die die Gegenseite angesagt hat: der Spieler bestätigt
+          sie, er rechnet sie nicht aus. --}}
+    {{#if toggleModifier}}
+    <div class="form-group tno-toggle-modifier">
+      <label for="tno-roll-toggle-modifier" title="{{toggleModifier.hint}}">
+        <input id="tno-roll-toggle-modifier" type="checkbox" name="toggleModifier" {{#if toggleModifier.checked}}checked{{/if}}>
+        {{toggleModifier.label}}
+        <span class="tno-toggle-modifier-value">{{toggleModifier.display}}</span>
+      </label>
+    </div>
+    {{/if}}
+
     {{#if hasPreRollContext}}
     {{#if preRollContext.isTilePicker}}
     <fieldset class="tno-context-field tno-context-tile-field">
@@ -140,6 +165,63 @@
     </div>
     {{/if}}
     {{/if}}
+  </section>
+  {{/if}}
+
+  {{!-- Ansagen. Optional and repeatable, unlike the two required inputs above:
+        "im Prinzip sind sie alle kombinierbar", so any number of them may be
+        declared at once. Each row carries its own read-out because 1:1 up to
+        the rank and 2:1 past it is arithmetic nobody should do at the table —
+        and because what you pay is not what the opponent takes.
+
+        Zugeklappt, weil der Regelfall der Standardangriff ist, der nichts
+        ansagt. Die Kopfzeile sagt trotzdem, was drinsteht — ein eingeklappter
+        Block, der heimlich zwölf Punkte kostet, wäre schlimmer als gar
+        keiner. --}}
+  {{#if hasAnsagen}}
+  <section class="tno-roll-section tno-roll-ansagen">
+    <button type="button" class="tno-ansagen-toggle" aria-expanded="false">
+      <span class="tno-roll-section-caption">{{localize "TNO.Combat.AnsageCaption"}}</span>
+      <span class="tno-ansagen-summary">{{ansageSummary}}</span>
+    </button>
+
+    <div class="tno-ansagen-body">
+      {{!-- Ein Angriff hat eine Stelle. Kopf, Arme und Beine schließen einander
+            aus, also sind sie eine Auswahl und keine drei Zeilen — und ihre
+            Vorgabe ist "keine". --}}
+      {{#each ansageGroups as |group|}}
+      <div class="tno-ansage-row tno-ansage-group{{#if group.untrained}} tno-ansage-untrained{{/if}}" data-ansage-group="{{group.key}}">
+        <label class="tno-ansage-name" for="tno-roll-ansage-group-{{group.key}}">{{group.label}}</label>
+        <select id="tno-roll-ansage-group-{{group.key}}" class="tno-ansage-select" name="ansageGroups.{{group.key}}">
+          <option value="">{{group.none}}</option>
+          {{#each group.choices as |choice|}}
+          <option value="{{choice.key}}" {{#if choice.selected}}selected{{/if}}>{{choice.label}}</option>
+          {{/each}}
+        </select>
+        <span class="tno-ansage-readout">{{group.readout}}</span>
+      </div>
+      {{/each}}
+
+      {{#each ansagen as |ansage|}}
+      <div class="tno-ansage-row{{#if ansage.untrained}} tno-ansage-untrained{{/if}}{{#if ansage.blocked}} tno-ansage-blocked{{/if}}" data-ansage="{{ansage.key}}">
+        <label class="tno-ansage-name" for="tno-roll-ansage-{{ansage.key}}">
+          {{ansage.label}}
+          <span class="tno-ansage-rank">{{ansage.rankLabel}} {{ansage.rank}}</span>
+        </label>
+        <input id="tno-roll-ansage-{{ansage.key}}" class="tno-ansage-input" type="number" name="ansagen.{{ansage.key}}"
+               min="0" step="1" value="{{#if ansage.betrag}}{{ansage.betrag}}{{/if}}"
+               placeholder="0" autocomplete="off" {{#if ansage.blocked}}disabled{{/if}}>
+        <span class="tno-ansage-readout{{#if ansage.overRank}} tno-ansage-over-rank{{/if}}">{{ansage.readout}}</span>
+      </div>
+      {{/each}}
+
+      {{!-- Ansagen mit einer Fertigkeit auf Rang 0 sind erlaubt, kosten aber
+            doppelt. Sie stehen deshalb hinter einem Schalter statt in der Liste:
+            verstecken wäre falsch, aber sie sind nicht das, wonach man sucht. --}}
+      {{#if untrainedAnsagen}}
+      <button type="button" class="tno-ansage-more">{{localize "TNO.Combat.AnsageMore"}} ({{untrainedAnsagen}})</button>
+      {{/if}}
+    </div>
   </section>
   {{/if}}
 

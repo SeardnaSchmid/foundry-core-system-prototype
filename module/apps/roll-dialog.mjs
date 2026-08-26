@@ -2,6 +2,7 @@ import { TNO_ADVANTAGE, describeAdvantage, rollTno } from '../helpers/dice.mjs';
 import { formatChance, oddsTooltipHtml, successChanceFor } from '../helpers/dice-odds.mjs';
 import { colorForValue } from '../helpers/heatmap.mjs';
 import { MALUS_STEP, armorSvMalus, isAuthoredNumber } from '../helpers/items.mjs';
+import { ANSAGE_GROUPS, ansageEnvelope, ansageKosten } from '../helpers/maneuvers.mjs';
 import { advantageOptions, bindAdvantagePicker } from './roll-dialog-shared.mjs';
 
 // Namespaced rather than the bare `FormApplication` global, which is
@@ -53,7 +54,7 @@ export class TnoRollDialog extends FormApplication {
    * @param {{label: string, value: number}[]} [options.fixedModifiers]
    *   Immutable rule modifiers added to the threshold and shown separately
    *   from the editable situational bonus.
-   * @param {{label: string, placeholder: string, control?: 'select'|'tiles', tileLabels?: boolean, tileColumns?: 3|5|7, choices: Array<{key: string, label: string, value: number, componentLabel?: string}>}} [options.preRollContext]
+   * @param {{label: string, placeholder: string, control?: 'select'|'tiles', tileLabels?: boolean, tileColumns?: 2|3|5|7, choices: Array<{key: string, label: string, value: number, componentLabel?: string}>}} [options.preRollContext]
    *   One optional required choice that must be made before rolling. Its
    *   selected value becomes an immutable threshold component.
    * @param {{label: string, placeholder?: string, componentLabel?: string, sign?: 1|-1, min?: number, max?: number}} [options.requiredValue]
@@ -61,11 +62,39 @@ export class TnoRollDialog extends FormApplication {
    *   table knows, such as the Schadenswert an attacker announced. Orthogonal
    *   to `preRollContext`, which is structurally "pick one of an authored list".
    * @param {string} [options.flavor]      Label shown as the roll's subject heading and chat flavor.
+   * @param {Array<{key: string, label: string, effect: string, mode: 'free'|'fixed'|'typed', betrag: number, rank: number, rankLabel: string, requiresReach: boolean}>} [options.ansagen]
+   *   The Manöver declarable on this roll. Unlike `preRollContext` and
+   *   `requiredValue` these are optional *and* repeatable: any number of them
+   *   may be declared at once ("im Prinzip sind sie alle kombinierbar"), and
+   *   each costs the declaring roll `ansageKosten(betrag, rank)`.
+   * @param {{from: string, penetration: number|null, sharp: number|null, blunt: number|null}} [options.envelope]
+   *   The attacker's half of an exchange: who is attacking and what their weapon
+   *   brings, to which the declared Ansagen add a penalty per defence and a
+   *   Stelle. Rendered on the chat card as plain text — there is no targeting and
+   *   no second document — so the defender reads it and enters what applies.
+   * @param {{label: string, value: number}} [options.maneuverMalus]
+   *   A modifier that applies only while at least one Ansage is declared — the
+   *   weapon's FV shortfall, which lands on "alle Manöver" and never on a
+   *   Standardangriff.
+   * @param {boolean|number} [options.opposingAnsage]
+   *   Offer a field for the Ansage the attacker announced against this roll. One
+   *   optional integer, taken as given: from this side a Finte and a Starker
+   *   Schwung are the same statement. Pass a number to start it filled in — but
+   *   the field is offered either way, so a defender who never touched a chat
+   *   card can always type what they were told.
+   * @param {{label: string, hint?: string, value: number}} [options.toggleModifier]
+   *   A modifier the *other* side announced, which this player confirms rather
+   *   than computes — today only 'Rüstung umgehen' cancelling the padding of the
+   *   Stelle it was declared on.
+   * @param {() => Promise<void>} [options.afterRoll]
+   *   Run once the dice have actually been cast, never when the dialog is
+   *   cancelled. For state a workflow owes its own sheet — the repeated-defence
+   *   counter is the first — which must count rolls and not intentions.
    */
-  constructor(actor, { attributeA = '', lockAttribute = false, skill = null, freeSkill = false, fixedValue = null, fixedModifiers = [], preRollContext = null, requiredValue = null, flavor = '' } = {}) {
+  constructor(actor, { attributeA = '', lockAttribute = false, skill = null, freeSkill = false, fixedValue = null, fixedModifiers = [], preRollContext = null, requiredValue = null, ansagen = [], maneuverMalus = null, envelope = null, opposingAnsage = false, toggleModifier = null, afterRoll = null, flavor = '' } = {}) {
     // `requiredValue` starts empty rather than at 0: an untouched field and a
     // typed zero are different answers, and only one of them may roll.
-    super({ attributeA, attributeB: '', skillValue: 0, bonus: 0, advantage: TNO_ADVANTAGE.none, useIdea: false, contextChoice: '', requiredValue: '' });
+    super({ attributeA, attributeB: '', skillValue: 0, bonus: 0, advantage: TNO_ADVANTAGE.none, useIdea: false, contextChoice: '', requiredValue: '', ansagen: {}, ansageGroups: {}, opposingAnsage: '', toggleModifier: false });
     this.actor = actor;
     this.lockAttribute = !!(lockAttribute && attributeA);
     this.skill = skill;
@@ -76,6 +105,28 @@ export class TnoRollDialog extends FormApplication {
       .map((modifier) => ({ label: modifier.label, value: Number(modifier.value) }));
     this.preRollContext = this._normalizePreRollContext(preRollContext);
     this.requiredValue = this._normalizeRequiredValue(requiredValue);
+    this.ansagen = Array.isArray(ansagen) ? ansagen.filter((entry) => entry?.key && entry?.label) : [];
+    this.maneuverMalus = maneuverMalus?.label && Number.isFinite(Number(maneuverMalus.value))
+      ? { label: String(maneuverMalus.label), value: Number(maneuverMalus.value) }
+      : null;
+    this.envelope = envelope?.from ? envelope : null;
+    // `true` offers an empty field; a number offers it pre-filled. Both are only
+    // ever a head start — nothing about a defence depends on it.
+    //
+    // Typed, not coerced: `Number(false)` is 0 and 0 is finite, so testing the
+    // default through `Number()` put the field on every roll in the system,
+    // attacks and plain skill checks included. `Number(true)` is 1, which would
+    // then have pre-filled it with a 1 nobody announced.
+    const announced = typeof opposingAnsage === 'number' && Number.isFinite(opposingAnsage)
+      ? Math.trunc(opposingAnsage)
+      : null;
+    this.opposingAnsage = opposingAnsage === true || announced !== null;
+    if (announced > 0) this.object.opposingAnsage = announced;
+    this.toggleModifier = toggleModifier?.label && Number.isFinite(Number(toggleModifier.value))
+      ? { label: String(toggleModifier.label), hint: String(toggleModifier.hint ?? ''), value: Number(toggleModifier.value) }
+      : null;
+    if (this.toggleModifier && toggleModifier.checked === true) this.object.toggleModifier = true;
+    this.afterRoll = typeof afterRoll === 'function' ? afterRoll : null;
     this.flavor = flavor || game.i18n.localize('TNO.Roll.DialogTitle');
   }
 
@@ -83,7 +134,7 @@ export class TnoRollDialog extends FormApplication {
    * Keep the optional context interface safe for all existing roll callers:
    * malformed or empty contexts simply behave as though no context was given.
    * @param {*} context
-   * @returns {{label: string, placeholder: string, control: 'select'|'tiles', tileLabels: boolean, tileColumns: 3|5|7, choices: Array<{key: string, label: string, value: number, componentLabel?: string}>}|null}
+   * @returns {{label: string, placeholder: string, control: 'select'|'tiles', tileLabels: boolean, tileColumns: 2|3|5|7, choices: Array<{key: string, label: string, value: number, componentLabel?: string}>}|null}
    */
   _normalizePreRollContext(context) {
     if (!context?.label || !Array.isArray(context.choices)) return null;
@@ -101,7 +152,7 @@ export class TnoRollDialog extends FormApplication {
       placeholder: String(context.placeholder || game.i18n.localize('TNO.Roll.ContextPlaceholder')),
       control: context.control === 'tiles' ? 'tiles' : 'select',
       tileLabels: context.tileLabels === true,
-      tileColumns: [3, 5, 7].includes(Number(context.tileColumns)) ? Number(context.tileColumns) : 7,
+      tileColumns: [2, 3, 5, 7].includes(Number(context.tileColumns)) ? Number(context.tileColumns) : 7,
       choices,
     };
   }
@@ -166,6 +217,9 @@ export class TnoRollDialog extends FormApplication {
         }
       : null;
 
+    const ansageRows = this._ansageRows(this.object);
+    const ansageGroups = this._ansageGroupRows(this.object);
+
     const data = {
       ...this.object,
       abilities,
@@ -181,7 +235,7 @@ export class TnoRollDialog extends FormApplication {
       hasPreRollContext: !!this.preRollContext,
       hasRequiredValue: !!this.requiredValue,
       // Both required inputs share one section, so it opens for either.
-      hasContextSection: !!this.preRollContext || !!this.requiredValue,
+      hasContextSection: !!this.preRollContext || !!this.requiredValue || this.opposingAnsage || !!this.toggleModifier,
       requiredValue: this.requiredValue && {
         ...this.requiredValue,
         // Signed bounds of 0 are real bounds, so the template asks these rather
@@ -201,6 +255,19 @@ export class TnoRollDialog extends FormApplication {
         isTilePicker: this.preRollContext.control === 'tiles',
       },
       contextSelected: !!contextChoice,
+      hasAnsagen: this.ansagen.length > 0,
+      // Counted over the rendered rows, not the table: a group is one row
+      // however many members it folds together.
+      untrainedAnsagen: [...ansageGroups, ...ansageRows].filter((row) => row.untrained).length,
+      ansageSummary: this._ansageSummary(this.object),
+      hasOpposingAnsage: this.opposingAnsage,
+      toggleModifier: this.toggleModifier && {
+        ...this.toggleModifier,
+        display: this._formatBonus(this.toggleModifier.value),
+        checked: !!this.object.toggleModifier,
+      },
+      ansagen: ansageRows,
+      ansageGroups,
       canSubmit: this._canSubmit(this.object),
       threshold: this._computeThreshold(this.object),
       ...this._oddsData(this.object),
@@ -379,8 +446,18 @@ export class TnoRollDialog extends FormApplication {
    */
   _conditionalModifiers(data) {
     const value = armorSvMalus(this.actor, [data?.attributeA, data?.attributeB].filter(Boolean));
-    if (!value) return [];
-    return [{ label: game.i18n.localize('TNO.Combat.ArmorSvMalus'), value }];
+    const armor = value ? [{ label: game.i18n.localize('TNO.Combat.ArmorSvMalus'), value }] : [];
+    // The FV shortfall is the other rule the form state decides: it lands on
+    // "alle Manöver" and on nothing else, so it appears the moment an Ansage is
+    // declared and vanishes again when the last one is cleared. It stays its own
+    // component next to the armour step, never folded into it — three
+    // requirements, three shapes.
+    const fv = this.maneuverMalus && this._declaredAnsagen(data).length ? [this.maneuverMalus] : [];
+    // A rule the *other* side announced, which the player confirms rather than
+    // computes — today only 'Rüstung umgehen', which cancels the padding of the
+    // Stelle it was declared on.
+    const toggled = this.toggleModifier && data?.toggleModifier ? [this.toggleModifier] : [];
+    return [...armor, ...fv, ...toggled];
   }
 
   /**
@@ -436,6 +513,198 @@ export class TnoRollDialog extends FormApplication {
   }
 
   /**
+   * The Ansage the attacker announced against this roll, as a signed component.
+   *
+   * Optional and never gating: an attack with nothing declared on it is the
+   * common case, and a defender who was told nothing types nothing. Deliberately
+   * outside the `±30` clamp for the same reason the announced Schadenswert is —
+   * that clamp bounds what a GM hands out, while this is a number the table has
+   * already agreed on.
+   *
+   * This is the entire receiving end of the A→B channel. It takes an integer
+   * and asks nothing about where it came from: from here a Finte, a Starker
+   * Schwung and a Weiter Schwung are the same statement.
+   * @param {object} data  Form data with opposingAnsage.
+   * @returns {{label: string, value: number, display: string}|null}
+   */
+  _opposingAnsageComponent(data) {
+    if (!this.opposingAnsage) return null;
+    if (!isAuthoredNumber(data?.opposingAnsage)) return null;
+    const declared = Math.max(0, Math.trunc(Number(data.opposingAnsage)));
+    if (!declared) return null;
+    return {
+      label: game.i18n.localize('TNO.Combat.OpposingAnsage'),
+      value: -declared,
+      display: this._formatBonus(-declared),
+    };
+  }
+
+  /**
+   * Whether the reach advantage is currently declared, which is what the Starke
+   * Angriffe need: "können nur verwendet werden, wenn der Angreifer den
+   * Reichweitenvorteil hat".
+   * @param {object} data  Form data with contextChoice.
+   * @returns {boolean}
+   */
+  _hasReachAdvantage(data) {
+    const choice = this._contextChoice(data);
+    return !!choice && choice.value > 0;
+  }
+
+  /**
+   * Whether this Manöver has actually been declared, and at what Betrag.
+   *
+   * Nothing is declared by default. An ungrouped Manöver says so with a Betrag
+   * above zero; a grouped one says so by being the group's selection, because a
+   * Betrag the rule names has no zero to mean "no" with.
+   * @param {Object} entry  A row from `this.ansagen`.
+   * @param {object} data   Form data.
+   * @returns {number} The declared Betrag; 0 for anything not declared.
+   */
+  _ansageBetrag(entry, data) {
+    if (entry.group) return data?.ansageGroups?.[entry.group] === entry.key ? entry.betrag : 0;
+    return Math.max(0, Math.trunc(Number(data?.ansagen?.[entry.key]) || 0));
+  }
+
+  /**
+   * The declared Ansagen, each priced against the rank that governs it.
+   *
+   * A Manöver whose precondition is unmet contributes nothing however large a
+   * Betrag sits in its box, so an unusable declaration can never quietly cost
+   * the roll anything.
+   * @param {object} data  Form data with an `ansagen` map and an `ansageGroups` map.
+   * @returns {Array<{key: string, label: string, effect: string, betrag: number, rank: number, cost: number}>}
+   */
+  _declaredAnsagen(data) {
+    return this.ansagen
+      .filter((entry) => !entry.requiresReach || this._hasReachAdvantage(data))
+      .map((entry) => {
+        const betrag = this._ansageBetrag(entry, data);
+        return { ...entry, betrag, cost: ansageKosten(betrag, entry.rank) };
+      })
+      .filter((entry) => entry.cost > 0);
+  }
+
+  /**
+   * One template row per independently declarable Manöver: what it is, what it
+   * would cost the declarer, and what the other side is told.
+   *
+   * The read-out is the whole reason the block exists as its own control rather
+   * than as more situational modifier: 1:1 up to the rank and 2:1 past it is
+   * arithmetic nobody should have to do at the table, and the asymmetry between
+   * what you pay and what they take is the part that surprises people.
+   *
+   * Grouped Manöver are not here — {@link _ansageGroupRows} renders them as the
+   * single choice they are.
+   * @param {object} data  Form data.
+   * @returns {Array<Object>}
+   */
+  _ansageRows(data) {
+    const reach = this._hasReachAdvantage(data);
+    return this.ansagen.filter((entry) => !entry.group).map((entry) => {
+      const blocked = entry.requiresReach && !reach;
+      const betrag = this._ansageBetrag(entry, data);
+      const cost = blocked ? 0 : ansageKosten(betrag, entry.rank);
+      return {
+        ...entry,
+        betrag,
+        blocked,
+        // A Betrag beyond the rank costs double past it; saying so on the row
+        // is what stops the surcharge from looking like a bug.
+        overRank: !blocked && betrag > entry.rank,
+        readout: blocked
+          ? game.i18n.localize('TNO.Combat.AnsageNeedsReach')
+          : cost > 0
+            ? game.i18n.format('TNO.Combat.AnsageReadout', {
+                cost: this._formatBonus(-cost),
+                effect: game.i18n.format(entry.effect, { betrag }),
+              })
+            : '',
+      };
+    });
+  }
+
+  /**
+   * One row per group of mutually exclusive Ansagen, as a picker whose empty
+   * option is the default.
+   *
+   * Each option carries its own price because a grouped Betrag is fixed by the
+   * rule and the rank never changes mid-dialog — so the cost of choosing is
+   * knowable before choosing, which is the whole point of showing it.
+   * @param {object} data  Form data.
+   * @returns {Array<Object>}
+   */
+  _ansageGroupRows(data) {
+    const rows = [];
+    for (const [key, group] of Object.entries(ANSAGE_GROUPS)) {
+      const members = this.ansagen.filter((entry) => entry.group === key);
+      if (!members.length) continue;
+      const chosen = data?.ansageGroups?.[key] ?? '';
+      const selected = members.find((entry) => entry.key === chosen) ?? null;
+      rows.push({
+        key,
+        label: game.i18n.localize(group.label),
+        none: game.i18n.localize(group.none),
+        // Folded away only when not one member is trained: a group with a single
+        // usable option is still the option someone is looking for.
+        untrained: members.every((entry) => entry.untrained),
+        choices: members.map((entry) => ({
+          key: entry.key,
+          selected: entry === selected,
+          label: game.i18n.format('TNO.Combat.AnsageOption', {
+            label: entry.label,
+            cost: this._formatBonus(-ansageKosten(entry.betrag, entry.rank)),
+          }),
+        })),
+        readout: selected
+          ? game.i18n.format('TNO.Combat.AnsageReadout', {
+              cost: this._formatBonus(-ansageKosten(selected.betrag, selected.rank)),
+              effect: game.i18n.format(selected.effect, { betrag: selected.betrag }),
+            })
+          : '',
+      });
+    }
+    return rows;
+  }
+
+  /**
+   * What the folded-up Ansagen block says about itself.
+   *
+   * A collapsed section that hides a −12 would be worse than no section at all,
+   * so the header carries the count and the cost whenever anything is declared.
+   * @param {object} data  Form data.
+   * @returns {string}
+   */
+  _ansageSummary(data) {
+    const component = this._ansageComponent(data);
+    if (!component) return game.i18n.localize('TNO.Combat.AnsageNone');
+    return game.i18n.format('TNO.Combat.AnsageSummary', {
+      count: this._declaredAnsagen(data).length,
+      cost: component.display,
+    });
+  }
+
+  /**
+   * The summed cost of every declared Ansage, as one signed component.
+   *
+   * One row rather than one per Manöver: what the threshold loses is a single
+   * number the player is trading away, and the per-Manöver arithmetic is
+   * already spelled out beside each box.
+   * @param {object} data  Form data.
+   * @returns {{label: string, value: number, display: string}|null}
+   */
+  _ansageComponent(data) {
+    const declared = this._declaredAnsagen(data);
+    if (!declared.length) return null;
+    const value = -declared.reduce((sum, entry) => sum + entry.cost, 0);
+    return {
+      label: game.i18n.format('TNO.Combat.AnsageCost', { count: declared.length }),
+      value,
+      display: this._formatBonus(value),
+    };
+  }
+
+  /**
    * Whether the roll has everything it needs. Both required inputs gate it,
    * and both gate it the same way: the button is disabled until answered.
    * @param {object} data  Form data.
@@ -458,7 +727,9 @@ export class TnoRollDialog extends FormApplication {
     const fixedModifiers = this._fixedModifierComponents(data).reduce((sum, modifier) => sum + modifier.value, 0);
     const context = this._contextComponent(data)?.value ?? 0;
     const required = this._requiredValueComponent(data)?.value ?? 0;
-    return base + fixedModifiers + context + required + (Number(data.bonus) || 0) + this._ideaBonus(data);
+    const ansagen = this._ansageComponent(data)?.value ?? 0;
+    const opposing = this._opposingAnsageComponent(data)?.value ?? 0;
+    return base + fixedModifiers + context + required + ansagen + opposing + (Number(data.bonus) || 0) + this._ideaBonus(data);
   }
 
   /**
@@ -499,6 +770,10 @@ export class TnoRollDialog extends FormApplication {
     if (context) parts.push(`${context.label} ${context.display}`);
     const required = this._requiredValueComponent(data);
     if (required) parts.push(`${required.label} ${required.display}`);
+    const ansagen = this._ansageComponent(data);
+    if (ansagen) parts.push(`${ansagen.label} ${ansagen.display}`);
+    const opposing = this._opposingAnsageComponent(data);
+    if (opposing) parts.push(`${opposing.label} ${opposing.display}`);
     const bonus = Number(data.bonus) || 0;
     if (bonus !== 0) parts.push(`${game.i18n.localize('TNO.Roll.Bonus')} ${this._formatBonus(bonus)}`);
     const idea = this._ideaBonus(data);
@@ -564,6 +839,7 @@ export class TnoRollDialog extends FormApplication {
     // a section this method otherwise never touches.
     const armorRow = form.querySelector('.tno-armor-malus');
     if (armorRow) armorRow.hidden = this._conditionalModifiers(data).length === 0;
+    this._refreshAnsagen(form, data);
     const submit = form.querySelector('button[type="submit"]');
     if (submit) submit.disabled = !this._canSubmit(data);
     const box = form.querySelector('.tno-threshold-box');
@@ -572,6 +848,41 @@ export class TnoRollDialog extends FormApplication {
       void box.offsetWidth; // reflow so the animation restarts on rapid changes
       box.classList.add('tno-threshold-flash');
     }
+  }
+
+  /**
+   * Repaint each Ansage row's read-out and its reach gate.
+   *
+   * Rows are rendered once and only updated here, the same way the armour malus
+   * row is: which Manöver exist on a roll never changes while the dialog is
+   * open, only what they cost and whether their precondition is met.
+   * @param {HTMLFormElement} form
+   * @param {object} data  Form data.
+   */
+  _refreshAnsagen(form, data) {
+    if (!this.ansagen.length) return;
+    for (const row of this._ansageRows(data)) {
+      const element = form.querySelector(`.tno-ansage-row[data-ansage="${row.key}"]`);
+      if (!element) continue;
+      element.classList.toggle('tno-ansage-blocked', row.blocked);
+      const input = element.querySelector('.tno-ansage-input');
+      if (input) input.disabled = row.blocked;
+      const readout = element.querySelector('.tno-ansage-readout');
+      if (readout) {
+        readout.textContent = row.readout;
+        readout.classList.toggle('tno-ansage-over-rank', row.overRank);
+      }
+    }
+
+    for (const row of this._ansageGroupRows(data)) {
+      const readout = form.querySelector(`.tno-ansage-row[data-ansage-group="${row.key}"] .tno-ansage-readout`);
+      if (readout) readout.textContent = row.readout;
+    }
+
+    // The header has to stay true while the block is folded shut, which is the
+    // state it spends most of its life in.
+    const summary = form.querySelector('.tno-ansagen-summary');
+    if (summary) summary.textContent = this._ansageSummary(data);
   }
 
   /**
@@ -598,8 +909,27 @@ export class TnoRollDialog extends FormApplication {
 
     // Any threshold-affecting input (attribute selects, free skill value, the
     // "Idee haben" toggle) repaints the preview.
-    html.on('change', 'select[name="attributeA"], select[name="attributeB"], select[name="contextChoice"], input[name="contextChoice"]', (ev) => this._refresh(ev.currentTarget.closest('form')));
-    html.on('change input', 'input[name="skillValue"], input[name="requiredValue"]', (ev) => this._refresh(ev.currentTarget.closest('form')));
+    html.on('change', 'select[name="attributeA"], select[name="attributeB"], select[name="contextChoice"], input[name="contextChoice"], .tno-ansage-select', (ev) => this._refresh(ev.currentTarget.closest('form')));
+    html.on('change input', 'input[name="skillValue"], input[name="requiredValue"], input[name="opposingAnsage"], .tno-ansage-input', (ev) => this._refresh(ev.currentTarget.closest('form')));
+    html.on('change', 'input[name="toggleModifier"]', (ev) => this._refresh(ev.currentTarget.closest('form')));
+
+    // Ansagen open and shut. Shut is the default because the Standardangriff is
+    // the common case and it declares nothing — but the header keeps saying what
+    // is inside, so folding it away never hides a cost.
+    html.on('click', '.tno-ansagen-toggle', (ev) => {
+      const section = ev.currentTarget.closest('.tno-roll-ansagen');
+      const open = section?.classList.toggle('tno-ansagen-open');
+      ev.currentTarget.setAttribute('aria-expanded', String(!!open));
+      this.setPosition({ height: 'auto' });
+    });
+
+    // Reveal the Manöver whose Fertigkeit sits at rank 0. A class on the section
+    // rather than form state: `_refresh` repaints values and never rows, so an
+    // unfolded block stays unfolded while the player types in it.
+    html.on('click', '.tno-ansage-more', (ev) => {
+      ev.currentTarget.closest('.tno-roll-ansagen')?.classList.add('tno-ansagen-show-all');
+      ev.currentTarget.remove();
+    });
     html.on('change', 'input[name="useIdea"]', (ev) => {
       ev.currentTarget.closest('.tno-idea-toggle')?.classList.toggle('active', ev.currentTarget.checked);
       this._refresh(ev.currentTarget.closest('form'));
@@ -685,11 +1015,16 @@ export class TnoRollDialog extends FormApplication {
       ui.notifications.warn(game.i18n.localize('TNO.Roll.ValueRequired'));
       return;
     }
+    const ansagen = this._ansageComponent(formData);
+    const opposing = this._opposingAnsageComponent(formData);
+    const declared = this._declaredAnsagen(formData);
     const components = [
       ...this._baseComponents(formData),
       ...this._fixedModifierComponents(formData),
       ...(context ? [context] : []),
       ...(required ? [required] : []),
+      ...(ansagen ? [ansagen] : []),
+      ...(opposing ? [opposing] : []),
     ];
 
     // "Insight" (pre-edge): compute the threshold and bonus off the
@@ -741,6 +1076,24 @@ export class TnoRollDialog extends FormApplication {
         // Signed the way it entered the threshold, so the flag and the
         // component list say the same thing about the same number.
         ...(required ? { requiredValue: { label: required.label, value: required.value } } : {}),
+        // What was declared, at the Betrag the *other* side is told — never the
+        // cost, which is the declarer's own surcharge for out-declaring their
+        // rank and no business of the defender's.
+        ...(declared.length
+          ? {
+              ansagen: declared.map((entry) => ({
+                key: entry.key,
+                label: entry.label,
+                effect: entry.effect,
+                betrag: entry.betrag,
+                cost: entry.cost,
+                ...(entry.zone ? { zone: entry.zone } : {}),
+              })),
+            }
+          : {}),
+        // The A→B channel, as numbers the defender can act on without ever
+        // reading this sheet.
+        ...(this.envelope ? { envelope: { ...this.envelope, ...ansageEnvelope(declared) } } : {}),
         ...(this.skill
           ? {
               skillKey: this.skill.key,
@@ -751,5 +1104,9 @@ export class TnoRollDialog extends FormApplication {
           : {}),
       },
     });
+
+    // Only now, with the dice cast: a defence that was dialled up and cancelled
+    // has not been made and must not count against the next one.
+    if (this.afterRoll) await this.afterRoll();
   }
 }

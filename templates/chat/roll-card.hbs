@@ -22,6 +22,28 @@
     {{#if outcome}}
     <div class="tno-roll-outcome {{outcome}}">{{outcomeLabel}}</div>
     {{/if}}
+
+    {{!-- Was der Verteidiger wissen muss, als Text. Kein Target, kein zweites
+    Dokument, keine Rechte-Prüfung: der Angreifer sagt an, der Verteidiger trägt
+    ein, was ihn betrifft — dieselbe Teilung, auf der der angesagte Schadenswert
+    schon immer beruht. --}}
+    {{#if envelope}}
+    <div class="tno-roll-envelope">
+      <span class="tno-envelope-from">{{localize "TNO.Combat.Envelope.From"}} {{envelope.from}}</span>
+      <ul class="tno-envelope-lines">
+        {{#each envelope.lines as |line|}}
+        <li>{{line}}</li>
+        {{/each}}
+      </ul>
+      {{!-- Eine Abkürzung, keine Pflicht. Der Knopf schreibt die Ansage auf den
+      *eigenen* Bogen des Klickenden; welche Verteidigung dann geöffnet wird,
+      bleibt ihm überlassen. Wer die Zahl lieber selbst eintippt, ignoriert ihn
+      einfach — der Weg über das Feld im Dialog bleibt unverändert. --}}
+      <button type="button" class="tno-envelope-take" data-tno-action="take-ansage">
+        {{localize "TNO.Combat.Envelope.Take"}}
+      </button>
+    </div>
+    {{/if}}
   </div>
 
   <div class="dice-tooltip tno-roll-tooltip">

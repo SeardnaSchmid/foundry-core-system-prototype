@@ -2,6 +2,7 @@ import {
   onManageActiveEffect,
   prepareActiveEffectCategories,
 } from '../helpers/effects.mjs';
+import { ausweichenOptions, canDefend, takeStance } from '../helpers/combat-actions.mjs';
 import { colorForValue, colorForCritical } from '../helpers/heatmap.mjs';
 import { TnoRollDialog } from '../apps/roll-dialog.mjs';
 import { TnoAdvanceDialog } from '../apps/advance-dialog.mjs';
@@ -266,6 +267,23 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    */
   _prepareCharacterData(context) {
     context.money = this.#moneyContext(context.system.money);
+
+    // The Haltung picker. Rendered as its own control rather than folded into
+    // the defence chips because it is announced *before* anything is rolled —
+    // "kündigt er zuerst seine beabsichtigte Handlung und Haltung an" — and it
+    // is the one value the defence side of an exchange cannot do without.
+    context.stanceOptions = Object.entries(CONFIG.TNO.stances).map(([key, stance]) => ({
+      key,
+      label: game.i18n.localize(stance.label),
+      selected: key === context.system.derived?.stance,
+    }));
+    const dodgeMalus = Number(context.system.derived?.defenses?.dodge?.malus) || 0;
+    context.dodgeDefense = {
+      malus: dodgeMalus,
+      hint: dodgeMalus < 0
+        ? game.i18n.format('TNO.Combat.NextDefenseMalus', { value: dodgeMalus })
+        : game.i18n.localize('TNO.Combat.DodgeHint'),
+    };
 
     // Build the primary attribute grid (one row per CONFIG.TNO.attributeRows
     // entry, one column per physical/social/mental category), mirroring the
@@ -866,11 +884,20 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const skill = getSkillDefinitions(item.actor)[item.system.fv?.skill];
     const canEdit = this.isEditable;
     const stock = Math.max(0, Number(item.system.quantity) || 0);
+    const parryMalus = Number(item.actor?.system?.derived?.defenses?.parry?.malus) || 0;
     return {
       ...base,
       canEdit,
       canWeaponCheck: !!(canEdit && item.actor?.isOwner && roles.weapon && canWeaponAttack(item.system, { skillDefined: !!skill })),
-      canWeaponParry: !!(canEdit && item.actor?.isOwner && roles.weapon && canWeaponParry(item.system, { skillDefined: !!skill })),
+      // A parry additionally needs a Haltung that allows one at all — "je nach
+      // Haltung hat der Charakter eine Parade, ein Ausweichen oder beides".
+      canWeaponParry: !!(canEdit && item.actor?.isOwner && roles.weapon
+        && canWeaponParry(item.system, { skillDefined: !!skill })
+        && canDefend(item.actor, 'parry')),
+      parryMalus,
+      parryHint: parryMalus < 0
+        ? game.i18n.format('TNO.Combat.NextDefenseMalus', { value: parryMalus })
+        : game.i18n.localize('TNO.Combat.ParryHint'),
       canAdjustStock: canEdit && roles.consumable,
       canDecreaseStock: canEdit && roles.consumable && stock > 0,
       canDelete: canEdit && !item.isWorn,
@@ -1285,6 +1312,22 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       // which case no update fires and nothing re-renders — so an out-of-range
       // entry would otherwise sit in the box looking accepted.
       this.render();
+    }, editable);
+
+    // Taking a different Haltung is immediate. This is deliberately not
+    // form-bound: the stance is combat state, not an edit waiting for submit.
+    this.#delegate('change', '.chip-stance-select', async (event, target) => {
+      await takeStance(this.actor, target.value);
+    }, editable);
+
+    // A native select emits no change event when its current option is chosen
+    // again. The rules explicitly make that a real Haltung change because it
+    // clears both repeated-defence counters, so owners get a separate repeat
+    // action for the currently displayed value.
+    this.#delegate('click', '.chip-stance-retake', async (event, target) => {
+      event.preventDefault();
+      const select = target.closest('.chip-stance')?.querySelector('.chip-stance-select');
+      if (select) await takeStance(this.actor, select.value);
     }, editable);
 
     // Heatmap +/- steppers: adjust temp (value) by default, or base while
@@ -2019,19 +2062,11 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       }
 
       // Dodge stays a self-contained defence probe: it needs neither an
-      // attacker nor an attack result. Its armour SV malus is not this
-      // handler's business — the rule attaches to Beweglichkeit, not to Dodge,
-      // and the dialog adds the step for whatever roll is built on it.
+      // attacker nor an attack result.
       if (dataset.rollType == 'dodge') {
-        const definition = getSkillDefinition(this.actor, 'acrobatics');
-        if (!definition) return;
-        const rank = this.actor.system.skills?.acrobatics?.value ?? 0;
-        return new TnoRollDialog(this.actor, {
-          attributeA: 'dex',
-          lockAttribute: true,
-          skill: { key: 'acrobatics', label: definition.label, value: rank },
-          flavor: game.i18n.localize('TNO.Combat.Dodge'),
-        }).render(true);
+        const options = ausweichenOptions(this.actor);
+        if (!options) return;
+        return new TnoRollDialog(this.actor, options).render(true);
       }
 
       // Open the roll dialog for a skill. The suggested attribute (or
@@ -2048,14 +2083,14 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           return new TnoCustomSkillDialog(this.actor, { key: dataset.skill }).render(true);
         }
         const rank = this.actor.system.skills?.[dataset.skill]?.value ?? 0;
-        // A Manöver is always performed *with* something, and naming that
-        // weapon is what finally lets its FV shortfall — "würfelt er alle
-        // Manöver mit einem Malus" — land on a roll.
-        const maneuver = getSkillDefinition(this.actor, dataset.skill)?.category === 'maneuvers';
+        // Manöverfertigkeiten deliberately roll like any other skill here. A
+        // Manöver is not a roll of its own — "alles das läuft aber unter
+        // Angriff" — so it is declared inside the attack or parry it modifies,
+        // where the weapon supplies WA, HH, DK and the SV malus and this rank
+        // only sets what the Ansage costs.
         return new TnoRollDialog(this.actor, {
           attributeA: dataset.ability,
           skill: { key: dataset.skill, label: dataset.label, value: rank },
-          ...(maneuver ? { preRollContext: this.actor.maneuverPreRollContext() } : {}),
           flavor: dataset.label,
         }).render(true);
       }

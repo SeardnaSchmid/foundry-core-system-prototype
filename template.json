@@ -12,6 +12,21 @@
       "problemSolving": {
         "spent": 0
       },
+      "combat": {
+        "stance": "open",
+        "defenses": {
+          "parry": 0,
+          "dodge": 0
+        },
+        "pending": {
+          "from": "",
+          "parry": 0,
+          "dodge": 0,
+          "resistance": 0,
+          "zone": "",
+          "bypassArmor": false
+        }
+      },
       "money": {
         "templeOr": 0,
         "imperialQian": 0,

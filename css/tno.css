@@ -532,6 +532,71 @@
 .tno .chip-initiative:hover .chip-info {
   color: #fff;
 }
+.tno .chip-dodge.chip-unavailable {
+  cursor: default;
+  opacity: 0.5;
+}
+.tno .chip-dodge.chip-unavailable:hover {
+  background: rgba(255, 255, 255, 0.66);
+  color: inherit;
+}
+.tno .chip-dodge.chip-unavailable:hover .chip-icon,
+.tno .chip-dodge.chip-unavailable:hover .chip-label {
+  color: #444;
+}
+.tno .chip-defense-malus {
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: rgba(179, 33, 43, 0.18);
+  color: #b3212b;
+  font-size: var(--font-size-10, 10px);
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.tno .chip-stance .chip-stance-select {
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--font-size-13, 13px);
+  font-weight: bold;
+  line-height: 1;
+  color: inherit;
+  box-shadow: none;
+  transition: box-shadow 0.15s ease;
+}
+.tno .chip-stance .chip-stance-select:hover:not(:disabled) {
+  box-shadow: inset 0 -1px 0 #444;
+}
+.tno .chip-stance .chip-stance-select:focus {
+  box-shadow: inset 0 -2px 0 #b8860b;
+  outline: none;
+}
+.tno .chip-stance .chip-stance-select:disabled {
+  color: inherit;
+  opacity: 1;
+}
+.tno .chip-stance .chip-stance-retake {
+  width: 20px;
+  min-height: 20px;
+  margin: 0 -4px 0 -1px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: none;
+  color: #444;
+  font-size: var(--font-size-11, 11px);
+  line-height: 20px;
+}
+.tno .chip-stance .chip-stance-retake:hover, .tno .chip-stance .chip-stance-retake:focus-visible {
+  background: rgba(68, 68, 68, 0.12);
+  box-shadow: none;
+}
 .tno .chip-edge .chip-info,
 .tno .chip-initiative .chip-info {
   font-size: var(--font-size-11, 11px);
@@ -3799,6 +3864,16 @@
   color: #191813;
   font-size: var(--font-size-11, 11px);
 }
+.tno.item-popover .item-popover-actions button .defense-malus, .tno.item-chat-summary .item-popover-actions button .defense-malus {
+  padding: 1px 4px;
+  border-radius: 999px;
+  background: rgba(179, 33, 43, 0.14);
+  color: #b3212b;
+  font-size: var(--font-size-10, 10px);
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
 .tno.item-popover .item-popover-actions button:hover:not(:disabled), .tno.item-chat-summary .item-popover-actions button:hover:not(:disabled) {
   border-color: rgba(25, 24, 19, 0.4);
   background: rgba(255, 255, 255, 0.85);
@@ -4045,6 +4120,120 @@
 .tno .tno-roll-dialog .tno-required-value-field input {
   width: 100%;
 }
+.tno .tno-roll-dialog .tno-toggle-modifier {
+  margin-bottom: 5px;
+}
+.tno .tno-roll-dialog .tno-toggle-modifier > label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-13, 13px);
+  cursor: pointer;
+}
+.tno .tno-roll-dialog .tno-toggle-modifier-value {
+  margin-left: auto;
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+}
+.tno .tno-roll-dialog .tno-ansagen-toggle {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 5px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+.tno .tno-roll-dialog .tno-ansagen-toggle::after {
+  content: "▾";
+  font-size: var(--font-size-11, 11px);
+  opacity: 0.6;
+}
+.tno .tno-roll-dialog .tno-ansagen-open .tno-ansagen-toggle::after {
+  content: "▴";
+}
+.tno .tno-roll-dialog .tno-ansagen-summary {
+  margin-left: auto;
+  font-size: var(--font-size-11, 11px);
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+.tno .tno-roll-dialog .tno-ansagen-body {
+  display: none;
+}
+.tno .tno-roll-dialog .tno-ansagen-open .tno-ansagen-body {
+  display: block;
+}
+.tno .tno-roll-dialog .tno-ansage-row {
+  display: grid;
+  grid-template-columns: 1fr 3.5rem;
+  align-items: center;
+  gap: 4px 5px;
+  padding: 3px 0;
+}
+.tno .tno-roll-dialog .tno-ansage-row + .tno-ansage-row {
+  border-top: 1px solid rgba(25, 24, 19, 0.08);
+}
+.tno .tno-roll-dialog .tno-ansage-name {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: var(--font-size-13, 13px);
+  font-weight: bold;
+}
+.tno .tno-roll-dialog .tno-ansage-rank {
+  font-size: var(--font-size-11, 11px);
+  font-weight: normal;
+  opacity: 0.7;
+}
+.tno .tno-roll-dialog .tno-ansage-input {
+  width: 100%;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.tno .tno-roll-dialog .tno-ansage-group {
+  grid-template-columns: 1fr 9rem;
+}
+.tno .tno-roll-dialog .tno-ansage-select {
+  width: 100%;
+  font-size: var(--font-size-12, 12px);
+}
+.tno .tno-roll-dialog .tno-ansage-readout {
+  grid-column: 1/-1;
+  min-height: 1.1em;
+  font-size: var(--font-size-11, 11px);
+  opacity: 0.8;
+}
+.tno .tno-roll-dialog .tno-ansage-over-rank {
+  color: #b3212b;
+  opacity: 1;
+}
+.tno .tno-roll-dialog .tno-ansage-blocked {
+  opacity: 0.45;
+}
+.tno .tno-roll-dialog .tno-ansage-untrained {
+  display: none;
+}
+.tno .tno-roll-dialog .tno-ansagen-show-all .tno-ansage-untrained {
+  display: grid;
+}
+.tno .tno-roll-dialog .tno-ansage-more {
+  width: 100%;
+  margin-top: 4px;
+  padding: 2px 0;
+  border: 1px dashed rgba(25, 24, 19, 0.2);
+  background: none;
+  font-size: var(--font-size-11, 11px);
+  line-height: 1.4;
+  opacity: 0.7;
+  cursor: pointer;
+}
+.tno .tno-roll-dialog .tno-ansage-more:hover {
+  opacity: 1;
+}
 .tno .tno-roll-dialog .tno-context-tile-field {
   min-width: 0;
   margin: 0;
@@ -4066,6 +4255,9 @@
 }
 .tno .tno-roll-dialog .tno-context-tile-grid-3 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.tno .tno-roll-dialog .tno-context-tile-grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .tno .tno-roll-dialog .tno-context-tile-input {
   position: absolute;
@@ -4675,6 +4867,45 @@
 }
 .tno-roll-card .tno-roll-outcome.criticalSuccess, .tno-roll-card .tno-roll-outcome.criticalFailure {
   font-size: var(--font-size-14, 14px);
+}
+.tno-roll-card .tno-roll-envelope {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px dashed #b5b3a4;
+  text-align: left;
+  font-size: var(--font-size-11, 11px);
+}
+.tno-roll-card .tno-envelope-from {
+  display: block;
+  font-weight: bold;
+  color: #444;
+}
+.tno-roll-card .tno-envelope-lines {
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+}
+.tno-roll-card .tno-envelope-lines > li + li::before {
+  content: "·";
+  margin-right: 8px;
+  color: #b5b3a4;
+}
+.tno-roll-card .tno-envelope-take {
+  width: 100%;
+  margin-top: 4px;
+  padding: 2px 0;
+  border: 1px dashed #b5b3a4;
+  background: none;
+  font-size: var(--font-size-11, 11px);
+  line-height: 1.4;
+  opacity: 0.75;
+  cursor: pointer;
+}
+.tno-roll-card .tno-envelope-take:hover {
+  opacity: 1;
 }
 .tno-roll-card .tno-roll-tooltip {
   order: 1;

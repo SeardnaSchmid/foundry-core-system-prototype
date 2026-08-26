@@ -92,6 +92,164 @@ $c-roll-negative: #c62828;
     }
   }
 
+  // A rule the other side announced. A checkbox rather than a number, because
+  // the player is confirming something they were told rather than choosing a
+  // size — the size was set by their own armour.
+  .tno-toggle-modifier {
+    margin-bottom: $padding-sm;
+
+    > label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: var(--font-size-13, 13px);
+      cursor: pointer;
+    }
+  }
+
+  .tno-toggle-modifier-value {
+    margin-left: auto;
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+  }
+
+  // Ansagen. A list rather than a picker, because any number of them may be
+  // declared at once and each carries its own arithmetic: the row says what it
+  // costs *you* next to what the opponent takes, which are different numbers
+  // whenever the Betrag is out past the rank.
+  //
+  // The whole block starts shut: most attacks declare nothing, and a section
+  // that is nine rows of "0" by default buries the two inputs above it.
+  .tno-ansagen-toggle {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: $padding-sm;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+
+    &::after {
+      content: '\25be';
+      font-size: var(--font-size-11, 11px);
+      opacity: 0.6;
+    }
+  }
+
+  .tno-ansagen-open .tno-ansagen-toggle::after {
+    content: '\25b4';
+  }
+
+  // What the shut block is hiding, so shutting it never hides a cost.
+  .tno-ansagen-summary {
+    margin-left: auto;
+    font-size: var(--font-size-11, 11px);
+    font-variant-numeric: tabular-nums;
+    opacity: 0.7;
+  }
+
+  .tno-ansagen-body {
+    display: none;
+  }
+
+  .tno-ansagen-open .tno-ansagen-body {
+    display: block;
+  }
+
+  .tno-ansage-row {
+    display: grid;
+    grid-template-columns: 1fr 3.5rem;
+    align-items: center;
+    gap: 4px $padding-sm;
+    padding: 3px 0;
+
+    & + .tno-ansage-row {
+      border-top: 1px solid rgba($c-dark, 0.08);
+    }
+  }
+
+  .tno-ansage-name {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: var(--font-size-13, 13px);
+    font-weight: bold;
+  }
+
+  // Which Manöverfertigkeit governs the 1:1 limit, and at what rank. Quiet, but
+  // present: it is the only thing that explains why the cost is what it is.
+  .tno-ansage-rank {
+    font-size: var(--font-size-11, 11px);
+    font-weight: normal;
+    opacity: 0.7;
+  }
+
+  .tno-ansage-input {
+    width: 100%;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  // A group is a choice, not a number, so its row trades the narrow Betrag
+  // column for one wide enough to read "Kopf (−6)" in.
+  .tno-ansage-group {
+    grid-template-columns: 1fr 9rem;
+  }
+
+  .tno-ansage-select {
+    width: 100%;
+    font-size: var(--font-size-12, 12px);
+  }
+
+  .tno-ansage-readout {
+    grid-column: 1 / -1;
+    min-height: 1.1em;
+    font-size: var(--font-size-11, 11px);
+    opacity: 0.8;
+  }
+
+  // Past the rank the exchange turns 2:1. Marked, because a cost that suddenly
+  // outruns the Betrag otherwise reads as a bug.
+  .tno-ansage-over-rank {
+    color: $c-warning;
+    opacity: 1;
+  }
+
+  .tno-ansage-blocked {
+    opacity: 0.45;
+  }
+
+  // Ansagen auf einer Fertigkeit mit Rang 0. Erlaubt — die allgemeine
+  // Ansageregel rechnet sie zu 1:2 um — aber sie sind nicht das, wonach jemand
+  // sucht, und ohne sie schrumpft der Block eines frischen Charakters von acht
+  // Zeilen auf eine.
+  .tno-ansage-untrained {
+    display: none;
+  }
+
+  .tno-ansagen-show-all .tno-ansage-untrained {
+    display: grid;
+  }
+
+  .tno-ansage-more {
+    width: 100%;
+    margin-top: 4px;
+    padding: 2px 0;
+    border: 1px dashed rgba($c-dark, 0.2);
+    background: none;
+    font-size: var(--font-size-11, 11px);
+    line-height: 1.4;
+    opacity: 0.7;
+    cursor: pointer;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+
   .tno-context-tile-field {
     min-width: 0;
     margin: 0;
@@ -117,6 +275,10 @@ $c-roll-negative: #c62828;
 
   .tno-context-tile-grid-3 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .tno-context-tile-grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .tno-context-tile-input {

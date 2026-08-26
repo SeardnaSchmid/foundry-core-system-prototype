@@ -51,6 +51,14 @@ Visible above every tab as a compact character profile.
 - **Backdrop:** one unmasked `aria-hidden` decorative copy of `actor.img` sits behind the banner, using the upper golden-ratio focal point (`center 38%`). A single warm-charcoal-to-transparent gradient protects the identity and replaces the former parchment wash, alpha mask and vignette. The same gradient is angled slightly as an editorial cut and carries a faint advancement-gold warmth at its trailing edge—this is the banner's one decorative motif, not an additional layer. Name text is off-white and slightly tightened, its subtitle muted beige, and the gold repeats on the accent rule and portrait rim; the image remains recognizable through a restrained darker, desaturated wash without background blur. The chips use a light translucent surface with a small local blur. The backdrop has no interaction or separate actor data.
 - **Identity:** the editable character name is the dominant headline. The free-text profession/role and the computed spent/acquired XP read-out form its subtitle. The name retains a 280px lane at normal sheet widths; chips wrap before they may squeeze it.
 - **Banner chips:**
+  - **Haltung:** a persisted combat-stance picker. Choosing a different stance
+    takes it immediately; the adjacent repeat action takes the current stance
+    again, because that is a meaningful rules action that clears both repeated
+    defence counters. The selected stance gates Dodge here and Parry in a
+    weapon popover.
+  - **Dodge (Ausweichen):** Beweglichkeit + Akrobatik, available only when the
+    current Haltung permits it. After the first dodge in a stance, the chip
+    shows the flat next-defence malus before opening the roll dialog.
   - **Initiative:** `1d10 + @derived.initiative`, rolled via the generic `data-roll` formula path. It replaces the former portrait overlay, so the portrait stays unobstructed.
   - **Sixth Sense (6. Sinn):** a plain standard 3d20 roll against `system.derived.sixthSense`, no modifiers/advantage, no Problem-Solving pre-edge (`edgeExempt: true`) — it's an instinctive reaction, not a deliberate check.
 - **Movement chip:** crawl | walk | sprint as one display-only chip, each figure with its own tooltip — no roll, no interaction. A tier the character has lost is **struck through in the warning red**: sprint whenever `derived.canSprint` is false (a load at half the carry budget *or* a damaged Beweglichkeit — the chip does not distinguish, the tooltip does), and walk as well once the load is `crawlOnly`. This is where the carry grid's `Kein Sprint` / `Nur Kriechen` badges went: the consequence belongs on the figure it takes away, since the question being asked is "how far can I move".

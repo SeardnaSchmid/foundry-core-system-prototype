@@ -11,8 +11,9 @@
       </button>
       {{#if canWeaponParry}}
         <button type='button' data-popover-action='weapon-parry'
-                title='{{localize "TNO.Combat.ParryHint"}}'>
+                title='{{parryHint}}'>
           <i class='fa-solid fa-shield-halved' aria-hidden='true'></i>{{localize 'TNO.Combat.Parry'}}
+          {{#if parryMalus}}<span class='defense-malus'>{{parryMalus}}</span>{{/if}}
         </button>
       {{/if}}
     </div>
@@ -20,8 +21,9 @@
     {{#if canWeaponParry}}
       <div class='item-popover-actions-row item-popover-combat-actions'>
         <button type='button' data-popover-action='weapon-parry'
-                title='{{localize "TNO.Combat.ParryHint"}}'>
+                title='{{parryHint}}'>
           <i class='fa-solid fa-shield-halved' aria-hidden='true'></i>{{localize 'TNO.Combat.Parry'}}
+          {{#if parryMalus}}<span class='defense-malus'>{{parryMalus}}</span>{{/if}}
         </button>
       </div>
     {{/if}}

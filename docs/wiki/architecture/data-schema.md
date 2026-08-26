@@ -45,6 +45,16 @@ in Foundry v14+.
     [inventory.md](../concepts/inventory.md#money).
   - `character.hasContainer` — whether the character carries a bag or
     backpack. Without one there is no slot economy at all.
+  - `character.combat.stance` — the Haltung, announced on activation and held
+    until the next one. It alone decides which defence the character may make.
+  - `character.combat.defenses.{parry,dodge}` — how many of each have been made
+    since that Haltung was taken. Counted apart, and cleared whenever a Haltung
+    is taken — including the same one again. See
+    [combat-roll-workflows.md](../concepts/combat-roll-workflows.md).
+  - `character.combat.pending` — an Ansage announced against this character and
+    taken off an attack card, so the next defence starts with it filled in.
+    Written by the defender's own click, cleared once a defence has used it, and
+    never a precondition: the field it fills is typed by hand otherwise.
   - `npc.cr` — challenge rating; XP is derived from it (`cr² × 100`).
 - **Item types:** `item`, `feature`, `spell`, `armor`, `weapon`. All extend
   `base` (`description`).
@@ -87,6 +97,9 @@ computes them in `TnoActor.prepareDerivedData()`, writing to
 | `trialErrorMax` | `ceil((base(int) + base(wil)) / 2)` | |
 | `edgePoolMax` / `edgePool` | `ceil((base(wil) + base(wis)) / 2)`, minus `problemSolving.spent` | refills every `prepareDerivedData()` call — spend tracking is the only persisted state |
 | `postMortem` | `2·base(inv)` | |
+| `stance` | `combat.stance`, or `open` when unset or unknown | falls back to the Haltung that permits nothing, never to one that permits everything |
+| `defenses.<kind>.available` | whether `CONFIG.TNO.stances[stance].defenses` lists it | the value that lets the defence side of an exchange answer itself |
+| `defenses.<kind>.malus` | `0` for the first, else `min(0, −10 + rank)` | flat rather than cumulative, and **not** a multiple of a step; the rank is Defensiver Kampf or Deckung nutzen, and only in the Haltungen each names |
 
 All derived values are computed from `base`, never damaged `value` (per the
 rulebook's "Abgeleitete Werte bleiben gleich, auch mit temporären

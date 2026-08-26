@@ -117,12 +117,25 @@ describe('weapon roll requirement components', () => {
     ]);
     // "Angriffe und Paraden sind um +3 erleichtert wenn man den längeren hat":
     // the parry asks for the same reach comparison an attack does.
-    expect(opened.preRollContext.choices.map((choice) => choice.value)).toEqual([-3, 0, 3]);
+    expect(opened.preRollContext.choices.map((choice) => choice.value)).toEqual([0, 3]);
   });
 
-  it('offers a melee attack the three reach outcomes as its required context', () => {
+  it('offers a melee attack the two reach outcomes as its required context', () => {
     opened = null;
     weapon(actor()).openWeaponCheck();
-    expect(opened.preRollContext.choices.map((choice) => choice.value)).toEqual([-3, 0, 3]);
+    expect(opened.preRollContext.choices.map((choice) => choice.value)).toEqual([0, 3]);
+  });
+
+  // With `0` as a real outcome the number alone stops being an answer, so both
+  // melee tiles carry the question as their caption.
+  it('captions the reach tiles with the question rather than the bare number', () => {
+    opened = null;
+    weapon(actor()).openWeaponCheck();
+    expect(opened.preRollContext.tileLabels).toBe(true);
+    expect(opened.preRollContext.tileColumns).toBe(2);
+    expect(opened.preRollContext.choices.map((choice) => choice.label)).toEqual([
+      'TNO.Combat.Reach.NotLonger',
+      'TNO.Combat.Reach.Longer',
+    ]);
   });
 });

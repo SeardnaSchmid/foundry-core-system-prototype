@@ -326,6 +326,90 @@
   }
 }
 
+// A defence the current Haltung does not allow. Dimmed rather than hidden, and
+// it keeps its number: the value is still what this character would dodge at,
+// and what changed is that the stance does not let them — the same reading the
+// struck-through movement tiers take.
+.chip-dodge.chip-unavailable {
+  cursor: default;
+  opacity: 0.5;
+
+  &:hover {
+    background: rgba($c-white, 0.66);
+    color: inherit;
+
+    .chip-icon,
+    .chip-label {
+      color: $c-tan;
+    }
+  }
+}
+
+.chip-defense-malus {
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: rgba($c-warning, 0.18);
+  color: $c-warning;
+  font-size: var(--font-size-10, 10px);
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+// The Haltung picker. The select is the chip's value, so it carries no chrome
+// of its own until hovered — exactly like the editable edge reserve.
+.chip-stance {
+  .chip-stance-select {
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: var(--font-size-13, 13px);
+    font-weight: bold;
+    line-height: 1;
+    color: inherit;
+    box-shadow: none;
+    transition: box-shadow 0.15s ease;
+
+    &:hover:not(:disabled) {
+      box-shadow: inset 0 -1px 0 $c-tan;
+    }
+
+    &:focus {
+      box-shadow: inset 0 -2px 0 $c-advance;
+      outline: none;
+    }
+
+    &:disabled {
+      color: inherit;
+      opacity: 1;
+    }
+  }
+
+  .chip-stance-retake {
+    width: 20px;
+    min-height: 20px;
+    margin: 0 -4px 0 -1px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    box-shadow: none;
+    color: $c-tan;
+    font-size: var(--font-size-11, 11px);
+    line-height: 20px;
+
+    &:hover,
+    &:focus-visible {
+      background: rgba($c-tan, 0.12);
+      box-shadow: none;
+    }
+  }
+}
+
 // The edge pool chip, styled like the other meta chips for consistency.
 .chip-edge,
 .chip-initiative {

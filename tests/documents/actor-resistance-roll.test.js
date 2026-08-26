@@ -22,7 +22,11 @@ globalThis.foundry = {
 };
 globalThis.CONFIG = {
   TNO: {
-    abilities: { str: 'TNO.Ability.Str.long', dex: 'TNO.Ability.Dex.long' },
+    abilities: {
+      str: 'TNO.Ability.Str.long',
+      dex: 'TNO.Ability.Dex.long',
+      fin: 'TNO.Ability.Fin.long',
+    },
     armorZones: {
       suit: 'TNO.Armor.Zone.Suit',
       head: 'TNO.Armor.Zone.Head',
@@ -103,11 +107,24 @@ describe('resistance roll', () => {
     expect(resist('head').fixedModifiers).toEqual([
       { label: 'TNO.Combat.ResistanceRw(TNO.Armor.Zone.Head)', value: 4 },
     ]);
-    expect(resist('head').flavor).toBe('TNO.Combat.ResistanceFlavor(TNO.Armor.Zone.Head)');
+    // The Stelle also says where a failed roll lands: Kopf doubles onto Stärke.
+    expect(resist('head').flavor).toBe('TNO.Combat.ResistanceFlavor(TNO.Armor.Zone.Head,TNO.Ability.Str.long ×2)');
     // A different location answers with its own padding, not the head's.
     expect(resist('legs').fixedModifiers).toEqual([
       { label: 'TNO.Combat.ResistanceRw(TNO.Armor.Zone.Legs)', value: 1 },
     ]);
+  });
+
+  // "Schaden wird direkt auf körperliche Attribute angerechnet", and which ones
+  // is decided by the Stelle alone — so the roll that resists a hit is also the
+  // roll that can say what the hit costs if it lands.
+  it('names the attributes a failed roll lands on, per Stelle', () => {
+    // Torso, the Stelle of every attack that announced nothing: Stärke, undoubled.
+    expect(resist('torso').flavor).toBe('TNO.Combat.ResistanceFlavor(TNO.Armor.Zone.Torso,TNO.Ability.Str.long)');
+    // Arme splits, and the order is the rounding: Fingerfertigkeit first.
+    expect(resist('arms').flavor).toBe(
+      'TNO.Combat.ResistanceFlavor(TNO.Armor.Zone.Arms,TNO.Ability.Fin.long / TNO.Ability.Str.long)'
+    );
   });
 
   it('reads Stärke at its damage-adjusted value, not its trained base', () => {
@@ -119,6 +136,41 @@ describe('resistance roll', () => {
     // And the armour SV malus stays away without being special-cased: this is
     // a Stärkewurf, and the rule names Beweglichkeit.
     expect(dialog._conditionalModifiers(answered())).toEqual([]);
+  });
+
+  // "Erschwere deinen Angriff um die Rüstungsabdeckung der jeweiligen Stelle und
+  // ignoriere sie dafür" — the attacker paid this location's RA, and what they
+  // bought is that its armour does not apply.
+  it('cancels the location padding when the attacker bypassed its armour', () => {
+    const dialog = resist('head');
+    expect(dialog.toggleModifier).toEqual({
+      label: 'TNO.Combat.Envelope.BypassArmor',
+      hint: 'TNO.Combat.BypassArmorHint',
+      // Exactly the RW it takes back out, so a bypassed location resists on
+      // Stärke alone.
+      value: -4,
+    });
+    expect(dialog._computeThreshold(answered({ requiredValue: 7, contextChoice: 'softer' }))).toBe(-1);
+    expect(dialog._computeThreshold(answered({ requiredValue: 7, contextChoice: 'softer', toggleModifier: true }))).toBe(-5);
+    // Confirming it is the defender's move, not a default: unbypassed armour
+    // must never quietly vanish.
+    expect(dialog._conditionalModifiers(answered())).toEqual([]);
+  });
+
+  it('offers no bypass on a location with no padding to cancel', () => {
+    // Nothing to ignore, so nothing to confirm: an unarmoured location resists
+    // on Stärke either way.
+    const bare = Object.assign(new TnoActor(), {
+      type: 'character',
+      isOwner: true,
+      system: {
+        abilities: { str: { base: 5, value: 2 } },
+        derived: { armor: { torso: { rh: 0, rw: 0, ra: 0 } } },
+      },
+    });
+    opened = null;
+    bare.openResistanceCheck('torso');
+    expect(opened.toggleModifier).toBeNull();
   });
 
   it('refuses a resistance roll on the Unterkleidung, which is no hit location', () => {

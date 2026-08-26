@@ -447,7 +447,7 @@ describe('migrateWorld', () => {
 
   it('runs nothing once the stored version covers every step', async () => {
     const item = makeItem({ type: 'weapon', system: { weight: 2 } });
-    stubFoundry({ items: [item], stored: '0.31.0' });
+    stubFoundry({ items: [item], stored: '0.34.0' });
 
     await migrateWorld();
 
@@ -466,7 +466,7 @@ describe('migrateWorld', () => {
 
     await migrateWorld();
 
-    expect(pinned).toBe('0.31.0');
+    expect(pinned).toBe('0.34.0');
     expect(notifications).toHaveLength(0);
   });
 

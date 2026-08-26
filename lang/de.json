@@ -565,19 +565,42 @@
       "Dodge": "Ausweichen",
       "DodgeHint": "Würfelt Beweglichkeit + Akrobatik zum Ausweichen.",
       "Resistance": "Widerstand",
-      "ResistanceFlavor": "Widerstand: {zone}",
+      "ResistanceFlavor": "Widerstand: {zone} → {damage}",
       "ResistanceRw": "RW ({zone})",
       "DamageValue": "Schadenswert",
-      "ManeuverWeapon": "Manöver mit",
-      "ManeuverWeaponPlaceholder": "Waffe wählen",
-      "ManeuverUnarmed": "Unbewaffnet",
-      "FvMalusFor": "FV-Voraussetzung: {weapon}",
       "ActiveHandling": "Handhabung (Angriff)",
       "PassiveHandling": "Handhabung (Parade)",
       "SvMalus": "SV-Voraussetzung ({steps}×)",
       "ArmorSvMalus": "Rüstungs-SV",
       "RangeBand": "Reichweitenband",
       "DkDifference": "Reichweitenvorteil",
+      "Reach": {
+        "Longer": "Längere Waffe",
+        "NotLonger": "Nicht länger"
+      },
+      "RepeatedDefense": "{count}. Verteidigung dieser Haltung",
+      "RepeatedDefenseLabel": "Wiederholte Verteidigung",
+      "NextDefenseMalus": "Nächste Verteidigung: {value}",
+      "FvMalus": "FV-Voraussetzung (Manöver)",
+      "AnsageCaption": "Manöver",
+      "AnsageCost": "Ansagen ({count})",
+      "AnsageReadout": "kostet dich {cost} · {effect}",
+      "AnsageNeedsReach": "braucht die längere Waffe",
+      "StanceLabel": "Haltung",
+      "StanceHint": "Wird bei der Aktivierung angesagt und bis zur nächsten gehalten. Sie entscheidet, welche Verteidigung möglich ist — und eine Haltung einzunehmen, auch dieselbe noch einmal, löscht den Wiederholungsmalus.",
+      "StanceRetake": "Aktuelle Haltung erneut einnehmen und Verteidigungsmali zurücksetzen",
+      "StanceNoDefense": "Diese Haltung erlaubt keine Verteidigung",
+      "Stance": {
+        "Open": "Offen",
+        "SimpleMove": "Einfache Bewegung",
+        "CarefulMove": "Vorsichtige Bewegung",
+        "FastMove": "Schnelle Bewegung",
+        "InCover": "In Deckung",
+        "EnGarde": "En Garde",
+        "SuppressiveFire": "Unterdrückungsfeuer",
+        "Grappling": "Ringen",
+        "CatchBreath": "Durchatmen"
+      },
       "ContextPlaceholder": "Distanz wählen",
       "RangeComponent": "Reichweite: {band}",
       "Penetration": {
@@ -585,7 +608,26 @@
         "Softer": "weicher · SS",
         "Equal": "gleich · WS",
         "Harder": "härter · WS"
-      }
+      },
+      "OpposingAnsage": "Gegen dich angesagt",
+      "Envelope": {
+        "From": "Von",
+        "Parry": "Parade −{value}",
+        "Dodge": "Ausweichen −{value}",
+        "Resistance": "Widerstand −{value}",
+        "BypassArmor": "Rüstung an der Stelle umgangen",
+        "Damage": "RB/RD {penetration} · Scharf {sharp} / Wucht {blunt}",
+        "Dk": "DK {dk}",
+        "Take": "Gegen mich angesagt",
+        "TakeFor": "Ansage übernehmen",
+        "TakeForLabel": "Auf welchen Bogen?",
+        "Taken": "Ansage für {name} vorgemerkt — sie steht bei der nächsten Verteidigung schon drin."
+      },
+      "BypassArmorHint": "Der Angreifer hat die RA dieser Stelle bezahlt, um die Rüstung zu umgehen — ihr Rüstungswert gilt nicht, und der Treffer zählt immer als scharf.",
+      "AnsageMore": "Selten genutzte Manöver",
+      "AnsageNone": "keine",
+      "AnsageSummary": "{count} angesagt · {cost}",
+      "AnsageOption": "{label} ({cost})"
     },
     "Advantage": {
       "StrongDisadvantage": "Starker Nachteil",
@@ -608,6 +650,48 @@
       "Inactive": "Inaktive Effekte"
     },
     "TabEffects": "Effekte",
+    "Maneuver": {
+      "Feint": {
+        "Label": "Finte",
+        "Effect": "gegnerische Verteidigung −{betrag}"
+      },
+      "Riposte": {
+        "Label": "Riposte",
+        "Effect": "dein nächster Angriff auf ihn +{betrag}"
+      },
+      "StrongSwing": {
+        "Label": "Starker Schwung",
+        "Effect": "gegnerischer Widerstand und Parade −{betrag}"
+      },
+      "WideSwing": {
+        "Label": "Weiter Schwung",
+        "Effect": "gegnerisches Ausweichen −{betrag}"
+      },
+      "Arms": {
+        "Label": "Arme",
+        "Effect": "Schaden auf Fingerfertigkeit und Stärke verteilt"
+      },
+      "Legs": {
+        "Label": "Beine",
+        "Effect": "Schaden auf Beweglichkeit und Stärke verteilt"
+      },
+      "Head": {
+        "Label": "Kopf",
+        "Effect": "Schaden nach der Widerstandsprobe verdoppelt"
+      },
+      "BypassArmor": {
+        "Label": "Rüstung umgehen",
+        "Effect": "gegnerische Rüstung an der Stelle gilt nicht"
+      },
+      "WeakSpot": {
+        "Label": "Schwachstelle",
+        "Effect": "was der GM festlegt"
+      },
+      "Zone": {
+        "Label": "Trefferzone",
+        "None": "keine Ansage"
+      }
+    },
     "Armor": {
       "WornTitle": "Getragene Ausrüstung",
       "Zones": "Rüstungszonen",

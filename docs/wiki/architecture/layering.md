@@ -16,22 +16,26 @@ circular dependencies:
 module/tno.mjs                          (entry point, imports everything below)
 ├── documents/  {actor,item}.mjs        — reach no further than helpers/
 │                 → both import helpers/inventory.mjs
-│                 → both import helpers/{items,skills}.mjs for the combat
+│                 → both import helpers/combat-actions.mjs for the combat
 │                   workflows they open; the dialog itself is reached through
 │                   game.tno.TnoRollDialog, never imported from apps/
 ├── sheets/     actor-sheet.mjs, item-sheet.mjs, item-gear-sheet.mjs
-│                 → helpers/{effects,heatmap,dice,skills,inventory,items}.mjs
+│                 → helpers/{effects,heatmap,dice,skills,inventory,items,
+│                   combat-actions}.mjs
 │                 → apps/{roll-dialog,advance-dialog,heatmap-lab,custom-skill-dialog}.mjs
 ├── helpers/    config, dice, dice-odds, dice-odds-table, chat, heatmap, skills,
-│               effects, inventory, items, item-presentation, migrations,
-│               templates
+│               effects, inventory, items, item-presentation, combat-actions,
+│               maneuvers, migrations, templates
 │                 → items.mjs is the base of the helper graph: it imports
 │                   nothing, and inventory.mjs and config.mjs import it
+│                 → maneuvers.mjs is the second global-free base: it imports
+│                   nothing and holds the Ansage arithmetic and Manöver table
 │                 → inventory.mjs → items.mjs,
 │                   item-presentation.mjs → {inventory,items}.mjs,
 │                   config.mjs → {inventory,items}.mjs,
 │                   migrations.mjs → items.mjs,
-│                   chat.mjs → dice.mjs,
+│                   combat-actions.mjs → {inventory,items,maneuvers,skills}.mjs,
+│                   chat.mjs → {dice,combat-actions}.mjs,
 │                   dice.mjs → dice-odds.mjs → dice-odds-table.mjs
 │                   (one-way: the odds side never imports dice.mjs back, so
 │                    dice.mjs stays the base of the roll graph)
@@ -41,17 +45,19 @@ module/tno.mjs                          (entry point, imports everything below)
                   → roll-dialog.mjs and base-roll-dialog.mjs both import
                     roll-dialog-shared.mjs (the advantage picker UI) and
                     helpers/dice.mjs
+                  → roll-dialog.mjs additionally imports helpers/maneuvers.mjs
+                    for the Ansage arithmetic it prices live
 ```
 
 **Rule of thumb when adding code:** `documents/` reaches no further than
 `helpers/` (it's what `getRollData()` and `prepareDerivedData()` need, and
 other layers call *into* it, not the reverse). `helpers/` may depend on each
-other sparingly, but never on `sheets/` or `apps/` — and `inventory.mjs` and
-`items.mjs` additionally hold themselves free of Foundry globals so they can
-be unit-tested without a game world, which is why `items.mjs` sits at the
-bottom and may never import back up. `apps/` and `sheets/` may both depend on `helpers/`; `sheets/` may
-additionally depend on `apps/` (a sheet opens dialogs), but `apps/` never
-depends back on `sheets/`.
+other sparingly, but never on `sheets/` or `apps/` — and `inventory.mjs`,
+`items.mjs` and `maneuvers.mjs` additionally hold themselves free of Foundry
+globals so they can be unit-tested without a game world, which is why they sit
+at the bottom and may never import back up. `apps/` and `sheets/` may both
+depend on `helpers/`; `sheets/` may additionally depend on `apps/` (a sheet
+opens dialogs), but `apps/` never depends back on `sheets/`.
 
 For the full file-by-file responsibility list, see
 [reference/module-map.md](../reference/module-map.md).

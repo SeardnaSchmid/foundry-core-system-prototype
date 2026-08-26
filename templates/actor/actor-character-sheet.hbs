@@ -94,14 +94,43 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
       die anderen beiden. Die Formel Beweglichkeit+Akrobatik, die vorher
       sichtbar neben dem Akrobatik-Rang stand, steht jetzt im Tooltip. Direkt
       links von Initiative, da beide Kampfreflexe sind. --}}
-      <a class="banner-chip chip-dodge rollable" data-roll-type="dodge" data-label="{{localize 'TNO.Combat.Dodge'}}"
+      {{!-- Die Haltung entscheidet allein, ob und womit verteidigt werden darf,
+      und löscht beim Einnehmen den Wiederholungsmalus. Sie steht deshalb direkt
+      neben den Verteidigungswerten, die sie freischaltet. --}}
+      <div class="banner-chip chip-stance"
+           data-tooltip-html='<dl class="tno-tooltip">
+<div class="tno-tooltip-row"><dt>{{localize "TNO.Combat.StanceLabel"}}</dt><dd>{{localize "TNO.Combat.StanceHint"}}</dd></div>
+</dl>'
+           data-tooltip-direction='DOWN'>
+        <i class="fa-solid fa-shield-halved chip-icon"></i>
+        <span class="chip-label">{{localize "TNO.Combat.StanceLabel"}}</span>
+        <select class="chip-stance-select" data-action="takeStance" {{#unless editable}}disabled{{/unless}}>
+          {{#each stanceOptions as |stance|}}
+          <option value="{{stance.key}}" {{#if stance.selected}}selected{{/if}}>{{stance.label}}</option>
+          {{/each}}
+        </select>
+        {{#if editable}}
+        <button type="button" class="chip-stance-retake"
+                title="{{localize 'TNO.Combat.StanceRetake'}}"
+                aria-label="{{localize 'TNO.Combat.StanceRetake'}}">
+          <i class="fa-solid fa-arrow-rotate-right" aria-hidden="true"></i>
+        </button>
+        {{/if}}
+      </div>
+
+      {{!-- Ausweichen ist ein reiner Ableitungswurf, aber kein bedingungsloser:
+      erlaubt die Haltung kein Ausweichen, ist der Chip stumm. --}}
+      <a class="banner-chip chip-dodge{{#if system.derived.defenses.dodge.available}} rollable{{else}} chip-unavailable{{/if}}"
+         {{#if system.derived.defenses.dodge.available}}data-roll-type="dodge" data-label="{{localize 'TNO.Combat.Dodge'}}"{{/if}}
          data-tooltip-html='<dl class="tno-tooltip">
-<div class="tno-tooltip-row"><dt>{{localize "TNO.Combat.Dodge"}} <span class="tno-tooltip-value">{{system.derived.dodge}}</span></dt><dd>{{localize "TNO.Combat.DodgeHint"}}</dd></div>
+<div class="tno-tooltip-row"><dt>{{localize "TNO.Combat.Dodge"}} <span class="tno-tooltip-value">{{system.derived.dodge}}</span></dt><dd>{{#if system.derived.defenses.dodge.available}}{{localize "TNO.Combat.DodgeHint"}}{{else}}{{localize "TNO.Combat.StanceNoDefense"}}{{/if}}</dd></div>
+{{#if dodgeDefense.malus}}<div class="tno-tooltip-row"><dt>{{localize "TNO.Combat.RepeatedDefenseLabel"}}</dt><dd>{{dodgeDefense.hint}}</dd></div>{{/if}}
 </dl>'
          data-tooltip-direction='DOWN'>
         <i class="fa-solid fa-person-running chip-icon"></i>
         <span class="chip-label">{{localize "TNO.DerivedShort.Dodge"}}</span>
         <span class="chip-value">{{system.derived.dodge}}</span>
+        {{#if dodgeDefense.malus}}<span class="chip-defense-malus">{{dodgeDefense.malus}}</span>{{/if}}
       </a>
 
       {{!-- Initiative moved from the portrait to the banner, but still rolls
