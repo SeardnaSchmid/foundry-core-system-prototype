@@ -1,210 +1,47 @@
 /**
- * Manöver, as one formula and one table.
+ * Manöver, as the two things a roll has to carry: how much was announced, and
+ * where the blow is aimed.
  *
  * "Manöver sind alles, was Kampfhandlungen wie Angriffe, Paraden, Ausweichen,
  * Bewegung und so weiter modifiziert" — and every declarable one modifies a roll
  * that already exists: "alles das läuft aber unter Angriff". None of them is a
- * roll of its own, which is why nothing here opens one. A Manöver contributes a
- * cost to the roll being made and an effect that lands elsewhere.
+ * roll of its own, which is why nothing here opens one.
  *
- * This module holds itself free of Foundry globals so the arithmetic can be
- * unit-tested without a game world; `label` and `effect` are localisation keys,
- * never localised strings.
+ * **Which** Manöver was declared is deliberately not modelled. An Ansage is one
+ * free magnitude the player and the GM agree on out loud, and the reason behind
+ * it — a Finte, a Starker Schwung, something the rulebook never named — is table
+ * talk that no field can hold and no arithmetic needs. What the system carries is
+ * the number.
+ *
+ * The Stelle is the exception, because it is two things at once. It is a
+ * location — it decides which attributes a failed resistance roll lands on, and
+ * the defender opens that roll by clicking it on the paper doll, so it has to be
+ * a discrete pick or the damage rule has nothing to read. And it is an Ansage
+ * with a price the rulebook writes down, which is what {@link ZONE_COSTS} holds.
+ * The pick and the price travel separately on purpose: the price worsens the
+ * attacker's own roll, while only the location crosses to the defender.
+ *
+ * This module holds itself free of Foundry globals so it can be unit-tested
+ * without a game world.
  */
 
-/**
- * What an Ansage costs the roll that declares it.
- *
- * "Bei solchen Ansagen kann man bis zum Limit der Manöverfähigkeit 1 zu 1
- * ansagen, darüber hinaus 1 zu 2."
- *
- * The rulebook's own worked example is the test: Geschickte Angriffe 2 with a
- * 3er Finte costs 4, at rank 4 it costs 3, and at rank 0 it costs 6. Note that
- * the *effect* is always the declared Betrag — the 2:1 conversion is a surcharge
- * on the declarer, not a discount for the target.
- *
- * The per-Manöver "maximal um die Höhe deiner X Fertigkeit" phrases are **not**
- * hard caps: each section opens with "normale Ansageregeln gelten hier auf
- * alles", and the general rule's own example declares above the rank. They are
- * restatements of where 1:1 stops.
- *
- * @param {number} betrag  What is being declared.
- * @param {number} rang    The character's rank in the governing Manöverfertigkeit.
- * @returns {number} A positive cost. Subtract it from the threshold.
- */
-export function ansageKosten(betrag, rang) {
-  const declared = Math.max(0, Math.trunc(Number(betrag) || 0));
-  const rank = Math.max(0, Math.trunc(Number(rang) || 0));
-  return declared <= rank ? declared : rank + 2 * (declared - rank);
-}
-
-/**
- * How a Manöver's Betrag is arrived at.
- *
- * `free`  — the declarer picks the size (Finte, Riposte, the two Schwünge).
- * `fixed` — the rule names it (Arme and Beine cost a step, Kopf two).
- * `typed` — only the other side of the table knows it, so it is announced and
- *           typed in: the Rüstungsabdeckung for 'Rüstung umgehen', whatever the
- *           GM sets for 'Schwachstelle'. This is the same shape as the announced
- *           Schadenswert on the resistance roll, and for the same reason — a
- *           workflow that looked it up would have to read the opponent's sheet.
- * @type {Object<string, string>}
- */
-export const BETRAG_MODES = { free: 'free', fixed: 'fixed', typed: 'typed' };
-
-/**
- * Ansagen that rule one another out, offered as one choice instead of one row
- * each.
- *
- * "Im Prinzip sind sie alle kombinierbar" holds for everything ungrouped — but
- * an attack has one Stelle. Announcing the head *and* the legs is not a
- * combination, it is two different attacks, and letting both be ticked would
- * charge for both while only one could land.
- *
- * A grouped Manöver is therefore only ever declared by being *selected*, which
- * is also what keeps `fixed` honest: a Betrag the rule names has no zero, so
- * "not declared" needs a signal of its own, and the group's empty option is it.
- * @type {Object<string, {label: string, none: string}>}
- */
-export const ANSAGE_GROUPS = {
-  zone: { label: 'TNO.Maneuver.Zone.Label', none: 'TNO.Maneuver.Zone.None' },
-};
-
-/**
- * The declarable Manöver of the written rules.
- *
- * `skill` names the Manöverfertigkeit that governs the 1:1 limit, keyed as it is
- * in `CONFIG.TNO.skills`. Three of the Kampfregeln's section headings are not
- * the skill names — Gezielte Angriffe is 'Gezielter Stich' (`preciseStrike`),
- * Gezielte Schüsse is 'Angesagter Schuss' (`calledShot`), Starke Angriffe is
- * 'Distanzkontrolle' (`rangeControl`) — so these follow the Fertigkeiten page,
- * which is where the ranks a character actually buys are listed.
- *
- * `use` restricts a Manöver to melee or ranged; absent means either. `zone` is
- * the Stelle it announces. `requiresReach` marks the Starke Angriffe, which
- * "können nur verwendet werden, wenn der Angreifer den Reichweitenvorteil hat".
- *
- * `affects` names the defender's rolls the declared Betrag lands on. It is the
- * entire content of what crosses between two players — the defender is never
- * told *which* Manöver was declared, because from their side a Finte, a Starker
- * Schwung and a Weiter Schwung are the same sentence: your roll is worse by n.
- *
- * Not here, deliberately: Abtauchen, Unterlaufen, Positionierung, Auf Abstand
- * halten, Defensiver Kampf and Deckung nutzen. Those cost nothing and declare
- * nothing — they are standing bonuses of rank on some other roll, which makes
- * them modifier rows rather than Ansagen.
- * @type {Object<string, Object>}
- */
-export const MANEUVERS = {
-  feint: {
-    label: 'TNO.Maneuver.Feint.Label',
-    effect: 'TNO.Maneuver.Feint.Effect',
-    skill: 'cunningAttacks',
-    on: 'attack',
-    use: 'melee',
-    betrag: BETRAG_MODES.free,
-    affects: ['parry', 'dodge'],
-  },
-  riposte: {
-    label: 'TNO.Maneuver.Riposte.Label',
-    effect: 'TNO.Maneuver.Riposte.Effect',
-    skill: 'cunningAttacks',
-    on: 'parry',
-    use: 'melee',
-    betrag: BETRAG_MODES.free,
-    affects: [],
-  },
-  strongSwing: {
-    label: 'TNO.Maneuver.StrongSwing.Label',
-    effect: 'TNO.Maneuver.StrongSwing.Effect',
-    skill: 'rangeControl',
-    on: 'attack',
-    use: 'melee',
-    betrag: BETRAG_MODES.free,
-    affects: ['parry', 'resistance'],
-    requiresReach: true,
-  },
-  wideSwing: {
-    label: 'TNO.Maneuver.WideSwing.Label',
-    effect: 'TNO.Maneuver.WideSwing.Effect',
-    skill: 'rangeControl',
-    on: 'attack',
-    use: 'melee',
-    betrag: BETRAG_MODES.free,
-    affects: ['dodge'],
-    requiresReach: true,
-  },
-  arms: {
-    label: 'TNO.Maneuver.Arms.Label',
-    effect: 'TNO.Maneuver.Arms.Effect',
-    skill: { melee: 'preciseStrike', ranged: 'calledShot' },
-    on: 'attack',
-    betrag: 3,
-    zone: 'arms',
-    group: 'zone',
-  },
-  legs: {
-    label: 'TNO.Maneuver.Legs.Label',
-    effect: 'TNO.Maneuver.Legs.Effect',
-    skill: { melee: 'preciseStrike', ranged: 'calledShot' },
-    on: 'attack',
-    betrag: 3,
-    zone: 'legs',
-    group: 'zone',
-  },
-  head: {
-    label: 'TNO.Maneuver.Head.Label',
-    effect: 'TNO.Maneuver.Head.Effect',
-    skill: { melee: 'preciseStrike', ranged: 'calledShot' },
-    on: 'attack',
-    betrag: 6,
-    zone: 'head',
-    group: 'zone',
-  },
-  bypassArmor: {
-    label: 'TNO.Maneuver.BypassArmor.Label',
-    effect: 'TNO.Maneuver.BypassArmor.Effect',
-    skill: { melee: 'preciseStrike', ranged: 'calledShot' },
-    on: 'attack',
-    betrag: BETRAG_MODES.typed,
-  },
-  weakSpot: {
-    label: 'TNO.Maneuver.WeakSpot.Label',
-    effect: 'TNO.Maneuver.WeakSpot.Effect',
-    skill: { melee: 'preciseStrike', ranged: 'calledShot' },
-    on: 'attack',
-    betrag: BETRAG_MODES.typed,
-  },
-};
-
-/**
- * The Manöverfertigkeit that governs this Manöver with this kind of weapon.
- * Trefferzonen are announced with a different skill in melee than at range.
- * @param {Object} maneuver
- * @param {'melee'|'ranged'} use
- * @returns {string}
- */
-export function maneuverSkill(maneuver, use) {
-  return typeof maneuver?.skill === 'string' ? maneuver.skill : maneuver?.skill?.[use] ?? '';
-}
-
-/**
- * Every Manöver declarable on this roll, in table order.
- * @param {'attack'|'parry'} on
- * @param {'melee'|'ranged'} use
- * @returns {Array<{key: string, maneuver: Object}>}
- */
-export function declarableManeuvers(on, use) {
-  return Object.entries(MANEUVERS)
-    .filter(([, maneuver]) => maneuver.on === on && (!maneuver.use || maneuver.use === use))
-    .map(([key, maneuver]) => ({ key, maneuver }));
-}
+import { MALUS_STEP } from './items.mjs';
 
 /**
  * The Stelle a standard attack hits when nothing was announced.
  * @type {string}
  */
 export const DEFAULT_ZONE = 'torso';
+
+/**
+ * Every Stelle an attack can name, the default first.
+ *
+ * There is no "keine Ansage" entry: an attack always lands somewhere, and where
+ * it lands when nobody said otherwise is the Torso. Offering an empty option
+ * beside a Torso option would be two names for one outcome.
+ * @type {Array<string>}
+ */
+export const ZONE_CHOICES = [DEFAULT_ZONE, 'arms', 'legs', 'head'];
 
 /**
  * Where the damage of a hit lands, and at what multiple, given the Stelle.
@@ -237,32 +74,63 @@ export const DAMAGE_RULES = {
 };
 
 /**
+ * What naming a Stelle costs the attack that names it.
+ *
+ * Straight out of Gezielte Angriffe, which prices each location in Stufen and
+ * then spells the number out: Arme and Beine "um eine Stufe, also -3", Kopf "um
+ * zwei Stufen, also -6". Written as multiples of {@link MALUS_STEP} rather than
+ * as bare numbers, because that is what the rule says — the −3 and the −6 are
+ * the step, restated.
+ *
+ * The Torso is free and has to be: it is where an attack that announced nothing
+ * lands, so charging for it would price the standard attack.
+ *
+ * These are **Ansagen**, not a modifier of their own — "Ansagen auf Trefferzonen
+ * im Nahkampf, normale Ansageregeln gelten hier auf alles". Two consequences the
+ * dialog depends on: an aimed attack is a Manöver and takes the weapon's FV
+ * step, and the amount is subject to whatever the table does with the Ansage
+ * ladder, which is why nothing here caps or gates it.
+ *
+ * Kopf carries one more clause — "maximal um die Höhe deiner 'Gezielte Angriffe'
+ * Fertigkeit" — that is deliberately not enforced; see the combat PRD's Open
+ * section for why it is still unsettled.
+ * @type {Object<string, number>}
+ */
+export const ZONE_COSTS = {
+  torso: 0,
+  arms: MALUS_STEP,
+  legs: MALUS_STEP,
+  head: 2 * MALUS_STEP,
+};
+
+/**
+ * What this Stelle costs, or nothing for a location that is not one.
+ * @param {string} zone
+ * @returns {number}  A signed addend to the threshold, 0 or negative.
+ */
+export function zoneCost(zone) {
+  return ZONE_COSTS[zone] ?? 0;
+}
+
+/**
  * What the attacker has to tell the defender, reduced to numbers.
  *
- * This is the whole of the A→B channel, and it is deliberately tiny: a penalty
- * per defence, a Stelle, and whether the armour there is bypassed. The defender
- * needs none of the attacker's stats to use it, and the attacker needed none of
- * the defender's to produce it.
+ * This is the whole of the A→B channel, and it is deliberately tiny: one
+ * announced amount and one Stelle. The defender needs none of the attacker's
+ * stats to use it, and the attacker needed none of the defender's to produce it.
  *
- * The **declared Betrag** is what lands, never the cost — the 2:1 surcharge past
- * the rank is the declarer's own problem.
+ * The Ansage arrives as a single figure rather than one per defence. Which of
+ * the defender's rolls it lands on is exactly the part the two players said out
+ * loud when they agreed the number, and a card that split it three ways would be
+ * claiming knowledge the system no longer has.
  *
- * @param {Array<{key: string, betrag: number}>} declared  Priced Ansagen.
- * @returns {{parry: number, dodge: number, resistance: number, zone: string, bypassArmor: boolean}}
+ * @param {number} ansage  The declared Betrag, as typed.
+ * @param {string} zone    The Stelle the attack named.
+ * @returns {{ansage: number, zone: string}}
  */
-export function ansageEnvelope(declared) {
-  const envelope = { parry: 0, dodge: 0, resistance: 0, zone: DEFAULT_ZONE, bypassArmor: false };
-
-  for (const entry of declared ?? []) {
-    const maneuver = MANEUVERS[entry.key];
-    if (!maneuver) continue;
-    for (const target of maneuver.affects ?? []) envelope[target] += entry.betrag;
-    // One Stelle per attack — the zone group is what enforces it, so nothing a
-    // dialog produces reaches this line twice. If two ever arrive, the last one
-    // wins: there is no summing two locations into a third.
-    if (maneuver.zone) envelope.zone = maneuver.zone;
-    if (entry.key === 'bypassArmor') envelope.bypassArmor = true;
-  }
-
-  return envelope;
+export function ansageEnvelope(ansage, zone) {
+  return {
+    ansage: Math.max(0, Math.trunc(Number(ansage) || 0)),
+    zone: ZONE_CHOICES.includes(zone) ? zone : DEFAULT_ZONE,
+  };
 }

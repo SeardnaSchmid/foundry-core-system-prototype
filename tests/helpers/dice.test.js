@@ -425,11 +425,8 @@ describe('envelopeLines', () => {
   const full = {
     from: 'Anton',
     dk: 4,
-    parry: 3,
-    dodge: 3,
-    resistance: 0,
+    ansage: 3,
     zone: 'head',
-    bypassArmor: false,
     penetration: 5,
     sharp: 4,
     blunt: 2,
@@ -438,15 +435,17 @@ describe('envelopeLines', () => {
   it('says nothing at all for a roll that carried no envelope', () => {
     // Every non-combat roll in the system goes through the same renderer.
     expect(withGlobals(() => envelopeLines(null))).toBeNull();
-    expect(withGlobals(() => envelopeLines({ parry: 3 }))).toBeNull();
+    expect(withGlobals(() => envelopeLines({ ansage: 3 }))).toBeNull();
   });
 
-  it('names each defence separately, and only the ones that were worsened', () => {
-    const { lines } = withGlobals(() => envelopeLines(full));
-    expect(lines).toContain('TNO.Combat.Envelope.Parry(3)');
-    expect(lines).toContain('TNO.Combat.Envelope.Dodge(3)');
-    // A resistance of 0 is not a penalty and must not read as one.
-    expect(lines.some((line) => line.startsWith('TNO.Combat.Envelope.Resistance'))).toBe(false);
+  it('states the Ansage as one figure, not one per defence', () => {
+    // Which of the defender's rolls it lands on was settled out loud when the
+    // two players agreed the number; the card carries the amount and no claim
+    // about where it applies.
+    expect(withGlobals(() => envelopeLines(full)).lines).toContain('TNO.Combat.Envelope.Ansage(3)');
+    // Nothing declared is not a penalty and must not read as one.
+    const plain = withGlobals(() => envelopeLines({ ...full, ansage: 0 }));
+    expect(plain.lines.some((line) => line.startsWith('TNO.Combat.Envelope.Ansage'))).toBe(false);
   });
 
   it('carries the Distanzklasse as information, and only for melee', () => {
@@ -476,10 +475,10 @@ describe('envelopeLines', () => {
     expect(unauthored.lines.some((line) => line.startsWith('TNO.Combat.Envelope.Damage'))).toBe(false);
   });
 
-  it('flags a bypassed location only when one was announced', () => {
+  it('never claims the armour was bypassed, since that is the defenders own call', () => {
+    // The card carries an amount, not a reason — so it cannot say a bypass was
+    // bought, and the defender ticks that box on their own resistance roll.
     expect(withGlobals(() => envelopeLines({ ...full, bypassArmor: true })).lines)
-      .toContain('TNO.Combat.Envelope.BypassArmor');
-    expect(withGlobals(() => envelopeLines(full)).lines)
       .not.toContain('TNO.Combat.Envelope.BypassArmor');
   });
 });

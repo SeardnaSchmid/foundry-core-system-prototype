@@ -12,8 +12,9 @@ import {
   weaponRangeChoices,
   weaponRequirementStatus,
   weaponSkillRank,
+  MALUS_STEP,
 } from './items.mjs';
-import { DAMAGE_RULES, DEFAULT_ZONE, declarableManeuvers, maneuverSkill } from './maneuvers.mjs';
+import { DAMAGE_RULES, DEFAULT_ZONE, ZONE_CHOICES, zoneCost } from './maneuvers.mjs';
 import { getSkillDefinition, getSkillDefinitions } from './skills.mjs';
 
 /**
@@ -33,31 +34,24 @@ import { getSkillDefinition, getSkillDefinitions } from './skills.mjs';
  */
 
 /**
- * The malus on every defence after the first one between two activations:
- * "Jede weitere Parade oder jedes weitere Ausweichen ist erschwert um -10".
- *
- * Flat, not cumulative, and deliberately **not** a multiple of a Malusstufe —
- * the Manöverfertigkeit that relieves it does so a point at a time, and at rank
- * 10 "kann der Charakter beliebig viele Paraden ohne Malus durchführen", which
- * only works against a flat ten.
- * @type {number}
- */
-export const REPEATED_DEFENSE_MALUS = -10;
-
-/**
  * Which Manöverfertigkeit buys the repeated-defence malus back, and in which
  * Haltungen it is allowed to.
  *
- * The rulebook names 'Defensiver Kampf' in both entries; the second is a
- * copy-paste slip, since 'Deckung nutzen' is a skill of its own and its own
- * section is the one about repeated Ausweichen. Read literally, `useCover` would
- * do nothing at all.
- * @type {Object<string, {skill: string, stances: Array<string>}>}
+ * Keyed by the pair, not by the defence: Ausweichen now has two relief skills
+ * and which one applies is decided by the Haltung. No (defence, Haltung) pair is
+ * claimed twice, so the first match is the only match.
+ *
+ * The rulebook names 'Defensiver Kampf' in the 'Deckung nutzen' and 'Haken
+ * schlagen' sections too; both are copy-paste slips, since each is a skill of
+ * its own and its own section is the one about repeated Ausweichen. Read
+ * literally, neither would do anything at all.
+ * @type {Array<{defense: 'parry'|'dodge', skill: string, stances: Array<string>}>}
  */
-const DEFENSE_RELIEF = {
-  parry: { skill: 'defensiveCombat', stances: ['simpleMove', 'enGarde'] },
-  dodge: { skill: 'useCover', stances: ['carefulMove', 'inCover'] },
-};
+const DEFENSE_RELIEF = [
+  { defense: 'parry', skill: 'defensiveCombat', stances: ['simpleMove', 'enGarde'] },
+  { defense: 'dodge', skill: 'useCover', stances: ['carefulMove', 'inCover'] },
+  { defense: 'dodge', skill: 'evasiveMove', stances: ['simpleMove', 'fastMove'] },
+];
 
 /**
  * The Haltung this actor is in, falling back to the one that permits nothing.
@@ -89,6 +83,16 @@ export function canDefend(actor, defense) {
 /**
  * What the next defence of this kind costs, given how many have already been
  * made since the Haltung was taken. Zero for the first one, and never positive.
+ *
+ * "Jede weitere Parade oder jedes weitere Ausweichen ist erschwert um eine, sich
+ * aufsummierende, Stufe (-3)" — so the price is the count of defences already
+ * made, times a Malusstufe.
+ *
+ * The relief skill then *skips* repeats rather than shifting the ladder: each
+ * rank point "reduziert diesen Malus einmal", and the rulebook's own worked
+ * examples put a rank-1 character at full / full / −6 for three defences, not
+ * full / full / −3. So a rank buys the first `rank` repeats outright and the
+ * ones past it still cost what their position says.
  * @param {Actor} actor
  * @param {'parry'|'dodge'} defense
  * @returns {number}
@@ -96,11 +100,12 @@ export function canDefend(actor, defense) {
 export function defenseMalus(actor, defense) {
   const used = Number(actor?.system?.combat?.defenses?.[defense]) || 0;
   if (used < 1) return 0;
-  const relief = DEFENSE_RELIEF[defense];
-  const rank = relief?.stances.includes(actorStance(actor))
-    ? Number(actor?.system?.skills?.[relief.skill]?.value) || 0
-    : 0;
-  return Math.min(0, REPEATED_DEFENSE_MALUS + rank);
+  const stance = actorStance(actor);
+  const relief = DEFENSE_RELIEF.find(
+    (entry) => entry.defense === defense && entry.stances.includes(stance)
+  );
+  const rank = relief ? Number(actor?.system?.skills?.[relief.skill]?.value) || 0 : 0;
+  return used <= rank ? 0 : MALUS_STEP * used;
 }
 
 /**
@@ -243,39 +248,53 @@ function damageTargetLabel(zone) {
 }
 
 /**
- * The Manöver declarable on this roll, resolved against the ranks this
- * character holds.
- * @param {Actor} actor
- * @param {Object} system  A weapon item's `system` data.
- * @param {'attack'|'parry'} on
- * @returns {Array<Object>}
+ * The Ansage field: one free magnitude, and nothing about why.
+ *
+ * "Eine Ansage erschwert einen deiner Würfe um einen anderen zu erleichtern
+ * (oder einen gegnerischen Wurf zu erschweren)" — that is the whole mechanic,
+ * and it is symmetric, so what the player types is both what this roll pays and
+ * what the other side takes.
+ *
+ * Nothing here prices, caps, or gates it. Which Manöver it is, whether its
+ * Fertigkeit is high enough to buy it 1:1, whether the reach advantage the
+ * Starke Angriffe need is actually there — all of that is settled between the
+ * player and the GM before the number is typed, and a form that re-litigated it
+ * would only be able to disagree with the table.
+ * @returns {{label: string, hint: string}}
  */
-function ansageRows(actor, system, on) {
-  const use = usesMelee(system) ? 'melee' : 'ranged';
-  const definitions = getSkillDefinitions(actor);
-  return declarableManeuvers(on, use).map(({ key, maneuver }) => {
-    const skill = maneuverSkill(maneuver, use);
-    const rank = Number(actor?.system?.skills?.[skill]?.value) || 0;
-    return {
-      key,
-      label: game.i18n.localize(maneuver.label),
-      effect: maneuver.effect,
-      mode: typeof maneuver.betrag === 'number' ? 'fixed' : maneuver.betrag,
-      betrag: typeof maneuver.betrag === 'number' ? maneuver.betrag : 0,
-      rank,
-      rankLabel: definitions[skill]?.label ?? skill,
-      // A Manöver whose Fertigkeit the character has never bought. Still
-      // declarable — "hättest du gar keinen Punkt … um 6" is the rulebook's own
-      // example — but folded away, because otherwise every attack dialog lists
-      // the whole chapter at a character who can use one line of it.
-      untrained: rank < 1,
-      requiresReach: maneuver.requiresReach === true,
-      // Members of a group are chosen against one another rather than declared
-      // on their own; the dialog renders them as one control.
-      group: maneuver.group ?? '',
-      ...(maneuver.zone ? { zone: maneuver.zone } : {}),
-    };
-  });
+function ansageField() {
+  return {
+    label: game.i18n.localize('TNO.Combat.Ansage'),
+    hint: game.i18n.localize('TNO.Combat.AnsageHint'),
+  };
+}
+
+/**
+ * The Stelle, as tiles carrying both halves of the bargain: what aiming there
+ * costs you, and what it buys.
+ *
+ * This is the one declaration that stayed a pick rather than becoming part of
+ * the free number, because it is not only a magnitude: it decides which
+ * attributes a failed resistance roll lands on, and the defender opens that roll
+ * by clicking the same location on their paper doll.
+ *
+ * It does have a magnitude too — Gezielte Angriffe prices every location — and
+ * putting the price on the tile beside the damage rule is what makes the choice
+ * legible: "Kopf", "−6" and "×2 auf Stärke" are one decision seen from three
+ * ends. The tile is the only place the dialog still explains a Manöver, and this
+ * is the Manöver worth explaining.
+ * @returns {{label: string, choices: Array<{key: string, label: string, caption: string, cost: number}>}}
+ */
+function zonePicker() {
+  return {
+    label: game.i18n.localize('TNO.Combat.Zone'),
+    choices: ZONE_CHOICES.map((zone) => ({
+      key: zone,
+      label: game.i18n.localize(CONFIG.TNO.armorZones[zone]),
+      caption: damageTargetLabel(zone),
+      cost: zoneCost(zone),
+    })),
+  };
 }
 
 /**
@@ -311,7 +330,8 @@ export function angriffOptions(actor, weapon) {
     skill: { key, label: definition.label, value: weaponSkillRank(actor, weapon.system) },
     fixedModifiers: weaponFixedModifiers(actor, weapon.system, 'active'),
     preRollContext: weaponContext(weapon.system),
-    ansagen: ansageRows(actor, weapon.system, 'attack'),
+    zonePicker: zonePicker(),
+    ansage: ansageField(),
     maneuverMalus: maneuverFvMalus(actor, weapon.system),
     envelope: attackEnvelope(actor, weapon),
     flavor: game.i18n.format('TNO.Combat.AttackFlavor', { weapon: weapon.name }),
@@ -345,12 +365,14 @@ export function paradeOptions(actor, weapon) {
       tileColumns: 2,
       choices: dkChoices(),
     },
-    ansagen: ansageRows(actor, weapon.system, 'parry'),
+    // A parry declares an amount but never a Stelle: the location is the
+    // attacker's to name, and a Riposte — the one Manöver the rules put on a
+    // parry — lands on your own next attack rather than anywhere on a body.
+    ansage: ansageField(),
     maneuverMalus: maneuverFvMalus(actor, weapon.system),
-    opposingAnsage: pendingAnsage(actor, 'parry'),
+    opposingAnsage: true,
     afterRoll: async () => {
       await countDefense(actor, 'parry');
-      await clearAnsage(actor);
     },
     flavor: game.i18n.format('TNO.Combat.ParryFlavor', { weapon: weapon.name }),
   };
@@ -378,10 +400,9 @@ export function ausweichenOptions(actor) {
       value: actor.system.skills?.acrobatics?.value ?? 0,
     },
     fixedModifiers: repeatedDefense(actor, 'dodge'),
-    opposingAnsage: pendingAnsage(actor, 'dodge'),
+    opposingAnsage: true,
     afterRoll: async () => {
       await countDefense(actor, 'dodge');
-      await clearAnsage(actor);
     },
     flavor: game.i18n.localize('TNO.Combat.Dodge'),
   };
@@ -413,60 +434,6 @@ function repeatedDefense(actor, defense) {
 export async function countDefense(actor, defense) {
   const used = Number(actor?.system?.combat?.defenses?.[defense]) || 0;
   await actor.update({ [`system.combat.defenses.${defense}`]: used + 1 });
-}
-
-/**
- * Store an announced Ansage on the defender's **own** sheet.
- *
- * This is the whole of Ü2, and it is deliberately a store rather than a direct
- * hand-off: the defender clicks a button on the attacker's card, and what that
- * writes lands on their own actor. Whichever defence they then open — from the
- * sheet, the weapon popover or the paper doll — picks it up. Nothing reaches
- * across, nothing is forced, and typing the number by hand instead keeps working
- * exactly as before.
- * @param {Actor} actor
- * @param {Object} envelope  `flags.tno.envelope` from an attack card.
- * @returns {Promise<void>}
- */
-export async function takeAnsage(actor, envelope) {
-  if (!actor?.isOwner || !envelope) return;
-  await actor.update({
-    'system.combat.pending': {
-      from: String(envelope.from ?? ''),
-      parry: Number(envelope.parry) || 0,
-      dodge: Number(envelope.dodge) || 0,
-      resistance: Number(envelope.resistance) || 0,
-      zone: String(envelope.zone ?? ''),
-      bypassArmor: envelope.bypassArmor === true,
-    },
-  });
-}
-
-/**
- * Forget the stored Ansage. Called once the defence it was meant for has been
- * rolled, so it can never silently apply to a second one.
- * @param {Actor} actor
- * @returns {Promise<void>}
- */
-export async function clearAnsage(actor) {
-  if (!actor?.system?.combat?.pending?.from) return;
-  await actor.update({
-    'system.combat.pending': { from: '', parry: 0, dodge: 0, resistance: 0, zone: '', bypassArmor: false },
-  });
-}
-
-/**
- * What was announced against a given defence, or `true` when nothing was — the
- * field is offered either way, because the card is a convenience and never a
- * precondition.
- * @param {Actor} actor
- * @param {'parry'|'dodge'|'resistance'} defense
- * @returns {number|true}
- */
-function pendingAnsage(actor, defense) {
-  const pending = actor?.system?.combat?.pending;
-  if (!pending?.from) return true;
-  return Number(pending[defense]) || true;
 }
 
 /**
@@ -521,39 +488,61 @@ export function widerstandOptions(actor, zone) {
     fixedModifiers: [
       { label: game.i18n.format('TNO.Combat.ResistanceRw', { zone: zoneLabel }), value: armor.rw },
     ],
+    // The attacker's card prints two damage values, sharp and blunt, and the
+    // comparison above decides which of them landed. So this field is named by
+    // that pick rather than left as a bare "Schadenswert" the player has to map
+    // back to the right column of the card themselves.
     requiredValue: {
       label: game.i18n.localize('TNO.Combat.DamageValue'),
       componentLabel: game.i18n.localize('TNO.Combat.DamageValue'),
+      labels: Object.fromEntries(
+        armorPenetrationChoices().map((choice) => [
+          choice.key,
+          game.i18n.localize(choice.damage === 'ss' ? 'TNO.Combat.DamageSharp' : 'TNO.Combat.DamageBlunt'),
+        ])
+      ),
+      hint: game.i18n.localize('TNO.Combat.DamageValueHint'),
+      placeholder: game.i18n.localize('TNO.Combat.DamageValuePlaceholder'),
       sign: -1,
       min: 0,
     },
+    // The one comparison the defender's sheet cannot make on its own, asked in
+    // the only terms it *can* state: it knows this location's RH and says so, so
+    // the player answers about the single unknown — where the weapon's
+    // Rüstungsdurchdringung sat against that number. Each tile then spells out
+    // what its answer does, because "weicher · SS" said neither whose armour was
+    // meant nor what followed from it, and the +3 on the third looked arbitrary.
     preRollContext: {
-      label: game.i18n.localize('TNO.Combat.Penetration.Label'),
-      placeholder: game.i18n.localize('TNO.Combat.ContextPlaceholder'),
+      label: game.i18n.format('TNO.Combat.Penetration.Label', { rh: armor.rh }),
+      placeholder: game.i18n.localize('TNO.Combat.Penetration.Placeholder'),
       control: 'tiles',
       tileLabels: true,
       tileColumns: 3,
-      choices: armorPenetrationChoices().map((choice) => ({
-        ...choice,
-        label: game.i18n.localize(`TNO.Combat.Penetration.${choice.key.charAt(0).toUpperCase()}${choice.key.slice(1)}`),
-        componentLabel: game.i18n.localize('TNO.Combat.Penetration.Label'),
-      })),
+      choices: armorPenetrationChoices().map((choice) => {
+        const suffix = `${choice.key.charAt(0).toUpperCase()}${choice.key.slice(1)}`;
+        return {
+          ...choice,
+          headline: game.i18n.format(`TNO.Combat.Penetration.${suffix}`, { rh: armor.rh }),
+          label: game.i18n.localize(`TNO.Combat.Penetration.${suffix}Effect`),
+          componentLabel: game.i18n.format('TNO.Combat.Penetration.Component', { rh: armor.rh }),
+        };
+      }),
     },
-    opposingAnsage: pendingAnsage(actor, 'resistance'),
-    afterRoll: () => clearAnsage(actor),
+    opposingAnsage: true,
     // "Erschwere deinen Angriff um die Rüstungsabdeckung der jeweiligen Stelle
     // und ignoriere sie dafür": the attacker paid this location's RA to make its
-    // armour not apply, so the padding comes back out of the threshold. They
-    // paid a price the defender named, and the defender confirms the effect.
+    // armour not apply, so the padding comes back out of the threshold.
+    //
+    // Entirely the defender's own control, and never pre-ticked. The attack card
+    // has no way to say a bypass was bought — it carries an amount, not a reason
+    // — so this is the defender acting on what they were told, which is how the
+    // rule was always meant to work: they name the RA, the attacker pays it.
     ...(armor.rw
       ? {
           toggleModifier: {
             label: game.i18n.localize('TNO.Combat.Envelope.BypassArmor'),
             hint: game.i18n.localize('TNO.Combat.BypassArmorHint'),
             value: -armor.rw,
-            // Pre-ticked when the attacker announced it, so the defender
-            // confirms rather than remembers.
-            checked: actor.system.combat?.pending?.bypassArmor === true,
           },
         }
       : {}),

@@ -418,6 +418,69 @@ describe('migrateNormalizeCustomSkills (0.16.0)', () => {
   });
 });
 
+describe('migrateDropStealthSkill (0.35.0)', () => {
+  it('removes the retired skill, rank and spent XP together', async () => {
+    const actor = makeActor({
+      system: { skills: { stealth: { value: 4, xp: 9 }, acrobatics: { value: 2, xp: 0 } } },
+    });
+    stubFoundry({ actors: [actor] });
+
+    await step('0.35.0')();
+
+    expect(actor.system.skills.stealth).toBeUndefined();
+    expect(actor.system.skills.acrobatics).toEqual({ value: 2, xp: 0 });
+  });
+
+  it('writes nothing for a character that never had it', async () => {
+    const actor = makeActor({ system: { skills: { acrobatics: { value: 2, xp: 0 } } } });
+    stubFoundry({ actors: [actor] });
+
+    await step('0.35.0')();
+
+    expect(actor.updates).toHaveLength(0);
+  });
+
+  it('leaves non-character actors alone', async () => {
+    const npc = makeActor({ type: 'npc', system: { skills: { stealth: { value: 1, xp: 0 } } } });
+    stubFoundry({ actors: [npc] });
+
+    await step('0.35.0')();
+
+    expect(npc.updates).toHaveLength(0);
+  });
+});
+
+describe('migrateDropPendingAnsage (0.35.0)', () => {
+  it('takes the parked announcement back out, leaving the Haltung intact', async () => {
+    const actor = makeActor({
+      system: {
+        combat: {
+          stance: 'enGarde',
+          defenses: { parry: 1, dodge: 0 },
+          pending: { from: 'Anton', ansage: 3, zone: 'head' },
+        },
+      },
+    });
+    stubFoundry({ actors: [actor] });
+
+    await step('0.35.0', 1)();
+
+    expect(actor.system.combat.pending).toBeUndefined();
+    expect(actor.system.combat).toEqual({ stance: 'enGarde', defenses: { parry: 1, dodge: 0 } });
+  });
+
+  it('writes nothing once it has already run', async () => {
+    const actor = makeActor({
+      system: { combat: { stance: 'open', defenses: { parry: 0, dodge: 0 } } },
+    });
+    stubFoundry({ actors: [actor] });
+
+    await step('0.35.0', 1)();
+
+    expect(actor.updates).toHaveLength(0);
+  });
+});
+
 /* -------------------------------------------------------------------------- */
 
 describe('migrateWorld', () => {
@@ -466,7 +529,7 @@ describe('migrateWorld', () => {
 
     await migrateWorld();
 
-    expect(pinned).toBe('0.34.0');
+    expect(pinned).toBe('0.35.0');
     expect(notifications).toHaveLength(0);
   });
 

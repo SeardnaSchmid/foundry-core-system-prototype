@@ -92,7 +92,9 @@ export class TnoActor extends Actor {
       initiative: Math.ceil((2 * base('dex') + base('per')) / 3),
       movementWalk: base('dex'),
       movementSprint: 3 * base('dex'),
-      movementCrawl: 1,
+      // Rounded like `sixthSense` below, the system's other division the
+      // Attribute page leaves without an explicit "(aufgerundet)".
+      movementCrawl: Math.round(base('dex') / 3),
       // Sprinting needs both an undamaged Beweglichkeit and a load under half
       // the slot budget — either one alone is enough to rule it out.
       canSprint: value('dex') >= base('dex') && (carry.state === 'ok' || carry.state === 'noContainer'),

@@ -16,14 +16,26 @@ globalThis.CONFIG = {
       acrobatics: { label: 'Acrobatics', category: 'physical', attribute: 'dex' },
       defensiveCombat: { label: 'Defensive Combat', category: 'maneuvers', attribute: 'dex' },
       useCover: { label: 'Use Cover', category: 'maneuvers', attribute: 'per' },
+      evasiveMove: { label: 'Evasive Movement', category: 'maneuvers', attribute: 'dex' },
     },
     skillCategories: { combat: 'Combat', physical: 'Physical', maneuvers: 'Manoeuvres' },
-    abilities: { str: 'TNO.Ability.Str.long', dex: 'TNO.Ability.Dex.long' },
-    armorZones: { suit: 'TNO.Armor.Zone.Suit', torso: 'TNO.Armor.Zone.Torso' },
+    abilities: {
+      str: 'TNO.Ability.Str.long',
+      dex: 'TNO.Ability.Dex.long',
+      fin: 'TNO.Ability.Fin.long',
+    },
+    armorZones: {
+      suit: 'TNO.Armor.Zone.Suit',
+      head: 'TNO.Armor.Zone.Head',
+      torso: 'TNO.Armor.Zone.Torso',
+      arms: 'TNO.Armor.Zone.Arms',
+      legs: 'TNO.Armor.Zone.Legs',
+    },
     stances: {
       open: { label: 'TNO.Combat.Stance.Open', defenses: [] },
       simpleMove: { label: 'TNO.Combat.Stance.SimpleMove', defenses: ['parry', 'dodge'] },
       carefulMove: { label: 'TNO.Combat.Stance.CarefulMove', defenses: ['dodge'] },
+      fastMove: { label: 'TNO.Combat.Stance.FastMove', defenses: ['dodge'] },
       inCover: { label: 'TNO.Combat.Stance.InCover', defenses: ['dodge'] },
       enGarde: { label: 'TNO.Combat.Stance.EnGarde', defenses: ['parry', 'dodge'] },
     },
@@ -41,10 +53,8 @@ const {
   angriffOptions,
   ausweichenOptions,
   canDefend,
-  clearAnsage,
   defenseMalus,
   paradeOptions,
-  takeAnsage,
   takeStance,
   widerstandOptions,
 } = await import('../../module/helpers/combat-actions.mjs');
@@ -151,31 +161,54 @@ describe('combat action builders', () => {
     expect(widerstandOptions(actor({ isOwner: false }), 'torso')).toBeNull();
   });
 
-  // Eight Ansage rows on every melee attack would make the Standardangriff —
-  // most rolls — the loudest thing in the dialog. Rows whose Fertigkeit sits at
-  // rank 0 are marked so the template can fold them behind one line; nothing is
-  // removed, because declaring above your rank is legal and merely expensive.
-  it('marks the Manöver whose Fertigkeit the character has never bought', () => {
-    const trained = actor({ skills: { swords: { value: 5 }, cunningAttacks: { value: 2 } } });
-    const rows = angriffOptions(trained, weapon()).ansagen;
-    const open = rows.filter((row) => !row.untrained).map((row) => row.key);
-    expect(open).toEqual(['feint']);
-    // The rest are still there, priced and declarable — just folded away.
-    expect(rows.length).toBeGreaterThan(open.length);
-    expect(rows.find((row) => row.key === 'head')).toMatchObject({ untrained: true, rank: 0, betrag: 6 });
+  // The Ansage is one free magnitude and nothing else. It carries no rank, no
+  // price and no Manöver name, because all of that is agreed between the player
+  // and the GM before the number is typed — a form that re-derived it could only
+  // disagree with the table.
+  it('offers the Ansage as a bare field, with nothing to price it against', () => {
+    const options = angriffOptions(actor({ skills: { swords: { value: 5 } } }), weapon());
+    expect(options.ansage).toEqual({ label: 'TNO.Combat.Ansage', hint: 'TNO.Combat.AnsageHint' });
+    // Whatever the character's Manöverfertigkeiten stand at, the field is the
+    // same field: an untrained declarer is a table conversation, not a malus.
+    expect(angriffOptions(actor({ skills: { swords: { value: 5 }, cunningAttacks: { value: 7 } } }), weapon()).ansage)
+      .toEqual(options.ansage);
   });
 
-  // The Stellen rule one another out and everything else combines freely, so the
-  // row has to say which it is — the dialog renders a group as one picker whose
-  // default is "nothing announced".
-  it('marks the three Trefferzonen as one group and leaves the rest ungrouped', () => {
-    const rows = angriffOptions(actor({ skills: { swords: { value: 5 } } }), weapon()).ansagen;
-    const grouped = rows.filter((row) => row.group === 'zone').map((row) => row.key);
-    expect(grouped).toEqual(['arms', 'legs', 'head']);
-    // Rüstung umgehen and Schwachstelle share the same Fertigkeit but not the
-    // exclusion: either can be declared alongside a Stelle.
-    expect(rows.filter((row) => row.group).length).toBe(3);
-    expect(rows.find((row) => row.key === 'bypassArmor').group).toBe('');
+  // The Stelle stayed a pick when everything else collapsed into the number,
+  // because it is a location rather than an amount: it decides which attributes
+  // a failed resistance roll lands on, and the defender opens that roll by
+  // clicking the same location on their paper doll.
+  it('offers every Stelle as a tile captioned with what a hit there costs', () => {
+    const { zonePicker } = angriffOptions(actor({ skills: { swords: { value: 5 } } }), weapon());
+    expect(zonePicker.choices.map((choice) => choice.key)).toEqual(['torso', 'arms', 'legs', 'head']);
+    // The caption is the damage rule, which is the one thing about a Trefferzone
+    // worth saying in the dialog.
+    expect(zonePicker.choices.find((choice) => choice.key === 'head').caption)
+      .toBe('TNO.Ability.Str.long ×2');
+    expect(zonePicker.choices.find((choice) => choice.key === 'arms').caption)
+      .toBe('TNO.Ability.Fin.long / TNO.Ability.Str.long');
+    // Torso is the plain one, which is exactly why it is the default.
+    expect(zonePicker.choices.find((choice) => choice.key === 'torso').caption)
+      .toBe('TNO.Ability.Str.long');
+  });
+
+  it('prices every tile the way Gezielte Angriffe does', () => {
+    const { zonePicker } = angriffOptions(actor({ skills: { swords: { value: 5 } } }), weapon());
+    const cost = (key) => zonePicker.choices.find((choice) => choice.key === key).cost;
+    // The tile carries the price as well as the damage rule: what aiming costs
+    // and what it buys are the same decision seen from two ends.
+    expect(cost('torso')).toBe(0);
+    expect(cost('arms')).toBe(-3);
+    expect(cost('legs')).toBe(-3);
+    expect(cost('head')).toBe(-6);
+  });
+
+  // A parry announces an amount but never a location: the Stelle is the
+  // attacker's to name, and a Riposte lands on your own next attack.
+  it('gives a parry the Ansage field and no Stelle', () => {
+    const options = paradeOptions(actor({ skills: { swords: { value: 5 } } }), weapon());
+    expect(options.ansage).toEqual({ label: 'TNO.Combat.Ansage', hint: 'TNO.Combat.AnsageHint' });
+    expect(options.zonePicker).toBeUndefined();
   });
 
   it('refuses a dodge from an actor with no Akrobatik definition', () => {
@@ -217,28 +250,55 @@ describe('Haltung and repeated defences', () => {
     expect(canDefend(actor({ stance: 'nonsense' }), 'dodge')).toBe(false);
   });
 
-  it('leaves the first defence unmodified and charges ten for every one after', () => {
+  it('leaves the first defence unmodified and sums a step onto every one after', () => {
     expect(defenseMalus(actor({ defenses: { parry: 0, dodge: 0 } }), 'parry')).toBe(0);
-    expect(defenseMalus(actor({ defenses: { parry: 1, dodge: 0 } }), 'parry')).toBe(-10);
-    // Flat, not cumulative: the third parry costs what the second one did.
-    expect(defenseMalus(actor({ defenses: { parry: 2, dodge: 0 } }), 'parry')).toBe(-10);
+    expect(defenseMalus(actor({ defenses: { parry: 1, dodge: 0 } }), 'parry')).toBe(-3);
+    // "Eine, sich aufsummierende, Stufe": the third parry costs two steps.
+    expect(defenseMalus(actor({ defenses: { parry: 2, dodge: 0 } }), 'parry')).toBe(-6);
+    expect(defenseMalus(actor({ defenses: { parry: 3, dodge: 0 } }), 'parry')).toBe(-9);
     // Counted apart — "Ausweichen und Parieren werden hierfür immer unabhängig
     // verwendet" — so parries spent do not price a dodge.
     expect(defenseMalus(actor({ defenses: { parry: 2, dodge: 0 } }), 'dodge')).toBe(0);
   });
 
-  it('buys the malus back a point at a time, but only in the right Haltung', () => {
+  // The relief skips repeats rather than shifting the ladder, which is the one
+  // reading that matches the rulebook's own three-parry examples: rank 1 gives
+  // full / full / −6, not full / full / −3.
+  it('lets a rank skip that many repeats, leaving the rest at their own price', () => {
+    const parries = (rank) =>
+      [0, 1, 2].map((used) =>
+        defenseMalus(
+          actor({ stance: 'enGarde', defenses: { parry: used, dodge: 0 }, skills: { defensiveCombat: { value: rank } } }),
+          'parry'
+        )
+      );
+    expect(parries(0)).toEqual([0, -3, -6]);
+    expect(parries(1)).toEqual([0, 0, -6]);
+    expect(parries(3)).toEqual([0, 0, 0]);
+  });
+
+  it('picks the relief skill the Haltung calls for, and none outside it', () => {
     const skilled = (stance) => actor({ stance, defenses: { parry: 1, dodge: 1 }, skills: {
       defensiveCombat: { value: 4 },
-      useCover: { value: 10 },
+      useCover: { value: 4 },
+      evasiveMove: { value: 4 },
     } });
-    expect(defenseMalus(skilled('enGarde'), 'parry')).toBe(-6);
     // Defensiver Kampf is gated on Einfache Bewegung and En Garde, so the same
     // rank buys nothing while In Deckung.
-    expect(defenseMalus(skilled('inCover'), 'parry')).toBe(-10);
-    // At rank 10, "kann der Charakter beliebig oft ausweichen" — never positive.
+    expect(defenseMalus(skilled('enGarde'), 'parry')).toBe(0);
+    expect(defenseMalus(skilled('inCover'), 'parry')).toBe(-3);
+    // Deckung nutzen covers Vorsichtige Bewegung and In Deckung; Haken schlagen
+    // covers Einfache and Schnelle Bewegung. En Garde has neither.
     expect(defenseMalus(skilled('inCover'), 'dodge')).toBe(0);
-    expect(defenseMalus(skilled('enGarde'), 'dodge')).toBe(-10);
+    expect(defenseMalus(skilled('fastMove'), 'dodge')).toBe(0);
+    expect(defenseMalus(skilled('enGarde'), 'dodge')).toBe(-3);
+    // Einfache Bewegung is the one Haltung with a relief for each defence, and
+    // they are different skills.
+    const simple = actor({ stance: 'simpleMove', defenses: { parry: 1, dodge: 1 }, skills: {
+      evasiveMove: { value: 4 },
+    } });
+    expect(defenseMalus(simple, 'dodge')).toBe(0);
+    expect(defenseMalus(simple, 'parry')).toBe(-3);
   });
 
   it('clears both counters on taking a Haltung, including the same one again', async () => {
@@ -297,99 +357,51 @@ describe('Haltung and repeated defences', () => {
   it('prices the parry and the dodge it hands to the dialog', () => {
     const worn = actor({ stance: 'enGarde', defenses: { parry: 0, dodge: 2 } });
     expect(ausweichenOptions(worn).fixedModifiers).toEqual([
-      { label: 'TNO.Combat.RepeatedDefense(3)', value: -10 },
+      { label: 'TNO.Combat.RepeatedDefense(3)', value: -6 },
     ]);
     // And it refuses outright where the Haltung allows no dodge at all.
     expect(ausweichenOptions(actor({ stance: 'open' }))).toBeNull();
   });
 });
 
-// The chat-card shortcut. It writes onto the defender's *own* sheet and is only
-// ever a head start: the numbers are printed on the card either way, and the
-// typed field stays exactly where it was.
-describe('taking an announced Ansage', () => {
-  const defender = (pending = null) => ({
+// The defence side is self-contained: everything a defence needs is either on
+// the defender's own sheet or typed in by the player. There is no path by which
+// an attacker's card writes anything onto a defender.
+describe('what a defence takes from the other side', () => {
+  const defender = () => ({
     isOwner: true,
     updates: [],
     async update(changes) {
       this.updates.push(changes);
-      if (changes['system.combat.pending']) this.system.combat.pending = changes['system.combat.pending'];
     },
     system: {
       abilities: { dex: { base: 4, value: 4 } },
       skills: { acrobatics: { value: 3 } },
-      combat: {
-        stance: 'enGarde',
-        defenses: { parry: 0, dodge: 0 },
-        pending: pending ?? { from: '', parry: 0, dodge: 0, resistance: 0, zone: '', bypassArmor: false },
-      },
+      combat: { stance: 'enGarde', defenses: { parry: 0, dodge: 0 } },
       derived: { armor: { torso: { rh: 1, rw: 2, ra: 3 } } },
     },
   });
 
-  const envelope = {
-    from: 'Anton',
-    parry: 3,
-    dodge: 5,
-    resistance: 2,
-    zone: 'head',
-    bypassArmor: true,
-    sharp: 4,
-    blunt: 2,
-  };
-
-  it('stores only what a defence needs, on the defender\'s own sheet', async () => {
-    const actor = defender();
-    await takeAnsage(actor, envelope);
-    // The attacker's weapon values are not copied over: the defender reads those
-    // off the card when they come to the penetration comparison.
-    expect(actor.updates).toEqual([
-      {
-        'system.combat.pending': {
-          from: 'Anton',
-          parry: 3,
-          dodge: 5,
-          resistance: 2,
-          zone: 'head',
-          bypassArmor: true,
-        },
-      },
-    ]);
-  });
-
-  it('fills each defence in with the number meant for it', () => {
-    const stored = { from: 'Anton', parry: 3, dodge: 5, resistance: 2, zone: 'head', bypassArmor: true };
-    // A dodge takes the dodge number, not the parry's — a Weiter Schwung
-    // worsens only one of them.
-    expect(ausweichenOptions(defender(stored)).opposingAnsage).toBe(5);
-    expect(widerstandOptions(defender(stored), 'torso').opposingAnsage).toBe(2);
-    // And the bypass the attacker announced arrives pre-ticked.
-    expect(widerstandOptions(defender(stored), 'torso').toggleModifier.checked).toBe(true);
-  });
-
-  it('still offers the empty field when nothing was taken', () => {
-    // Ü1 unchanged: the card is a convenience, never a precondition.
+  it('offers the announcement field blank, on every defence, always', () => {
     expect(ausweichenOptions(defender()).opposingAnsage).toBe(true);
     expect(widerstandOptions(defender(), 'torso').opposingAnsage).toBe(true);
-    // A stored zero is nothing announced against *that* roll, so the field is
-    // offered blank rather than pre-filled with a meaningless 0.
-    const partial = { from: 'Anton', parry: 3, dodge: 0, resistance: 0, zone: '', bypassArmor: false };
-    expect(ausweichenOptions(defender(partial)).opposingAnsage).toBe(true);
   });
 
-  it('forgets the announcement once a defence has used it', async () => {
-    const actor = defender({ from: 'Anton', parry: 3, dodge: 5, resistance: 2, zone: 'head', bypassArmor: true });
-    await ausweichenOptions(actor).afterRoll();
-    // Counted the dodge, then cleared — so it cannot silently apply to the next
-    // defence as well.
-    expect(actor.updates.at(-1)).toEqual({
-      'system.combat.pending': { from: '', parry: 0, dodge: 0, resistance: 0, zone: '', bypassArmor: false },
+  // The bypass is the defender's own control and is never pre-ticked. The card
+  // carries an amount, not a reason, so it cannot say a bypass was bought — the
+  // defender ticks it on being told, which is how the rule reads anyway: they
+  // name the RA, the attacker pays it.
+  it('never pre-ticks the armour bypass', () => {
+    expect(widerstandOptions(defender(), 'torso').toggleModifier).toEqual({
+      label: 'TNO.Combat.Envelope.BypassArmor',
+      hint: 'TNO.Combat.BypassArmorHint',
+      value: -2,
     });
-    expect(ausweichenOptions(actor).opposingAnsage).toBe(true);
+  });
 
-    // Clearing an already-empty store writes nothing at all.
-    const untouched = defender();
-    await clearAnsage(untouched);
-    expect(untouched.updates).toEqual([]);
+  it('writes nothing but the defence count when the roll is made', async () => {
+    const actor = defender();
+    await ausweichenOptions(actor).afterRoll();
+    expect(actor.updates).toEqual([{ 'system.combat.defenses.dodge': 1 }]);
   });
 });

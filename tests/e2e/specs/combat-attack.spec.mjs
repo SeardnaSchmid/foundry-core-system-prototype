@@ -82,7 +82,7 @@ test('a weapon attack carries its requirement maluses from dialog to chat card',
 
   // 3a. The SV shortfall reaches the dialog as its own line, and the FV
   // shortfall reaches it not at all.
-  const modifiers = dialog.locator('.tno-roll-modifiers .tno-roll-detail');
+  const modifiers = dialog.locator('.tno-roll-gear-modifiers .tno-roll-detail');
   await expect(modifiers.filter({ hasText: labels.sv })).toHaveText(new RegExp(`${labels.sv}\\s*−6`));
   await expect(modifiers).toHaveCount(2); // Handhabung and the SV malus, nothing else.
 

@@ -13,7 +13,15 @@ globalThis.CONFIG = {
   TNO: {
     skills: { swords: { label: 'Swords', category: 'combat', attribute: 'str' } },
     skillCategories: { combat: 'Combat' },
-    abilities: { str: {} },
+    abilities: { str: {}, dex: {}, fin: {} },
+    // An attack names a Stelle, so the builder reads the zone labels even when
+    // the roll under test is about something else entirely.
+    armorZones: {
+      head: 'TNO.Armor.Zone.Head',
+      torso: 'TNO.Armor.Zone.Torso',
+      arms: 'TNO.Armor.Zone.Arms',
+      legs: 'TNO.Armor.Zone.Legs',
+    },
   },
 };
 

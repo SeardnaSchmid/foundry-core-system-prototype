@@ -97,6 +97,7 @@ TNO.skillCategories = {
   biomes: 'TNO.SkillCategory.Biomes',
   technology: 'TNO.SkillCategory.Technology',
   knowledge: 'TNO.SkillCategory.Knowledge',
+  interfacing: 'TNO.SkillCategory.Interfacing',
 };
 
 /**
@@ -147,13 +148,14 @@ TNO.skills = {
   suppressiveFire: { label: 'TNO.Skill.SuppressiveFire', category: 'maneuvers', attribute: 'per', starter: true },
   gunKata: { label: 'TNO.Skill.GunKata', category: 'maneuvers', attribute: 'fin' },
   useCover: { label: 'TNO.Skill.UseCover', category: 'maneuvers', attribute: 'per', starter: true },
+  evasiveMove: { label: 'TNO.Skill.EvasiveMove', category: 'maneuvers', attribute: 'dex', starter: true },
+  soloTactics: { label: 'TNO.Skill.SoloTactics', category: 'maneuvers', attribute: 'aut', starter: true },
   groupTactics: { label: 'TNO.Skill.GroupTactics', category: 'maneuvers', attribute: 'aut', starter: true },
   psychWarfare: { label: 'TNO.Skill.PsychWarfare', category: 'maneuvers', attribute: 'aut', starter: true },
   leadership: { label: 'TNO.Skill.Leadership', category: 'maneuvers', attribute: 'aut', starter: true },
 
   athletics: { label: 'TNO.Skill.Athletics', category: 'general', attribute: 'dex', starter: true },
   acrobatics: { label: 'TNO.Skill.Acrobatics', category: 'general', attribute: 'dex', starter: true },
-  stealth: { label: 'TNO.Skill.Stealth', category: 'general', attribute: 'dex' },
   selfControl: { label: 'TNO.Skill.SelfControl', category: 'general', attribute: 'wil', starter: true },
   contortionist: { label: 'TNO.Skill.Contortionist', category: 'general', attribute: 'dex', starter: true },
   sleightOfHand: { label: 'TNO.Skill.SleightOfHand', category: 'general', attribute: 'fin', starter: true },
@@ -197,6 +199,7 @@ TNO.skills = {
   techHacking: { label: 'TNO.Skill.TechHacking', category: 'technology', attribute: 'int', starter: true },
   techTissue: { label: 'TNO.Skill.TechTissue', category: 'technology', attribute: 'int', starter: true },
   techSymbio: { label: 'TNO.Skill.TechSymbio', category: 'technology', attribute: 'int' },
+  techWeapons: { label: 'TNO.Skill.TechWeapons', category: 'technology', attribute: 'int', starter: true },
   techExplosives: { label: 'TNO.Skill.TechExplosives', category: 'technology', attribute: 'int', starter: true },
   medFirstAid: { label: 'TNO.Skill.MedFirstAid', category: 'technology', subgroup: 'med', attribute: 'fin', starter: true },
   medSurgery: { label: 'TNO.Skill.MedSurgery', category: 'technology', subgroup: 'med', attribute: 'fin', starter: true },
@@ -222,6 +225,14 @@ TNO.skills = {
   cultGamesSports: { label: 'TNO.Skill.CultGamesSports', category: 'knowledge', subgroup: 'cult', attribute: 'wis', starter: true },
   cultReligion: { label: 'TNO.Skill.CultReligion', category: 'knowledge', subgroup: 'cult', attribute: 'wis', starter: true },
   cultHistory: { label: 'TNO.Skill.CultHistory', category: 'knowledge', subgroup: 'cult', attribute: 'wis', starter: true },
+
+  // No `starter` flag: the Interfacingregeln are still unwritten, so these are
+  // pickable in play but stay off the character-creation list.
+  interfacingMundane: { label: 'TNO.Skill.InterfacingMundane', category: 'interfacing', attribute: 'int' },
+  interfacingProfane: { label: 'TNO.Skill.InterfacingProfane', category: 'interfacing', attribute: 'int' },
+  interfacingArcane: { label: 'TNO.Skill.InterfacingArcane', category: 'interfacing', attribute: 'int' },
+  interfacingSacral: { label: 'TNO.Skill.InterfacingSacral', category: 'interfacing', attribute: 'int' },
+  interfacingKuiper: { label: 'TNO.Skill.InterfacingKuiper', category: 'interfacing', attribute: 'int' },
 };
 
 /**

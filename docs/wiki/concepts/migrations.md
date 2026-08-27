@@ -81,6 +81,27 @@ system version has advanced past what a world last recorded.
   one. Only exact zeroes are touched, which is both the conservative reading
   (a deliberate 0 is indistinguishable from the old default) and what makes the
   step idempotent. See [item-roles.md](item-roles.md).
+- **`0.34.0` — `migrateSeedCombatStance`**: seeds `system.combat` on characters
+  created before the block existed. `open` is the honest default rather than a
+  convenience — it is the Haltung a character is in when nobody has said
+  otherwise, and it grants no defence at all, so a migrated actor cannot
+  silently keep parrying on a stance the rules never gave them. Idempotent by
+  writing only where the block is absent, read off `_source` so the schema
+  default cannot make every actor look already-migrated. See
+  [combat-roll-workflows.md](combat-roll-workflows.md).
+- **`0.35.0` — `migrateDropStealthSkill`**: removes `system.skills.stealth`,
+  rank and spent XP together. Schleichen lost its own Fertigkeit — the
+  Kampfregeln roll every hiding, sneaking and searching probe as
+  Beweglichkeit/Sinnesschärfe + Biom — so the skill had no roll left to be.
+  Unlike the stance step this reads *prepared* data: `template.json` no longer
+  declares the key, so nothing can fabricate it on an actor that never stored
+  one. See [skills.md](skills.md).
+- **`0.35.0` — `migrateDropPendingAnsage`**: removes `system.combat.pending`,
+  where the retired "Gegen mich angesagt" chat-card shortcut parked an
+  announcement for the next defence to pick up. The shortcut is gone and the key
+  has no reader left. The `0.34.0` step that seeds it stays untouched — a
+  published step is never edited — and this one runs after it and takes the key
+  back out.
 
 ## Adding a new step
 

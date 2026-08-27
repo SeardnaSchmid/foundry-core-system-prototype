@@ -36,9 +36,11 @@
 // Items Lists
 // -----------------------------------------
 
-// The Inventar tab stacks three lists, each opening with the same quiet caption
-// line the Basics tab uses. Only the spacing between them lives here; the
-// header itself is shared (see `.basics-section-header` in _forms.scss).
+// The Inventar tab stacks three sections — the gear table (see _item-table.scss)
+// and the Merkmale and Active Effects lists below it — each opening with the
+// same quiet caption line the Basics tab uses. Only the spacing between them
+// lives here; the header itself is shared (`.basics-section-header` in
+// _forms.scss).
 .tab.items {
   padding: 0 8px 8px;
 
@@ -105,16 +107,6 @@
     }
   }
 
-  // Worn state belongs to the paper doll, so this is a marker rather than a
-  // second control.
-  .item-state {
-    margin: 0 6px;
-    font-size: 12px;
-    color: $c-beige;
-    // A marker, not a control — it keeps the plain arrow.
-    cursor: default;
-  }
-
   // Individual Item
   .item {
     align-items: center;
@@ -141,13 +133,6 @@
     }
   }
 
-  .item-prop {
-    text-align: center;
-    border-left: 1px solid #c9c7b8;
-    border-right: 1px solid #c9c7b8;
-    font-size: 12px;
-  }
-
   // Section Header
   .items-header {
     height: 28px;
@@ -166,26 +151,5 @@
       text-align: left;
       // font-size: 16px;
     }
-  }
-}
-
-// The inventory list's second column: what each piece is, as the roles it
-// carries. Fixed width so the controls on the right stay in one line down the
-// list even though the number of tags per row varies from none to three.
-.item-roles {
-  flex: 0 0 200px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 0 8px;
-  overflow: hidden;
-
-  .item-role-tag {
-    padding: 1px 7px;
-    border: 1px solid $c-beige;
-    border-radius: 20px;
-    font-size: 10px;
-    line-height: 1.4;
-    white-space: nowrap;
   }
 }

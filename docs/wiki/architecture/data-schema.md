@@ -25,13 +25,15 @@ in Foundry v14+.
     keys in `CONFIG.TNO.abilities` (see
     [attributes.md](../concepts/attributes.md)).
   - `character.skills.<key>` — `{ value, xp, lastAttribute }` for **every**
-    built-in skill in `CONFIG.TNO.skills` (91 entries), in the same source
+    built-in skill in `CONFIG.TNO.skills` (98 entries), in the same source
     order. Custom skills are still added lazily when first defined, since only
     the actor knows about those. The block used to declare the 14 starter
     skills alone and let the rest materialise on first write; that worked only
     by way of the sheet's `?? 0` fallbacks and Foundry accepting writes to
-    undeclared paths, and it left `lastAttribute` undeclared for the other 77.
-    Keep it in step with `config.mjs` when a skill is added.
+    undeclared paths, and it left `lastAttribute` undeclared for the rest.
+    Keep it in step with `config.mjs` when a skill is added — and retire a key
+    with a migration step, since nothing else can reach an actor's stored
+    rank and XP under it.
     See [skills.md](../concepts/skills.md).
   - `character.problemSolving.spent` — how many edge points have been used
     since the pool last refilled. See
@@ -51,8 +53,6 @@ in Foundry v14+.
     since that Haltung was taken. Counted apart, and cleared whenever a Haltung
     is taken — including the same one again. See
     [combat-roll-workflows.md](../concepts/combat-roll-workflows.md).
-  - `character.combat.pending` — an Ansage announced against this character and
-    taken off an attack card, so the next defence starts with it filled in.
     Written by the defender's own click, cleared once a defence has used it, and
     never a precondition: the field it fills is typed by hand otherwise.
   - `npc.cr` — challenge rating; XP is derived from it (`cr² × 100`).
@@ -86,7 +86,7 @@ computes them in `TnoActor.prepareDerivedData()`, writing to
 | Field | Formula | Notes |
 | --- | --- | --- |
 | `initiative` | `ceil((2·base(dex) + base(per)) / 3)` | |
-| `movementWalk` / `movementSprint` / `movementCrawl` | `base(dex)`, `3·base(dex)`, `1` | |
+| `movementWalk` / `movementSprint` / `movementCrawl` | `base(dex)`, `3·base(dex)`, `round(base(dex) / 3)` | the crawl is rounded like `sixthSense`, the system's other division the Attribute page leaves without an explicit *aufgerundet* |
 | `canSprint` | `value(dex) >= base(dex)` **and** the load is under half capacity | the one derived value compared against damaged `value`, not `base` — detects Beweglichkeit damage. Either blocker alone rules sprinting out |
 | `carrySlots` / `carrySlotsUsed` | `2·base(str) + base(dex)` / sum of carried `slots × quantity` | worn gear is excluded; `used` is never clamped to capacity — see [inventory.md](../concepts/inventory.md) |
 | `carryState` | `ok` \| `noSprint` \| `crawlOnly` \| `noContainer` | the movement consequence of the current load |
@@ -99,7 +99,7 @@ computes them in `TnoActor.prepareDerivedData()`, writing to
 | `postMortem` | `2·base(inv)` | |
 | `stance` | `combat.stance`, or `open` when unset or unknown | falls back to the Haltung that permits nothing, never to one that permits everything |
 | `defenses.<kind>.available` | whether `CONFIG.TNO.stances[stance].defenses` lists it | the value that lets the defence side of an exchange answer itself |
-| `defenses.<kind>.malus` | `0` for the first, else `min(0, −10 + rank)` | flat rather than cumulative, and **not** a multiple of a step; the rank is Defensiver Kampf or Deckung nutzen, and only in the Haltungen each names |
+| `defenses.<kind>.malus` | `0` for the first and while `used <= rank`, else `−3 × used` | a Malusstufe per repeat, summing up. The rank *skips* that many repeats rather than shifting the ladder, which is the one reading matching the rulebook's own three-parry examples (rank 1 gives full / full / −6). The skill is Defensiver Kampf, Deckung nutzen or Haken schlagen, decided by the Haltung — see [combat-roll-workflows.md](../concepts/combat-roll-workflows.md) |
 
 All derived values are computed from `base`, never damaged `value` (per the
 rulebook's "Abgeleitete Werte bleiben gleich, auch mit temporären

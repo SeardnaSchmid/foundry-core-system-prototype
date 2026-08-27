@@ -527,6 +527,22 @@ export function canWeaponParry(system, { skillDefined = true } = {}) {
 }
 
 /**
+ * The icon that stands for a role with no item behind it yet — the add-to-
+ * inventory dialog's cards. `plain` is the absence of a role, which is a real
+ * answer and therefore needs a picture too.
+ *
+ * `inventoryIcon` refines the weapon case by use, which a card cannot: nothing
+ * has said melee or ranged at the point the item is being named.
+ * @type {Object<string, string>}
+ */
+export const ROLE_ICONS = {
+  plain: 'fa-cube',
+  weapon: 'fa-sword',
+  armor: 'fa-shield-halved',
+  consumable: 'fa-flask',
+};
+
+/**
  * The compact, recognisable icon for a physical item in an inventory view.
  * Item artwork is useful on an item's own sheet, but a repeated role icon is
  * quicker to scan in the dense carry grid and flat inventory list.
@@ -536,10 +552,10 @@ export function canWeaponParry(system, { skillDefined = true } = {}) {
  */
 export function inventoryIcon(item) {
   const roles = itemRoles(item);
-  if (roles.weapon) return weaponUse(item?.system) === 'ranged' ? 'fa-crosshairs' : 'fa-sword';
-  if (roles.armor) return 'fa-shield-halved';
-  if (roles.consumable) return 'fa-flask';
-  return 'fa-cube';
+  if (roles.weapon) return weaponUse(item?.system) === 'ranged' ? 'fa-crosshairs' : ROLE_ICONS.weapon;
+  if (roles.armor) return ROLE_ICONS.armor;
+  if (roles.consumable) return ROLE_ICONS.consumable;
+  return ROLE_ICONS.plain;
 }
 
 /**

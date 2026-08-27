@@ -29,7 +29,7 @@ module/tno.mjs                          (entry point, imports everything below)
 │                 → items.mjs is the base of the helper graph: it imports
 │                   nothing, and inventory.mjs and config.mjs import it
 │                 → maneuvers.mjs is the second global-free base: it imports
-│                   nothing and holds the Ansage arithmetic and Manöver table
+│                   nothing and holds the Stellen and the A→B envelope
 │                 → inventory.mjs → items.mjs,
 │                   item-presentation.mjs → {inventory,items}.mjs,
 │                   config.mjs → {inventory,items}.mjs,
@@ -46,7 +46,7 @@ module/tno.mjs                          (entry point, imports everything below)
                     roll-dialog-shared.mjs (the advantage picker UI) and
                     helpers/dice.mjs
                   → roll-dialog.mjs additionally imports helpers/maneuvers.mjs
-                    for the Ansage arithmetic it prices live
+                    to build the envelope it sends and to know the default Stelle
 ```
 
 **Rule of thumb when adding code:** `documents/` reaches no further than

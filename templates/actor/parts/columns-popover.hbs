@@ -1,0 +1,32 @@
+{{!-- Which values the Inventar table shows.
+
+A popover rather than a panel on the tab: the catalogue is long, it is consulted
+rather than read, and twenty-two permanently visible checkboxes would cost the
+table the width it exists to spend on data.
+
+The sections mirror the item sheet's own blocks, so a column is looked for where
+its field is authored. Nothing here is actor data — the choice is a client
+setting and follows the reader to every sheet they open — which is why the
+picker is offered on read-only sheets too. --}}
+<div class='item-popover-head'>
+  <h4>{{localize 'TNO.ItemTable.ColumnsTitle'}}</h4>
+  <a data-columns-action='close' title='{{localize "TNO.ItemTable.Close"}}'>
+    <i class='fas fa-xmark'></i>
+  </a>
+</div>
+
+<p class='columns-popover-hint'>{{localize 'TNO.ItemTable.ColumnsHint'}}</p>
+
+<div class='columns-popover-body'>
+  {{#each sections as |section|}}
+    <div class='columns-popover-section'>
+      <h5>{{section.label}}</h5>
+      {{#each section.columns as |column|}}
+        <label class='columns-popover-row' title='{{column.hint}}'>
+          <input type='checkbox' data-column='{{column.key}}' {{#if column.checked}}checked{{/if}} />
+          <span>{{column.label}}</span>
+        </label>
+      {{/each}}
+    </div>
+  {{/each}}
+</div>

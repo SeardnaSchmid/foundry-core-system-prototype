@@ -170,8 +170,10 @@ Würfel**", and which dice those are is written nowhere. The Stelle can therefor
 say where a hit lands and at what multiple, but nothing can turn it into a
 number — so nothing tries.
 
-`Rüstung umgehen` cancels the Stelle's RW on the resistance roll, confirmed by
-the defender rather than assumed
+`Rüstung umgehen` cancels the Stelle's RW on the resistance roll. It is offered
+on every location that has padding to cancel and is ticked by the defender alone
+— nothing an attack sends can pre-set it, because the card carries an amount and
+never a reason
 (`tests/documents/actor-resistance-roll.test.js › cancels the location padding when the attacker bypassed its armour`).
 
 ## Implemented
@@ -192,17 +194,16 @@ would be real coupling.
 
 | Workflow | Fixed components | Required context | Proof |
 |---|---|---|---|
-| **Attack** | WA + the actor's current FV-skill rank · HH active · SV malus | melee: DK modifier `+3 / 0` · ranged: one authored range band (each authored `−3 … +3`) | `tests/documents/item-weapon-roll.test.js › offers a melee attack the two reach outcomes as its required context`<br>`tests/documents/item-weapon-roll.test.js › captions the reach tiles with the question rather than the bare number`<br>`tests/helpers/items.test.js › offers only authored ranged bands and preserves their modifiers` |
-| **Parry** (melee) | WA + the actor's current FV-skill rank · HH passive · SV malus | DK modifier `+3 / 0` | `tests/documents/item-weapon-roll.test.js › gives a parry passive handling, the same SV malus, and a reach choice` |
+| **Attack** | WA + the actor's current FV-skill rank · HH active · SV malus | melee: DK modifier `+3 / 0` · ranged: one authored range band (each authored `−3 … +3`) · the Stelle, priced per [Gezielte Angriffe](#the-stelle) and free only at the Torso | `tests/documents/item-weapon-roll.test.js › offers a melee attack the two reach outcomes as its required context`<br>`tests/documents/item-weapon-roll.test.js › captions the reach tiles with the question rather than the bare number`<br>`tests/helpers/items.test.js › offers only authored ranged bands and preserves their modifiers` |
+| **Parry** (melee) | WA + the actor's current FV-skill rank · HH passive · SV malus | DK modifier `+3 / 0`; no Stelle | `tests/documents/item-weapon-roll.test.js › gives a parry passive handling, the same SV malus, and a reach choice` |
 | **Dodge** | Beweglichkeit + Akrobatik · armour SV malus | — | `tests/e2e/specs/combat-dodge.spec.mjs › a dodge is Beweglichkeit plus Akrobatik, less the armour step` |
 | **Resistance** | Stärke (locked) · RW(Stelle) | the penetration comparison `softer / equal / harder` **and** the announced Schadenswert, typed | `tests/documents/actor-resistance-roll.test.js › requires both the announced damage and the penetration comparison`<br>`tests/documents/roll-dialog.test.js › refuses to roll until the announced value is entered` |
-| **Haltung** | — | which defence is possible at all, and what the next one costs | `tests/helpers/combat-actions.test.js › lets the Haltung decide which defence is possible at all`<br>`tests/helpers/combat-actions.test.js › leaves the first defence unmodified and charges ten for every one after` |
+| **Haltung** | — | which defence is possible at all, and what the next one costs | `tests/helpers/combat-actions.test.js › lets the Haltung decide which defence is possible at all`<br>`tests/helpers/combat-actions.test.js › leaves the first defence unmodified and sums a step onto every one after` |
 
 **Manöver are not a workflow.** A Manöver is not a roll of its own — "alles das
 läuft aber unter Angriff" — so it is declared *inside* the attack or parry it
-modifies, where the weapon already supplies WA, HH, DK and the SV malus and the
-Manöverfertigkeit rank only decides what the Ansage costs. See
-[Ansagen](#ansagen).
+modifies, where the weapon already supplies WA, HH, DK and the SV malus. What is
+declared is one number and, on an attack, one Stelle. See [Ansagen](#ansagen).
 
 The FV rank authored on a weapon is a requirement only; what is *added* is the
 character's current rank. SV comparisons use **base** Strength. All four rolls
@@ -227,7 +228,8 @@ defender's own sheet, which is what lets an exchange stay uncoupled.
 | Vorsichtige Bewegung · Schnelle Bewegung · In Deckung · Unterdrückungsfeuer | — | ✓ |
 
 The first parry and the first dodge of a Haltung are unmodified; every further
-one costs `−10`, flat rather than cumulative and **not** a multiple of a step.
+one costs a Malusstufe more than the last — "eine, sich aufsummierende, Stufe
+(-3)" — so the second costs `−3`, the third `−6`, and so on.
 Parries and dodges are counted apart. Taking a Haltung — including the same one
 again — clears both counters
 (`tests/helpers/combat-actions.test.js › clears both counters on taking a Haltung, including the same one again`).
@@ -236,115 +238,170 @@ provides a separate repeat action for the currently selected one; a native
 select cannot emit a change when its current option is chosen again. The next
 repeated-defence malus is visible on the Dodge action and on an available Parry
 action before either dialog opens.
-Defensiver Kampf buys the parry malus back a point at a time in Einfache
-Bewegung and En Garde, Deckung nutzen the dodge malus in Vorsichtige Bewegung and
-In Deckung, so at rank 10 the malus is gone entirely
-(`tests/helpers/combat-actions.test.js › buys the malus back a point at a time, but only in the right Haltung`).
-The rulebook names 'Defensiver Kampf' in both entries; the second is read as
-'Deckung nutzen', which is a skill of its own and whose section is the one about
-repeated Ausweichen.
+Three Manöverfertigkeiten buy the malus back, and which one applies is decided
+by the Haltung — Ausweichen has two of them:
+
+| Defence | Skill | Haltungen |
+|---|---|---|
+| Parade | Defensiver Kampf | Einfache Bewegung · En Garde |
+| Ausweichen | Deckung nutzen | Vorsichtige Bewegung · In Deckung |
+| Ausweichen | Haken schlagen | Einfache Bewegung · Schnelle Bewegung |
+
+A rank **skips** that many repeats rather than shifting the ladder down: at rank
+1 three parries cost full / full / `−6`, not full / full / `−3`. That is the one
+reading consistent with the rulebook's own worked examples, and it is worth
+stating because it looks like a typo and is not
+(`tests/helpers/combat-actions.test.js › lets a rank skip that many repeats, leaving the rest at their own price`,
+`tests/helpers/combat-actions.test.js › picks the relief skill the Haltung calls for, and none outside it`).
+The rulebook names 'Defensiver Kampf' in all three sections; the latter two are
+read as 'Deckung nutzen' and 'Haken schlagen', each a skill of its own and each
+with its own section about repeated Ausweichen.
 
 ### Ansagen
 
 "Viele Manöver verwenden Ansagen als Mechanik. Eine Ansage erschwert einen
 deiner Würfe um einen anderen zu erleichtern (oder einen gegnerischen Wurf zu
-erschweren)." One formula prices all of them:
+erschweren)." That sentence is the whole of what the system models: **one free
+magnitude, declared on the roll, taken at face value.**
 
-```
-kosten(betrag, rang) = betrag <= rang ? betrag : rang + 2 × (betrag − rang)
-```
+| | |
+|---|---|
+| Input | one optional integer, `0` = nothing declared |
+| Cost to the declaring roll | `−Betrag` |
+| What the defender is told | `Betrag` |
+| Which of their rolls it lands on | not modelled — said out loud |
+| Which Manöver it is | not modelled — said out loud |
 
-**What you pay is not what they take.** The 2:1 conversion past the rank is a
-surcharge on the declarer; the effect is always the declared Betrag. The
-rulebook's own example: Geschickte Angriffe 2 with a 3er Finte is `−4` on the
-attack and `−3` on the defence
-(`tests/helpers/maneuvers.test.js › matches all three of the rulebook worked examples`).
+The declaration is agreed between the player and the GM **before** the number is
+typed, and that conversation is where the rulebook's arithmetic happens: the
+1:1-to-the-rank / 2:1-past-it ladder, the per-Manöver "maximal um die Höhe deiner
+X Fertigkeit", the reach precondition on the Starke Angriffe, and which of Finte
+/ Starker Schwung / Weiter Schwung is being paid for. None of it reaches the
+form, because a form that re-derived it could only ever disagree with the table
+(`tests/documents/roll-dialog.test.js › takes the declared amount at face value, with nothing to price it against`).
 
-Ansagen are free integers, **not** multiples of a Malusstufe, and they combine —
-"im Prinzip sind sie alle kombinierbar" — so any number may be declared on one
-roll and their costs sum into a single component
-(`tests/documents/roll-dialog.test.js › sums several declarations into one component and tells the card the Betrag`).
+Ansagen are free integers, **not** multiples of a Malusstufe, and the field sits
+deliberately outside the situational `±30` clamp — that clamp bounds what a GM
+hands out unilaterally, and this is a number both sides already agreed on
+(`tests/documents/roll-dialog.test.js › leaves the declared amount outside the situational modifier clamp`).
+Blank, zero and negative all mean the same thing: a Standardangriff
+(`tests/documents/roll-dialog.test.js › reads a blank, negative or fractional field as nothing declared`).
 
-The per-Manöver phrase "maximal um die Höhe deiner X Fertigkeit" is **not** a
-hard cap: each section opens with "normale Ansageregeln gelten hier auf alles",
-and the general rule's own example declares above the rank.
+A parry gets the same field — a Riposte is declared on one — but never a Stelle,
+which is the attacker's to name
+(`tests/helpers/combat-actions.test.js › gives a parry the Ansage field and no Stelle`).
 
-| Manöver | Fertigkeit | Betrag | Effect |
-|---|---|---|---|
-| Finte | Geschickte Angriffe | free | defender's Parade/Ausweichen `−Betrag` |
-| Riposte *(on a parry)* | Geschickte Angriffe | free | own next attack on them `+Betrag` |
-| Starker Schwung | **Distanzkontrolle** | free | defender's Widerstand and Parade `−Betrag` |
-| Weiter Schwung | **Distanzkontrolle** | free | defender's Ausweichen `−Betrag` |
-| Arme · Beine | **Gezielter Stich** / **Angesagter Schuss** | 3 | Stelle; damage split over two attributes |
-| Kopf | **Gezielter Stich** / **Angesagter Schuss** | 6 | Stelle; damage doubled after the resistance roll |
-| Rüstung umgehen | **Gezielter Stich** / **Angesagter Schuss** | typed | the armour on that Stelle does not apply |
-| Schwachstelle | **Gezielter Stich** / **Angesagter Schuss** | typed | whatever the GM sets |
+**Why the per-Manöver form went.** It priced nine rows against nine skill ranks,
+gated two of them on the reach tile, and folded the untrained ones away — so a
+character with Gezielter Stich 8 and nothing else was shown the two rows whose
+Betrag only the GM knows, while Finte sat behind a "rarely used" button. The
+rules it enforced are real, but they are rules about a conversation, and the
+conversation was happening at the table regardless.
 
-Three of the Kampfregeln's section headings are not the skill names — Gezielte
-Angriffe is *Gezielter Stich*, Gezielte Schüsse is *Angesagter Schuss*, Starke
-Angriffe is *Distanzkontrolle*. The Fertigkeiten page wins, because that is where
-the rank a character buys is listed, and the rank is what sets the 1:1 limit
-(`tests/helpers/maneuvers.test.js › names the skill that governs each Manöver, not its rulebook section`).
+Not Ansagen at all: Abtauchen, Unterlaufen, Positionierung, Auf Abstand halten,
+Defensiver Kampf and Deckung nutzen. Those cost nothing and declare nothing —
+they are standing bonuses of rank on some other roll.
 
-Arme, Beine and Kopf name a Stelle, and an attack has one — so they are offered
-as a single choice whose default is "keine Ansage", not as three rows that could
-all be ticked
-(`tests/documents/roll-dialog.test.js › lets one Stelle be announced, and only one`).
-Everything else combines freely: "im Prinzip sind sie alle kombinierbar".
+#### The Stelle
 
-The two Schwünge need the reach advantage and cost nothing while it is absent
-(`tests/documents/roll-dialog.test.js › refuses to charge for a Manöver whose reach precondition is unmet`).
-`Rüstung umgehen` costs the defender's **RA** at that Stelle, which is the
-defender's own number — so it is typed in after they name it, never looked up.
+The one declaration that stayed a discrete pick, because it is **a location as
+well as an amount**: it decides which attributes a failed resistance roll lands
+on, and the defender opens that roll by clicking the same location on their
+paper doll. Four tiles in the declaration section, each carrying its price and
+its damage rule, Torso preselected
+(`tests/helpers/combat-actions.test.js › offers every Stelle as a tile captioned with what a hit there costs`).
 
-Not Ansagen at all, and therefore not in the table: Abtauchen, Unterlaufen,
-Positionierung, Auf Abstand halten, Defensiver Kampf and Deckung nutzen. Those
-cost nothing and declare nothing — they are standing bonuses of rank on some
-other roll.
+There is no "keine Ansage" option beside Torso: an attack always lands somewhere,
+and where it lands when nobody said otherwise *is* the Torso
+(`tests/helpers/maneuvers.test.js › covers every Stelle an attack can announce, and the default first`).
 
-A Manöver whose Fertigkeit stands at rank 0 is folded behind one line rather
-than listed: it is legal — "hättest du gar keinen Punkt … um 6" — but eight open
-rows would make the Standardangriff, which is most rolls, the loudest thing in
-the dialog
-(`tests/helpers/combat-actions.test.js › marks the Manöver whose Fertigkeit the character has never bought`).
+**Gezielte Angriffe prices every location, and the rulebook writes the numbers
+out.** "Ansagen auf Trefferzonen im Nahkampf, normale Ansageregeln gelten hier
+auf alles":
 
-Resistance determines **neither** the hit location nor any damage: the player
-states the location by clicking it on the paper doll and the Schadenswert by
-typing it. Where the damage then lands is
-[fully determined by the Stelle](#where-damage-lands); writing it onto the
-attributes stays [Deferred](#deferred).
+| Stelle | To the threshold | Rule text |
+|---|---|---|
+| **Torso** | `0` | not a Gezielter Angriff at all — it is where an unannounced blow lands |
+| **Arme** | `−3` | "Erschwere deinen Angriff um eine Stufe, also -3" |
+| **Beine** | `−3` | "Erschwere deinen Angriff um eine Stufe, also -3" |
+| **Kopf** | `−6` | "Erschwere deinen Angriff um zwei Stufen, also -6" |
+
+The prices live in `ZONE_COSTS` in `helpers/maneuvers.mjs`, written as multiples
+of `MALUS_STEP` because that is what the rule says — the −3 and the −6 are the
+Stufe restated
+(`tests/helpers/maneuvers.test.js › prices every Stelle it offers, and leaves the Torso free`<br>`tests/documents/roll-dialog.test.js › charges the Stelle what Gezielte Angriffe prices it at`).
+
+Because those costs **are** Ansagen, naming a Stelle other than the Torso makes
+the attack a Manöver and pulls in the weapon's FV step, exactly as typing an
+amount does. The Torso does not
+(`tests/documents/roll-dialog.test.js › makes an aimed attack a Manöver, and the Torso not`<br>`tests/documents/roll-dialog.test.js › compounds the Stelle price with the FV step it triggers`).
+
+The price and any freely declared amount stay **two components**, never summed
+into one. They are two decisions, and a breakdown reading `Kopf −6 · Ansage −4`
+says where each figure came from where a single `Ansage −10` would not
+(`tests/documents/roll-dialog.test.js › names the Stelle in the breakdown rather than folding it into the Ansage`).
+
+Applies to melee and ranged alike. The section heading says "im Nahkampf", but
+the Gezielter Stich entry describes *schießen* — read as where the section sits
+in the book rather than as a restriction.
+
+`Rüstung umgehen` has no control of its own on the attack. Its effect is the
+defender's — the cancelled RW is their armour — so it lives on their resistance
+roll, as a checkbox they tick on being told and that nothing the attacker sent
+can pre-set
+(`tests/helpers/combat-actions.test.js › never pre-ticks the armour bypass`).
+
+That is **not** what the rule says, and the divergence is deliberate for now. The
+text reads "Erschwere deinen Angriff um die Rüstungsabdeckung der jeweiligen
+Stelle und ignoriere sie dafür" — a cost on the *attacker*, priced in the
+defender's RA, which is a number the attacker cannot see. It is not modelled as
+its own field because it would need an announced-RA channel, and the cheaper
+answer already exists: the attacker types the amount into the free Ansage field
+like any other declaration. Revisit once the zone tiles and the free field have
+been played with. Same for **Schwachstelle**, whose Erschwernis the GM names —
+that is a free number and always was.
 
 ### The envelope
 
 What crosses from attacker to defender, and all of it. Rendered as text on the
 attack's chat card — no targeting, no second document, no permission check
-(`tests/documents/roll-dialog.test.js › emits the envelope with the Betrag and the Stelle, and no attacker stats`).
+(`tests/documents/roll-dialog.test.js › emits the envelope with the amount and the Stelle, and no attacker stats`).
 
 ```
-from · Parade −n · Ausweichen −n · Widerstand −n · Stelle
-     · armour bypassed? · RB/RD · Scharf / Wucht
+from · Ansage −n · DK · Stelle · RB/RD · Scharf / Wucht
 ```
 
-Each defence is listed apart because they can differ: a Weiter Schwung worsens
-only the dodge, a Starker Schwung only the parry and the resistance
-(`tests/helpers/maneuvers.test.js › sends each Schwung only to the roll its rule names`).
-The defender never learns *which* Manöver was declared — from their side a
-Finte, a Starker Schwung and a Weiter Schwung are the same sentence, which is
-what keeps this list from growing when Manöver are added.
+**One Ansage figure, not one per defence.** Which of the defender's rolls it
+lands on was settled out loud when the two players agreed the number, so the card
+states the amount and claims nothing about where it applies
+(`tests/helpers/dice.test.js › states the Ansage as one figure, not one per defence`).
+
+**And the Stelle's price is not part of that figure.** The `−6` for a head shot
+buys doubled damage, not a harder defence, so folding it into the envelope's
+amount would tell the defender that six was aimed at their dodge. The price stays
+on the attacker's own roll; what the Kopf does to the defender travels as the
+Stelle and nowhere else
+(`tests/documents/roll-dialog.test.js › keeps the Stelle price on the attacker and out of the envelope entirely`).
+The defender never learns which Manöver was declared, which is what keeps this
+list from growing when Manöver are added — and it can no longer say the armour
+was bypassed, because that is the defender's own checkbox
+(`tests/helpers/dice.test.js › never claims the armour was bypassed, since that is the defenders own call`).
 
 The receiving end is one optional integer on each defence roll, taken as given
 and outside the `±30` clamp
 (`tests/documents/roll-dialog.test.js › subtracts an announced Ansage from a defence without ever gating it`).
 
-**Two ways to get it there, and the manual one is the guaranteed one.** The
-defender may read the number off the card and type it, or click the card's
-shortcut, which stores it on **their own** sheet so the next defence they open
-starts with it filled in. The shortcut writes nowhere else and is consumed by
-the first defence that uses it
-(`tests/helpers/combat-actions.test.js › forgets the announcement once a defence has used it`).
-Nothing is ever gated on it: every defence offers the typed field whether or not
-a card was involved
-(`tests/helpers/combat-actions.test.js › offers the typed announcement field on every defence, with no card involved`).
+**One way to get it there: the defender types it.** The card publishes the
+number; nothing pushes it anywhere. A shortcut used to exist that wrote the
+announcement onto the clicking user's own sheet so the next defence opened
+pre-filled, and it is gone — a second path to the same field bought a stored
+`system.combat.pending` blob, a recipient-resolution question ("which of my
+sheets?"), and a consumed-on-first-use lifetime, all to save typing one integer
+that is printed on screen. The typed field was always the guaranteed path and is
+now the only one. Nothing is ever gated on it: every defence offers the field,
+blank, whether or not a card was involved
+(`tests/helpers/combat-actions.test.js › offers the typed announcement field on every defence, with no card involved`,
+`tests/helpers/combat-actions.test.js › offers the announcement field blank, on every defence, always`).
 The card also carries the attacker's **DK** as information — reach stays a
 shared observation each side answers for itself, but this is the fact it is
 answered from.
@@ -395,6 +452,18 @@ location on the paper doll. There is no random hit table anywhere in the rules.
    spend them and nothing in the rules hands them out. Open whether they are
    Beweglichkeit damage or a separate, self-clearing track — the latter is
    assumed, because no other attribute damage heals mid-fight.
+4. **Does the Kopf's cap block the tile, or can you buy past it?** The entry
+   prices a head shot at `−6` "maximal um die Höhe deiner 'Gezielter Stich'
+   Fertigkeit". Read strictly that bars the Stelle outright below rank 6; read
+   through "normale Ansageregeln gelten hier auf alles" the 2:1-past-the-rank
+   ladder should let it be bought. **Shipped flat**: the `−6` applies, the tile
+   is never disabled and nothing warns, consistent with the standing rule that
+   this dialog never re-derives the Ansage ladder.
+5. **Where does `Rüstung umgehen` charge?** The rule puts the cost on the
+   attacker, measured in the defender's RA — see [The Stelle](#the-stelle). The
+   implementation charges the attacker nothing and lets the defender cancel
+   their own RW instead. Resolving it needs an announced-RA channel; deferred
+   until the priced zone tiles have been playtested.
 
 Resolved: *does a Manöver carry the weapon's SV malus?* — **yes.** A Manöver is
 an attack ("alles das läuft aber unter Angriff"), and SV covers "jede

@@ -961,3 +961,121 @@ $gear-radius: 4px;
     }
   }
 }
+
+/* ================================================ Add to inventory
+   The create dialog is the gear sheet's front door, so it borrows that sheet's
+   vocabulary rather than inventing one: the same borderless name-as-title
+   input, the same role icons the carry grid uses, and the chips' filled-dark
+   "this one is on" state — scaled up to a card, because here the choice is the
+   dialog's content instead of one row in it. */
+
+&.create-item-dialog {
+  .window-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  // Same treatment as `.gear-name`: the name reads as the title of the thing
+  // being made, not as the first field of a form.
+  .create-item-head {
+    padding-bottom: 8px;
+    border-bottom: 2px solid $c-dark;
+  }
+
+  .create-item-name {
+    width: 100%;
+    height: 28px;
+    padding: 0 2px;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    font-family: $font-primary;
+    font-size: 16px;
+    font-weight: bold;
+    transition: box-shadow 0.15s ease;
+
+    &:hover {
+      box-shadow: inset 0 -1px 0 $c-beige;
+    }
+
+    &:focus {
+      box-shadow: inset 0 -2px 0 $c-tan;
+      outline: none;
+    }
+  }
+
+  .create-item-roles {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  // The radio itself is the accessible control and keeps every keyboard and
+  // grouping semantic; the card is its label, so a click anywhere on the row
+  // selects and arrow keys walk the group without a handler of our own.
+  .create-item-role {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    border: 1px solid $c-beige;
+    border-radius: $gear-radius;
+    color: rgba($c-dark, 0.7);
+    font-size: 12px;
+    line-height: 1.2;
+    cursor: pointer;
+    transition:
+      border-color 0.15s ease,
+      background 0.15s ease,
+      color 0.15s ease;
+
+    i {
+      flex: 0 0 16px;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    span {
+      flex: 1;
+      min-width: 0;
+    }
+
+    input[type='radio'] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    &:hover {
+      border-color: $c-dark;
+      color: $c-dark;
+    }
+
+    // Filled dark, exactly like a selected `.chip` — one "this is the answer"
+    // treatment across the two places a role is picked.
+    &:has(input:checked) {
+      border-color: $c-dark;
+      background: $c-dark;
+      color: $c-white;
+    }
+
+    // The card is the only visible half of the control, so it has to carry the
+    // focus ring the hidden radio would otherwise draw.
+    &:has(input:focus-visible) {
+      outline: 2px solid $c-primary;
+      outline-offset: 1px;
+    }
+  }
+
+  .create-item-hint {
+    margin: 0;
+    color: rgba($c-dark, 0.55);
+    font-size: 9px;
+    text-align: center;
+  }
+}

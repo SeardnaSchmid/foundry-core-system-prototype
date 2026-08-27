@@ -1,12 +1,31 @@
+{{!-- The roll dialog as a short questionnaire rather than a wall of controls.
+
+Six sections, each headed by the question it answers, sorted strictly by
+**who owns the answer**: what you bring, then what you are handed, then what
+you decide. Two labelled dividers make that split visible instead of leaving
+the reader to infer it, and the one question that can block the roll — the
+required context — leads the middle group.
+
+The threshold is not a section. It is the answer, so it sits last in document
+order, and it is pinned, so it stays legible while the questions scroll behind
+it. Watching it move as you answer is the reason this is one page and not a
+wizard.
+
+Every `name=` here is load-bearing: `_updateObject` and `_refresh` read the form
+by name, so a control may be moved but never renamed. --}}
+
 <form class="tno-roll-dialog flexcol">
   <div class="tno-roll-subject">
     <h2 class="tno-roll-subject-name">{{subject}}</h2>
   </div>
 
-  {{!-- ① Base: the attribute (+ skill / free value / second attribute) that
-        sums into the threshold. In fixed mode it's a single derived value. --}}
+  {{!-- ① What you bring. Read-only in every combat workflow: the attribute, the
+        skill rank, and the requirements your own gear imposes on you. These are
+        facts about the character, which is why the weapon's Handhabung and SV
+        step sit here and not down among the situational modifiers — a player
+        cannot argue with them and should not have to hunt for them. --}}
   <section class="tno-roll-section tno-roll-base">
-    <span class="tno-roll-section-caption">{{localize "TNO.Roll.BaseCaption"}}</span>
+    <span class="tno-roll-section-caption">{{localize "TNO.Roll.Question.Base"}}</span>
 
     {{#if isSkillMode}}
     {{#if isLockedAttribute}}
@@ -91,17 +110,85 @@
       </select>
     </div>
     {{/if}}
+
+    {{!-- The requirements the character's own gear imposes: the weapon's
+          Handhabung and its SV shortfall, and the repeated-defence malus the
+          current Haltung has run up. Immutable here — the way to change any of
+          them is to change what is worn or carried. --}}
+    {{#if hasFixedModifiers}}
+    <div class="tno-roll-gear-modifiers">
+      {{#each fixedModifiers as |modifier|}}
+      <div class="tno-roll-detail">
+        <span class="tno-roll-detail-label">{{modifier.label}}</span>
+        <span class="tno-roll-detail-value">{{modifier.display}}</span>
+      </div>
+      {{/each}}
+    </div>
+    {{/if}}
+
+    {{!-- The armour SV step, which applies or not depending on the attribute
+          currently chosen. Rendered once and toggled by `_refresh`, since that
+          method repaints values rather than rebuilding rows. Absent entirely
+          for a character who meets the requirement. --}}
+    {{#if armorMalus}}
+    <div class="tno-roll-detail tno-armor-malus" {{#unless armorMalus.active}}hidden{{/unless}}>
+      <span class="tno-roll-detail-label">{{armorMalus.label}}</span>
+      <span class="tno-roll-detail-value">{{armorMalus.display}}</span>
+    </div>
+    {{/if}}
   </section>
 
-  {{!-- A combat roll can require one table-state choice (range band, direct DK
-        difference, penetration comparison, the weapon a Manöver is declared
-        with) and one number only the table knows (an announced Schadenswert)
-        before it has a truthful threshold. Generic rolls omit this section
-        entirely. --}}
-  {{#if hasContextSection}}
-  <section class="tno-roll-section tno-roll-context">
-    <span class="tno-roll-section-caption">{{localize "TNO.Roll.ContextCaption"}}</span>
+  {{#if hasGivenDivider}}
+  <div class="tno-roll-divider"><span>{{localize "TNO.Roll.Divider.Given"}}</span></div>
+  {{/if}}
 
+  {{!-- ② The situation, and the only thing in this dialog that can stop the
+        roll: a reach comparison, a range band, a penetration comparison, an
+        announced Schadenswert. It leads because a threshold without it would be
+        a lie, and because everything below it is optional. --}}
+  {{#if hasSituationSection}}
+  <section class="tno-roll-section tno-roll-situation">
+    <span class="tno-roll-section-caption">{{localize "TNO.Roll.Question.Situation"}}</span>
+
+    {{#if hasPreRollContext}}
+    {{#if preRollContext.isTilePicker}}
+    <fieldset class="tno-context-field tno-context-tile-field">
+      <legend>{{preRollContext.label}}</legend>
+      <div class="tno-context-tile-grid tno-context-tile-grid-{{preRollContext.tileColumns}}">
+        {{#each preRollContext.choices as |choice|}}
+        <input id="tno-roll-context-choice-{{choice.key}}" class="tno-context-tile-input" type="radio" name="contextChoice" value="{{choice.key}}" required {{#if choice.selected}}checked{{/if}}>
+        <label class="tno-context-tile {{choice.state}} {{#if ../preRollContext.tileLabels}}has-caption{{/if}}" for="tno-roll-context-choice-{{choice.key}}" title="{{choice.label}}">
+          {{!-- The slope shows the shape of a modifier ladder, which is worth a
+                row of height on the five range bands and nothing at all where
+                the tiles lead with meaning: two of the three penetration tiles
+                are worth the same ±0, so their slopes are identical and the
+                only thing separating them is the text. --}}
+          {{#unless choice.headline}}
+          <span class="tno-context-tile-visual" aria-hidden="true"><i></i></span>
+          {{/unless}}
+          <strong>{{choice.headline}}</strong>
+          {{#if ../preRollContext.tileLabels}}<span class="tno-context-tile-caption">{{choice.label}}</span>{{/if}}
+        </label>
+        {{/each}}
+      </div>
+    </fieldset>
+    {{else}}
+    <div class="form-group tno-context-field">
+      <label for="tno-roll-context-choice">{{preRollContext.label}}</label>
+      <select id="tno-roll-context-choice" name="contextChoice" required>
+        <option value="" disabled {{#unless contextSelected}}selected{{/unless}}>{{preRollContext.placeholder}}</option>
+        {{#each preRollContext.choices as |choice|}}
+        <option value="{{choice.key}}" {{#if choice.selected}}selected{{/if}}>{{choice.label}} ({{choice.display}})</option>
+        {{/each}}
+      </select>
+    </div>
+    {{/if}}
+    {{/if}}
+
+    {{!-- The label is repainted by `_refresh`: where a workflow supplies one
+          per context choice, the pick above decides which number this field is
+          asking for, and saying so here is the only place that connection is
+          ever made. --}}
     {{#if hasRequiredValue}}
     <div class="form-group tno-required-value-field">
       <label for="tno-roll-required-value">{{requiredValue.label}}</label>
@@ -111,13 +198,24 @@
              {{#if requiredValue.hasMax}}max="{{requiredValue.max}}"{{/if}}
              autocomplete="off" required/>
     </div>
+    {{#if requiredValue.hint}}
+    <p class="tno-required-value-hint">{{requiredValue.hint}}</p>
     {{/if}}
+    {{/if}}
+  </section>
+  {{/if}}
 
-    {{!-- What the attacker announced against this roll. Optional and never
-          gating: a defender who was told nothing types nothing. From here a
-          Finte, a Starker Schwung and a Weiter Schwung are the same
-          statement — one number — which is exactly why nothing on this side
-          needs to know which of them it was. --}}
+  {{!-- ③ What the other side declared. Its own question because it is the only
+        number in the dialog that came from another player: read off their card
+        or filled in by its shortcut, never computed here. Defences only.
+
+        From here a Finte, a Starker Schwung and a Weiter Schwung are the same
+        statement — one number — which is exactly why nothing on this side needs
+        to know which of them it was. --}}
+  {{#if hasAgainstSection}}
+  <section class="tno-roll-section tno-roll-against">
+    <span class="tno-roll-section-caption">{{localize "TNO.Roll.Question.Against"}}</span>
+
     {{#if hasOpposingAnsage}}
     <div class="form-group tno-required-value-field">
       <label for="tno-roll-opposing-ansage">{{localize "TNO.Combat.OpposingAnsage"}}</label>
@@ -137,120 +235,70 @@
       </label>
     </div>
     {{/if}}
+  </section>
+  {{/if}}
 
-    {{#if hasPreRollContext}}
-    {{#if preRollContext.isTilePicker}}
-    <fieldset class="tno-context-field tno-context-tile-field">
-      <legend>{{preRollContext.label}}</legend>
-      <div class="tno-context-tile-grid tno-context-tile-grid-{{preRollContext.tileColumns}}">
-        {{#each preRollContext.choices as |choice|}}
-        <input id="tno-roll-context-choice-{{choice.key}}" class="tno-context-tile-input" type="radio" name="contextChoice" value="{{choice.key}}" required {{#if choice.selected}}checked{{/if}}>
-        <label class="tno-context-tile {{choice.state}} {{#if ../preRollContext.tileLabels}}has-caption{{/if}}" for="tno-roll-context-choice-{{choice.key}}" title="{{choice.display}}">
-          <span class="tno-context-tile-visual" aria-hidden="true"><i></i></span>
-          <strong>{{choice.display}}</strong>
-          {{#if ../preRollContext.tileLabels}}<span class="tno-context-tile-caption">{{choice.label}}</span>{{/if}}
+  {{#if hasChosenDivider}}
+  <div class="tno-roll-divider"><span>{{localize "TNO.Roll.Divider.Chosen"}}</span></div>
+  {{/if}}
+
+  {{!-- ④ Everything the player dials in themselves. Closed by default, because
+        closed *is* the standard attack: no Ansage, no modification, and the
+        Torso, which is where a blow that announced nothing lands.
+
+        The Ansagen — "Ansagen auf Trefferzonen im Nahkampf, normale Ansageregeln
+        gelten hier auf alles" — share the box with the scene's ±3. The Stelle
+        carries the price the rulebook writes down; the free field carries
+        everything the rulebook prices at the table instead, from a Finte to a
+        Schwachstelle the GM named; the stepper carries what the GM improvised on
+        top of all of it. None of the three is converted or argued with here, and
+        all three are the same kind of thing — a number this player is choosing —
+        which is why the modification stopped standing in a box of its own where
+        it read as a fixed part of the roll.
+
+        A native `<details>`: the disclosure, its keyboard handling and its
+        `open` state come from the browser. It renders open whenever the roll
+        already carries something, so a re-render can never hide a value that
+        was set. --}}
+  {{#if hasAttemptSection}}
+  <details class="tno-roll-section tno-roll-attempt" {{#if attemptOpen}}open{{/if}}>
+    <summary class="tno-attempt-summary">
+      <span class="tno-roll-section-caption">{{localize "TNO.Roll.Question.Attempt"}}</span>
+      {{!-- What the closed block is carrying, so it never hides a cost.
+            Repainted by `_refresh`. --}}
+      <span class="tno-attempt-badge">{{attemptBadge}}</span>
+    </summary>
+
+    {{#if zonePicker}}
+    <fieldset class="tno-context-field tno-context-tile-field tno-zone-field">
+      <legend>{{zonePicker.label}}</legend>
+      <div class="tno-context-tile-grid tno-context-tile-grid-4">
+        {{#each zonePicker.choices as |choice|}}
+        <input id="tno-roll-zone-{{choice.key}}" class="tno-context-tile-input" type="radio" name="zoneChoice" value="{{choice.key}}" {{#if choice.selected}}checked{{/if}}>
+        <label class="tno-context-tile has-caption" for="tno-roll-zone-{{choice.key}}" title="{{choice.caption}}">
+          <strong>{{choice.label}}</strong>
+          <span class="tno-zone-tile-cost {{#unless choice.cost}}is-free{{/unless}}">{{choice.costDisplay}}</span>
+          <span class="tno-context-tile-caption">{{choice.caption}}</span>
         </label>
         {{/each}}
       </div>
     </fieldset>
-    {{else}}
-    <div class="form-group tno-context-field">
-      <label for="tno-roll-context-choice">{{preRollContext.label}}</label>
-      <select id="tno-roll-context-choice" name="contextChoice" required>
-        <option value="" disabled {{#unless contextSelected}}selected{{/unless}}>{{preRollContext.placeholder}}</option>
-        {{#each preRollContext.choices as |choice|}}
-        <option value="{{choice.key}}" {{#if choice.selected}}selected{{/if}}>{{choice.label}} ({{choice.display}})</option>
-        {{/each}}
-      </select>
-    </div>
-    {{/if}}
-    {{/if}}
-  </section>
-  {{/if}}
-
-  {{!-- Ansagen. Optional and repeatable, unlike the two required inputs above:
-        "im Prinzip sind sie alle kombinierbar", so any number of them may be
-        declared at once. Each row carries its own read-out because 1:1 up to
-        the rank and 2:1 past it is arithmetic nobody should do at the table —
-        and because what you pay is not what the opponent takes.
-
-        Zugeklappt, weil der Regelfall der Standardangriff ist, der nichts
-        ansagt. Die Kopfzeile sagt trotzdem, was drinsteht — ein eingeklappter
-        Block, der heimlich zwölf Punkte kostet, wäre schlimmer als gar
-        keiner. --}}
-  {{#if hasAnsagen}}
-  <section class="tno-roll-section tno-roll-ansagen">
-    <button type="button" class="tno-ansagen-toggle" aria-expanded="false">
-      <span class="tno-roll-section-caption">{{localize "TNO.Combat.AnsageCaption"}}</span>
-      <span class="tno-ansagen-summary">{{ansageSummary}}</span>
-    </button>
-
-    <div class="tno-ansagen-body">
-      {{!-- Ein Angriff hat eine Stelle. Kopf, Arme und Beine schließen einander
-            aus, also sind sie eine Auswahl und keine drei Zeilen — und ihre
-            Vorgabe ist "keine". --}}
-      {{#each ansageGroups as |group|}}
-      <div class="tno-ansage-row tno-ansage-group{{#if group.untrained}} tno-ansage-untrained{{/if}}" data-ansage-group="{{group.key}}">
-        <label class="tno-ansage-name" for="tno-roll-ansage-group-{{group.key}}">{{group.label}}</label>
-        <select id="tno-roll-ansage-group-{{group.key}}" class="tno-ansage-select" name="ansageGroups.{{group.key}}">
-          <option value="">{{group.none}}</option>
-          {{#each group.choices as |choice|}}
-          <option value="{{choice.key}}" {{#if choice.selected}}selected{{/if}}>{{choice.label}}</option>
-          {{/each}}
-        </select>
-        <span class="tno-ansage-readout">{{group.readout}}</span>
-      </div>
-      {{/each}}
-
-      {{#each ansagen as |ansage|}}
-      <div class="tno-ansage-row{{#if ansage.untrained}} tno-ansage-untrained{{/if}}{{#if ansage.blocked}} tno-ansage-blocked{{/if}}" data-ansage="{{ansage.key}}">
-        <label class="tno-ansage-name" for="tno-roll-ansage-{{ansage.key}}">
-          {{ansage.label}}
-          <span class="tno-ansage-rank">{{ansage.rankLabel}} {{ansage.rank}}</span>
-        </label>
-        <input id="tno-roll-ansage-{{ansage.key}}" class="tno-ansage-input" type="number" name="ansagen.{{ansage.key}}"
-               min="0" step="1" value="{{#if ansage.betrag}}{{ansage.betrag}}{{/if}}"
-               placeholder="0" autocomplete="off" {{#if ansage.blocked}}disabled{{/if}}>
-        <span class="tno-ansage-readout{{#if ansage.overRank}} tno-ansage-over-rank{{/if}}">{{ansage.readout}}</span>
-      </div>
-      {{/each}}
-
-      {{!-- Ansagen mit einer Fertigkeit auf Rang 0 sind erlaubt, kosten aber
-            doppelt. Sie stehen deshalb hinter einem Schalter statt in der Liste:
-            verstecken wäre falsch, aber sie sind nicht das, wonach man sucht. --}}
-      {{#if untrainedAnsagen}}
-      <button type="button" class="tno-ansage-more">{{localize "TNO.Combat.AnsageMore"}} ({{untrainedAnsagen}})</button>
-      {{/if}}
-    </div>
-  </section>
-  {{/if}}
-
-  {{!-- ② Modifiers: everything that adjusts the threshold on top of the base
-        (situational bonus/malus, and the "Idee haben" pre-edge). --}}
-  {{#if hasModifiers}}
-  <section class="tno-roll-section tno-roll-modifiers">
-    <span class="tno-roll-section-caption">{{localize "TNO.Roll.ModifiersCaption"}}</span>
-
-    {{#if hasFixedModifiers}}
-    {{#each fixedModifiers as |modifier|}}
-    <div class="tno-roll-detail">
-      <span class="tno-roll-detail-label">{{modifier.label}}</span>
-      <span class="tno-roll-detail-value">{{modifier.display}}</span>
-    </div>
-    {{/each}}
     {{/if}}
 
-    {{!-- The armour SV step, which applies or not depending on the attribute
-          currently chosen. Rendered once and toggled by `_refresh`, since that
-          method repaints values rather than rebuilding rows. Absent entirely
-          for a character who meets the requirement. --}}
-    {{#if armorMalus}}
-    <div class="tno-roll-detail tno-armor-malus" {{#unless armorMalus.active}}hidden{{/unless}}>
-      <span class="tno-roll-detail-label">{{armorMalus.label}}</span>
-      <span class="tno-roll-detail-value">{{armorMalus.display}}</span>
+    {{#if hasAnsage}}
+    <div class="tno-ansage-row">
+      <label class="tno-ansage-name" for="tno-roll-ansage" title="{{ansage.hint}}">{{ansage.label}}</label>
+      <input id="tno-roll-ansage" type="number" name="ansage" min="0" step="1"
+             value="{{ansage.value}}" placeholder="0" autocomplete="off">
+      <span class="tno-ansage-readout">{{ansage.display}}</span>
     </div>
     {{/if}}
 
+    {{!-- What the scene does, which is the GM's to hand out and nobody else's.
+          It used to share a box called "Modifikatoren" with the weapon's own
+          requirements, which made a rule the player cannot change look like the
+          same kind of thing as a number the GM improvised — so it moved out.
+          Here it sits with the other numbers this player is deciding. --}}
     {{#unless isFixedMode}}
     <div class="form-group tno-bonus-field">
       <label>{{localize "TNO.Roll.Bonus"}}</label>
@@ -262,8 +310,18 @@
       <input type="hidden" name="bonus" value="{{bonus}}"/>
     </div>
     {{/unless}}
+  </details>
+  {{/if}}
 
-    {{#if hasIdeaOption}}
+  {{!-- ⑤ What you spend. Last of the decisions, because it is the one worth
+        making only once the threshold everything else produced is visible.
+
+        "Idee haben" is a pre-edge: only offered here, before the dice are cast.
+        There is deliberately no way to apply it retroactively to a roll already
+        made (see problem-solving-prd.md). --}}
+  {{#if hasIdeaOption}}
+  <section class="tno-roll-section tno-roll-spend">
+    <span class="tno-roll-section-caption">{{localize "TNO.Roll.Question.Spend"}}</span>
     <div class="form-group tno-idea-field">
       <label class="tno-idea-toggle {{#if useIdea}}active{{/if}} {{#if ideaDisabled}}tno-idea-disabled{{/if}}"
              data-tooltip-html='<dl class="tno-tooltip">
@@ -296,41 +354,49 @@
         </span>
       </label>
     </div>
-    {{/if}}
   </section>
   {{/if}}
 
-  {{!-- ③ Result: the threshold the counting die must land at or under, with a
-        live breakdown of the parts that produced it. The hero of the dialog. --}}
-  <div class="tno-roll-result tno-threshold-box">
-    <span class="tno-roll-result-label">{{localize "TNO.Roll.Threshold"}}</span>
-    {{!-- What that threshold is actually worth, answered next to the number
-          that raises the question rather than parked behind an icon. Rebuilt by
-          _refresh on every threshold *and* roll-type change. --}}
-    <span class="tno-roll-result-value">≤ <span class="tno-threshold-value">{{threshold}}</span>
-      <span class="tno-odds tno-tooltip-hint"
-            tabindex="0"
-            role="img"
-            aria-label="{{localize "TNO.Roll.Odds.InfoLabel"}}: {{oddsLabel}}"
-            data-tooltip-html="{{oddsTooltip}}">{{oddsLabel}}</span>
-    </span>
-    <span class="tno-roll-breakdown">{{breakdown}}</span>
-    {{!-- The same figure as a strip across the foot of the box, so the odds
-          are legible before the number is read. --}}
-    <span class="tno-odds-meter" aria-hidden="true"><span class="tno-odds-fill" style="width: {{oddsPercent}}%"></span></span>
-  </div>
-
-  {{!-- ④ Roll type: changes which dice are rolled, not the threshold. --}}
+  {{!-- ⑥ How you roll it. Above the threshold box on purpose: the roll type
+        leaves the threshold alone but changes the odds printed inside that box,
+        so choosing it below would mean looking back up to see what it did. The
+        picker's own "Wurftyp" label is hidden here and the question stands in
+        its place; that label is still the right noun on the chat card, which is
+        why the string was not simply reworded. The radiogroup keeps its own
+        aria-label either way. --}}
   {{#unless isFixedMode}}
-  {{> "systems/tno/templates/apps/parts/advantage-picker.hbs"}}
+  <section class="tno-roll-section tno-roll-rolltype">
+    <span class="tno-roll-section-caption">{{localize "TNO.Roll.Question.RollType"}}</span>
+    {{> "systems/tno/templates/apps/parts/advantage-picker.hbs"}}
+  </section>
   {{else}}
   <input type="hidden" name="bonus" value="{{bonus}}"/>
   <input type="hidden" name="advantage" value="{{advantage}}"/>
   {{/unless}}
 
-  {{!-- ⑤ Commit — the dialog's primary action, styled to stand out from
-        every secondary control above it. --}}
-  <footer class="sheet-footer flexrow">
+  {{!-- The answer, and the commit. Pinned to the foot of the dialog so the
+        number stays readable while the questions scroll behind it — every
+        section above exists to move this figure, and a player who cannot see it
+        move is filling in a form instead of making a decision. --}}
+  <footer class="tno-roll-footer">
+    <div class="tno-roll-result tno-threshold-box">
+      <span class="tno-roll-result-label">{{localize "TNO.Roll.Threshold"}}</span>
+      {{!-- What that threshold is actually worth, answered next to the number
+            that raises the question rather than parked behind an icon. Rebuilt
+            by _refresh on every threshold *and* roll-type change. --}}
+      <span class="tno-roll-result-value">≤ <span class="tno-threshold-value">{{threshold}}</span>
+        <span class="tno-odds tno-tooltip-hint"
+              tabindex="0"
+              role="img"
+              aria-label="{{localize "TNO.Roll.Odds.InfoLabel"}}: {{oddsLabel}}"
+              data-tooltip-html="{{oddsTooltip}}">{{oddsLabel}}</span>
+      </span>
+      <span class="tno-roll-breakdown">{{breakdown}}</span>
+      {{!-- The same figure as a strip across the foot of the box, so the odds
+            are legible before the number is read. --}}
+      <span class="tno-odds-meter" aria-hidden="true"><span class="tno-odds-fill" style="width: {{oddsPercent}}%"></span></span>
+    </div>
+
     <button type="submit" class="tno-roll-submit" {{#unless canSubmit}}disabled{{/unless}}>
       <span class="tno-roll-submit-main"><i class="fas fa-dice-d20"></i> {{localize "TNO.Roll.Submit"}}</span>
       <span class="tno-roll-submit-echo">{{targetLabel}} ≤ {{threshold}}</span>

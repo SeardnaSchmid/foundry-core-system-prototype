@@ -17,14 +17,6 @@
         "defenses": {
           "parry": 0,
           "dodge": 0
-        },
-        "pending": {
-          "from": "",
-          "parry": 0,
-          "dodge": 0,
-          "resistance": 0,
-          "zone": "",
-          "bypassArmor": false
         }
       },
       "money": {
@@ -126,12 +118,13 @@
         "suppressiveFire": { "value": 0, "xp": 0, "lastAttribute": "" },
         "gunKata": { "value": 0, "xp": 0, "lastAttribute": "" },
         "useCover": { "value": 0, "xp": 0, "lastAttribute": "" },
+        "evasiveMove": { "value": 0, "xp": 0, "lastAttribute": "" },
+        "soloTactics": { "value": 0, "xp": 0, "lastAttribute": "" },
         "groupTactics": { "value": 0, "xp": 0, "lastAttribute": "" },
         "psychWarfare": { "value": 0, "xp": 0, "lastAttribute": "" },
         "leadership": { "value": 0, "xp": 0, "lastAttribute": "" },
         "athletics": { "value": 0, "xp": 0, "lastAttribute": "" },
         "acrobatics": { "value": 0, "xp": 0, "lastAttribute": "" },
-        "stealth": { "value": 0, "xp": 0, "lastAttribute": "" },
         "selfControl": { "value": 0, "xp": 0, "lastAttribute": "" },
         "contortionist": { "value": 0, "xp": 0, "lastAttribute": "" },
         "sleightOfHand": { "value": 0, "xp": 0, "lastAttribute": "" },
@@ -172,6 +165,7 @@
         "techHacking": { "value": 0, "xp": 0, "lastAttribute": "" },
         "techTissue": { "value": 0, "xp": 0, "lastAttribute": "" },
         "techSymbio": { "value": 0, "xp": 0, "lastAttribute": "" },
+        "techWeapons": { "value": 0, "xp": 0, "lastAttribute": "" },
         "techExplosives": { "value": 0, "xp": 0, "lastAttribute": "" },
         "medFirstAid": { "value": 0, "xp": 0, "lastAttribute": "" },
         "medSurgery": { "value": 0, "xp": 0, "lastAttribute": "" },
@@ -195,7 +189,12 @@
         "cultCooking": { "value": 0, "xp": 0, "lastAttribute": "" },
         "cultGamesSports": { "value": 0, "xp": 0, "lastAttribute": "" },
         "cultReligion": { "value": 0, "xp": 0, "lastAttribute": "" },
-        "cultHistory": { "value": 0, "xp": 0, "lastAttribute": "" }
+        "cultHistory": { "value": 0, "xp": 0, "lastAttribute": "" },
+        "interfacingMundane": { "value": 0, "xp": 0, "lastAttribute": "" },
+        "interfacingProfane": { "value": 0, "xp": 0, "lastAttribute": "" },
+        "interfacingArcane": { "value": 0, "xp": 0, "lastAttribute": "" },
+        "interfacingSacral": { "value": 0, "xp": 0, "lastAttribute": "" },
+        "interfacingKuiper": { "value": 0, "xp": 0, "lastAttribute": "" }
       }
     },
     "npc": {

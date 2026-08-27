@@ -1,4 +1,3 @@
-import { takeAnsage } from './combat-actions.mjs';
 import { startTrialError, rerollTrialError, retry, postMortem, claimXp } from './dice.mjs';
 
 /**
@@ -16,7 +15,6 @@ import { startTrialError, rerollTrialError, retry, postMortem, claimXp } from '.
 export function registerChatListeners() {
   Hooks.on('renderChatMessageHTML', (message, html) => {
     renderEdgeSection(message, html);
-    bindEnvelopeTake(message, html);
   });
 
   // A card's edge section is gated on the actor's edge pool at render time.
@@ -24,108 +22,6 @@ export function registerChatListeners() {
   // spent), re-render every visible card belonging to this actor so its
   // controls reflect the new pool.
   Hooks.on('updateActor', (actor) => refreshEdgeSectionsFor(actor));
-}
-
-/**
- * Every character the clicking user could put this Ansage on, most specific
- * first.
- *
- * A user is not one character. A player can own two, and a GM owns the whole
- * directory — so "the clicking user's own sheet" needs an answer, not an
- * assumption. Three sources, in falling order of how strongly they say *this
- * one, right now*:
- *
- * 1. Selected tokens — the strongest statement there is, and the only one that
- *    changes between two attacks in the same fight.
- * 2. The assigned character, for the ordinary player who never selects a token.
- * 3. Everything else they own, so a GM defending an NPC-run character and a
- *    player with a second sheet both still get the shortcut.
- *
- * The attacker is filtered out of all three: whoever swung is not defending
- * against it. NPCs are too — `system.combat` is a character field, and
- * {@link takeAnsage} would have nowhere to write.
- *
- * @param {string} [attackerId]  `flags.tno.actorId` of the card.
- * @returns {Array<Actor>} Possibly empty; one entry means no question to ask.
- */
-export function ansageRecipients(attackerId) {
-  const owned = (game.actors ?? []).filter(
-    (actor) => actor?.type === 'character' && actor.isOwner && actor.id !== attackerId
-  );
-
-  const controlled = (canvas?.tokens?.controlled ?? [])
-    .map((token) => token?.actor)
-    .filter((actor, index, list) => owned.includes(actor) && list.indexOf(actor) === index);
-  if (controlled.length) return controlled;
-
-  const assigned = game.user?.character;
-  if (owned.includes(assigned)) return [assigned];
-
-  return owned;
-}
-
-/**
- * Which of them takes it. One candidate is not a question, so it is not asked.
- * @param {Array<Actor>} recipients
- * @returns {Promise<Actor|null>}
- */
-async function pickAnsageRecipient(recipients) {
-  if (recipients.length <= 1) return recipients[0] ?? null;
-
-  const options = recipients
-    .map((actor) => `<option value="${actor.id}">${foundry.utils.escapeHTML(actor.name)}</option>`)
-    .join('');
-  const id = await foundry.applications.api.DialogV2.prompt({
-    window: { title: game.i18n.localize('TNO.Combat.Envelope.TakeFor') },
-    content: `
-      <div class="form-group">
-        <label>${game.i18n.localize('TNO.Combat.Envelope.TakeForLabel')}</label>
-        <select name="actor" autofocus>${options}</select>
-      </div>`,
-    ok: {
-      label: game.i18n.localize('TNO.Combat.Envelope.Take'),
-      callback: (event, button) => button.form.elements.actor.value,
-    },
-    rejectClose: false,
-  });
-
-  return recipients.find((actor) => actor.id === id) ?? null;
-}
-
-/**
- * Wire the attack card's "announced against me" shortcut.
- *
- * It writes the announced numbers onto a sheet the **clicking user owns** —
- * never the attacker's, and never anyone else's — and whichever defence they
- * open next starts with the field filled in. Nothing here is a precondition:
- * the same numbers are printed on the card above the button, and typing them
- * into the defence dialog by hand is the unchanged path.
- *
- * The button is hidden only for a user with no character to put it on. Who
- * takes it is resolved on the click rather than at render, because selecting a
- * token is exactly how a player says which of their sheets is in this fight —
- * and they do that after the card is already on screen.
- *
- * @param {ChatMessage} message
- * @param {HTMLElement} html
- */
-function bindEnvelopeTake(message, html) {
-  const button = html.querySelector('[data-tno-action="take-ansage"]');
-  if (!button) return;
-
-  const envelope = message.flags?.tno?.envelope;
-  const attackerId = message.flags?.tno?.actorId;
-  if (!envelope || !ansageRecipients(attackerId).length) {
-    button.remove();
-    return;
-  }
-
-  button.addEventListener('click', async () => {
-    const actor = await pickAnsageRecipient(ansageRecipients(attackerId));
-    if (!actor) return;
-    await takeAnsage(actor, envelope);
-    ui.notifications.info(game.i18n.format('TNO.Combat.Envelope.Taken', { name: actor.name }));
-  });
 }
 
 /**

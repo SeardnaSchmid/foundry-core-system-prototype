@@ -3,7 +3,7 @@ type: concept
 title: Item roles and the gear dialog
 description: Why a physical item has roles instead of a Foundry item type, and how the row-editor sheet is built from them.
 tags: [items, roles, weapons, armor, sheets, schema]
-resource: [module/apps/roll-dialog.mjs, module/documents/item.mjs, module/helpers/items.mjs, module/helpers/item-presentation.mjs, module/helpers/item-summary.mjs, module/sheets/actor-sheet.mjs, module/sheets/item-gear-sheet.mjs, templates/actor/parts/item-popover.hbs, templates/apps/roll-dialog.hbs, templates/item/item-gear-sheet.hbs, templates/item/parts/item-gear-summary.hbs, templates/item/parts/item-role-weapon.hbs]
+resource: [module/apps/roll-dialog.mjs, module/documents/item.mjs, module/helpers/items.mjs, module/helpers/item-presentation.mjs, module/helpers/item-summary.mjs, module/sheets/actor-sheet.mjs, module/sheets/item-gear-sheet.mjs, templates/actor/parts/item-popover.hbs, templates/apps/create-item-dialog.hbs, templates/apps/roll-dialog.hbs, templates/item/item-gear-sheet.hbs, templates/item/parts/item-gear-summary.hbs, templates/item/parts/item-role-weapon.hbs]
 spec: docs/design/character-sheet-prd.md
 related: [concepts/combat-roll-workflows, concepts/inventory, concepts/migrations, reference/ui-surfaces, architecture/data-schema]
 ---
@@ -16,10 +16,10 @@ Every physical item is the same kind of object. It optionally **takes on a
 role** — weapon, armour, or consumable — which decides which extra block of
 values it carries.
 
-Exactly one role, or none. A brand-new item has no role at all, because a plain
-object is the common case and classifying a thing before it has a name is the
-wrong order. So the role chips are a radiogroup, and clicking the chosen one
-clears it.
+Exactly one role, or none. None is what an item defaults to everywhere it can —
+a bare `Item.create` leaves it, and the add dialog preselects it — because a
+plain object is the common case. So the role chips are a radiogroup, and
+clicking the chosen one clears it.
 
 That is the same cardinality a Foundry item type has, and it is still not a
 type, for two reasons: a type is fixed at creation, so an object entered as a
@@ -45,9 +45,14 @@ migration writes, and the shape that survives if a piece ever does need two —
 whereas a string would have to be migrated twice to find out.
 
 The inventory views use `inventoryIcon(item)` from the same helper, so the
-carry grid, Kleinkram list and flat inventory list all show the same quick
+carry grid, Kleinkram list and the Inventar tab's ledger all show the same quick
 read: ranged weapon, melee weapon, armour, consumable or a generic object.
 The item image remains available on the item's own sheet.
+
+The ledger goes one step further and **groups by role** — which is only sound
+because a piece carries at most one. See
+[inventory.md](inventory.md#the-ledger) for how the columns key off the role,
+and why a column a row cannot be asked reads as `n/a` rather than as a blank.
 
 ## The types are still registered, and mean nothing
 
@@ -59,8 +64,12 @@ published world fail to load. Nothing reads the type for meaning any more.
 Two consequences worth knowing:
 
 - **New gear is always created as `item`.** The actor sheet's add dialog asks
-  only for a name — what the thing *does* is chips on its own sheet, not a
-  choice that has to be made before it exists.
+  for a name and offers four cards — Gegenstand, Waffe, Rüstung, Verbrauch —
+  and what they write is `system.roles`, never the type. Picking one is an
+  offer, not a step: "Gegenstand" (no role) is preselected because it is the
+  common case, and every card is the same chip the item's own sheet can change
+  or clear a second later. That is the difference from a type picker, which
+  would make the least reversible answer the first one.
 - **`itemRoles` falls back to the type** when `system.roles` is absent
   entirely, so a pre-role-model document behaves correctly before the
   migration reaches it. Once the key exists it is authoritative *even when

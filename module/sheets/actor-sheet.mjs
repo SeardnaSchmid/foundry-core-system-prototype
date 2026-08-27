@@ -19,13 +19,34 @@ import {
 } from '../helpers/attributes.mjs';
 import {
   buildSlotGrid,
-  itemSlotCost,
   ARMOR_ADDON_ZONES,
   wornItemIds,
 } from '../helpers/inventory.mjs';
 import { MONEY_CURRENCIES, normalizeMoneyAmount, prepareWallet } from '../helpers/money.mjs';
 import { prepareGearSummaryContext } from '../helpers/item-summary.mjs';
-import { ITEM_ROLES, armorZones, canWeaponAttack, canWeaponParry, inventoryIcon, itemRoles, weaponUse } from '../helpers/items.mjs';
+import {
+  ITEM_ROLES,
+  MISSING_FIELD_LABELS,
+  ROLE_ICONS,
+  armorZones,
+  canWeaponAttack,
+  canWeaponParry,
+  inventoryIcon,
+  itemRoles,
+  selectRole,
+  weaponUse,
+} from '../helpers/items.mjs';
+import {
+  CELL_KINDS,
+  ITEM_TABLE_COLUMNS,
+  ITEM_TABLE_SECTIONS,
+  NAME_SORT_KEY,
+  PLAIN_ROLE,
+  buildItemGroups,
+  nextItemTableSort,
+  normalizeItemTableConfig,
+  toggleItemTableColumn,
+} from '../helpers/item-table.mjs';
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -520,12 +541,12 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // Initialize containers. There are only two, because there are only two
     // lists: everything physical, and the features that are not objects.
     //
-    // Per-role buckets (`armory`, `weapons`) and a spell-level map used to be
-    // built here too. Nothing ever read them — the role buckets are views onto
-    // `inventory`, and listing a piece from one of them would list it once per
-    // role it carries. When the Waffen block is designed it wants a view over
-    // `inventory`, not a fourth copy of the same items.
-    const inventory = [];
+    // Per-role buckets (`armory`, `weapons`) are still not built here. The
+    // Inventar tab groups by role, but it groups *rows of one list* — an item
+    // put into a bucket would have to be taken back out of it the moment its
+    // role changed, and the grouping is a reading of the list rather than a
+    // second place the item lives.
+    const gear = [];
     const features = [];
 
     // Which items are on the body. Worn gear is exempt from the slot economy
@@ -552,30 +573,295 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       // Everything else is an object, and every object is inventory. What it
       // *does* is a matter of the roles it carries, which is a second question
       // asked of the same item rather than a different bucket to put it in.
-      inventory.push(i);
-      const roles = itemRoles(i);
-      // The flat list labels each row with what it is; the tooltip in the carry
-      // grid says the same thing at more length.
-      i.roleLabels = ITEM_ROLES.filter((role) => roles[role]).map(
-        (role) => CONFIG.TNO.itemRoles[role]
-      );
       i.inventoryIcon = inventoryIcon(i);
-      // What this piece costs the slot budget, for the administrative list's
-      // own column. Worn gear is exempt by rule, so it reports no cost rather
-      // than the number it *would* cost if it came off — the row already says
-      // "worn", and two different truths in one line would be worse than one.
-      i.slotCost = i.isWorn ? 0 : itemSlotCost(i);
+      gear.push(i);
     }
 
     context.features = features;
 
-    // The flat administrative list covers everything the inventory rules touch,
-    // armour and weapons included: a piece that is neither worn nor carried
-    // appears in no other view, so leaving it out of the list would strand it
-    // entirely.
-    context.inventory = inventory;
+    // The ledger covers everything the inventory rules touch, armour and
+    // weapons included: a piece that is neither worn nor carried appears in no
+    // other view, so leaving it out would strand it entirely.
+    context.itemTable = this.#itemTableContext(gear, worn);
 
     if (context.actor.type === 'character') this._prepareEquipment(context);
+  }
+
+  /* -------------------------------------------- */
+  /*  Inventar tab: the item table                */
+  /* -------------------------------------------- */
+
+  /** The stored per-user table layout, always in a shape the table can use. */
+  #itemTableConfig() {
+    return normalizeItemTableConfig(game.settings.get('tno', 'itemTableLayout'));
+  }
+
+  /** Persist a table layout and redraw, since the columns come from context. */
+  async #storeItemTableConfig(config) {
+    await game.settings.set('tno', 'itemTableLayout', config);
+    this.render();
+  }
+
+  /**
+   * The Inventar tab's whole view model: the header row, the four role groups
+   * with their rows already sorted, and the column picker's checkboxes.
+   *
+   * Everything localized happens here rather than in the helper or the
+   * template. `item-table.mjs` stays free of Foundry globals so it can be
+   * tested without a world, and the template holds no formatting decisions —
+   * the same split the compact item card already uses.
+   *
+   * @param {Array<object>} items  The actor's physical items, as plain objects.
+   * @param {Set<string>} worn     Item ids currently on the body.
+   * @returns {object}
+   */
+  #itemTableContext(items, worn) {
+    const config = this.#itemTableConfig();
+    // `numeric` so a name ending in a figure sorts 2 before 10, and `base` so
+    // case and accents do not split otherwise identical names apart.
+    const collator = new Intl.Collator(game.i18n.lang, { sensitivity: 'base', numeric: true });
+    const groups = buildItemGroups(items, {
+      worn,
+      columns: config.columns,
+      sort: config.sort,
+      collator: (a, b) => collator.compare(a, b),
+    });
+
+    const visible = config.columns
+      .map((key) => ITEM_TABLE_COLUMNS.find((column) => column.key === key))
+      .filter(Boolean);
+
+    // The name is the row's identity rather than one of its values, so it heads
+    // the table without being one of the pickable columns — and it is still a
+    // sort target, since "alphabetical" is the order most lists want.
+    const headers = [
+      this.#columnHeader({ key: NAME_SORT_KEY, labelKey: 'TNO.Inventory.AddName', hintKey: 'TNO.Inventory.AddName', numeric: false }, config.sort),
+      ...visible.map((column) => this.#columnHeader(column, config.sort)),
+    ];
+
+    return {
+      headers,
+      // The name column takes what is left after the value columns and the
+      // controls, which are the parts with a fixed appetite. Value columns are
+      // equal-width so the header and every group line up in one grid — which
+      // is also why the whole table is a single grid rather than one per group.
+      gridTemplate: ['minmax(8rem, 3fr)', ...visible.map(() => 'minmax(3.25rem, 1fr)'), '4.5rem'].join(' '),
+      groups: groups.map((group) => this.#groupContext(group, visible)),
+      empty: !items.length,
+      sections: this.#columnPickerSections(config),
+      search: this._itemSearch ?? '',
+    };
+  }
+
+  /** One header cell: its caption, its long name, and how it is sorted now. */
+  #columnHeader(column, sort) {
+    const sorted = sort.key === column.key;
+    return {
+      key: column.key,
+      label: game.i18n.localize(column.labelKey),
+      hint: game.i18n.localize(column.hintKey),
+      numeric: !!column.numeric,
+      sorted,
+      dir: sorted ? sort.dir : null,
+      sortHint: sorted
+        ? game.i18n.localize(sort.dir === 'desc' ? 'TNO.ItemTable.SortedDesc' : 'TNO.ItemTable.SortedAsc')
+        : game.i18n.localize('TNO.ItemTable.SortHint'),
+    };
+  }
+
+  /** One role group: its title, its badge of totals, and its finished rows. */
+  #groupContext(group, columns) {
+    const label = group.role === PLAIN_ROLE
+      ? 'TNO.Item.Role.Plain'
+      : CONFIG.TNO.itemRoles[group.role];
+
+    // Two figures worth adding up. Slots because the budget is the rule this
+    // tab serves, money because "what is all this worth" is a ledger question.
+    const badge = [`${group.count}`, `${group.footprint} ${game.i18n.localize('TNO.Item.Cap.Slots')}`];
+    if (group.hasValue) badge.push(`${this.#formatNumber(group.value)} €`);
+
+    return {
+      role: group.role,
+      label: game.i18n.localize(label),
+      count: group.count,
+      badge: badge.join(' · '),
+      badgeHint: game.i18n.format('TNO.ItemTable.GroupBadgeHint', {
+        count: group.count,
+        slots: group.footprint,
+      }),
+      rows: group.rows.map((row) => ({
+        id: row.id,
+        name: row.name,
+        icon: row.item.inventoryIcon,
+        worn: row.worn,
+        cells: columns.map((column) => this.#cellContext(column, row.cells[column.key], row.item)),
+      })),
+    };
+  }
+
+  /**
+   * One body cell, as the two things a reader needs: what it says, and why.
+   *
+   * Three outcomes, and keeping them apart is the whole job. A column the row
+   * cannot answer is `na` — hatched, the same convention the item card uses for
+   * a forbidden field. A column it *could* answer but nobody has filled in is a
+   * dash. Only a real authored value is a figure, which is why `null` may never
+   * be coerced through `Number()` on its way here.
+   */
+  #cellContext(column, cell, item) {
+    if (!cell?.applies) {
+      return { key: column.key, na: true, text: game.i18n.localize('TNO.Item.Summary.Na'), title: this.#naReason(column, item), numeric: column.numeric };
+    }
+    if (cell.value === null || cell.value === undefined) {
+      return { key: column.key, blank: true, text: '—', title: game.i18n.localize('TNO.Item.Summary.Missing'), numeric: column.numeric };
+    }
+
+    const { text, title, warn } = this.#cellValue(column, cell.value);
+    return {
+      key: column.key,
+      text,
+      title: title ?? game.i18n.localize(column.hintKey),
+      warn,
+      numeric: column.numeric,
+    };
+  }
+
+  /** Why a cell is n/a, in the words the item sheet already uses for it. */
+  #naReason(column, item) {
+    if (column.key === 'footprint') return game.i18n.localize('TNO.Inventory.WornHint');
+    if (column.appliesTo === 'weapon') {
+      if (!itemRoles(item).weapon) return game.i18n.localize('TNO.Item.NaNoWeapon');
+      return game.i18n.localize(weaponUse(item.system) === 'melee' ? 'TNO.Item.NaMelee' : 'TNO.Item.NaRanged');
+    }
+    if (column.appliesTo === 'armor') {
+      // A suit is the other reason an armour column can be n/a, and it is a
+      // rule rather than a missing role: the Rüstungstabelle gives the
+      // Unterkleidung no hardness and no single location to cover.
+      if (!itemRoles(item).armor) return game.i18n.localize('TNO.ItemTable.NaNoArmor');
+      return game.i18n.localize('TNO.Armor.NaSuit');
+    }
+    return game.i18n.localize('TNO.Item.Summary.Na');
+  }
+
+  /** Turn one raw cell value into the words for it. */
+  #cellValue(column, value) {
+    switch (column.kind) {
+      case CELL_KINDS.CHOICE:
+        return { text: this.#choiceLabel(column.key, value) };
+      case CELL_KINDS.PAIR: {
+        // HH is two signed modifiers, and the sign is the meaning: +0 and −0
+        // are the same handling, so a bare 0 would read as "unset" beside the
+        // dash that genuinely means that.
+        const signed = (n) => (n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : '±0');
+        return {
+          text: `${signed(value.active)} / ${signed(value.passive)}`,
+          title: `${game.i18n.localize('TNO.Item.Summary.HhAttack')} ${signed(value.active)} · ${game.i18n.localize('TNO.Item.Summary.HhParry')} ${signed(value.passive)}`,
+        };
+      }
+      case CELL_KINDS.FIELDS: {
+        // No open fields is the good outcome, so it reads as a quiet tick
+        // rather than a zero the eye has to stop on.
+        if (!value.length) return { text: '✓', title: game.i18n.localize('TNO.Item.AllRequiredSet') };
+        const fields = value.map((key) => game.i18n.localize(MISSING_FIELD_LABELS[key] ?? key)).join(', ');
+        return {
+          text: String(value.length),
+          title: game.i18n.format('TNO.Item.Summary.MissingBanner', { fields }),
+          warn: true,
+        };
+      }
+      default:
+        if (column.key === 'fv') {
+          const skill = getSkillDefinition(this.actor, value.skill);
+          return {
+            text: String(value.rank),
+            title: skill ? `${skill.label} ${value.rank}` : String(value.rank),
+          };
+        }
+        return { text: this.#formatNumber(value) };
+    }
+  }
+
+  /**
+   * Quarter-step SVs and euro prices both want the reader's own decimal
+   * separator — the Rüstungen table writes +0,25 in German. Whole numbers come
+   * out unchanged.
+   */
+  #formatNumber(value) {
+    return new Intl.NumberFormat(game.i18n.lang, { maximumFractionDigits: 2 }).format(value);
+  }
+
+  /** Localize a value that is a key into one of the CONFIG.TNO label maps. */
+  #choiceLabel(key, value) {
+    if (key === 'state') return game.i18n.localize(value === 'worn' ? 'TNO.Inventory.Worn' : 'TNO.Inventory.Carried');
+    if (key === 'use') return game.i18n.localize(CONFIG.TNO.weaponUses[value] ?? value);
+    if (key === 'zone') return game.i18n.localize(CONFIG.TNO.armorZones[value] ?? value);
+    if (key === 'wa') {
+      // The attribute map holds the long names; the short form is the same key
+      // with a different leaf, so the abbreviation needs no second table.
+      const long = CONFIG.TNO.abilities[value];
+      return long ? game.i18n.localize(long.replace(/\.long$/, '.abbr')).toUpperCase() : String(value);
+    }
+    return String(value);
+  }
+
+  /** The column picker's checkboxes, grouped the way the catalogue is. */
+  #columnPickerSections(config) {
+    const labels = {
+      general: 'TNO.Item.General',
+      trade: 'TNO.Item.Trade',
+      weapon: 'TNO.Item.Role.Weapon',
+      armor: 'TNO.Item.Role.Armor',
+    };
+    return ITEM_TABLE_SECTIONS.map((section) => ({
+      key: section,
+      label: game.i18n.localize(labels[section]),
+      columns: ITEM_TABLE_COLUMNS.filter((column) => column.section === section).map((column) => ({
+        key: column.key,
+        label: game.i18n.localize(column.labelKey),
+        hint: game.i18n.localize(column.hintKey),
+        checked: config.columns.includes(column.key),
+      })),
+    }));
+  }
+
+  /**
+   * Show/hide item rows per the Inventar tab's search box, and hide a group
+   * left with nothing in it.
+   *
+   * DOM-level like the skill filter, and for the same reason: the table's
+   * columns come from context, so filtering through a re-render would rebuild
+   * every row on every keystroke and take the caret with it. An empty search
+   * puts everything back, groups included.
+   * @private
+   */
+  _applyItemFilter() {
+    const table = this.element.querySelector('.item-table');
+    if (!table) return;
+
+    const search = (this._itemSearch ?? '').trim();
+    let anyVisible = false;
+    for (const groupEl of table.querySelectorAll('.item-group')) {
+      const key = groupEl.dataset.group;
+      const rows = table.querySelectorAll(`.item-row[data-group="${key}"]`);
+      let visible = 0;
+      for (const rowEl of rows) {
+        const match = !search || fuzzyMatch(search, rowEl.dataset.name ?? '');
+        rowEl.style.display = match ? '' : 'none';
+        if (match) visible++;
+      }
+      // While a search is running, a group that matched nothing is out of the
+      // way entirely — including its "nothing here" line, which would otherwise
+      // answer a question nobody asked. With the box empty every group is back,
+      // empty ones included: that they are empty is itself an answer.
+      const hide = !!search && !visible;
+      groupEl.style.display = hide ? 'none' : '';
+      const emptyEl = table.querySelector(`.item-group-empty[data-group="${key}"]`);
+      if (emptyEl) emptyEl.style.display = hide || (search && rows.length) ? 'none' : '';
+      anyVisible ||= visible > 0;
+    }
+
+    const none = table.parentElement.querySelector('.item-table-nomatch');
+    if (none) none.hidden = !search || anyVisible;
   }
 
   /**
@@ -849,7 +1135,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    */
   #mountPopovers() {
     const host = this.#hostDocument();
-    for (const popover of [this._itemPopover, this._moneyPopover]) {
+    for (const popover of [this._itemPopover, this._moneyPopover, this._columnsPopover]) {
       if (!popover || popover.ownerDocument === host) continue;
       if (popover.matches(':popover-open')) popover.hidePopover();
       host.body.append(popover);
@@ -878,6 +1164,46 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       : Math.max(edge, above);
     popover.style.left = `${Math.round(left)}px`;
     popover.style.top = `${Math.round(top)}px`;
+  }
+
+  /**
+   * Redraw the column picker from the setting it edits, so the boxes always
+   * show what the table is actually rendering — including the case where
+   * unticking the last one puts the defaults back.
+   * @private
+   */
+  async #refreshColumnsPopover() {
+    const popover = this._columnsPopover;
+    if (!popover) return;
+    popover.innerHTML = await foundry.applications.handlebars.renderTemplate(
+      'systems/tno/templates/actor/parts/columns-popover.hbs',
+      { sections: this.#columnPickerSections(this.#itemTableConfig()) }
+    );
+    popover.setAttribute('aria-label', game.i18n.localize('TNO.ItemTable.ColumnsTitle'));
+  }
+
+  /**
+   * Open the column picker beside the toolbar button. A display preference
+   * rather than actor data, so it is offered on read-only sheets too — reading
+   * someone else's inventory is exactly when a different column set helps.
+   * @private
+   */
+  async #openColumnsPopover(anchor) {
+    if (!this._columnsPopover) return;
+    this.#mountPopovers();
+    this._columnsPopoverAnchor = anchor;
+    await this.#refreshColumnsPopover();
+    if (!this._columnsPopover.matches(':popover-open')) this._columnsPopover.showPopover();
+    this.#positionColumnsPopover();
+  }
+
+  /** Keep the picker beside its button across re-renders and window moves. */
+  #positionColumnsPopover() {
+    if (!this._columnsPopover?.matches(':popover-open')) return;
+    if (!this._columnsPopoverAnchor?.isConnected) {
+      this._columnsPopoverAnchor = this.element.querySelector('.item-columns-toggle');
+    }
+    this.#positionPopover(this._columnsPopover, this._columnsPopoverAnchor);
   }
 
   /** Build the popover's template context from the live embedded item. */
@@ -978,11 +1304,18 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       case 'edit':
         this._itemPopover.hidePopover();
         return item.sheet.render({ force: true });
+      // Everything that opens a window or posts a card takes the focus with it,
+      // so the popover goes the way it already does for `edit`: it is a
+      // transient read of one item, not a panel to work from. `stock` is the
+      // exception below — those controls edit the card you are looking at.
       case 'post':
+        this._itemPopover.hidePopover();
         return item.roll();
       case 'weapon-check':
+        this._itemPopover.hidePopover();
         return item.openWeaponCheck();
       case 'weapon-parry':
+        this._itemPopover.hidePopover();
         return item.openWeaponParry();
       case 'stock':
         return item.adjustStock(Number(control.dataset.by));
@@ -1162,6 +1495,29 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       if (event.newState === 'closed') this._moneyPopoverAnchor = null;
     });
 
+    // The Inventar table's column picker. Its own popover rather than a section
+    // of the tab: the list is long, it is consulted rather than read, and a
+    // permanently visible panel of twenty-two checkboxes would cost the table
+    // the width it exists to spend on data.
+    this._columnsPopover = host.createElement('div');
+    this._columnsPopover.className = 'tno item-popover columns-popover';
+    this._columnsPopover.setAttribute('popover', 'auto');
+    host.body.append(this._columnsPopover);
+    this._columnsPopover.addEventListener('change', async (event) => {
+      const key = event.target.closest('[data-column]')?.dataset.column;
+      if (!key) return;
+      await this.#storeItemTableConfig(toggleItemTableColumn(this.#itemTableConfig(), key));
+    });
+    this._columnsPopover.addEventListener('click', (event) => {
+      if (event.target.closest('[data-columns-action="close"]')) this._columnsPopover.hidePopover();
+    });
+    this._columnsPopover.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && this._columnsPopover.matches(':popover-open')) event.stopPropagation();
+    });
+    this._columnsPopover.addEventListener('toggle', (event) => {
+      if (event.newState === 'closed') this._columnsPopoverAnchor = null;
+    });
+
     // Custom clickable chips (anchors without `href`, plus `.skill-info` and
     // the carry grid's cells) are promoted to real keyboard targets in
     // _onRender; this forwards their Enter/Space to the same click listeners
@@ -1181,10 +1537,13 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     this.#delegate('input', '.biography-textarea', () => this.#resizeBiography());
 
     // Render the item sheet for viewing/editing prior to the editable check.
+    // Keyed off `data-item-id` rather than a row class: the Merkmale list, the
+    // Active Effects list and the Inventar table are three different shapes of
+    // row, and the id is the one thing all three carry.
     this.#delegate('click', '.item-edit', (event, target) => {
-      const li = target.closest('.item');
-      const item = this.actor.items.get(li.dataset.itemId);
-      item.sheet.render(true);
+      const row = target.closest('[data-item-id]');
+      const item = this.actor.items.get(row?.dataset.itemId);
+      item?.sheet.render(true);
     });
 
     // Open the heatmap gradient editor (see apps/heatmap-lab.mjs) for quick
@@ -1212,6 +1571,31 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     this.#delegate('input', '.skill-search-input', (event, target) => {
       this._skillSearch = target.value;
       this._applySkillFilter();
+    });
+
+    // The Inventar table's own search, filtering rows by name across every
+    // group. Client-side like the skill search, so typing costs no re-render
+    // and the caret stays where it is.
+    this.#delegate('input', '.item-search-input', (event, target) => {
+      this._itemSearch = target.value;
+      this._applyItemFilter();
+    });
+
+    // Sort the table by a column. Deliberately **view-only**: `item.sort` is
+    // the order the Basics carry raster packs from, and a header click here
+    // must not repack a raster the player arranged by hand in another tab.
+    this.#delegate('click', '.item-table-sort', (event, target) => {
+      event.preventDefault();
+      const config = this.#itemTableConfig();
+      this.#storeItemTableConfig({ ...config, sort: nextItemTableSort(config, target.dataset.sortKey) });
+    });
+
+    // Which values the table shows. A reading preference, not actor data, so
+    // read-only sheets get it too.
+    this.#delegate('click', '.item-columns-toggle', (event, target) => {
+      event.preventDefault();
+      if (this._columnsPopover?.matches(':popover-open')) return this._columnsPopover.hidePopover();
+      this.#openColumnsPopover(target);
     });
 
     // Drag one of the Basics tab's column dividers. Pointer capture keeps the
@@ -1398,8 +1782,8 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // sheet: the same irreversible act should not be one click here and two
     // there.
     this.#delegate('click', '.item-delete', (event, target) => {
-      const li = target.closest('.item');
-      this.actor.items.get(li.dataset.itemId)?.confirmDelete();
+      const row = target.closest('[data-item-id]');
+      this.actor.items.get(row?.dataset.itemId)?.confirmDelete();
     }, editable);
 
     // Author a new item from the carry grid (or the Inventar tab's list). One
@@ -1533,6 +1917,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     this._makeKeyboardAccessible();
     this._applySkillFilter();
+    this._applyItemFilter();
     this._applyColumnSplit();
     this.#resizeBiography();
     // Detaching moves the sheet into a second window; the popovers have to
@@ -1544,6 +1929,13 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       this.#positionItemPopover();
     }
     this.#positionMoneyPopover();
+    // Ticking a box re-renders the sheet, so the picker has to be redrawn from
+    // the setting it just changed or its boxes would drift out of step with
+    // the table they control.
+    if (this._columnsPopover?.matches(':popover-open')) {
+      await this.#refreshColumnsPopover();
+      this.#positionColumnsPopover();
+    }
   }
 
   /** @inheritDoc */
@@ -1554,6 +1946,9 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (this._moneyPopover?.matches(':popover-open')) this._moneyPopover.hidePopover();
     this._moneyPopover?.remove();
     this._moneyPopover = null;
+    if (this._columnsPopover?.matches(':popover-open')) this._columnsPopover.hidePopover();
+    this._columnsPopover?.remove();
+    this._columnsPopover = null;
     return super._onClose(options);
   }
 
@@ -1628,44 +2023,76 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   }
 
   /**
-   * Ask what to add to the inventory. Only the name, now: there is one kind of
-   * physical item and what it *does* is the role it takes on, a chip on its own
-   * sheet rather than a choice that has to be made before the thing exists.
-   * Asking for a type up front got that backwards — it made the least
-   * reversible answer the first one, and most objects have no role at all.
+   * Ask what to add to the inventory: a name, and one card for what the thing
+   * is. There is still only one kind of physical item — the cards write
+   * `system.roles`, the same exclusive, clearable choice the item's own sheet
+   * offers, and never the document type, which is fixed at creation and means
+   * nothing here anyway.
+   *
+   * That distinction is the whole reason the picker is allowed to be here.
+   * Nothing chosen in this dialog is harder to undo than the chip that will be
+   * sitting on the sheet a second later, so the offer costs the player no
+   * commitment; "Gegenstand" — no role — is preselected because it is both the
+   * common case and the answer that asks for nothing.
    *
    * Feature and spell are still absent: they are not objects, cost no slots,
    * and are created from their own lists.
    * @private
    */
   async _promptCreateItem() {
-    const name = await foundry.applications.api.DialogV2.prompt({
+    const roleCards = [
+      { key: 'plain', label: 'TNO.Item.Role.Plain', icon: ROLE_ICONS.plain, selected: true },
+      ...ITEM_ROLES.map((key) => ({
+        key,
+        label: CONFIG.TNO.itemRoles[key],
+        icon: ROLE_ICONS[key],
+        selected: false,
+      })),
+    ];
+
+    const content = await foundry.applications.handlebars.renderTemplate(
+      'systems/tno/templates/apps/create-item-dialog.hbs',
+      { roleCards }
+    );
+
+    const choice = await foundry.applications.api.DialogV2.prompt({
+      // `dialog` is DialogV2's own class and is passed back deliberately: the
+      // options array replaces the default rather than extending it, and
+      // without it the window loses core's dialog chrome. `tno` is what puts
+      // the content inside this system's stylesheet.
+      classes: ['dialog', 'tno', 'create-item-dialog'],
       window: { title: game.i18n.localize('TNO.Inventory.AddTitle') },
-      content: `
-        <div class="form-group">
-          <label>${game.i18n.localize('TNO.Inventory.AddName')}</label>
-          <input type="text" name="name" autofocus/>
-        </div>`,
+      position: { width: 340 },
+      content,
       ok: {
+        icon: 'fa-solid fa-check',
         label: game.i18n.localize('TNO.Inventory.Add'),
-        callback: (event, button) => button.form.elements.name.value.trim(),
+        callback: (event, button) => ({
+          name: button.form.elements.name.value.trim(),
+          role: button.form.elements.role.value,
+        }),
       },
       rejectClose: false,
     });
-    if (name === null || name === undefined) return;
+    if (!choice) return;
+
+    const card = roleCards.find((entry) => entry.key === choice.role) ?? roleCards[0];
 
     const created = await Item.create(
       {
         // An empty field is a player who means "just add one" — a generic name
-        // is better than an empty item nobody can find again.
-        name: name || game.i18n.localize('TYPES.Item.item'),
+        // is better than an empty item nobody can find again. Now that the
+        // dialog knows what kind of thing it is, that name can say so.
+        name: choice.name || game.i18n.localize(card.label),
         type: 'item',
+        system: { roles: selectRole(itemRoles({}), card.key) },
       },
       { parent: this.actor }
     );
 
     // Straight into the item's own values: a fresh item is all zeroes and
-    // blanks, which is exactly what still has to be filled in.
+    // blanks, which is exactly what still has to be filled in — and a card
+    // picked here decides which block of them is waiting.
     return created?.sheet.render(true);
   }
 
@@ -1795,6 +2222,13 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const source = this.actor.items.get(item.id);
     const dropTarget = event.target?.closest?.('[data-item-id]');
     if (!source || !dropTarget) return;
+
+    // The Inventar table is grouped by role and ordered by whichever column the
+    // reader sorted it on, so a row has no position to be dropped *into*: the
+    // place a piece would appear to land is decided by its role and its values,
+    // not by the list. Writing `item.sort` from a drop there would silently
+    // repack the Basics carry raster to match an order nobody arranged.
+    if (dropTarget.closest('.item-table')) return;
 
     const target = this.actor.items.get(dropTarget.dataset.itemId);
     if (!target || source.id === target.id) return;

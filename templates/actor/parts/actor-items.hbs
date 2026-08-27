@@ -13,11 +13,22 @@ actor owns that are not objects — they cost no slots, so they can never appear
 in the carry raster, and before this tab existed they had nowhere to be. --}}
 
 {{!-- ------------------------------------------------------------------
-Gear. One row per object, whatever roles it carries: the role buckets are
-views onto this list, and listing them separately would show a piece once per
-role it has. --}}
-<div class='basics-section-header'>
+Gear, grouped by the role each piece carries. Roles are mutually exclusive, so
+every object still appears exactly once — the groups are a reading of the one
+list rather than four lists that could disagree.
+
+Which columns stand between the name and the controls is the reader's choice
+(see the column picker), so the table is built as a single CSS grid whose track
+list comes from the context: one grid for the whole thing, not one per group,
+because that is what keeps every group's columns lined up under one header. --}}
+<div class='basics-section-header item-table-header'>
   <h3 class='basics-section-title'>{{localize 'TNO.Inventory.CarrySlots'}}</h3>
+  <input type='text' class='item-search-input' value='{{itemTable.search}}'
+         placeholder='{{localize "TNO.ItemTable.Search"}}'
+         title='{{localize "TNO.ItemTable.SearchHint"}}' />
+  <a class='item-columns-toggle' title='{{localize "TNO.ItemTable.ColumnsHint"}}'>
+    <i class='fas fa-table-columns'></i>{{localize 'TNO.ItemTable.Columns'}}
+  </a>
   {{#if editable}}
     {{!-- `.section-add` is the look, `.inventory-add` is the action — the two
     are separate classes so the Merkmale button below can wear the same control
@@ -28,80 +39,101 @@ role it has. --}}
   {{/if}}
 </div>
 
-{{#if inventory.length}}
-  <ol class='items-list'>
-    <li class='item flexrow items-header'>
-      <div class='item-name'>{{localize 'TNO.Inventory.AddName'}}</div>
-      <div class='item-roles'>{{localize 'TNO.Item.Roles'}}</div>
-      <div class='item-prop'>{{localize 'TNO.Inventory.Slots'}}</div>
-      <div class='item-prop'>{{localize 'TNO.Inventory.Quantity'}}</div>
-      <div class='item-controls'></div>
-    </li>
-
-    {{#each inventory as |item|}}
-      <li class='item flexrow draggable' data-item-id='{{item._id}}' draggable='true'>
-        <div class='item-name'>
-          {{!-- The role icon rather than the artwork, matching the carry grid:
-          a repeated, recognisable glyph is quicker to scan down a list than
-          ninety different portraits. --}}
-          <div class='item-image'>
-            <i class='fa-solid {{item.inventoryIcon}} inventory-item-icon' aria-hidden='true'></i>
-          </div>
-          <h4 title='{{item.name}}'>{{item.name}}</h4>
-        </div>
-
-        {{!-- What the piece *does*. An object with no role at all is the
-        common case, so the column stays empty rather than carrying a
-        "plain item" tag that would say nothing. --}}
-        <div class='item-roles'>
-          {{#each item.roleLabels as |label|}}
-            <span class='item-role-tag'>{{localize label}}</span>
-          {{/each}}
-        </div>
-
-        {{!-- Worn gear is exempt from the slot economy, so its cost reads as a
-        dash rather than a zero: nothing is being spent, as opposed to a piece
-        that genuinely costs nothing to carry. --}}
-        <div class='item-prop'>
-          {{#if item.isWorn}}—{{else}}{{item.slotCost}}{{/if}}
-        </div>
-        <div class='item-prop'>{{item.system.quantity}}</div>
-
-        <div class='item-controls'>
-          {{#if item.isWorn}}
-            {{!-- A marker, not a control: taking a piece off belongs to the
-            paper doll, which is the only view that knows which zones it
-            occupies. --}}
-            <span class='item-state' title='{{localize "TNO.Inventory.WornHint"}}'>
-              <i class='fas fa-shield-halved'></i>
-            </span>
-          {{/if}}
-          <a class='item-control item-edit' title='{{localize "TNO.Item.Edit"}}'>
-            <i class='fas fa-edit'></i>
-          </a>
-          {{!-- `@root.editable`, not `editable`: inside an `each` a bare name
-          resolves against the item, which has no such key, so the whole block
-          silently vanished. --}}
-          {{#if @root.editable}}
-            {{#unless item.isWorn}}
-              <a class='item-control item-delete' title='{{localize "TNO.Item.Delete"}}'>
-                <i class='fas fa-trash'></i>
-              </a>
-            {{else}}
-              {{!-- Held back rather than hidden, so the row keeps its shape and
-              says why: `system.equipment` addresses the piece by id, and
-              deleting it out from under the doll would strand a zone. --}}
-              <span class='item-control is-disabled' title='{{localize "TNO.Item.DeleteWornHint"}}'>
-                <i class='fas fa-trash'></i>
-              </span>
-            {{/unless}}
-          {{/if}}
-        </div>
-      </li>
-    {{/each}}
-  </ol>
-{{else}}
+{{#if itemTable.empty}}
   <p class='items-empty'>{{localize 'TNO.Inventory.Empty'}}</p>
+{{else}}
+  <div class='item-table-scroll'>
+    <div class='item-table' style='grid-template-columns: {{itemTable.gridTemplate}};'>
+
+      {{!-- One header row for the whole table. Each caption sorts the table by
+      its column; the sort is view-only and never rewrites `item.sort`, which is
+      what the Basics carry raster packs from. --}}
+      <div class='item-thead'>
+        {{#each itemTable.headers as |column|}}
+          <a class='item-th item-table-sort{{#if column.numeric}} numeric{{/if}}{{#if column.sorted}} sorted{{/if}}'
+             data-sort-key='{{column.key}}'
+             title='{{column.hint}} — {{column.sortHint}}'>
+            <span class='item-th-label'>{{column.label}}</span>
+            {{#if column.sorted}}
+              <i class='fas {{#ifEquals column.dir "desc"}}fa-caret-down{{else}}fa-caret-up{{/ifEquals}}'
+                 aria-hidden='true'></i>
+            {{/if}}
+          </a>
+        {{/each}}
+        <div class='item-th item-th-controls'></div>
+      </div>
+
+      {{#each itemTable.groups as |group|}}
+        {{!-- Every group renders even when it holds nothing, so the table keeps
+        its shape as items come and go and a missing heading never has to be
+        read as "that group is gone" rather than "none of those". --}}
+        <div class='item-group' data-group='{{group.role}}'>
+          <span class='item-group-name'>{{group.label}}</span>
+          <span class='xp-badge' title='{{group.badgeHint}}'>{{group.badge}}</span>
+        </div>
+
+        {{#if group.rows.length}}
+          {{#each group.rows as |row|}}
+            {{!-- `draggable` so a piece can still be dragged out of the ledger
+            onto the hotbar or another actor. Dropping one *back* onto the table
+            sorts nothing — see `_onSortItem`. --}}
+            <div class='item-row draggable{{#if row.worn}} is-worn{{/if}}'
+                 data-item-id='{{row.id}}' data-group='{{group.role}}'
+                 data-name='{{row.name}}' draggable='true'>
+              <div class='item-td item-td-name'>
+                {{!-- The role icon rather than the artwork, matching the carry
+                grid: a repeated, recognisable glyph is quicker to scan down a
+                list than ninety different portraits. --}}
+                <i class='fa-solid {{row.icon}} inventory-item-icon' aria-hidden='true'></i>
+                <span class='item-row-name' title='{{row.name}}'>{{row.name}}</span>
+              </div>
+
+              {{#each row.cells as |cell|}}
+                <div class='item-td{{#if cell.numeric}} numeric{{/if}}{{#if cell.na}} is-na{{/if}}{{#if cell.blank}} is-blank{{/if}}{{#if cell.warn}} is-warn{{/if}}'
+                     title='{{cell.title}}'>{{cell.text}}</div>
+              {{/each}}
+
+              <div class='item-td item-controls'>
+                {{#if row.worn}}
+                  {{!-- A marker, not a control: taking a piece off belongs to
+                  the paper doll, which is the only view that knows which zones
+                  it occupies. --}}
+                  <span class='item-state' title='{{localize "TNO.Inventory.WornHint"}}'>
+                    <i class='fas fa-shield-halved'></i>
+                  </span>
+                {{/if}}
+                <a class='item-control item-edit' title='{{localize "TNO.Item.Edit"}}'>
+                  <i class='fas fa-edit'></i>
+                </a>
+                {{!-- `@root.editable`, not `editable`: inside an `each` a bare
+                name resolves against the row, which has no such key, so the
+                whole block silently vanished. --}}
+                {{#if @root.editable}}
+                  {{#unless row.worn}}
+                    <a class='item-control item-delete' title='{{localize "TNO.Item.Delete"}}'>
+                      <i class='fas fa-trash'></i>
+                    </a>
+                  {{else}}
+                    {{!-- Held back rather than hidden, so the row keeps its
+                    shape and says why: `system.equipment` addresses the piece
+                    by id, and deleting it out from under the doll would strand
+                    a zone. --}}
+                    <span class='item-control is-disabled' title='{{localize "TNO.Item.DeleteWornHint"}}'>
+                      <i class='fas fa-trash'></i>
+                    </span>
+                  {{/unless}}
+                {{/if}}
+              </div>
+            </div>
+          {{/each}}
+        {{else}}
+          <p class='item-group-empty' data-group='{{group.role}}'>{{localize 'TNO.ItemTable.GroupEmpty'}}</p>
+        {{/if}}
+      {{/each}}
+
+    </div>
+    <p class='item-table-nomatch' hidden>{{localize 'TNO.ItemTable.NoMatch'}}</p>
+  </div>
 {{/if}}
 
 {{> "systems/tno/templates/actor/parts/actor-features.hbs"}}

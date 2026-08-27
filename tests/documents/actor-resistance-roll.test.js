@@ -196,4 +196,43 @@ describe('resistance roll', () => {
     ]);
     expect(dialog.preRollContext).toMatchObject({ control: 'tiles', tileColumns: 3, tileLabels: true });
   });
+
+  // The regression this guards: the normalizer whitelists what a choice may
+  // carry, and a dropped headline falls back to the signed modifier — leaving
+  // "±0" as the answer to "how high was the penetration?", which is a different
+  // number entirely and reads as though the penetration were nil.
+  it('leads each tile with the comparison against this location\'s own RH', () => {
+    const headlines = resist('head').preRollContext.choices.map((choice) => choice.headline);
+    expect(headlines).toEqual([
+      'TNO.Combat.Penetration.Softer(3)',
+      'TNO.Combat.Penetration.Equal(3)',
+      'TNO.Combat.Penetration.Harder(3)',
+    ]);
+    // Each location answers with its own hardness, not the character's.
+    expect(resist('torso').preRollContext.choices[0].headline)
+      .toBe('TNO.Combat.Penetration.Softer(0)');
+  });
+
+  // The attacker's card prints two damage values. Which of them landed is
+  // exactly what the comparison above decides, so the field that takes the
+  // number says which column to read — that mapping lived only in the rulebook
+  // before, and the player had to carry it in their head every time.
+  it('names the damage field after the comparison that was picked', () => {
+    const dialog = resist('head');
+    // Nothing picked yet: the neutral name, because neither value applies yet.
+    expect(dialog._requiredValueLabel(answered())).toBe('TNO.Combat.DamageValue');
+    expect(dialog._requiredValueLabel(answered({ contextChoice: 'softer' })))
+      .toBe('TNO.Combat.DamageSharp');
+    // Both "hält" outcomes take the blunt value; only the Bonusstufe differs.
+    expect(dialog._requiredValueLabel(answered({ contextChoice: 'equal' })))
+      .toBe('TNO.Combat.DamageBlunt');
+    expect(dialog._requiredValueLabel(answered({ contextChoice: 'harder' })))
+      .toBe('TNO.Combat.DamageBlunt');
+    // And the breakdown says the same thing the field did, rather than falling
+    // back to a bare "Schadenswert" that names neither column.
+    expect(dialog._breakdownText(answered({ requiredValue: 7, contextChoice: 'softer' })))
+      .toContain('TNO.Combat.DamageSharp −7');
+    // Where the numbers come from is stated, not left to the rulebook.
+    expect(dialog.requiredValue.hint).toBe('TNO.Combat.DamageValueHint');
+  });
 });

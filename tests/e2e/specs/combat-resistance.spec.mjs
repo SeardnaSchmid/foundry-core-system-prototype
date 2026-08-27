@@ -78,7 +78,7 @@ test('a hit location rolls its resistance against the damage the attacker announ
   await expect(dialog).toBeVisible();
 
   // The RW of the location clicked, already summed over the suit and the addon.
-  const modifiers = dialog.locator('.tno-roll-modifiers .tno-roll-detail');
+  const modifiers = dialog.locator('.tno-roll-gear-modifiers .tno-roll-detail');
   await expect(modifiers.filter({ hasText: labels.rw })).toHaveText(new RegExp(`${labels.rw}\\s*\\+4`));
 
   // Neither the announced damage nor the comparison is answered yet, and until

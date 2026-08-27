@@ -43,7 +43,6 @@ vi.mock('../../module/helpers/dice.mjs', async (importOriginal) => ({
 globalThis.ui = { notifications: { warn: (message) => warnings.push(message) } };
 
 const { TnoRollDialog } = await import('../../module/apps/roll-dialog.mjs');
-const { ansageEnvelope } = await import('../../module/helpers/maneuvers.mjs');
 
 describe('TnoRollDialog pre-roll context', () => {
   const actor = { type: 'npc', system: { abilities: {}, skills: {} } };
@@ -170,9 +169,9 @@ describe('TnoRollDialog armour SV step', () => {
       attributeA: 'dex',
       skill: { key: 'acrobatics', label: 'Akrobatik', value: 2 },
       maneuverMalus: { label: 'TNO.Combat.FvMalus', value: -3 },
-      ansagen: [{ key: 'feint', label: 'Finte', effect: 'Effect', mode: 'free', betrag: 0, rank: 4 }],
+      ansage: { label: 'Ansage' },
     });
-    const data = form({ attributeA: 'dex', ansagen: { feint: 2 } });
+    const data = form({ attributeA: 'dex', ansage: 2 });
     // 4 (Bew) + 2 (Akrobatik) − 3 (armour) − 3 (FV) − 2 (the Ansage).
     expect(dialog._computeThreshold(data)).toBe(-2);
 
@@ -186,8 +185,12 @@ describe('TnoRollDialog armour SV step', () => {
 
 // "Würfelt er alle Manöver mit einem Malus" — and a Standardangriff is not a
 // Manöver, so what makes this roll one is whether anything was declared on it.
+//
+// The Ansage is one free magnitude with no rank behind it: the player and the GM
+// agree the number out loud, including what it is *for*, and only the figure
+// reaches the form. Nothing here prices, caps or gates it.
 describe('TnoRollDialog Ansagen', () => {
-  const attack = (ansagen) => new TnoRollDialog(armoured(false), {
+  const attack = (extra = {}) => new TnoRollDialog(armoured(false), {
     attributeA: 'str',
     lockAttribute: true,
     skill: { key: 'swords', label: 'Schwerter', value: 4 },
@@ -201,76 +204,233 @@ describe('TnoRollDialog Ansagen', () => {
         { key: '3', label: 'Längere Waffe', value: 3 },
       ],
     },
-    ansagen,
+    ansage: { label: 'Ansage' },
+    ...extra,
   });
 
-  const feint = [{ key: 'feint', label: 'Finte', effect: 'Effect', mode: 'free', betrag: 0, rank: 2 }];
+  // Shaped like what `zonePicker()` in combat-actions builds, costs included —
+  // a fixture without them would let the dialog pass while charging nothing.
+  const zonePicker = {
+    label: 'Trefferzone',
+    choices: [
+      { key: 'torso', label: 'Torso', caption: 'Stärke', cost: 0 },
+      { key: 'arms', label: 'Arme', caption: 'Fingerfertigkeit / Stärke', cost: -3 },
+      { key: 'legs', label: 'Beine', caption: 'Beweglichkeit / Stärke', cost: -3 },
+      { key: 'head', label: 'Kopf', caption: 'Stärke ×2', cost: -6 },
+    ],
+  };
 
-  it('charges the declaring roll one for one up to the rank and two past it', () => {
-    const dialog = attack(feint);
+  it('takes the declared amount at face value, with nothing to price it against', () => {
+    const dialog = attack();
     const base = form({ attributeA: 'str', contextChoice: '0' });
     expect(dialog._computeThreshold(base)).toBe(9);
-    // A 3er Finte at Geschickte Angriffe 2 costs 4, not 3 — the rulebook's own
-    // example, and the surcharge is the declarer's alone.
-    expect(dialog._computeThreshold({ ...base, ansagen: { feint: 3 } })).toBe(9 - 4 - 3);
-    expect(dialog._declaredAnsagen({ ...base, ansagen: { feint: 3 } })[0]).toMatchObject({ betrag: 3, cost: 4 });
+    // A 3er Ansage costs this roll 3, whatever any Manöverfertigkeit stands at:
+    // the 1:1/2:1 conversion is arithmetic the table did before typing. The
+    // extra −3 is the FV step a declaration brings with it.
+    expect(dialog._computeThreshold({ ...base, ansage: 3 })).toBe(9 - 3 - 3);
+    expect(dialog._ansageComponent({ ...base, ansage: 3 }))
+      .toEqual({ label: 'Ansage', value: -3, display: '−3' });
   });
 
   it('leaves a standard attack free of the FV malus and charges a declared one', () => {
-    const dialog = attack(feint);
+    const dialog = attack();
     const base = form({ attributeA: 'str', contextChoice: '0' });
     expect(dialog._conditionalModifiers(base)).toEqual([]);
-    expect(dialog._conditionalModifiers({ ...base, ansagen: { feint: 1 } })).toEqual([
+    expect(dialog._conditionalModifiers({ ...base, ansage: 1 })).toEqual([
       { label: 'TNO.Combat.FvMalus', value: -3 },
     ]);
-    // A Betrag of zero is not a declaration, so it does not make the attack a
-    // Manöver either.
-    expect(dialog._conditionalModifiers({ ...base, ansagen: { feint: 0 } })).toEqual([]);
+    // Zero is not a declaration, so it does not make the attack a Manöver.
+    expect(dialog._conditionalModifiers({ ...base, ansage: 0 })).toEqual([]);
   });
 
-  it('refuses to charge for a Manöver whose reach precondition is unmet', () => {
-    const dialog = attack([
-      { key: 'strongSwing', label: 'Starker Schwung', effect: 'Effect', mode: 'free', betrag: 0, rank: 3, requiresReach: true },
-    ]);
-    const declared = { ansagen: { strongSwing: 3 } };
-    // "Können nur verwendet werden, wenn der Angreifer den Reichweitenvorteil
-    // hat" — without the longer weapon the box costs nothing however it is set.
-    expect(dialog._declaredAnsagen(form({ attributeA: 'str', contextChoice: '0', ...declared }))).toEqual([]);
-    expect(dialog._declaredAnsagen(form({ attributeA: 'str', contextChoice: '3', ...declared }))).toHaveLength(1);
-    expect(dialog._ansageRows(form({ attributeA: 'str', contextChoice: '0', ...declared }))[0].blocked).toBe(true);
+  it('reads a blank, negative or fractional field as nothing declared', () => {
+    const dialog = attack();
+    const base = form({ attributeA: 'str', contextChoice: '0' });
+    for (const ansage of ['', null, -4]) {
+      expect(dialog._ansageComponent({ ...base, ansage })).toBeNull();
+    }
+    expect(dialog._ansageValue({ ...base, ansage: 2.9 })).toBe(2);
   });
 
-  // The field belongs to a defence and to nothing else. An attack has no
-  // opponent's announcement to enter, and neither does a plain skill check.
-  it('keeps the announcement field off every roll that did not ask for one', () => {
+  it('leaves the declared amount outside the situational modifier clamp', () => {
+    // Same reason the announced Schadenswert is outside it: that clamp bounds
+    // what a GM hands out unilaterally, and this is a number the table agreed on.
+    const dialog = attack();
+    const base = form({ attributeA: 'str', contextChoice: '0' });
+    expect(dialog._computeThreshold({ ...base, ansage: 40 })).toBe(9 - 40 - 3);
+  });
+
+  // The Stelle stayed a pick when everything else collapsed into the number,
+  // because it is a location and not an amount.
+  it('charges the Stelle what Gezielte Angriffe prices it at', () => {
+    // No FV shortfall on this one, so the figures are the Stelle's price alone.
+    const dialog = attack({ zonePicker, maneuverMalus: null });
+    const base = form({ attributeA: 'str', contextChoice: '0' });
+    // The Torso is free, and has to be: it is where an attack that announced
+    // nothing lands, so charging it would price the standard attack.
+    expect(dialog._computeThreshold({ ...base, zoneChoice: 'torso' })).toBe(9);
+    // "Arme/Beine: um eine Stufe, also -3" · "Kopf: um zwei Stufen, also -6".
+    expect(dialog._computeThreshold({ ...base, zoneChoice: 'arms' })).toBe(6);
+    expect(dialog._computeThreshold({ ...base, zoneChoice: 'legs' })).toBe(6);
+    expect(dialog._computeThreshold({ ...base, zoneChoice: 'head' })).toBe(3);
+  });
+
+  it('names the Stelle in the breakdown rather than folding it into the Ansage', () => {
+    const dialog = attack({ zonePicker, maneuverMalus: null });
+    const data = form({ attributeA: 'str', contextChoice: '0', zoneChoice: 'head', ansage: 4 });
+    // Two decisions, two lines. One combined "Ansage −10" would be the same
+    // arithmetic and a worse answer to "where did that come from".
+    expect(dialog._breakdownText(data)).toContain('Kopf −6');
+    expect(dialog._breakdownText(data)).toContain('Ansage −4');
+    expect(dialog._computeThreshold(data)).toBe(-1);
+  });
+
+  it('compounds the Stelle price with the FV step it triggers', () => {
+    // A weapon whose Fertigkeitsvoraussetzung is missed, aimed at the head:
+    // −6 for the Stelle, and −3 because aiming made this a Manöver. Two rules,
+    // two separate components, never merged into one figure.
+    const dialog = attack({ zonePicker });
+    const data = form({ attributeA: 'str', contextChoice: '0', zoneChoice: 'head' });
+    expect(dialog._computeThreshold(data)).toBe(0);
+    expect(dialog._breakdownText(data)).toContain('Kopf −6');
+    expect(dialog._breakdownText(data)).toContain('TNO.Combat.FvMalus −3');
+  });
+
+  it('makes an aimed attack a Manöver, and the Torso not', () => {
+    const dialog = attack({ zonePicker, maneuverMalus: { label: 'FV', value: -3 } });
+    const base = form({ attributeA: 'str', contextChoice: '0' });
+    // "Ansagen auf Trefferzonen im Nahkampf, normale Ansageregeln gelten hier
+    // auf alles" — so aiming declares, and a declaration takes the FV step.
+    expect(dialog._conditionalModifiers({ ...base, zoneChoice: 'head' }))
+      .toEqual([{ label: 'FV', value: -3 }]);
+    // The Torso announces nothing, so it is still a Standardangriff.
+    expect(dialog._conditionalModifiers({ ...base, zoneChoice: 'torso' })).toEqual([]);
+  });
+
+  it('reports what a collapsed declaration block is carrying', () => {
+    const dialog = attack({ zonePicker });
+    const base = form({ attributeA: 'str', contextChoice: '0' });
+    // Closed over nothing is an em dash, not "±0": the block is shut because
+    // there is nothing in it, not because something was set to zero.
+    expect(dialog._attemptBadge({ ...base, zoneChoice: 'torso' })).toBe('—');
+    expect(dialog._attemptBadge({ ...base, zoneChoice: 'head', ansage: 4 })).toBe('Kopf −6 · Ansage −4');
+  });
+
+  // The GM's free ±3 moved into that block, so a shut block would otherwise be
+  // able to hide it — the one thing the badge exists to prevent.
+  it('names the scene modification in the badge without charging it twice', () => {
+    const dialog = attack({ zonePicker });
+    const base = form({ attributeA: 'str', contextChoice: '0', zoneChoice: 'torso' });
+
+    expect(dialog._attemptBadge({ ...base, bonus: -3 })).toBe('TNO.Roll.Bonus −3');
+    expect(dialog._attemptBadge({ ...base, zoneChoice: 'head', ansage: 4, bonus: 3 }))
+      .toBe('Kopf −6 · Ansage −4 · TNO.Roll.Bonus +3');
+
+    // The badge only reports; the threshold reads the bonus from the form data
+    // itself, so listing it here adds nothing to the roll.
+    expect(dialog._computeThreshold({ ...base, bonus: 3 }))
+      .toBe(dialog._computeThreshold({ ...base, bonus: 0 }) + 3);
+  });
+
+  it('falls back to Torso for an unpicked or unknown Stelle', () => {
+    const dialog = attack({ zonePicker });
+    const base = form({ attributeA: 'str', contextChoice: '0' });
+    expect(dialog._zoneChoice(base)).toBe('torso');
+    expect(dialog._zoneChoice({ ...base, zoneChoice: 'suit' })).toBe('torso');
+    expect(dialog._zoneChoice({ ...base, zoneChoice: 'legs' })).toBe('legs');
+    // A roll with no picker at all still answers where a hit lands.
+    expect(attack()._zoneChoice({ ...base, zoneChoice: 'head' })).toBe('torso');
+  });
+
+  it('emits the envelope with the amount and the Stelle, and no attacker stats', async () => {
+    const dialog = new TnoRollDialog(armoured(false), {
+      attributeA: 'str',
+      lockAttribute: true,
+      skill: { key: 'swords', label: 'Schwerter', value: 4 },
+      ansage: { label: 'Ansage' },
+      zonePicker,
+      envelope: { from: 'Anton', penetration: 5, sharp: 4, blunt: 2 },
+    });
+
+    await dialog._updateObject(null, form({ attributeA: 'str', ansage: 3, zoneChoice: 'head' }));
+    expect(rolled.payload.extraFlags.envelope).toEqual({
+      from: 'Anton',
+      penetration: 5,
+      sharp: 4,
+      blunt: 2,
+      // One figure, and it is the typed one — **not** 3 + the Kopf's 6. The
+      // zone price buys doubled damage, not a harder defence, so adding it here
+      // would tell the defender that 9 was aimed at their dodge. What the Kopf
+      // does to them travels as the Stelle below and nowhere else.
+      ansage: 3,
+      zone: 'head',
+    });
+    // And no per-Manöver list rides along beside it any more.
+    expect(rolled.payload.extraFlags.ansagen).toBeUndefined();
+  });
+
+  it('keeps the Stelle price on the attacker and out of the envelope entirely', async () => {
+    const dialog = new TnoRollDialog(armoured(false), {
+      attributeA: 'str',
+      lockAttribute: true,
+      skill: { key: 'swords', label: 'Schwerter', value: 4 },
+      ansage: { label: 'Ansage' },
+      zonePicker,
+      envelope: { from: 'Anton', penetration: 5, sharp: 4, blunt: 2 },
+    });
+
+    // Aimed at the head, nothing else declared: the attacker pays 6 and the
+    // defender is told of no declaration at all.
+    await dialog._updateObject(null, form({ attributeA: 'str', zoneChoice: 'head' }));
+    expect(rolled.payload.extraFlags.envelope.ansage).toBe(0);
+    expect(rolled.payload.extraFlags.envelope.zone).toBe('head');
+    expect(rolled.payload.components).toContainEqual(
+      expect.objectContaining({ label: 'Kopf', value: -6 })
+    );
+  });
+
+  it('puts the declared amount on the breakdown as one component', async () => {
+    const dialog = attack({ zonePicker });
+    const data = form({ attributeA: 'str', contextChoice: '0', ansage: 3, zoneChoice: 'head' });
+    expect(dialog._breakdownText(data)).toContain('Ansage −3');
+
+    await dialog._updateObject(null, data);
+    expect(rolled.payload.components).toEqual(expect.arrayContaining([
+      { label: 'Ansage', value: -3, display: '−3' },
+    ]));
+    // The Stelle is not a component: it modifies nothing, it only says where the
+    // blow lands.
+    expect(rolled.payload.components.some((part) => part.label === 'Trefferzone')).toBe(false);
+  });
+});
+
+// The receiving end of the A→B channel: one optional integer, taken as given.
+// From this side a Finte, a Starker Schwung and something the rulebook never
+// named are the same statement — your roll is worse by n — which is exactly why
+// nothing here asks where the number came from.
+describe('TnoRollDialog opposing Ansage', () => {
+  it('offers the field only where a workflow asked for it', () => {
     expect(new TnoRollDialog(armoured(false), { attributeA: 'str' }).opposingAnsage).toBe(false);
-    // The attack builder does not pass it, and the default must not turn itself
-    // on: `Number(false)` is 0, and 0 is a finite number.
+    // An attack declares Ansagen but never receives one.
     expect(new TnoRollDialog(armoured(false), {
       attributeA: 'str',
-      skill: { key: 'swords', label: 'Schwerter', value: 4 },
-      ansagen: [{ key: 'feint', label: 'Finte', effect: 'Effect', mode: 'free', betrag: 0, rank: 2 }],
+      ansage: { label: 'Ansage' },
     }).opposingAnsage).toBe(false);
   });
 
-  it('offers the field empty when a defence was told nothing', () => {
-    // `true` means "ask, but nothing is announced yet" — not "announced 1",
-    // which is what coercing the boolean to a number would have produced.
+  it('offers it empty when nothing was announced, and pre-filled when something was', () => {
     const dialog = new TnoRollDialog(armoured(false), { attributeA: 'dex', opposingAnsage: true });
     expect(dialog.opposingAnsage).toBe(true);
     expect(dialog.object.opposingAnsage).toBe('');
-  });
 
-  it('fills the field in when a defence was handed a number', () => {
-    const dialog = new TnoRollDialog(armoured(false), { attributeA: 'dex', opposingAnsage: 3 });
-    expect(dialog.opposingAnsage).toBe(true);
-    expect(dialog.object.opposingAnsage).toBe(3);
-    // A stored zero is "nothing announced against this roll", not a value.
+    const announced = new TnoRollDialog(armoured(false), { attributeA: 'dex', opposingAnsage: 3 });
+    expect(announced.opposingAnsage).toBe(true);
+    expect(announced.object.opposingAnsage).toBe(3);
+    // A zero is an attack that declared nothing, so the field stays blank rather
+    // than pre-filled with a meaningless 0.
     expect(new TnoRollDialog(armoured(false), { attributeA: 'dex', opposingAnsage: 0 }).object.opposingAnsage).toBe('');
   });
 
-  // The receiving end of the same channel: one integer, and no question about
-  // where it came from.
   it('subtracts an announced Ansage from a defence without ever gating it', () => {
     const dodge = new TnoRollDialog(armoured(false), {
       attributeA: 'dex',
@@ -279,131 +439,15 @@ describe('TnoRollDialog Ansagen', () => {
       opposingAnsage: true,
     });
     const base = form({ attributeA: 'dex' });
-    // Nothing announced is the common case and must roll exactly as before.
+    // 4 (Bew) + 3 (Akrobatik) = 7, less what was announced against it.
     expect(dodge._computeThreshold(base)).toBe(7);
-    expect(dodge._canSubmit(base)).toBe(true);
     expect(dodge._computeThreshold({ ...base, opposingAnsage: 3 })).toBe(4);
-    // A blank field, a zero and a negative are all "nothing was announced".
+    // Never a precondition: a defender who was told nothing simply rolls.
     expect(dodge._opposingAnsageComponent({ ...base, opposingAnsage: '' })).toBeNull();
     expect(dodge._opposingAnsageComponent({ ...base, opposingAnsage: 0 })).toBeNull();
     expect(dodge._computeThreshold({ ...base, opposingAnsage: -5 })).toBe(7);
     // Outside the ±30 clamp, like every other number the table agreed on.
     expect(dodge._computeThreshold({ ...base, opposingAnsage: 40 })).toBe(-33);
-  });
-
-  /** The three Trefferzonen as the attack builder hands them over. */
-  const zones = [
-    { key: 'arms', label: 'Arme', effect: 'Effect', mode: 'fixed', betrag: 3, rank: 8, zone: 'arms', group: 'zone' },
-    { key: 'legs', label: 'Beine', effect: 'Effect', mode: 'fixed', betrag: 3, rank: 8, zone: 'legs', group: 'zone' },
-    { key: 'head', label: 'Kopf', effect: 'Effect', mode: 'fixed', betrag: 6, rank: 8, zone: 'head', group: 'zone' },
-  ];
-
-  // The regression the screenshot caught: `mode: 'fixed'` says the *rule* names
-  // the Betrag, and the dialog read it as "is declared". Every attack silently
-  // announced arms, legs and head at once — a Standardangriff cost 12 points and
-  // hit three places.
-  it('declares nothing until something is chosen', () => {
-    const dialog = attack([...feint, ...zones]);
-    const base = form({ attributeA: 'str', contextChoice: '0' });
-    expect(dialog._declaredAnsagen(base)).toEqual([]);
-    expect(dialog._ansageComponent(base)).toBeNull();
-    // Which is the same as saying the Standardangriff rolls at its plain
-    // threshold, and carries no FV malus because it is not a Manöver.
-    expect(dialog._computeThreshold(base)).toBe(9);
-    expect(dialog._conditionalModifiers(base)).toEqual([]);
-  });
-
-  it('lets one Stelle be announced, and only one', () => {
-    const dialog = attack([...feint, ...zones]);
-    const base = form({ attributeA: 'str', contextChoice: '0' });
-    const declared = dialog._declaredAnsagen({ ...base, ansageGroups: { zone: 'legs' } });
-    // An attack has one Stelle. Picking the legs is picking *not* the head, so
-    // there is no combination of two locations to price or to send.
-    expect(declared.map((entry) => entry.key)).toEqual(['legs']);
-    expect(declared[0]).toMatchObject({ betrag: 3, cost: 3 });
-    expect(ansageEnvelope(declared).zone).toBe('legs');
-  });
-
-  it('offers the Stellen as one row with an empty default', () => {
-    const dialog = attack([...feint, ...zones]);
-    const base = form({ attributeA: 'str', contextChoice: '0' });
-    // The Finte keeps its own row; the three Stellen collapse into one control.
-    expect(dialog._ansageRows(base).map((row) => row.key)).toEqual(['feint']);
-
-    const [group] = dialog._ansageGroupRows(base);
-    expect(group.key).toBe('zone');
-    expect(group.choices.map((choice) => choice.key)).toEqual(['arms', 'legs', 'head']);
-    // Nothing preselected, and each option priced before it is picked: at rank 8
-    // the arms cost 3 and the head 6, both still 1:1.
-    expect(group.choices.some((choice) => choice.selected)).toBe(false);
-    expect(group.choices.map((choice) => choice.label)).toEqual([
-      'TNO.Combat.AnsageOption(Arme,−3)',
-      'TNO.Combat.AnsageOption(Beine,−3)',
-      'TNO.Combat.AnsageOption(Kopf,−6)',
-    ]);
-    expect(group.readout).toBe('');
-  });
-
-  it('says in its own header what a folded-up block is hiding', () => {
-    const dialog = attack([...feint, ...zones]);
-    const base = form({ attributeA: 'str', contextChoice: '0' });
-    // Shut and empty is the common case, and it has to read as empty.
-    expect(dialog._ansageSummary(base)).toBe('TNO.Combat.AnsageNone');
-    expect(dialog._ansageSummary({ ...base, ansagen: { feint: 3 }, ansageGroups: { zone: 'head' } }))
-      .toBe('TNO.Combat.AnsageSummary(2,−10)');
-  });
-
-  it('emits the envelope with the Betrag and the Stelle, and no attacker stats', async () => {
-    const dialog = new TnoRollDialog(armoured(false), {
-      attributeA: 'str',
-      lockAttribute: true,
-      skill: { key: 'swords', label: 'Schwerter', value: 4 },
-      ansagen: [
-        { key: 'feint', label: 'Finte', effect: 'Effect', mode: 'free', betrag: 0, rank: 2 },
-        { key: 'head', label: 'Kopf', effect: 'Effect', mode: 'fixed', betrag: 6, rank: 6, zone: 'head', group: 'zone' },
-      ],
-      envelope: { from: 'Anton', penetration: 5, sharp: 4, blunt: 2 },
-    });
-
-    await dialog._updateObject(null, form({
-      attributeA: 'str',
-      ansagen: { feint: 3 },
-      ansageGroups: { zone: 'head' },
-    }));
-    expect(rolled.payload.extraFlags.envelope).toEqual({
-      from: 'Anton',
-      penetration: 5,
-      sharp: 4,
-      blunt: 2,
-      // The Finte reaches both defences at the declared 3, never at the 4 it cost.
-      parry: 3,
-      dodge: 3,
-      resistance: 0,
-      zone: 'head',
-      bypassArmor: false,
-    });
-  });
-
-  it('sums several declarations into one component and tells the card the Betrag', async () => {
-    const dialog = attack([
-      ...feint,
-      { key: 'head', label: 'Kopf', effect: 'Effect', mode: 'fixed', betrag: 6, rank: 6, zone: 'head', group: 'zone' },
-    ]);
-    const data = form({
-      attributeA: 'str',
-      contextChoice: '0',
-      ansagen: { feint: 3 },
-      ansageGroups: { zone: 'head' },
-    });
-    // 4 for the Finte + 6 for the Kopf, as a single row on the breakdown.
-    expect(dialog._ansageComponent(data)).toMatchObject({ value: -10 });
-
-    await dialog._updateObject(null, data);
-    // What crosses to the defender is the declared Betrag, never the cost.
-    expect(rolled.payload.extraFlags.ansagen).toEqual([
-      { key: 'feint', label: 'Finte', effect: 'Effect', betrag: 3, cost: 4 },
-      { key: 'head', label: 'Kopf', effect: 'Effect', betrag: 6, cost: 6, zone: 'head' },
-    ]);
   });
 });
 

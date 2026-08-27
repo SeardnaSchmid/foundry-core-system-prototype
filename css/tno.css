@@ -985,14 +985,18 @@
 }
 .tno .tabs-right .item:hover, .tno .tabs-right .item:focus-visible {
   color: #fff;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgb(57.2, 56.34, 52.04);
+  box-shadow: 2px 1px 4px rgba(0, 0, 0, 0.35);
   justify-content: flex-start;
   width: auto;
   padding: 0 10px;
 }
 .tno .tabs-right .item.active {
   color: #fff;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgb(75.6, 74.82, 70.92);
+}
+.tno .tabs-right .item.active:hover, .tno .tabs-right .item.active:focus-visible {
+  background: rgb(94, 93.3, 89.8);
 }
 .tno .tabs-right .item i {
   flex: none;
@@ -1111,16 +1115,42 @@
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
+.tno .tno-advance-dialog .advance-correction > summary {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  list-style: none;
+  cursor: pointer;
+}
+.tno .tno-advance-dialog .advance-correction > summary::-webkit-details-marker {
+  display: none;
+}
+.tno .tno-advance-dialog .advance-correction > summary:focus-visible {
+  outline: 2px solid #2f6bff;
+  outline-offset: -2px;
+}
+.tno .tno-advance-dialog .advance-correction > summary::after {
+  content: "▸";
+  font-size: var(--font-size-10, 10px);
+  color: #444;
+  opacity: 0.7;
+  transition: transform 0.15s ease;
+}
+.tno .tno-advance-dialog .advance-correction[open] > summary::after {
+  transform: rotate(90deg);
+}
 .tno .tno-advance-dialog .advance-correction {
   padding-top: 8px;
   border-top: 1px solid rgba(181, 179, 164, 0.5);
 }
 .tno .tno-advance-dialog .advance-correction > summary {
-  cursor: pointer;
   font-size: var(--font-size-10, 10px);
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: #444;
+}
+.tno .tno-advance-dialog .advance-correction > summary::after {
+  margin-left: auto;
 }
 .tno .tno-advance-dialog .advance-correction[open] > summary {
   margin-bottom: 5px;
@@ -2038,12 +2068,6 @@
   text-align: center;
   margin: 0 6px;
 }
-.tno .items-list .item-state {
-  margin: 0 6px;
-  font-size: 12px;
-  color: #b5b3a4;
-  cursor: default;
-}
 .tno .items-list .item {
   align-items: center;
   padding: 0 2px;
@@ -2069,12 +2093,6 @@
   font-size: var(--font-size-17, 17px);
   color: #444;
 }
-.tno .items-list .item-prop {
-  text-align: center;
-  border-left: 1px solid #c9c7b8;
-  border-right: 1px solid #c9c7b8;
-  font-size: 12px;
-}
 .tno .items-list .items-header {
   height: 28px;
   margin: 2px 0;
@@ -2092,21 +2110,242 @@
   padding-left: 5px;
   text-align: left;
 }
-.tno .item-roles {
-  flex: 0 0 200px;
+.tno .item-table-header {
+  gap: 6px;
+}
+.tno .item-table-header .item-search-input {
+  margin-left: auto;
+}
+.tno .item-table-header .section-add {
+  margin-left: 0;
+}
+.tno .item-table-header .item-search-input {
+  flex: 0 1 150px;
+  min-width: 0;
+  height: auto;
+  margin-right: 0;
+  padding: 4px 7px;
+  border: 1px solid #b5b3a4;
+  border-radius: 3px;
+  background: transparent;
+  color: #444;
+  font-size: var(--font-size-10, 10px);
+  line-height: 1.25;
+}
+.tno .item-table-header .item-search-input::placeholder {
+  color: #444;
+  opacity: 0.5;
+  font-style: italic;
+}
+.tno .item-table-header .item-search-input:hover, .tno .item-table-header .item-search-input:focus {
+  border-color: #444;
+  box-shadow: none;
+}
+.tno .item-table-header .item-columns-toggle {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 7px;
+  border: 1px solid #b5b3a4;
+  border-radius: 3px;
+  color: #444;
+  font-size: var(--font-size-10, 10px);
+  font-weight: bold;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.tno .item-table-header .item-columns-toggle:hover {
+  border-color: #444;
+  color: #191813;
+}
+.tno .item-table-scroll {
+  overflow-x: auto;
+  margin: 4px 0 2px;
+}
+.tno .item-table {
+  display: grid;
+  min-width: 100%;
+  color: #191813;
+  font-size: var(--font-size-12, 12px);
+}
+.tno .item-thead,
+.tno .item-row {
+  display: grid;
+  grid-column: 1/-1;
+  grid-template-columns: subgrid;
+  align-items: center;
+}
+.tno .item-thead {
+  height: 26px;
+  border: 2px groove #eeede0;
+  background: #efeee2;
+  font-weight: bold;
+}
+.tno .item-th {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 0 8px;
-  overflow: hidden;
+  min-width: 0;
+  padding: 0 6px;
+  color: #444;
+  font-size: var(--font-size-11, 11px);
 }
-.tno .item-roles .item-role-tag {
-  padding: 1px 7px;
-  border: 1px solid #b5b3a4;
-  border-radius: 20px;
-  font-size: 10px;
-  line-height: 1.4;
+.tno .item-th.numeric {
+  justify-content: center;
+}
+.tno .item-th.sorted {
+  color: #191813;
+}
+.tno .item-th.item-table-sort:hover {
+  color: #191813;
+  text-decoration: underline;
+}
+.tno .item-th .item-th-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
+}
+.tno .item-group {
+  display: flex;
+  grid-column: 1/-1;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 3px 6px;
+  border-bottom: 1px solid #b5b3a4;
+  background: rgba(25, 24, 19, 0.05);
+}
+.tno .item-group .item-group-name {
+  font-size: var(--font-size-12, 12px);
+  font-weight: bold;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.tno .item-group-empty {
+  grid-column: 1/-1;
+  margin: 4px 6px;
+  padding: 6px 10px;
+  border: 1px dashed rgba(25, 24, 19, 0.18);
+  border-radius: 4px;
+  color: #b5b3a4;
+  font-size: var(--font-size-11, 11px);
+  font-style: italic;
+}
+.tno .item-table-nomatch {
+  margin: 10px 6px;
+  padding: 14px 12px;
+  border: 1px dashed rgba(25, 24, 19, 0.2);
+  border-radius: 4px;
+  color: #444;
+  font-style: italic;
+  text-align: center;
+}
+.tno .item-row {
+  min-height: 26px;
+  border-bottom: 1px solid #c9c7b8;
+  cursor: grab;
+}
+.tno .item-row:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+.tno .item-row.is-worn .item-state {
+  color: #1f6b3a;
+}
+.tno .item-td {
+  min-width: 0;
+  padding: 3px 6px;
+  font-variant-numeric: tabular-nums;
+}
+.tno .item-td.numeric {
+  text-align: center;
+}
+.tno .item-td.is-na {
+  background-image: repeating-linear-gradient(-45deg, transparent 0 3px, rgba(25, 24, 19, 0.07) 3px 5px);
+  color: #b5b3a4;
+  font-size: var(--font-size-10, 10px);
+}
+.tno .item-td.is-blank {
+  color: #b5b3a4;
+}
+.tno .item-td.is-warn {
+  color: #b3212b;
+  font-weight: bold;
+}
+.tno .item-td-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.tno .item-td-name .inventory-item-icon {
+  flex: 0 0 16px;
+  color: #444;
+  font-size: var(--font-size-14, 14px);
+  text-align: center;
+}
+.tno .item-td-name .item-row-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tno .item-table .item-controls {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+  padding-right: 6px;
+}
+.tno .item-table .item-controls a,
+.tno .item-table .item-controls .item-state,
+.tno .item-table .item-controls .item-control {
+  font-size: var(--font-size-12, 12px);
+}
+.tno .item-table .item-controls .item-state {
+  cursor: default;
+}
+.tno.item-popover.columns-popover {
+  width: min(280px, 100vw - 16px);
+}
+.tno.item-popover.columns-popover h4 {
+  margin: 0;
+  font-size: var(--font-size-13, 13px);
+}
+.tno.item-popover.columns-popover .columns-popover-hint {
+  margin: 0;
+  padding: 7px 10px 0;
+  color: #444;
+  font-size: var(--font-size-11, 11px);
+  line-height: 1.35;
+}
+.tno.item-popover.columns-popover .columns-popover-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 10px 10px;
+}
+.tno.item-popover.columns-popover .columns-popover-section h5 {
+  margin: 0 0 3px;
+  border-bottom: 1px solid rgba(25, 24, 19, 0.14);
+  color: #444;
+  font-size: var(--font-size-10, 10px);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.tno.item-popover.columns-popover .columns-popover-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 1px 0;
+  font-size: var(--font-size-12, 12px);
+  cursor: pointer;
+}
+.tno.item-popover.columns-popover .columns-popover-row input {
+  flex: 0 0 auto;
+  width: 13px;
+  height: 13px;
+  margin: 0;
 }
 .tno.gear-dialog .chip,
 .tno.gear-dialog .use-segment,
@@ -2918,6 +3157,97 @@
   flex: none;
   margin: 0;
   font-size: 10px;
+}
+.tno {
+  /* ================================================ Add to inventory
+     The create dialog is the gear sheet's front door, so it borrows that sheet's
+     vocabulary rather than inventing one: the same borderless name-as-title
+     input, the same role icons the carry grid uses, and the chips' filled-dark
+     "this one is on" state — scaled up to a card, because here the choice is the
+     dialog's content instead of one row in it. */
+}
+.tno.create-item-dialog .window-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.tno.create-item-dialog .create-item-head {
+  padding-bottom: 8px;
+  border-bottom: 2px solid #191813;
+}
+.tno.create-item-dialog .create-item-name {
+  width: 100%;
+  height: 28px;
+  padding: 0 2px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  font-family: "Roboto", sans-serif;
+  font-size: 16px;
+  font-weight: bold;
+  transition: box-shadow 0.15s ease;
+}
+.tno.create-item-dialog .create-item-name:hover {
+  box-shadow: inset 0 -1px 0 #b5b3a4;
+}
+.tno.create-item-dialog .create-item-name:focus {
+  box-shadow: inset 0 -2px 0 #444;
+  outline: none;
+}
+.tno.create-item-dialog .create-item-roles {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.tno.create-item-dialog .create-item-role {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border: 1px solid #b5b3a4;
+  border-radius: 4px;
+  color: rgba(25, 24, 19, 0.7);
+  font-size: 12px;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.tno.create-item-dialog .create-item-role i {
+  flex: 0 0 16px;
+  font-size: 14px;
+  text-align: center;
+}
+.tno.create-item-dialog .create-item-role span {
+  flex: 1;
+  min-width: 0;
+}
+.tno.create-item-dialog .create-item-role input[type=radio] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.tno.create-item-dialog .create-item-role:hover {
+  border-color: #191813;
+  color: #191813;
+}
+.tno.create-item-dialog .create-item-role:has(input:checked) {
+  border-color: #191813;
+  background: #191813;
+  color: #fff;
+}
+.tno.create-item-dialog .create-item-role:has(input:focus-visible) {
+  outline: 2px solid #2f6bff;
+  outline-offset: 1px;
+}
+.tno.create-item-dialog .create-item-hint {
+  margin: 0;
+  color: rgba(25, 24, 19, 0.55);
+  font-size: 9px;
+  text-align: center;
 }
 .tno .paperdoll {
   display: grid;
@@ -4157,10 +4487,23 @@
   width: 100%;
 }
 .tno .tno-roll-dialog .tno-required-value-field {
+  flex-direction: column;
+  align-items: stretch;
   margin-bottom: 5px;
+}
+.tno .tno-roll-dialog .tno-required-value-field > label {
+  flex: none;
+  margin-bottom: 2px;
 }
 .tno .tno-roll-dialog .tno-required-value-field input {
   width: 100%;
+}
+.tno .tno-roll-dialog .tno-required-value-hint {
+  margin: -5px 0 5px;
+  font-size: var(--font-size-10, 10px);
+  line-height: 1.3;
+  color: #444;
+  opacity: 0.8;
 }
 .tno .tno-roll-dialog .tno-toggle-modifier {
   margin-bottom: 5px;
@@ -4177,104 +4520,26 @@
   font-weight: bold;
   font-variant-numeric: tabular-nums;
 }
-.tno .tno-roll-dialog .tno-ansagen-toggle {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 5px;
-  width: 100%;
-  padding: 0;
-  border: 0;
-  background: none;
-  text-align: left;
-  cursor: pointer;
-}
-.tno .tno-roll-dialog .tno-ansagen-toggle::after {
-  content: "▾";
-  font-size: var(--font-size-11, 11px);
-  opacity: 0.6;
-}
-.tno .tno-roll-dialog .tno-ansagen-open .tno-ansagen-toggle::after {
-  content: "▴";
-}
-.tno .tno-roll-dialog .tno-ansagen-summary {
-  margin-left: auto;
-  font-size: var(--font-size-11, 11px);
-  font-variant-numeric: tabular-nums;
-  opacity: 0.7;
-}
-.tno .tno-roll-dialog .tno-ansagen-body {
-  display: none;
-}
-.tno .tno-roll-dialog .tno-ansagen-open .tno-ansagen-body {
-  display: block;
-}
 .tno .tno-roll-dialog .tno-ansage-row {
   display: grid;
-  grid-template-columns: 1fr 3.5rem;
+  grid-template-columns: 1fr 3.5rem 3rem;
   align-items: center;
-  gap: 4px 5px;
-  padding: 3px 0;
-}
-.tno .tno-roll-dialog .tno-ansage-row + .tno-ansage-row {
-  border-top: 1px solid rgba(25, 24, 19, 0.08);
+  gap: 5px;
 }
 .tno .tno-roll-dialog .tno-ansage-name {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
   font-size: var(--font-size-13, 13px);
   font-weight: bold;
 }
-.tno .tno-roll-dialog .tno-ansage-rank {
-  font-size: var(--font-size-11, 11px);
-  font-weight: normal;
-  opacity: 0.7;
-}
-.tno .tno-roll-dialog .tno-ansage-input {
+.tno .tno-roll-dialog .tno-roll-ansage input[type=number] {
   width: 100%;
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
-.tno .tno-roll-dialog .tno-ansage-group {
-  grid-template-columns: 1fr 9rem;
-}
-.tno .tno-roll-dialog .tno-ansage-select {
-  width: 100%;
-  font-size: var(--font-size-12, 12px);
-}
 .tno .tno-roll-dialog .tno-ansage-readout {
-  grid-column: 1/-1;
-  min-height: 1.1em;
-  font-size: var(--font-size-11, 11px);
-  opacity: 0.8;
-}
-.tno .tno-roll-dialog .tno-ansage-over-rank {
-  color: #b3212b;
-  opacity: 1;
-}
-.tno .tno-roll-dialog .tno-ansage-blocked {
-  opacity: 0.45;
-}
-.tno .tno-roll-dialog .tno-ansage-untrained {
-  display: none;
-}
-.tno .tno-roll-dialog .tno-ansagen-show-all .tno-ansage-untrained {
-  display: grid;
-}
-.tno .tno-roll-dialog .tno-ansage-more {
-  width: 100%;
-  margin-top: 4px;
-  padding: 2px 0;
-  border: 1px dashed rgba(25, 24, 19, 0.2);
-  background: none;
-  font-size: var(--font-size-11, 11px);
-  line-height: 1.4;
-  opacity: 0.7;
-  cursor: pointer;
-}
-.tno .tno-roll-dialog .tno-ansage-more:hover {
-  opacity: 1;
+  text-align: right;
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+  color: #c62828;
 }
 .tno .tno-roll-dialog .tno-context-tile-field {
   min-width: 0;
@@ -4294,6 +4559,9 @@
 }
 .tno .tno-roll-dialog .tno-context-tile-grid-5 {
   grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.tno .tno-roll-dialog .tno-context-tile-grid-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 .tno .tno-roll-dialog .tno-context-tile-grid-3 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -4333,10 +4601,18 @@
 }
 .tno .tno-roll-dialog .tno-context-tile.has-caption {
   min-height: 58px;
+  align-content: start;
+  padding-top: 6px;
+}
+.tno .tno-roll-dialog .tno-zone-field {
+  margin-bottom: 5px;
 }
 .tno .tno-roll-dialog .tno-context-tile-caption {
+  padding-inline: 2px;
   font-size: var(--font-size-9, 9px);
-  line-height: 1;
+  line-height: 1.25;
+  text-align: center;
+  text-wrap: balance;
   color: rgba(25, 24, 19, 0.65);
 }
 .tno .tno-roll-dialog .tno-context-tile-visual {
@@ -4776,8 +5052,19 @@
   outline: 2px solid #444;
   outline-offset: 1px;
 }
-.tno .tno-roll-dialog .sheet-footer {
-  margin-top: 5px;
+.tno .tno-roll-dialog .tno-roll-footer {
+  position: sticky;
+  bottom: -10px;
+  z-index: 1;
+  margin: 5px -10px -10px;
+  padding: 5px 10px 10px;
+  border-top: 1px solid #b5b3a4;
+  background: rgb(244, 241, 232);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(6px);
+}
+.tno .tno-roll-dialog .tno-roll-footer .tno-roll-result {
+  margin-bottom: 5px;
 }
 .tno .tno-roll-dialog .tno-roll-submit {
   display: flex;
@@ -4827,6 +5114,97 @@
   font-size: var(--font-size-11, 11px);
   font-weight: normal;
   color: rgba(255, 255, 255, 0.75);
+}
+.tno .tno-roll-dialog {
+  /* ---------------------------------------- The questionnaire's own furniture */
+}
+.tno .tno-roll-dialog .tno-roll-divider {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 10px 0 5px;
+  font-size: var(--font-size-9, 9px);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #444;
+  opacity: 0.6;
+}
+.tno .tno-roll-dialog .tno-roll-divider::before, .tno .tno-roll-dialog .tno-roll-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #b5b3a4;
+}
+.tno .tno-roll-dialog .tno-roll-gear-modifiers {
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px dashed rgba(181, 179, 164, 0.8);
+}
+.tno .tno-roll-dialog .tno-roll-attempt > summary {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  list-style: none;
+  cursor: pointer;
+}
+.tno .tno-roll-dialog .tno-roll-attempt > summary::-webkit-details-marker {
+  display: none;
+}
+.tno .tno-roll-dialog .tno-roll-attempt > summary:focus-visible {
+  outline: 2px solid #2f6bff;
+  outline-offset: -2px;
+}
+.tno .tno-roll-dialog .tno-roll-attempt > summary::after {
+  content: "▸";
+  font-size: var(--font-size-10, 10px);
+  color: #444;
+  opacity: 0.7;
+  transition: transform 0.15s ease;
+}
+.tno .tno-roll-dialog .tno-roll-attempt[open] > summary::after {
+  transform: rotate(90deg);
+}
+.tno .tno-roll-dialog .tno-roll-attempt {
+  padding: 0;
+}
+.tno .tno-roll-dialog .tno-roll-attempt > summary {
+  padding: 5px;
+}
+.tno .tno-roll-dialog .tno-roll-attempt > summary:hover .tno-roll-section-caption {
+  opacity: 1;
+}
+.tno .tno-roll-dialog .tno-roll-attempt > summary .tno-roll-section-caption {
+  margin: 0;
+}
+.tno .tno-roll-dialog .tno-roll-attempt .tno-attempt-badge {
+  margin-left: auto;
+  font-size: var(--font-size-10, 10px);
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+  color: #c62828;
+}
+.tno .tno-roll-dialog .tno-roll-attempt > *:not(summary) {
+  margin-left: 5px;
+  margin-right: 5px;
+}
+.tno .tno-roll-dialog .tno-roll-attempt > *:last-child {
+  margin-bottom: 5px;
+}
+.tno .tno-roll-dialog .tno-zone-tile-cost {
+  font-size: var(--font-size-11, 11px);
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+  color: #c62828;
+}
+.tno .tno-roll-dialog .tno-zone-tile-cost.is-free {
+  font-weight: normal;
+  color: rgba(25, 24, 19, 0.45);
+}
+.tno .tno-roll-dialog .tno-roll-rolltype .tno-advantage-field {
+  margin-bottom: 0;
+}
+.tno .tno-roll-dialog .tno-roll-rolltype .tno-advantage-field-head > label {
+  display: none;
 }
 
 /* Chat message styles, rendered outside of any tno-classed sheet */
@@ -4934,20 +5312,6 @@
   content: "·";
   margin-right: 8px;
   color: #b5b3a4;
-}
-.tno-roll-card .tno-envelope-take {
-  width: 100%;
-  margin-top: 4px;
-  padding: 2px 0;
-  border: 1px dashed #b5b3a4;
-  background: none;
-  font-size: var(--font-size-11, 11px);
-  line-height: 1.4;
-  opacity: 0.75;
-  cursor: pointer;
-}
-.tno-roll-card .tno-envelope-take:hover {
-  opacity: 1;
 }
 .tno-roll-card .tno-roll-tooltip {
   order: 1;

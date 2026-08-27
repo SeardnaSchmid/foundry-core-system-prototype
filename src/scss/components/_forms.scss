@@ -964,10 +964,15 @@
     overflow: hidden;
     transition: background-color 0.1s ease, color 0.1s ease, width 0.15s ease;
 
+    // The hovered item grows past the rail's own 40px background, so the label
+    // ends up over whatever sits behind the sheet. Its fill is therefore an
+    // opaque lightening of the rail rather than a translucent white wash,
+    // which would let that backdrop show through under the text.
     &:hover,
     &:focus-visible {
       color: $c-white;
-      background: rgba($c-white, 0.12);
+      background: mix($c-white, $c-dark, 14%);
+      box-shadow: 2px 1px 4px rgba($c-black, 0.35);
       justify-content: flex-start;
       width: auto;
       padding: 0 10px;
@@ -975,7 +980,12 @@
 
     &.active {
       color: $c-white;
-      background: rgba($c-white, 0.2);
+      background: mix($c-white, $c-dark, 22%);
+    }
+
+    &.active:hover,
+    &.active:focus-visible {
+      background: mix($c-white, $c-dark, 30%);
     }
 
     i {
@@ -1135,16 +1145,21 @@
   }
 
   .advance-correction {
+    @include dialog-disclosure;
     padding-top: 8px;
     border-top: 1px solid rgba($c-beige, 0.5);
 
-    // Collapsed by default; the summary is the disclosure toggle.
+    // Collapsed by default; the summary is the disclosure toggle. Nothing but
+    // the caption in this row, so the caret takes the free space itself.
     > summary {
-      cursor: pointer;
       font-size: var(--font-size-10, 10px);
       text-transform: uppercase;
       letter-spacing: 0.03em;
       color: $c-tan;
+
+      &::after {
+        margin-left: auto;
+      }
     }
 
     &[open] > summary {

@@ -129,25 +129,6 @@
     }
   }
 
-  // Abkürzung, keine Pflicht: schreibt die Ansage auf den eigenen Bogen. Bewusst
-  // zurückhaltend gestaltet, damit die Zeilen darüber — die auch ohne jeden
-  // Klick alles sagen — die Hauptsache bleiben.
-  .tno-envelope-take {
-    width: 100%;
-    margin-top: 4px;
-    padding: 2px 0;
-    border: 1px dashed $c-beige;
-    background: none;
-    font-size: var(--font-size-11, 11px);
-    line-height: 1.4;
-    opacity: 0.75;
-    cursor: pointer;
-
-    &:hover {
-      opacity: 1;
-    }
-  }
-
   // Reuses core's .dice-roll/.dice-tooltip expand mechanism (grid-template-rows
   // transition driven by the `expanded` class core's ChatLog toggles on click).
   .tno-roll-tooltip {

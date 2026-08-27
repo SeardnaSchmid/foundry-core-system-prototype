@@ -15,6 +15,8 @@ export const MIGRATIONS = [
   { version: '0.31.0', migrate: migrateWeightToSlotsLegacyTypes },
   { version: '0.31.0', migrate: migrateZeroedNullableBands },
   { version: '0.34.0', migrate: migrateSeedCombatStance },
+  { version: '0.35.0', migrate: migrateDropStealthSkill },
+  { version: '0.35.0', migrate: migrateDropPendingAnsage },
 ];
 
 /**
@@ -214,9 +216,53 @@ async function migrateSeedCombatStance() {
       'system.combat': {
         stance: 'open',
         defenses: { parry: 0, dodge: 0 },
-        pending: { from: '', parry: 0, dodge: 0, resistance: 0, zone: '', bypassArmor: false },
+        pending: { from: '', ansage: 0, zone: '' },
       },
     });
+  }
+}
+
+/**
+ * Drop the retired `stealth` skill from every character.
+ *
+ * Schleichen lost its own Fertigkeit: the Kampfregeln roll every hiding,
+ * sneaking and searching probe as Beweglichkeit/Sinnesschärfe + Biom, so the
+ * skill had no roll left to be. Rank and XP spent on it go with it, which is
+ * why this removes the key outright rather than leaving an orphan the sheet
+ * would never show again.
+ *
+ * Idempotent by only writing actors that still carry the key. Prepared data is
+ * the honest signal here, unlike in `migrateSeedCombatStance`: `template.json`
+ * no longer declares `stealth`, so nothing can fabricate the key on an actor
+ * that never stored one.
+ */
+async function migrateDropStealthSkill() {
+  for (const actor of game.actors) {
+    if (actor.type !== 'character') continue;
+    if (!actor.system?.skills?.stealth) continue;
+    await actor.update({ 'system.skills.-=stealth': null });
+  }
+}
+
+/**
+ * Drop the stored Ansage carry-over from every character.
+ *
+ * The chat card's "Gegen mich angesagt" shortcut is gone: an Ansage now only
+ * ever reaches a defence by being typed into the dialog's own field, which is
+ * the path that always worked and never needed a place to park a number.
+ * `system.combat.pending` is what the shortcut parked it in, and it has no
+ * reader left.
+ *
+ * `migrateSeedCombatStance` (0.34.0) seeds that key and stays untouched — a
+ * published step is never edited. This one runs after it and takes it back out.
+ *
+ * Idempotent by only writing actors that still carry the key.
+ */
+async function migrateDropPendingAnsage() {
+  for (const actor of game.actors) {
+    if (actor.type !== 'character') continue;
+    if (!actor.system?.combat?.pending) continue;
+    await actor.update({ 'system.combat.-=pending': null });
   }
 }
 

@@ -185,7 +185,8 @@
       "Milieus": "Milieus",
       "Biomes": "Biomes",
       "Technology": "Technology",
-      "Knowledge": "Knowledge"
+      "Knowledge": "Knowledge",
+      "Interfacing": "Interfacing"
     },
     "Skill": {
       "Brawling": "Brawling",
@@ -201,20 +202,21 @@
       "Exotic": "Exotic Weapons",
       "Athletics": "Athletics",
       "Acrobatics": "Acrobatics",
-      "Stealth": "Stealth",
       "SelfControl": "Self-Control",
       "Contortionist": "Contortionist",
       "SleightOfHand": "Sleight of Hand",
-      "PreciseStrike": "Precise Strike",
+      "PreciseStrike": "Precise Attacks",
       "CunningAttacks": "Cunning Attacks",
       "Footwork": "Footwork",
       "DirtyTricks": "Dirty Tricks",
-      "RangeControl": "Range Control",
+      "RangeControl": "Strong Attacks",
       "DefensiveCombat": "Defensive Combat",
-      "CalledShot": "Called Shot",
+      "CalledShot": "Called Shots",
       "SuppressiveFire": "Suppressive Fire",
       "GunKata": "Gun-Kata",
       "UseCover": "Use Cover",
+      "EvasiveMove": "Evasive Movement",
+      "SoloTactics": "Single Combat Tactics",
       "GroupTactics": "Group Combat Tactics",
       "PsychWarfare": "Psychological Warfare",
       "Leadership": "Team Leadership",
@@ -253,8 +255,9 @@
       "TechSecurity": "Security Technology",
       "TechComms": "Communications Technology",
       "TechHacking": "Hacking",
-      "TechTissue": "Tissue Engineering",
+      "TechTissue": "Armour, Clothing & Tissue Engineering",
       "TechSymbio": "Symbiotics",
+      "TechWeapons": "Weapon Engineering",
       "TechExplosives": "Explosives",
       "MedFirstAid": "First Aid",
       "MedSurgery": "Surgery",
@@ -278,7 +281,12 @@
       "CultCooking": "Cooking & Delicacies",
       "CultGamesSports": "Games & Sports",
       "CultReligion": "Religion",
-      "CultHistory": "History"
+      "CultHistory": "History",
+      "InterfacingMundane": "Interfacing - Mundane",
+      "InterfacingProfane": "Interfacing - Profane",
+      "InterfacingArcane": "Interfacing - Arcane",
+      "InterfacingSacral": "Interfacing - Sacral",
+      "InterfacingKuiper": "Interfacing - Kuiper"
     },
     "SkillSubgroup": {
       "Med": {
@@ -368,7 +376,7 @@
       "Initiative": "(2×Agility+Perception)/3 (rounded up)",
       "MovementWalk": "Agility",
       "MovementSprint": "3×Agility",
-      "MovementCrawl": "Flat default value, independent of Agility.",
+      "MovementCrawl": "Agility/3",
       "CarrySlots": "2×Strength+Agility",
       "NoSprint": "No sprinting — either half the carry slots are in use, or Agility is damaged.",
       "CrawlOnly": "Crawling only — every carry slot is in use.",
@@ -533,9 +541,18 @@
       },
       "Submit": "Roll",
       "SubmitTargetLabel": "Target",
-      "BaseCaption": "Base",
-      "ModifiersCaption": "Modifiers",
-      "ContextCaption": "Combat context",
+      "Question": {
+        "Base": "What are you rolling with?",
+        "Situation": "How do you two stand?",
+        "Against": "What was declared against you?",
+        "Attempt": "Anything to declare or adjust?",
+        "Spend": "Are you spending anything?",
+        "RollType": "How do you roll it?"
+      },
+      "Divider": {
+        "Given": "what you are handed",
+        "Chosen": "what you decide"
+      },
       "ContextPlaceholder": "Choose context",
       "ContextRequired": "Choose a combat context before rolling.",
       "ValueRequired": "Enter the announced value before rolling.",
@@ -568,6 +585,10 @@
       "ResistanceFlavor": "Resistance: {zone} → {damage}",
       "ResistanceRw": "RW ({zone})",
       "DamageValue": "Damage value",
+      "DamageSharp": "Sharp damage value (SS)",
+      "DamageBlunt": "Blunt damage value (WS)",
+      "DamageValueHint": "Both values are printed on the attacker's card.",
+      "DamageValuePlaceholder": "Number from the card",
       "ActiveHandling": "Handling (attack)",
       "PassiveHandling": "Handling (parry)",
       "SvMalus": "SV requirement ({steps}×)",
@@ -583,9 +604,9 @@
       "NextDefenseMalus": "Next defence: {value}",
       "FvMalus": "FV requirement (manoeuvre)",
       "AnsageCaption": "Manoeuvres",
-      "AnsageCost": "Declarations ({count})",
-      "AnsageReadout": "costs you {cost} · {effect}",
-      "AnsageNeedsReach": "needs the longer weapon",
+      "Ansage": "Declaration",
+      "AnsageHint": "How far you worsen this roll in order to gain something else. What exactly is settled at the table — only the number lives here, and the opponent takes it at the same size.",
+      "Zone": "Hit location",
       "StanceLabel": "Stance",
       "StanceHint": "Announced when you activate, held until your next one. It decides which defence you may make, and taking one — even the same one again — clears the repeated-defence malus.",
       "StanceRetake": "Take the current stance again and clear defence penalties",
@@ -604,30 +625,25 @@
       "ContextPlaceholder": "Choose distance",
       "RangeComponent": "Range: {band}",
       "Penetration": {
-        "Label": "RH vs RB/RD",
-        "Softer": "softer · SS",
-        "Equal": "equal · WS",
-        "Harder": "harder · WS"
+        "Label": "Your RH is {rh} — how high was the attacker's penetration?",
+        "Placeholder": "Choose penetration",
+        "Component": "Penetration vs RH {rh}",
+        "Softer": "RD > {rh}",
+        "SofterEffect": "punches through · sharp damage",
+        "Equal": "RD = {rh}",
+        "EqualEffect": "holds · blunt damage",
+        "Harder": "RD < {rh}",
+        "HarderEffect": "holds · blunt damage, +3 on this roll"
       },
       "OpposingAnsage": "Announced against you",
       "Envelope": {
         "From": "From",
-        "Parry": "Parry −{value}",
-        "Dodge": "Dodge −{value}",
-        "Resistance": "Resistance −{value}",
+        "Ansage": "Declaration −{value}",
         "BypassArmor": "armour on that location bypassed",
         "Damage": "RB/RD {penetration} · sharp {sharp} / blunt {blunt}",
-        "Dk": "DK {dk}",
-        "Take": "Announced against me",
-        "TakeFor": "Take announcement",
-        "TakeForLabel": "Onto which sheet?",
-        "Taken": "Announcement noted for {name} — it will be filled in on your next defence."
+        "Dk": "DK {dk}"
       },
-      "BypassArmorHint": "The attacker paid this location's RA to bypass its armour, so its padding does not apply — and the hit always counts as sharp.",
-      "AnsageMore": "Rarely-used manoeuvres",
-      "AnsageNone": "none",
-      "AnsageSummary": "{count} declared · {cost}",
-      "AnsageOption": "{label} ({cost})"
+      "BypassArmorHint": "The attacker paid this location's RA to bypass its armour, so its padding does not apply — and the hit always counts as sharp."
     },
     "Advantage": {
       "StrongDisadvantage": "Strong Disadvantage",
@@ -650,48 +666,6 @@
       "Inactive": "Inactive Effects"
     },
     "TabEffects": "Effects",
-    "Maneuver": {
-      "Feint": {
-        "Label": "Feint",
-        "Effect": "their defence −{betrag}"
-      },
-      "Riposte": {
-        "Label": "Riposte",
-        "Effect": "your next attack on them +{betrag}"
-      },
-      "StrongSwing": {
-        "Label": "Strong swing",
-        "Effect": "their resistance and parry −{betrag}"
-      },
-      "WideSwing": {
-        "Label": "Wide swing",
-        "Effect": "their dodge −{betrag}"
-      },
-      "Arms": {
-        "Label": "Arms",
-        "Effect": "damage split over Fingerfertigkeit and Stärke"
-      },
-      "Legs": {
-        "Label": "Legs",
-        "Effect": "damage split over Beweglichkeit and Stärke"
-      },
-      "Head": {
-        "Label": "Head",
-        "Effect": "damage doubled after the resistance roll"
-      },
-      "BypassArmor": {
-        "Label": "Bypass armour",
-        "Effect": "their armour on that location does not apply"
-      },
-      "WeakSpot": {
-        "Label": "Weak spot",
-        "Effect": "whatever the GM sets"
-      },
-      "Zone": {
-        "Label": "Hit location",
-        "None": "not announced"
-      }
-    },
     "Armor": {
       "WornTitle": "Worn Equipment",
       "Zones": "Armour zones",
@@ -744,6 +718,8 @@
       "AddHint": "Add an item, a piece of armour or a weapon",
       "AddTitle": "Add to inventory",
       "AddName": "Name",
+      "AddRole": "What is it?",
+      "AddRoleHint": "Can be changed later on the item itself.",
       "EmptyCellHint": "<div class=\"tno-tooltip\">Free slot — drop an item here to move it to the end.</div>",
       "NoContainer": "No Bag",
       "NoContainerHint": "Without a bag or backpack there is no slot budget — the character's hands are full.",
@@ -762,6 +738,31 @@
         "4": "Backpack-sized items, welding gear, tents, parachutes"
       },
       "Empty": "Nothing owned yet. Use + to add an item, a piece of armour or a weapon."
+    },
+    "ItemTable": {
+      "Search": "Search …",
+      "SearchHint": "Filter by name — across every group.",
+      "Columns": "Columns",
+      "ColumnsHint": "Pick which values the table shows. The choice applies to every character sheet this user opens.",
+      "ColumnsTitle": "Columns",
+      "Close": "Close",
+      "SortHint": "Click to sort — the view only; the carry grid keeps its own order.",
+      "SortedAsc": "sorted ascending",
+      "SortedDesc": "sorted descending",
+      "GroupEmpty": "Nothing in this group.",
+      "GroupBadgeHint": "{count} entries · {slots} carry slots occupied",
+      "NoMatch": "No item matches the search.",
+      "NaNoArmor": "n/a — not armour",
+      "Cap": {
+        "State": "State",
+        "Incomplete": "Open",
+        "Hh": "HH"
+      },
+      "Hint": {
+        "State": "Whether the piece is worn on the body or carried.",
+        "Incomplete": "Required values still missing on the item.",
+        "Value": "Base price × quantity."
+      }
     },
     "Money": {
       "Title": "Wallet",

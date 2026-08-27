@@ -13,9 +13,14 @@ related: [concepts/advancement, concepts/attributes]
 
 `CONFIG.TNO.skills` in
 [`module/helpers/config.mjs`](../../../module/helpers/config.mjs) is the
-full catalog (~70 entries) grouped by `CONFIG.TNO.skillCategories`
+full catalog (98 entries) grouped by `CONFIG.TNO.skillCategories`
 (`combat`, `maneuvers`, `general`, `milieus`, `biomes`, `technology`,
-`knowledge`). Each entry: `{ label, category, attribute, starter?, subgroup? }`.
+`knowledge`, `interfacing`). Each entry:
+`{ label, category, attribute, starter?, subgroup? }`.
+
+`interfacing` (Mundan / Profan / Arkan / Sakral / Kuiper) has no rules text
+behind it yet, so its five skills carry no `starter` flag — they can be
+trained in play but are off the character-creation list.
 
 `attribute` is only the **suggested** pairing preselected in the roll
 dialog — any attribute can be swapped in via the dialog's chip picker, a
@@ -29,11 +34,14 @@ Science/Humanities/Culture). Only the ambiguous domains get a badge — plain
 
 `starter: true` flags entry-level skills shown during character creation.
 
-**Note:** `template.json`'s `character.skills` only pre-seeds the 14
-`starter` combat/general skills with `{value: 0, xp: 0}`. Every other
-built-in skill, and any custom skill, is added to `system.skills` lazily —
-the first time it's rolled or advanced — not present on a freshly-created
-actor until then.
+**Note:** `template.json`'s `character.skills` declares **every** built-in
+skill, in `config.mjs`'s source order — see
+[data-schema.md](../architecture/data-schema.md). Only custom skills are
+added to `system.skills` lazily. Adding, renaming or retiring a built-in
+skill means editing four files in lockstep (`config.mjs`, `template.json`,
+`lang/de.json`, `lang/en.json`); retiring one also needs a migration step,
+since an actor's stored `{value, xp}` under the old key has no other way out
+(`migrateDropStealthSkill`, see [migrations.md](migrations.md)).
 
 ## Custom skills
 

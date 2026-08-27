@@ -84,12 +84,34 @@ $c-roll-negative: #c62828;
   // A number only the table knows — the Schadenswert an attacker announced.
   // Above the context picker, since it is the fact the player was just told
   // while the comparison is one they can work out themselves.
+  // Core's `.form-group` lays label and control out as a row with a narrow
+  // label column, which folded "Scharfer Schadenswert (SS)" over three lines
+  // next to a half-width box. The name of the value being asked for is the
+  // whole point of this field, so it gets its own line above a full-width one.
   .tno-required-value-field {
+    flex-direction: column;
+    align-items: stretch;
     margin-bottom: $padding-sm;
+
+    > label {
+      flex: none;
+      margin-bottom: 2px;
+    }
 
     input {
       width: 100%;
     }
+  }
+
+  // Where the number is to be read off. Quiet, and directly under the field it
+  // belongs to: a player who already knows this should be able to skip it, a
+  // player who does not should not have to leave the dialog to find out.
+  .tno-required-value-hint {
+    margin: -#{$padding-sm} 0 $padding-sm;
+    font-size: var(--font-size-10, 10px);
+    line-height: 1.3;
+    color: $c-tan;
+    opacity: 0.8;
   }
 
   // A rule the other side announced. A checkbox rather than a number, because
@@ -113,141 +135,33 @@ $c-roll-negative: #c62828;
     font-variant-numeric: tabular-nums;
   }
 
-  // Ansagen. A list rather than a picker, because any number of them may be
-  // declared at once and each carries its own arithmetic: the row says what it
-  // costs *you* next to what the opponent takes, which are different numbers
-  // whenever the Betrag is out past the rank.
-  //
-  // The whole block starts shut: most attacks declare nothing, and a section
-  // that is nine rows of "0" by default buries the two inputs above it.
-  .tno-ansagen-toggle {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: $padding-sm;
-    width: 100%;
-    padding: 0;
-    border: 0;
-    background: none;
-    text-align: left;
-    cursor: pointer;
-
-    &::after {
-      content: '\25be';
-      font-size: var(--font-size-11, 11px);
-      opacity: 0.6;
-    }
-  }
-
-  .tno-ansagen-open .tno-ansagen-toggle::after {
-    content: '\25b4';
-  }
-
-  // What the shut block is hiding, so shutting it never hides a cost.
-  .tno-ansagen-summary {
-    margin-left: auto;
-    font-size: var(--font-size-11, 11px);
-    font-variant-numeric: tabular-nums;
-    opacity: 0.7;
-  }
-
-  .tno-ansagen-body {
-    display: none;
-  }
-
-  .tno-ansagen-open .tno-ansagen-body {
-    display: block;
-  }
-
+  // Die Ansage: ein Feld, offen sichtbar. Sie war einmal eine Liste aus neun
+  // Zeilen mit eigener Preisrechnung; jetzt einigen sich Spieler und SL vorher
+  // auf die Zahl, und übrig bleibt die Zahl. Rechts davon steht, was sie diesem
+  // Wurf kostet — dieselbe Höhe, die der Gegner abbekommt.
   .tno-ansage-row {
     display: grid;
-    grid-template-columns: 1fr 3.5rem;
+    grid-template-columns: 1fr 3.5rem 3rem;
     align-items: center;
-    gap: 4px $padding-sm;
-    padding: 3px 0;
-
-    & + .tno-ansage-row {
-      border-top: 1px solid rgba($c-dark, 0.08);
-    }
+    gap: $padding-sm;
   }
 
   .tno-ansage-name {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
     font-size: var(--font-size-13, 13px);
     font-weight: bold;
   }
 
-  // Which Manöverfertigkeit governs the 1:1 limit, and at what rank. Quiet, but
-  // present: it is the only thing that explains why the cost is what it is.
-  .tno-ansage-rank {
-    font-size: var(--font-size-11, 11px);
-    font-weight: normal;
-    opacity: 0.7;
-  }
-
-  .tno-ansage-input {
+  .tno-roll-ansage input[type='number'] {
     width: 100%;
     text-align: center;
     font-variant-numeric: tabular-nums;
   }
 
-  // A group is a choice, not a number, so its row trades the narrow Betrag
-  // column for one wide enough to read "Kopf (−6)" in.
-  .tno-ansage-group {
-    grid-template-columns: 1fr 9rem;
-  }
-
-  .tno-ansage-select {
-    width: 100%;
-    font-size: var(--font-size-12, 12px);
-  }
-
   .tno-ansage-readout {
-    grid-column: 1 / -1;
-    min-height: 1.1em;
-    font-size: var(--font-size-11, 11px);
-    opacity: 0.8;
-  }
-
-  // Past the rank the exchange turns 2:1. Marked, because a cost that suddenly
-  // outruns the Betrag otherwise reads as a bug.
-  .tno-ansage-over-rank {
-    color: $c-warning;
-    opacity: 1;
-  }
-
-  .tno-ansage-blocked {
-    opacity: 0.45;
-  }
-
-  // Ansagen auf einer Fertigkeit mit Rang 0. Erlaubt — die allgemeine
-  // Ansageregel rechnet sie zu 1:2 um — aber sie sind nicht das, wonach jemand
-  // sucht, und ohne sie schrumpft der Block eines frischen Charakters von acht
-  // Zeilen auf eine.
-  .tno-ansage-untrained {
-    display: none;
-  }
-
-  .tno-ansagen-show-all .tno-ansage-untrained {
-    display: grid;
-  }
-
-  .tno-ansage-more {
-    width: 100%;
-    margin-top: 4px;
-    padding: 2px 0;
-    border: 1px dashed rgba($c-dark, 0.2);
-    background: none;
-    font-size: var(--font-size-11, 11px);
-    line-height: 1.4;
-    opacity: 0.7;
-    cursor: pointer;
-
-    &:hover {
-      opacity: 1;
-    }
+    text-align: right;
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+    color: $c-roll-negative;
   }
 
   .tno-context-tile-field {
@@ -271,6 +185,10 @@ $c-roll-negative: #c62828;
 
   .tno-context-tile-grid-5 {
     grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .tno-context-tile-grid-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .tno-context-tile-grid-3 {
@@ -315,14 +233,31 @@ $c-roll-negative: #c62828;
       color: $c-primary;
     }
 
+    // A caption that has to say what the choice *does*, rather than just name
+    // it, runs to two or three lines in a three-column grid. Aligning to the top
+    // keeps the tiles' headlines on one line with each other however unevenly
+    // their captions wrap.
     &.has-caption {
       min-height: 58px;
+      align-content: start;
+      padding-top: 6px;
     }
   }
 
+  // Die Stelle trägt keinen Modifikator, also fehlt ihr die Strich-Grafik, die
+  // eine Kontext-Kachel sonst über ihrer Zahl zeigt. Der Name steht oben, die
+  // Schadensregel darunter — "Kopf" und "Stärke ×2" sind dieselbe Entscheidung
+  // von ihren beiden Enden aus gesehen.
+  .tno-zone-field {
+    margin-bottom: $padding-sm;
+  }
+
   .tno-context-tile-caption {
+    padding-inline: 2px;
     font-size: var(--font-size-9, 9px);
-    line-height: 1;
+    line-height: 1.25;
+    text-align: center;
+    text-wrap: balance;
     color: rgba(25, 24, 19, 0.65);
   }
 
@@ -911,8 +846,31 @@ $c-roll-negative: #c62828;
     }
   }
 
-  .sheet-footer {
-    margin-top: $padding-sm;
+  // The answer, pinned. Every section above exists to move this number, and a
+  // player who cannot see it move while they answer is filling in a form
+  // rather than making a decision — which is the whole reason the dialog is one
+  // scrolling page instead of a wizard.
+  //
+  // `bottom` is negative by the form's own padding, and the padding is given
+  // back below, so the opaque strip reaches the true bottom edge instead of
+  // leaving a gap for content to scroll through.
+  .tno-roll-footer {
+    position: sticky;
+    bottom: -$padding-md;
+    z-index: 1;
+    margin: $padding-sm (-$padding-md) (-$padding-md);
+    padding: $padding-sm $padding-md $padding-md;
+    border-top: 1px solid $c-beige;
+    // Solid first: the blur is the nicety, the opacity is the requirement.
+    background: rgb(244, 241, 232);
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(6px);
+
+    // Inside the pinned strip the result box is no longer a block with room
+    // below it — the button is what follows.
+    .tno-roll-result {
+      margin-bottom: $padding-sm;
+    }
   }
 
   // The primary action: $c-primary blue so it visually pops off the dialog
@@ -984,6 +942,114 @@ $c-roll-negative: #c62828;
       font-size: var(--font-size-11, 11px);
       font-weight: normal;
       color: rgba($c-white, 0.75);
+    }
+  }
+
+  /* ---------------------------------------- The questionnaire's own furniture */
+
+  // The two labelled hairlines that split the questions into what you are
+  // handed and what you decide. A caption on a rule rather than a heading of
+  // its own: it groups the sections below it without pretending to be one.
+  .tno-roll-divider {
+    display: flex;
+    align-items: center;
+    gap: $padding-sm;
+    margin: $padding-md 0 $padding-sm;
+    font-size: var(--font-size-9, 9px);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: $c-tan;
+    opacity: 0.6;
+
+    &::before,
+    &::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: $c-beige;
+    }
+  }
+
+  // The gear requirements inside the base section — Handhabung, the SV steps.
+  // Same section as the attribute and the skill because they are the same kind
+  // of thing (facts about this character), hairlined off because they are the
+  // half that was arrived at rather than chosen.
+  .tno-roll-gear-modifiers {
+    margin-top: $padding-sm;
+    padding-top: $padding-sm;
+    border-top: 1px dashed rgba($c-beige, 0.8);
+  }
+
+  // The Ansagen and the scene's modification, closed by default — because
+  // closed *is* the standard attack, and because everything in here is the
+  // player choosing rather than the sheet stating. Shut, its heading still has
+  // to report whatever it carries, which is what the badge is for.
+  .tno-roll-attempt {
+    @include dialog-disclosure;
+    padding: 0;
+
+    > summary {
+      padding: $padding-sm;
+
+      &:hover .tno-roll-section-caption {
+        opacity: 1;
+      }
+
+      .tno-roll-section-caption {
+        margin: 0;
+      }
+    }
+
+    // What a closed block is costing, stated on the line that closed over it.
+    // Its auto margin is also what puts the caret at the right-hand end.
+    .tno-attempt-badge {
+      margin-left: auto;
+      font-size: var(--font-size-10, 10px);
+      font-weight: bold;
+      font-variant-numeric: tabular-nums;
+      color: $c-roll-negative;
+    }
+
+    // An open block indents its controls under the summary rather than beside
+    // it, so the heading stays the row that owns the disclosure.
+    > *:not(summary) {
+      margin-left: $padding-sm;
+      margin-right: $padding-sm;
+    }
+
+    > *:last-child {
+      margin-bottom: $padding-sm;
+    }
+  }
+
+  // The Stelle's price, on the tile that charges it. Sits between the name and
+  // the damage rule because that is the order the decision is read in: where,
+  // what it costs, what it buys.
+  .tno-zone-tile-cost {
+    font-size: var(--font-size-11, 11px);
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+    color: $c-roll-negative;
+
+    // The Torso states its ±0 rather than leaving a gap: "this one is free" is
+    // the fact worth showing beside three tiles that are not.
+    &.is-free {
+      font-weight: normal;
+      color: rgba(25, 24, 19, 0.45);
+    }
+  }
+
+  // The section caption is the question, so the shared picker's own "Wurftyp"
+  // label is redundant here and hidden. Only here: the same string is the right
+  // noun on the chat card, and the radiogroup carries its own `aria-label`, so
+  // nothing is lost from the accessibility tree by dropping the visible one.
+  .tno-roll-rolltype {
+    .tno-advantage-field {
+      margin-bottom: 0;
+    }
+
+    .tno-advantage-field-head > label {
+      display: none;
     }
   }
 }

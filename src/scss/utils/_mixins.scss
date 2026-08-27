@@ -14,3 +14,50 @@
 @mixin hide {
   display: none;
 }
+
+// The disclosure affordance every collapsible block in a TNO dialog wears.
+//
+// Applied to a `<details>`, it styles the `<summary>` alone: the native marker
+// is replaced by a caret that trails the row, so the summary's own caption keeps
+// the left edge and whatever the block wants to report — a badge, a count — can
+// sit between the two. `<details>` still supplies the disclosure itself and all
+// of its keyboard handling; nothing here is scripted.
+//
+// What pushes the caret to the right-hand end is left to the caller, because it
+// depends on what else is in the row: a summary carrying a badge lets the badge
+// take the free space, one carrying only a caption gives it to the caret.
+//
+// Deliberately not applied to the gear sheet's `.gear-validation`: that one is a
+// status line that pops a floating panel upward, which is a different gesture
+// wearing the same element.
+@mixin dialog-disclosure {
+  > summary {
+    display: flex;
+    align-items: center;
+    gap: $padding-sm;
+    list-style: none;
+    cursor: pointer;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &:focus-visible {
+      outline: 2px solid $c-primary;
+      outline-offset: -2px;
+    }
+
+    // The caret, and the only moving part of the summary.
+    &::after {
+      content: '▸';
+      font-size: var(--font-size-10, 10px);
+      color: $c-tan;
+      opacity: 0.7;
+      transition: transform 0.15s ease;
+    }
+  }
+
+  &[open] > summary::after {
+    transform: rotate(90deg);
+  }
+}

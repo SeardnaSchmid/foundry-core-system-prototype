@@ -8,6 +8,7 @@ import { TnoGearSheet } from './sheets/item-gear-sheet.mjs';
 // Import helper/utility classes and constants.
 import { preloadHandlebarsTemplates } from './helpers/templates.mjs';
 import { GEAR_TYPES } from './helpers/items.mjs';
+import { DEFAULT_ITEM_TABLE_CONFIG } from './helpers/item-table.mjs';
 import { TNO } from './helpers/config.mjs';
 import { rollTno, rollTnoBase } from './helpers/dice.mjs';
 import { registerChatListeners } from './helpers/chat.mjs';
@@ -106,6 +107,14 @@ Hooks.once('init', function () {
   // the sheet itself (see the splitter handling in sheets/actor-sheet.mjs),
   // never typed into a form.
   game.settings.register('tno', 'basicsLayout', { scope: 'client', config: false, type: Object, default: BASICS_LAYOUT_DEFAULT });
+
+  // Which columns the Inventar tab's ledger shows and how it is sorted.
+  // Client-scoped and hidden like the layout above: it is a reading preference
+  // picked on the sheet itself, so it follows the person rather than the
+  // character — one player wants prices, another wants armour values, and both
+  // want that on every sheet they open. Nothing here is game state: the sort is
+  // view-only and never touches `item.sort`.
+  game.settings.register('tno', 'itemTableLayout', { scope: 'client', config: false, type: Object, default: DEFAULT_ITEM_TABLE_CONFIG });
 
   game.settings.registerMenu('tno', 'heatmapLabMenu', {
     name: 'TNO.Settings.HeatmapPreset.Name',

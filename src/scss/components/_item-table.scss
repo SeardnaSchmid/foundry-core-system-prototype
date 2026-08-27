@@ -1,0 +1,332 @@
+// The Inventar tab's ledger: every owned object once, grouped by role, with a
+// column set the reader picks.
+//
+// **One grid, not one per group.** The group headings are full-width rows
+// inside the same grid as every data row, which is the only way the columns
+// stay lined up between groups when their contents differ in width. Rows and
+// the header band are `grid-template-columns: subgrid` so each keeps a real box
+// — needed for the row border, the hover state, and `draggable`, none of which
+// a `display: contents` row would have.
+//
+// The track list itself comes from the sheet (`itemTable.gridTemplate`) as an
+// inline style, because the number of columns is the reader's choice and Sass
+// cannot know it.
+
+// The toolbar shares the Basics tab's section-header rhythm and adds the two
+// controls this list needs: a name filter and the column picker. Both borrow
+// the skills header's vocabulary — the same act, so the same shape.
+.item-table-header {
+  gap: 6px;
+
+  // First control after the title pushes itself, and the two that follow it,
+  // to the row's right edge. `.section-add` carries its own `margin-left: auto`
+  // for the headers where it is the only control; here it must not also spread
+  // the cluster apart, so it is taken back.
+  .item-search-input {
+    margin-left: auto;
+  }
+
+  .section-add {
+    margin-left: 0;
+  }
+
+  .item-search-input {
+    flex: 0 1 150px;
+    min-width: 0;
+    // Foundry core gives text inputs a 32px line-height, which would leave the
+    // field half again as tall as the button beside it. Boxed by hand from the
+    // same numbers as `.item-columns-toggle`.
+    height: auto;
+    margin-right: 0;
+    padding: 4px 7px;
+    border: 1px solid $c-beige;
+    border-radius: 3px;
+    background: transparent;
+    color: $c-tan;
+    font-size: var(--font-size-10, 10px);
+    line-height: 1.25;
+
+    &::placeholder {
+      color: $c-tan;
+      opacity: 0.5;
+      font-style: italic;
+    }
+
+    &:hover,
+    &:focus {
+      border-color: $c-tan;
+      box-shadow: none;
+    }
+  }
+
+  .item-columns-toggle {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 7px;
+    border: 1px solid $c-beige;
+    border-radius: 3px;
+    color: $c-tan;
+    font-size: var(--font-size-10, 10px);
+    font-weight: bold;
+    letter-spacing: 0.02em;
+    line-height: 1.25;
+    text-transform: uppercase;
+    white-space: nowrap;
+
+    &:hover {
+      border-color: $c-tan;
+      color: $c-dark;
+    }
+  }
+}
+
+// A wide column set is wider than the sheet, so the table scrolls sideways in
+// its own box. Sideways only: the character sheet's single vertical scroll
+// owner is `.window-content` (see the `.tab.items` override in _forms.scss),
+// which is also why nothing in here is `position: sticky` — a sticky header
+// needs the box it sticks inside to be the one being scrolled, and this one
+// never is.
+.item-table-scroll {
+  overflow-x: auto;
+  margin: 4px 0 2px;
+}
+
+.item-table {
+  display: grid;
+  min-width: 100%;
+  color: $c-dark;
+  font-size: var(--font-size-12, 12px);
+}
+
+.item-thead,
+.item-row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+}
+
+.item-thead {
+  height: 26px;
+  border: $border-groove;
+  background: #efeee2;
+  font-weight: bold;
+}
+
+.item-th {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 0 6px;
+  color: $c-tan;
+  font-size: var(--font-size-11, 11px);
+
+  &.numeric {
+    justify-content: center;
+  }
+
+  // The column the table is currently ordered by, marked on the caption rather
+  // than down the column: the order is a property of the header that was
+  // clicked, and tinting a whole column would compete with the n/a hatching.
+  &.sorted {
+    color: $c-dark;
+  }
+
+  &.item-table-sort:hover {
+    color: $c-dark;
+    text-decoration: underline;
+  }
+
+  .item-th-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+// A full-width band between the groups, carrying the role's name and the two
+// totals worth adding up over it.
+.item-group {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 3px 6px;
+  border-bottom: 1px solid $c-beige;
+  background: rgba($c-dark, 0.05);
+
+  .item-group-name {
+    font-size: var(--font-size-12, 12px);
+    font-weight: bold;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+}
+
+// Said rather than left blank: an empty group is an answer ("none of those"),
+// and the quiet dashed box is the same one an empty armour zone uses.
+.item-group-empty {
+  grid-column: 1 / -1;
+  margin: 4px 6px;
+  padding: 6px 10px;
+  border: 1px dashed rgba($c-dark, 0.18);
+  border-radius: 4px;
+  color: $c-beige;
+  font-size: var(--font-size-11, 11px);
+  font-style: italic;
+}
+
+.item-table-nomatch {
+  margin: 10px 6px;
+  padding: 14px 12px;
+  border: 1px dashed rgba($c-dark, 0.2);
+  border-radius: 4px;
+  color: $c-tan;
+  font-style: italic;
+  text-align: center;
+}
+
+.item-row {
+  min-height: 26px;
+  border-bottom: 1px solid $c-faint;
+  cursor: grab;
+
+  &:hover {
+    background: rgba($c-white, 0.5);
+  }
+
+  // Worn gear is on the body and exempt from the slot economy — the same green
+  // the paper doll and the armour rows use, so the state reads as one thing
+  // across every view that shows it.
+  &.is-worn .item-state {
+    color: $c-ready;
+  }
+}
+
+.item-td {
+  min-width: 0;
+  padding: 3px 6px;
+  font-variant-numeric: tabular-nums;
+
+  &.numeric {
+    text-align: center;
+  }
+
+  // Three different silences, and telling them apart is the point. A hatched
+  // cell is a question this row cannot be asked — an armour value on a weapon.
+  &.is-na {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      transparent 0 3px,
+      rgba($c-dark, 0.07) 3px 5px
+    );
+    color: $c-beige;
+    font-size: var(--font-size-10, 10px);
+  }
+
+  // A dash is a field this row *could* answer that nobody has filled in — see
+  // the null-versus-zero rule in item-roles.md.
+  &.is-blank {
+    color: $c-beige;
+  }
+
+  // Required values still open on the item.
+  &.is-warn {
+    color: $c-warning;
+    font-weight: bold;
+  }
+}
+
+.item-td-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  .inventory-item-icon {
+    flex: 0 0 16px;
+    color: $c-tan;
+    font-size: var(--font-size-14, 14px);
+    text-align: center;
+  }
+
+  .item-row-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+// The controls column keeps the width it is given in the track list, so the
+// icons stay in one line all the way down whatever else is switched on.
+.item-table .item-controls {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+  padding-right: 6px;
+
+  a,
+  .item-state,
+  .item-control {
+    font-size: var(--font-size-12, 12px);
+  }
+
+  .item-state {
+    cursor: default;
+  }
+}
+
+// The column picker. It wears `.item-popover` for the frame and only
+// specializes what is its own — the same split `money-popover` uses.
+&.item-popover.columns-popover {
+  width: min(280px, calc(100vw - 16px));
+
+  h4 {
+    margin: 0;
+    font-size: var(--font-size-13, 13px);
+  }
+
+  .columns-popover-hint {
+    margin: 0;
+    padding: 7px 10px 0;
+    color: $c-tan;
+    font-size: var(--font-size-11, 11px);
+    line-height: 1.35;
+  }
+
+  .columns-popover-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 8px 10px 10px;
+  }
+
+  .columns-popover-section h5 {
+    margin: 0 0 3px;
+    border-bottom: 1px solid rgba($c-dark, 0.14);
+    color: $c-tan;
+    font-size: var(--font-size-10, 10px);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .columns-popover-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 1px 0;
+    font-size: var(--font-size-12, 12px);
+    cursor: pointer;
+
+    input {
+      flex: 0 0 auto;
+      width: 13px;
+      height: 13px;
+      margin: 0;
+    }
+  }
+}

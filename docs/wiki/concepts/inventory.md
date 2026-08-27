@@ -3,7 +3,7 @@ type: concept
 title: Inventory (carrying and wearing)
 description: Carrying, wearing, and the character wallet on the Basics sheet.
 tags: [inventory, armor, slots, equipment, money, currency, derived-data]
-resource: [module/helpers/inventory.mjs, module/helpers/money.mjs, module/documents/actor.mjs, module/sheets/actor-sheet.mjs]
+resource: [module/helpers/inventory.mjs, module/helpers/item-table.mjs, module/helpers/money.mjs, module/documents/actor.mjs, module/sheets/actor-sheet.mjs]
 spec: docs/design/character-sheet-prd.md
 related: [concepts/attributes, concepts/item-roles, reference/ui-surfaces, architecture/data-schema]
 ---
@@ -265,10 +265,10 @@ this view, so the cells are promoted into the keyboard tab order along with the
 sheet's other custom chips (`_makeKeyboardAccessible`).
 
 New gear is authored through one dialog (`_promptCreateItem`, opened by the
-`+` in the grid header), and it asks only for a name. The Inventar tab is
-currently a WIP placeholder rather than a second administrative table.
-Everything is created as type `item`, and what the thing *does* is roles it
-takes on afterwards, on its own sheet — see [item-roles.md](item-roles.md).
+`+` in the grid header or by the same control on the Inventar tab): a name, and
+a card for what the thing is. Everything is created as type `item` whatever card
+is picked — the cards set `system.roles`, which the item's own sheet can change
+again — see [item-roles.md](item-roles.md).
 
 **The grid holds exactly as many cells as the character has slots.** There is
 no padding out to the raster width — a capacity of 6 in a five-wide grid simply
@@ -291,3 +291,69 @@ armour on top. The silhouette column closes with the character's compact Dodge
 action; the icon and value sit directly beneath the figure because Dodge belongs
 to no hit location. The silhouette and the resistance icon in each zone row
 remain the location-specific Resistance entry points.
+
+## The ledger
+
+The Basics tab's two views show a piece only while it is in that state. The
+Inventar tab is the ledger behind them: every object the character owns appears
+there **exactly once**, whatever state it is in, which is what makes a piece
+that is neither worn nor carried reachable at all.
+
+[`module/helpers/item-table.mjs`](../../../module/helpers/item-table.mjs) holds
+it, composed from `items.mjs` and `inventory.mjs` and free of Foundry globals
+for the same reason they are: it returns raw values and an ordering, and the
+sheet turns those into words. That split is what keeps `game.i18n` out of the
+table's rules and the rules out of the template.
+
+| Export | Responsibility |
+| --- | --- |
+| `ITEM_TABLE_COLUMNS` | The column catalogue: every gear field the picker offers, with the section it is listed under, its caption and hint keys, and the role a row must carry for it to mean anything |
+| `ITEM_TABLE_GROUPS` | `weapon`, `armor`, `consumable`, `plain` — the group order |
+| `DEFAULT_ITEM_TABLE_CONFIG` / `normalizeItemTableConfig` | What a sheet shows before anyone picks, and how a stored layout is brought back to something renderable |
+| `toggleItemTableColumn` / `nextItemTableSort` | The picker's and the header's one-step transitions |
+| `columnCell(item, key, {worn})` | `{applies, value, sort}` for one cell |
+| `buildItemGroups(items, {worn, columns, sort, collator})` | The whole table: groups, rows, and the two totals worth summing |
+
+**Grouped by role, and only by role.** Roles are mutually exclusive
+([item-roles.md](item-roles.md)), so the groups are a reading of the one list
+rather than four lists that could disagree — an item cannot appear twice, and
+none can fall out. Every group renders even when it holds nothing: that a
+character owns no armour is an answer, and a heading that vanishes would have
+to be read as "that group is gone" instead.
+
+**Three kinds of silence, and keeping them apart is the whole job.**
+
+- A column the row cannot be *asked* is `applies: false`, painted as a hatched
+  `n/a`. Four rules produce it: the column belongs to a role the piece has not
+  taken on; DK and RB are melee questions and RD a ranged one, so only the use
+  the weapon has answers them; the Unterkleidung has no Rüstungshärte and covers
+  no single location, so RH and RA are values a suit cannot have (the same
+  exception `missingRequired` makes); and worn gear is exempt from the slot
+  economy, so its footprint is not zero but not a question.
+- A column it could answer that nobody filled in is `value: null`, painted as a
+  dash. `isAuthoredNumber` guards every read, because `Number(null)` is 0 and
+  the nullable fields exist precisely so that blank and the lowest step stay
+  different answers.
+- Everything else is a figure.
+
+Nothing is hidden per row — the grid keeps its shape down the list, which is
+also why the whole table is a single CSS grid with `subgrid` rows rather than
+one grid per group.
+
+**Sorting is a view concern and never writes `item.sort`.** That field is the
+order the carry raster packs from, so a header click here would otherwise
+silently repack a raster the player arranged by hand in the other tab. The same
+reasoning disables in-table drop-sorting (`_onSortItem` bails inside
+`.item-table`): a row in a role-grouped, column-sorted table has no position to
+be dropped into. Rows stay draggable so a piece can still be dragged out onto
+the hotbar or another actor.
+
+Values the column cannot answer sort **last in both directions**. Sorting by RH
+to find the hardest armour and sorting to find the softest are the same act of
+pulling the pieces that have an RH to the top, and a descending sort that opened
+with a screenful of `n/a` would answer neither question.
+
+**The layout is a per-user client setting**, `tno.itemTableLayout`, registered
+beside `basicsLayout` in [`tno.mjs`](../../../module/tno.mjs). Which columns
+someone reads is a property of the reader rather than of the character, so it
+follows them to every sheet they open. Nothing in it is game state.

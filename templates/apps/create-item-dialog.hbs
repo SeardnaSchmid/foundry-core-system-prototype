@@ -1,0 +1,33 @@
+{{!-- The add-to-inventory dialog: a name, and what the thing is.
+
+The cards are **not** a type picker, which is the thing this system does not
+have — see `docs/wiki/concepts/item-roles.md`. A Foundry type is fixed at
+creation; a role is a chip on the item's own sheet that can be switched to
+another or turned off entirely. So picking one here only saves the first click
+on the sheet that opens next, and getting it wrong costs nothing.
+
+"Gegenstand" is preselected because a plain object with no role at all is the
+common case, and because a required radio with nothing chosen would make the
+picker a step rather than an offer. --}}
+
+<header class='create-item-head'>
+  <input
+    type='text'
+    class='create-item-name'
+    name='name'
+    autofocus
+    placeholder='{{localize "TNO.Inventory.AddName"}}'
+  />
+</header>
+
+<div class='create-item-roles' role='radiogroup' aria-label='{{localize "TNO.Inventory.AddRole"}}'>
+  {{#each roleCards}}
+    <label class='create-item-role'>
+      <i class='fa-solid {{this.icon}}' inert></i>
+      <span>{{localize this.label}}</span>
+      <input type='radio' name='role' value='{{this.key}}' {{#if this.selected}}checked{{/if}} />
+    </label>
+  {{/each}}
+</div>
+
+<p class='create-item-hint'>{{localize 'TNO.Inventory.AddRoleHint'}}</p>

@@ -282,14 +282,12 @@ export function envelopeLines(envelope) {
   if (!envelope?.from) return null;
 
   const lines = [];
-  const penalty = (key, label) => {
-    if (envelope[key] > 0) lines.push(game.i18n.format(label, { value: envelope[key] }));
-  };
-  // Parry and dodge are listed apart because they can differ: a Weiter Schwung
-  // worsens only the dodge, a Starker Schwung only the parry and the resistance.
-  penalty('parry', 'TNO.Combat.Envelope.Parry');
-  penalty('dodge', 'TNO.Combat.Envelope.Dodge');
-  penalty('resistance', 'TNO.Combat.Envelope.Resistance');
+  // One figure, not one per defence. Which of the defender's rolls it lands on
+  // was settled out loud when the two players agreed the number, and a card that
+  // split it three ways would be claiming knowledge nothing here has.
+  if (envelope.ansage > 0) {
+    lines.push(game.i18n.format('TNO.Combat.Envelope.Ansage', { value: envelope.ansage }));
+  }
 
   // Information only: reach is a shared observation each side answers for
   // itself, but this is the fact it is answered from.
@@ -297,7 +295,6 @@ export function envelopeLines(envelope) {
 
   const zone = envelope.zone ?? 'torso';
   lines.push(game.i18n.localize(CONFIG.TNO.armorZones[zone] ?? CONFIG.TNO.armorZones.torso));
-  if (envelope.bypassArmor) lines.push(game.i18n.localize('TNO.Combat.Envelope.BypassArmor'));
 
   // The three weapon numbers the penetration comparison needs. The defender owns
   // the other half of it — their RH — and therefore makes the comparison.
