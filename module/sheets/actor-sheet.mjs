@@ -292,12 +292,10 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // The Haltung picker. Rendered as its own control rather than folded into
     // a defence action because it is announced *before* anything is rolled —
     // "kündigt er zuerst seine beabsichtigte Handlung und Haltung an" — and it
-    // is the one value the defence side of an exchange cannot do without.
-    context.stanceOptions = Object.entries(CONFIG.TNO.stances).map(([key, stance]) => ({
-      key,
-      label: game.i18n.localize(stance.label),
-      selected: key === context.system.derived?.stance,
-    }));
+    // is the one value the defence side of an exchange cannot do without. The
+    // banner only carries the Haltung in force; the nine to choose from live in
+    // the popover, which is built on demand by `#stancePopoverContext`.
+    context.stance = this.#stanceEntry(context.system.derived?.stance);
     const dodgeAvailable = context.system.derived?.defenses?.dodge?.available === true;
     const dodgeMalus = Number(context.system.derived?.defenses?.dodge?.malus) || 0;
     context.dodgeDefense = {
@@ -1135,7 +1133,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    */
   #mountPopovers() {
     const host = this.#hostDocument();
-    for (const popover of [this._itemPopover, this._moneyPopover, this._columnsPopover]) {
+    for (const popover of [this._itemPopover, this._moneyPopover, this._columnsPopover, this._stancePopover]) {
       if (!popover || popover.ownerDocument === host) continue;
       if (popover.matches(':popover-open')) popover.hidePopover();
       host.body.append(popover);
@@ -1204,6 +1202,104 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       this._columnsPopoverAnchor = this.element.querySelector('.item-columns-toggle');
     }
     this.#positionPopover(this._columnsPopover, this._columnsPopoverAnchor);
+  }
+
+  /**
+   * One Haltung as the banner and the picker display it. Falls back to the
+   * default Haltung for an unknown key, so a sheet whose stored stance predates
+   * a config change still shows something rather than an empty pill.
+   * @param {string} key
+   * @returns {{key: string, label: string, icon: string, effect: string, defenses: string}}
+   * @private
+   */
+  #stanceEntry(key) {
+    const stances = CONFIG.TNO.stances;
+    const resolved = key in stances ? key : CONFIG.TNO.defaultStance;
+    const stance = stances[resolved];
+    const defenses = stance.defenses.map((defense) => game.i18n.localize(
+      defense === 'parry' ? 'TNO.Combat.Parry' : 'TNO.Combat.Dodge'
+    ));
+    return {
+      key: resolved,
+      label: game.i18n.localize(stance.label),
+      icon: stance.icon,
+      effect: game.i18n.localize(stance.effect),
+      // The single question the defence side of an exchange asks the Haltung.
+      defenses: defenses.length
+        ? defenses.join(' · ')
+        : game.i18n.localize('TNO.Combat.StanceDefenseNone'),
+    };
+  }
+
+  /** The nine Haltungen in their bands, plus whichever one the panel reads out. */
+  #stancePopoverContext() {
+    const current = this.#stanceEntry(this.actor.system.derived?.stance);
+    const entries = Object.keys(CONFIG.TNO.stances).map((key) => ({
+      ...this.#stanceEntry(key),
+      group: CONFIG.TNO.stances[key].group,
+      selected: key === current.key,
+    }));
+    return {
+      detail: current,
+      groups: CONFIG.TNO.stanceGroups
+        .map((group) => ({
+          label: game.i18n.localize(group.label),
+          stances: entries.filter((entry) => entry.group === group.key),
+        }))
+        .filter((group) => group.stances.length),
+    };
+  }
+
+  /** Redraw the picker so its selected option matches the Haltung in force. */
+  async #refreshStancePopover() {
+    const popover = this._stancePopover;
+    if (!popover) return;
+    popover.innerHTML = await foundry.applications.handlebars.renderTemplate(
+      'systems/tno/templates/actor/parts/stance-popover.hbs',
+      this.#stancePopoverContext()
+    );
+    popover.setAttribute('aria-label', game.i18n.localize('TNO.Combat.StancePick'));
+  }
+
+  /** Open the picker beneath the banner's Haltung chip. */
+  async #openStancePopover(anchor) {
+    if (!this._stancePopover) return;
+    this.#mountPopovers();
+    this._stancePopoverAnchor = anchor;
+    await this.#refreshStancePopover();
+    if (!this._stancePopover.matches(':popover-open')) this._stancePopover.showPopover();
+    this._stancePopover.querySelector('.stance-option.selected')?.focus();
+    this.#positionStancePopover();
+  }
+
+  /** Keep the picker beside its chip across re-renders and window moves. */
+  #positionStancePopover() {
+    if (!this._stancePopover?.matches(':popover-open')) return;
+    if (!this._stancePopoverAnchor?.isConnected) {
+      this._stancePopoverAnchor = this.element.querySelector('.chip-stance');
+    }
+    this.#positionPopover(this._stancePopover, this._stancePopoverAnchor);
+  }
+
+  /**
+   * Preview a Haltung in the detail panel without committing to it. Written
+   * straight into the DOM rather than through a re-render: the panel changes on
+   * every pointer move across the grid, and re-rendering the popover under the
+   * cursor would fight the hover it is reacting to.
+   * @param {HTMLElement|null} option
+   * @private
+   */
+  #previewStance(option) {
+    const popover = this._stancePopover;
+    if (!popover) return;
+    const source = option ?? popover.querySelector('.stance-option.selected');
+    if (!source) return;
+    const { stanceIcon, stanceName, stanceEffect, stanceDefenses } = source.dataset;
+    const icon = popover.querySelector('.stance-detail-icon i');
+    if (icon) icon.className = `fa-solid ${stanceIcon}`;
+    popover.querySelector('.stance-detail-name').textContent = stanceName;
+    popover.querySelector('.stance-detail-effect').textContent = stanceEffect;
+    popover.querySelector('.stance-detail-defenses span').textContent = stanceDefenses;
   }
 
   /** Build the popover's template context from the live embedded item. */
@@ -1518,6 +1614,40 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       if (event.newState === 'closed') this._columnsPopoverAnchor = null;
     });
 
+    // The Haltung picker. All nine at once, because the choice is made under
+    // time pressure and a collapsed list shows one of them at a time.
+    this._stancePopover = host.createElement('div');
+    this._stancePopover.className = 'tno item-popover stance-popover';
+    this._stancePopover.setAttribute('popover', 'auto');
+    host.body.append(this._stancePopover);
+    this._stancePopover.addEventListener('click', async (event) => {
+      const stance = event.target.closest('[data-stance]')?.dataset.stance;
+      if (!stance) return;
+      event.preventDefault();
+      // Picking the Haltung already in force is not a no-op: the rules make
+      // taking one — "auch dieselbe noch einmal" — clear both repeated-defence
+      // counters, which is why every option here is a button.
+      this._stancePopover.hidePopover();
+      await takeStance(this.actor, stance);
+    });
+    this._stancePopover.addEventListener('pointerover', (event) => {
+      this.#previewStance(event.target.closest('[data-stance]'));
+    });
+    this._stancePopover.addEventListener('focusin', (event) => {
+      this.#previewStance(event.target.closest('[data-stance]'));
+    });
+    // Leaving the grid puts the Haltung in force back in the panel, so the
+    // popover never sits there describing an option nobody is pointing at.
+    this._stancePopover.addEventListener('pointerleave', () => this.#previewStance(null));
+    this._stancePopover.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && this._stancePopover.matches(':popover-open')) event.stopPropagation();
+    });
+    this._stancePopover.addEventListener('toggle', (event) => {
+      const chip = this.element?.querySelector('.chip-stance');
+      chip?.setAttribute('aria-expanded', String(event.newState === 'open'));
+      if (event.newState === 'closed') this._stancePopoverAnchor = null;
+    });
+
     // Custom clickable chips (anchors without `href`, plus `.skill-info` and
     // the carry grid's cells) are promoted to real keyboard targets in
     // _onRender; this forwards their Enter/Space to the same click listeners
@@ -1701,20 +1831,13 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       this.render();
     }, editable);
 
-    // Taking a different Haltung is immediate. This is deliberately not
-    // form-bound: the stance is combat state, not an edit waiting for submit.
-    this.#delegate('change', '.chip-stance-select', async (event, target) => {
-      await takeStance(this.actor, target.value);
-    }, editable);
-
-    // A native select emits no change event when its current option is chosen
-    // again. The rules explicitly make that a real Haltung change because it
-    // clears both repeated-defence counters, so owners get a separate repeat
-    // action for the currently displayed value.
-    this.#delegate('click', '.chip-stance-retake', async (event, target) => {
+    // The banner chip only opens the picker; taking the Haltung happens in the
+    // popover and is immediate. Deliberately not form-bound: the Haltung is
+    // combat state, not an edit waiting for submit.
+    this.#delegate('click', '.chip-stance', (event, target) => {
       event.preventDefault();
-      const select = target.closest('.chip-stance')?.querySelector('.chip-stance-select');
-      if (select) await takeStance(this.actor, select.value);
+      if (this._stancePopover?.matches(':popover-open')) this._stancePopover.hidePopover();
+      else this.#openStancePopover(target);
     }, editable);
 
     // Heatmap +/- steppers: adjust temp (value) by default, or base while
@@ -1936,6 +2059,13 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       await this.#refreshColumnsPopover();
       this.#positionColumnsPopover();
     }
+    // Taking a Haltung re-renders the sheet. The picker is normally closed by
+    // then, but it survives a render the actor caused elsewhere — so redraw it
+    // from the Haltung now in force rather than leaving a stale selection.
+    if (this._stancePopover?.matches(':popover-open')) {
+      await this.#refreshStancePopover();
+      this.#positionStancePopover();
+    }
   }
 
   /** @inheritDoc */
@@ -1949,6 +2079,9 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (this._columnsPopover?.matches(':popover-open')) this._columnsPopover.hidePopover();
     this._columnsPopover?.remove();
     this._columnsPopover = null;
+    if (this._stancePopover?.matches(':popover-open')) this._stancePopover.hidePopover();
+    this._stancePopover?.remove();
+    this._stancePopover = null;
     return super._onClose(options);
   }
 

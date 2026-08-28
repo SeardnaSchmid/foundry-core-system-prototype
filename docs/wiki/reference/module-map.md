@@ -62,7 +62,7 @@ Entry point, no exports (side-effecting init). See
 | --- | --- | --- |
 | `roll-dialog.mjs` | `TnoRollDialog extends FormApplication` | Skill/ability/free/fixed roll builder |
 | `base-roll-dialog.mjs` | `TnoBaseRollDialog extends FormApplication` | Bare 3d20 dialog, no actor/threshold required |
-| `roll-dialog-shared.mjs` | `advantageOptions`, `bindAdvantagePicker` | Advantage picker UI shared by the two roll dialogs above |
+| `roll-dialog-shared.mjs` | `advantageOptions`, `bindRadioGroup`, `renderSignedChips` | Shared button-radiogroup behaviour for roll type and attribute choice, plus injection-safe signed component chips for the full dialog |
 | `advance-dialog.mjs` | `TnoAdvanceDialog extends FormApplication` | See [advancement.md](../concepts/advancement.md) |
 | `heatmap-lab.mjs` | `TnoHeatmapLab extends FormApplication` | See [heatmap.md](../concepts/heatmap.md) |
 | `custom-skill-dialog.mjs` | `TnoCustomSkillDialog extends FormApplication` | Add/edit a custom skill — see [skills.md](../concepts/skills.md) |

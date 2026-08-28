@@ -95,6 +95,21 @@ describe('TnoRollDialog pre-roll context', () => {
     });
     expect(rangeDialog.preRollContext).toMatchObject({ control: 'tiles', tileLabels: true, tileColumns: 5 });
   });
+
+  it('accepts a binary toggle only for exactly two choices', () => {
+    const context = (choices, control = 'toggle') => new TnoRollDialog(actor, {
+      fixedValue: { label: 'Base', value: 8 },
+      preRollContext: { label: 'Longer weapon?', control, choices },
+    }).preRollContext.control;
+    const choices = [
+      { key: 'no', label: 'No', value: 0 },
+      { key: 'yes', label: 'Yes', value: 3 },
+    ];
+
+    expect(context(choices)).toBe('toggle');
+    expect(context([...choices, { key: 'maybe', label: 'Maybe', value: 0 }])).toBe('tiles');
+    expect(context(choices, 'select')).toBe('select');
+  });
 });
 
 /** An actor whose worn armour may or may not outweigh its Strength. */
@@ -484,6 +499,97 @@ describe('TnoRollDialog required value', () => {
   // a number the attacker announced, and the table has already agreed on it.
   it('leaves the announced value outside the situational modifier clamp', () => {
     expect(resistance()._computeThreshold(form({ attributeA: 'str', requiredValue: 40 }))).toBe(-32);
+  });
+
+  it('shows no threshold or odds until every required answer is present', () => {
+    const dialog = new TnoRollDialog(armoured(false), {
+      attributeA: 'str',
+      lockAttribute: true,
+      fixedModifiers: [{ label: 'RW (Kopf)', value: 3 }],
+      preRollContext: {
+        label: 'Durchdringung?',
+        control: 'tiles',
+        choices: [
+          { key: 'equal', label: 'Gleich', value: 0 },
+          { key: 'harder', label: 'Härter', value: 3 },
+        ],
+      },
+      requiredValue: {
+        label: 'Schadenswert',
+        labels: { equal: 'Wucht-Schadenswert', harder: 'Wucht-Schadenswert' },
+        sign: -1,
+        min: 0,
+      },
+    });
+
+    expect(dialog._thresholdReadout(form({ attributeA: 'str' }))).toEqual({
+      ready: false,
+      threshold: null,
+      thresholdDisplay: '—',
+      oddsLabel: '',
+      oddsPercent: 0,
+      oddsTooltip: '',
+      missingLabel: 'Schadenswert',
+    });
+    expect(dialog._thresholdReadout(form({ attributeA: 'str', requiredValue: 7 })))
+      .toMatchObject({ ready: false, thresholdDisplay: '—', missingLabel: 'Durchdringung?' });
+    expect(dialog._thresholdReadout(form({ attributeA: 'str', contextChoice: 'harder' })))
+      .toMatchObject({ ready: false, thresholdDisplay: '—', missingLabel: 'Wucht-Schadenswert' });
+
+    const ready = dialog._thresholdReadout(form({
+      attributeA: 'str',
+      contextChoice: 'harder',
+      requiredValue: 7,
+    }));
+    expect(ready).toMatchObject({ ready: true, threshold: 4, thresholdDisplay: '4', missingLabel: '' });
+    expect(ready.oddsLabel).not.toBe('');
+    expect(ready.oddsPercent).toBeGreaterThan(0);
+  });
+});
+
+describe('TnoRollDialog presentation helpers', () => {
+  it('keeps breakdown parts, text and threshold arithmetic in lockstep', () => {
+    const dialog = new TnoRollDialog(armoured(false), {
+      attributeA: 'str',
+      skill: { key: 'swords', label: 'Schwerter', value: 4 },
+      fixedModifiers: [{ label: 'Handhabung', value: 1 }],
+      ansage: { label: 'Ansage' },
+    });
+    const data = form({ attributeA: 'str', ansage: 2, bonus: 3 });
+    const parts = dialog._breakdownParts(data);
+
+    expect(parts.reduce((sum, part) => sum + part.value, 0)).toBe(dialog._computeThreshold(data));
+    expect(dialog._breakdownText(data)).toBe(parts.map((part) => `${part.label} ${part.display}`).join(' + '));
+  });
+
+  it('derives dividers only from sections on their far side', () => {
+    const combat = new TnoRollDialog(armoured(false), {
+      attributeA: 'str',
+      preRollContext: {
+        label: 'Distanz?',
+        choices: [{ key: 'near', label: 'Nah', value: 0 }],
+      },
+      ansage: { label: 'Ansage' },
+    });
+    const skill = new TnoRollDialog(armoured(false), {
+      attributeA: 'str',
+      skill: { key: 'swords', label: 'Schwerter', value: 4 },
+    });
+    const fixed = new TnoRollDialog(armoured(false), { fixedValue: { label: 'Fest', value: 8 } });
+
+    expect(combat._sectionFlags()).toMatchObject({ hasGivenDivider: true, hasChosenDivider: true });
+    expect(skill._sectionFlags()).toMatchObject({ hasGivenDivider: false, hasChosenDivider: true });
+    expect(fixed._sectionFlags()).toMatchObject({ hasGivenDivider: false, hasChosenDivider: false });
+  });
+
+  it('uses the adjustment question when the section only contains the stepper', () => {
+    const simple = new TnoRollDialog(armoured(false), { attributeA: 'str' });
+    const declared = new TnoRollDialog(armoured(false), {
+      attributeA: 'str',
+      ansage: { label: 'Ansage' },
+    });
+    expect(simple._attemptQuestionKey()).toBe('TNO.Roll.Question.Adjust');
+    expect(declared._attemptQuestionKey()).toBe('TNO.Roll.Question.Attempt');
   });
 });
 

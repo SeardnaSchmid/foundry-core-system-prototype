@@ -22,9 +22,10 @@ related: [reference/module-map]
 | `actor/parts/item-popover.hbs` | The actor-sheet item popover: the shared view-mode card plus the live item actions |
 | `actor/parts/money-popover.hbs` | Body-level five-currency wallet editor with money forms, rates and live euro conversions; reuses the item-popover component structure |
 | `actor/parts/columns-popover.hbs` | The Inventar table's column picker, the third body-level popover; reuses the item-popover frame and specializes only the checkbox sections |
-| `apps/roll-dialog.hbs` | `TnoRollDialog`, laid out as six headed questions sorted by who owns the answer — see [the section order](../concepts/combat-roll-workflows.md#the-dialogs-six-questions) |
-| `apps/base-roll-dialog.hbs` | `TnoBaseRollDialog` |
-| `apps/parts/advantage-picker.hbs` | Included by both roll dialogs, via `roll-dialog-shared.mjs` |
+| `actor/parts/stance-popover.hbs` | The Haltung picker, the fourth body-level popover: all nine Haltungen as buttons in the bands `CONFIG.TNO.stanceGroups` names, beside a detail panel that reads out the hovered one and the defence it permits. Opened from the banner's Haltung chip |
+| `apps/roll-dialog.hbs` | `TnoRollDialog`, laid out as six labelled `<section>` questions sorted by who owns the answer, with attribute/range radiogroups and a truthful pending-or-ready sticky footer — see [the section order](../concepts/combat-roll-workflows.md#the-dialogs-six-questions) |
+| `apps/base-roll-dialog.hbs` | `TnoBaseRollDialog`; shares the full dialog's footer and radiogroup control styles |
+| `apps/parts/advantage-picker.hbs` | Included by both roll dialogs; its button radiogroup and the attribute heatmap are wired by `bindRadioGroup` in `roll-dialog-shared.mjs` |
 | `apps/create-item-dialog.hbs` | The add-to-inventory `DialogV2` opened by `_promptCreateItem` — name plus the four role cards, see [item-roles.md](../concepts/item-roles.md) |
 | `apps/advance-dialog.hbs` | `TnoAdvanceDialog` |
 | `apps/heatmap-lab.hbs` | `TnoHeatmapLab` |
@@ -88,7 +89,7 @@ them in step with `BASICS_LAYOUT_DEFAULT`.
 | `components/_items.scss` | The two plain lists left on the Inventar tab — Merkmale and Active Effects — plus the tab's own spacing |
 | `components/_item-table.scss` | The Inventar tab's gear ledger: toolbar, the single CSS grid the header band, group bands and `subgrid` rows all share, the hatched n/a cell, and the column picker's popover body |
 | `components/_item-dialog.scss` | Both gear views: overview cards/profiles/actions plus the editor's label column, scales, cycleable range bands, repeatable consumable effects, resizable description editor, chips, segments, splits and steppers. Also the add-to-inventory dialog (`&.create-item-dialog`), which reuses the same name-as-title input and selected-chip colours. Nested with `&.gear-dialog` / `&.create-item-dialog` because those classes sit on the window root alongside `tno`, not inside it |
-| `components/_item-popover.scss` | The view-mode card in both its homes — the actor sheet's top-layer popover (`&.item-popover`) and the chat card (`&.item-chat-summary`) — plus the wallet editor variant (`&.item-popover.money-popover`). Header, value tiles, detail rows and action bar are shared |
+| `components/_item-popover.scss` | The view-mode card in both its homes — the actor sheet's top-layer popover (`&.item-popover`) and the chat card (`&.item-chat-summary`) — plus the wallet editor (`&.item-popover.money-popover`) and Haltung picker (`&.item-popover.stance-popover`) variants. Header, value tiles, detail rows and action bar are shared |
 | `components/_inventory.scss` | The paper doll and its Dodge action, compact borderless wallet, Kleinkram column and Trageslots grid — see [inventory.md](../concepts/inventory.md). The narrower padding they take inside a Basics column is set on `.basics-cell` in `_forms.scss`, not here |
 | `components/_effects.scss` | Active effect list rendering |
 | `components/_tooltip.scss` | Both halves of the rich `data-tooltip-html` tooltip: the `.tno-tooltip` card itself, declared at the top level of `tno.scss` because Foundry mounts `#tooltip` on `<body>` outside any `.tno` element, and `.tno-tooltip-hint`, the dotted underline marking a plain-text trigger. Icon and chip triggers are left unmarked — they already carry their own affordance |

@@ -1,0 +1,50 @@
+{{!-- The Haltung picker.
+
+Nine Haltungen in one popover instead of the select this replaces. Three things
+made the select the wrong control: the choice is made under time pressure at the
+table, a collapsed list shows one option at a time, and a native select emits no
+change when its current option is picked again — which the rules make a real act,
+because taking a Haltung clears both repeated-defence counters. Every option here
+is a button, so re-taking the current one needs no separate control.
+
+The bands come from `CONFIG.TNO.stanceGroups`; the detail panel reads out the
+hovered option, falling back to the one in force, and closes on the defence the
+Haltung permits — which is the only question the defence side of an exchange
+ever asks it. --}}
+<div class='stance-popover-body'>
+
+  <div class='stance-popover-groups'>
+    {{#each groups as |group|}}
+      <section class='stance-popover-group'>
+        <h5>{{group.label}}</h5>
+        <div class='stance-popover-grid'>
+          {{#each group.stances as |stance|}}
+            <button type='button' class='stance-option{{#if stance.selected}} selected{{/if}}'
+                    data-stance='{{stance.key}}'
+                    data-stance-icon='{{stance.icon}}'
+                    data-stance-name='{{stance.label}}'
+                    data-stance-effect='{{stance.effect}}'
+                    data-stance-defenses='{{stance.defenses}}'
+                    aria-pressed='{{#if stance.selected}}true{{else}}false{{/if}}'>
+              <i class='fa-solid {{stance.icon}}' aria-hidden='true'></i>
+              <span>{{stance.label}}</span>
+            </button>
+          {{/each}}
+        </div>
+      </section>
+    {{/each}}
+  </div>
+
+  <aside class='stance-popover-detail' aria-live='polite'>
+    <span class='stance-detail-icon'>
+      <i class='fa-solid {{detail.icon}}' aria-hidden='true'></i>
+    </span>
+    <strong class='stance-detail-name'>{{detail.label}}</strong>
+    <span class='stance-detail-effect'>{{detail.effect}}</span>
+    <span class='stance-detail-defenses'>
+      <small>{{localize 'TNO.Combat.StanceDefenses'}}</small>
+      <span>{{detail.defenses}}</span>
+    </span>
+  </aside>
+
+</div>

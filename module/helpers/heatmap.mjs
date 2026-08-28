@@ -212,13 +212,23 @@ function lerpRgb(a, b, f) {
   };
 }
 
-/**
- * Perceptual luminance (ITU-R BT.601) decides whether dark or light text
- * stays legible against an arbitrary user-picked background color.
- */
+/** Choose whichever palette text colour has the stronger WCAG contrast. */
 function textColorFor(rgb) {
-  const luminance = 0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b;
-  return luminance > 140 ? '#2A2419' : '#F3EFE4';
+  const relativeLuminance = ({ r, g, b }) => {
+    const channel = (value) => {
+      const srgb = value / 255;
+      return srgb <= 0.04045 ? srgb / 12.92 : ((srgb + 0.055) / 1.055) ** 2.4;
+    };
+    return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+  };
+  const contrast = (left, right) => {
+    const lighter = Math.max(relativeLuminance(left), relativeLuminance(right));
+    const darker = Math.min(relativeLuminance(left), relativeLuminance(right));
+    return (lighter + 0.05) / (darker + 0.05);
+  };
+  const dark = { r: 42, g: 36, b: 25 };
+  const light = { r: 243, g: 239, b: 228 };
+  return contrast(rgb, dark) >= contrast(rgb, light) ? '#2A2419' : '#F3EFE4';
 }
 
 /**

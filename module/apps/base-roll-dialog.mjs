@@ -1,5 +1,5 @@
 import { TNO_ADVANTAGE, describeAdvantage, rollTnoBase } from '../helpers/dice.mjs';
-import { advantageOptions, bindAdvantagePicker } from './roll-dialog-shared.mjs';
+import { advantageOptions, bindRadioGroup } from './roll-dialog-shared.mjs';
 
 // Namespaced rather than the bare `FormApplication` global, which is
 // deprecated. Still ApplicationV1 — see the V1 apps note in
@@ -26,6 +26,7 @@ export class TnoBaseRollDialog extends FormApplication {
       classes: ['tno', 'sheet'],
       template: 'systems/tno/templates/apps/base-roll-dialog.hbs',
       width: 320,
+      resizable: true,
       closeOnSubmit: true,
     });
   }
@@ -41,14 +42,21 @@ export class TnoBaseRollDialog extends FormApplication {
       ...this.object,
       advantageOptions: advantageOptions(),
       advantageConsequence: describeAdvantage(this.object.advantage),
-      subject: game.i18n.localize('TNO.Roll.BaseDiceTitle'),
     };
   }
 
   /** @override */
   activateListeners(html) {
     super.activateListeners(html);
-    bindAdvantagePicker(html);
+    const root = html[0];
+    const consequence = root.querySelector('.tno-advantage-effect');
+    bindRadioGroup({
+      group: root.querySelector('.tno-advantage-group'),
+      input: root.querySelector('input[name="advantage"]'),
+      onSelect: (value) => {
+        if (consequence) consequence.textContent = describeAdvantage(Number(value));
+      },
+    });
   }
 
   /** @override */

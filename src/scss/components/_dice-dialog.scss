@@ -16,16 +16,6 @@ $c-roll-negative: #c62828;
     }
   }
 
-  .tno-roll-subject {
-    text-align: center;
-    margin-bottom: $padding-md;
-  }
-
-  .tno-roll-subject-name {
-    margin: 0;
-    border-bottom: none;
-  }
-
   // Grouped sections (base / modifiers) — a light frame plus a small caption
   // so the parts that feed the threshold read as one block each.
   .tno-roll-section {
@@ -42,7 +32,9 @@ $c-roll-negative: #c62828;
 
   .tno-roll-section-caption {
     display: block;
-    margin-bottom: $padding-sm;
+    margin: 0 0 $padding-sm;
+    padding: 0;
+    border: 0;
     font-size: var(--font-size-10, 10px);
     font-weight: bold;
     text-transform: uppercase;
@@ -82,8 +74,8 @@ $c-roll-negative: #c62828;
   }
 
   // A number only the table knows — the Schadenswert an attacker announced.
-  // Above the context picker, since it is the fact the player was just told
-  // while the comparison is one they can work out themselves.
+  // It follows the context picker whose choice renames this field; that order
+  // makes the selected damage kind and the number it asks for read together.
   // Core's `.form-group` lays label and control out as a row with a narrow
   // label column, which folded "Scharfer Schadenswert (SS)" over three lines
   // next to a half-width box. The name of the value being asked for is the
@@ -199,6 +191,70 @@ $c-roll-negative: #c62828;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  // A binary shared observation is a compact segmented switch, not a second
+  // tile language. The label answers the question; the signed modifier stays a
+  // small consequence beside it.
+  .tno-context-toggle-field {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+
+    > legend {
+      margin-bottom: 4px;
+      font-size: var(--font-size-13, 13px);
+      font-weight: bold;
+    }
+  }
+
+  .tno-context-toggle-group {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border: 1px solid $c-beige;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .tno-context-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 0;
+    padding: 6px 8px;
+    background: rgba(255, 255, 255, 0.58);
+    color: rgba(25, 24, 19, 0.78);
+    cursor: pointer;
+
+    & + .tno-context-tile-input + & {
+      border-left: 1px solid $c-beige;
+    }
+
+    small {
+      font-size: var(--font-size-10, 10px);
+      font-weight: bold;
+      font-variant-numeric: tabular-nums;
+    }
+
+    &.positive small {
+      color: $c-roll-positive;
+    }
+
+    &.negative small {
+      color: $c-roll-negative;
+    }
+  }
+
+  .tno-context-tile-input:checked + .tno-context-toggle {
+    background: rgba($c-primary, 0.12);
+    box-shadow: inset 0 0 0 1px $c-primary;
+  }
+
+  .tno-context-tile-input:focus-visible + .tno-context-toggle {
+    outline: 2px solid $c-primary;
+    outline-offset: -2px;
+  }
+
   .tno-context-tile-input {
     position: absolute;
     inline-size: 1px;
@@ -230,7 +286,7 @@ $c-roll-negative: #c62828;
     }
 
     &.positive {
-      color: $c-primary;
+      color: $c-roll-positive;
     }
 
     // A caption that has to say what the choice *does*, rather than just name
@@ -347,8 +403,8 @@ $c-roll-negative: #c62828;
     cursor: pointer;
     // The selected chip pops; the rest recede, so selection is legible on top
     // of the heatmap colours the chips already carry.
-    opacity: 0.45;
-    filter: saturate(0.65);
+    opacity: 0.85;
+    filter: saturate(0.75);
     transition: opacity 0.12s ease, transform 0.12s ease;
 
     .tno-attribute-chip-abbr {
@@ -397,7 +453,7 @@ $c-roll-negative: #c62828;
   // The skill is a fixed part of the base (rank never changes here), so it's
   // presented as a labelled row with its rank in a heatmap-graded badge that
   // matches the attribute chips — reading as "attribute + skill = base".
-  .tno-skill-row {
+  .tno-base-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -407,12 +463,12 @@ $c-roll-negative: #c62828;
     border-radius: 3px;
     background: rgba($c-tan, 0.05);
 
-    .tno-skill-name {
+    .tno-base-name {
       font-weight: bold;
       font-size: var(--font-size-13, 13px);
     }
 
-    .tno-skill-value {
+    .tno-base-value {
       min-width: 26px;
       padding: 2px 6px;
       border-radius: 3px;
@@ -459,7 +515,12 @@ $c-roll-negative: #c62828;
 
     .tno-bonus-value {
       min-width: 44px;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
       text-align: center;
+      font: inherit;
       font-weight: bold;
       font-size: var(--font-size-16, 16px);
       cursor: pointer;
@@ -643,6 +704,17 @@ $c-roll-negative: #c62828;
     border-radius: 4px;
     background: rgba($c-tan, 0.06);
     text-align: center;
+
+    &.is-pending {
+      border-color: rgba($c-tan, 0.45);
+      background: rgba($c-tan, 0.025);
+
+      .tno-roll-result-value,
+      .tno-roll-result-label,
+      .tno-roll-breakdown {
+        opacity: 0.55;
+      }
+    }
   }
 
   .tno-roll-result-label {
@@ -715,10 +787,37 @@ $c-roll-negative: #c62828;
   }
 
   .tno-roll-breakdown {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 3px;
     font-size: var(--font-size-11, 11px);
     color: $c-tan;
-    opacity: 0.85;
     min-height: 1.1em;
+  }
+
+  .tno-signed-chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 3px;
+    padding: 1px 5px;
+    border-radius: 999px;
+    background: rgba($c-tan, 0.08);
+    color: $c-tan;
+    line-height: 1.25;
+
+    &.is-positive .tno-signed-chip-value {
+      color: $c-roll-positive;
+    }
+
+    &.is-negative .tno-signed-chip-value {
+      color: $c-roll-negative;
+    }
+  }
+
+  .tno-signed-chip-value {
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
   }
 
   // Lighter than $c-primary itself so the flash still reads clearly against
@@ -1003,11 +1102,18 @@ $c-roll-negative: #c62828;
     // What a closed block is costing, stated on the line that closed over it.
     // Its auto margin is also what puts the caret at the right-hand end.
     .tno-attempt-badge {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 3px;
       margin-left: auto;
       font-size: var(--font-size-10, 10px);
       font-weight: bold;
       font-variant-numeric: tabular-nums;
-      color: $c-roll-negative;
+
+      .tno-signed-chip {
+        padding-block: 0;
+      }
     }
 
     // An open block indents its controls under the summary rather than beside
@@ -1050,6 +1156,24 @@ $c-roll-negative: #c62828;
 
     .tno-advantage-field-head > label {
       display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tno-threshold-flash {
+      animation: none;
+    }
+
+    .tno-attribute-chip {
+      transition: none;
+
+      &.active {
+        transform: none;
+      }
+    }
+
+    .tno-odds-fill {
+      transition: none;
     }
   }
 }

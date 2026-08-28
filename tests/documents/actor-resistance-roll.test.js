@@ -105,13 +105,21 @@ describe('resistance roll', () => {
 
   it('opens the resistance roll of the location that was clicked, with its armour value', () => {
     expect(resist('head').fixedModifiers).toEqual([
-      { label: 'TNO.Combat.ResistanceRw(TNO.Armor.Zone.Head)', value: 4 },
+      {
+        label: 'TNO.Combat.ResistanceRw(TNO.Armor.Zone.Head)',
+        value: 4,
+        hint: 'TNO.Combat.ResistanceRwHint(TNO.Armor.Zone.Head)',
+      },
     ]);
     // The Stelle also says where a failed roll lands: Kopf doubles onto Stärke.
     expect(resist('head').flavor).toBe('TNO.Combat.ResistanceFlavor(TNO.Armor.Zone.Head,TNO.Ability.Str.long ×2)');
     // A different location answers with its own padding, not the head's.
     expect(resist('legs').fixedModifiers).toEqual([
-      { label: 'TNO.Combat.ResistanceRw(TNO.Armor.Zone.Legs)', value: 1 },
+      {
+        label: 'TNO.Combat.ResistanceRw(TNO.Armor.Zone.Legs)',
+        value: 1,
+        hint: 'TNO.Combat.ResistanceRwHint(TNO.Armor.Zone.Legs)',
+      },
     ]);
   });
 

@@ -104,7 +104,12 @@ describe('combat action builders', () => {
       skill: { key: 'swords', value: 5 },
       flavor: 'TNO.Combat.AttackFlavor(Langschwert)',
     });
+    expect(options.preRollContext).toMatchObject({ label: 'TNO.Combat.DkQuestion', control: 'toggle' });
     expect(options.preRollContext.choices.map((choice) => choice.value)).toEqual([0, 3]);
+    expect(options.zonePicker).toMatchObject({
+      label: 'TNO.Combat.ZoneQuestion',
+      componentLabel: 'TNO.Combat.Zone',
+    });
   });
 
   // A ranged weapon answers a different question — which band it is fired at —
@@ -114,7 +119,7 @@ describe('combat action builders', () => {
       actor(),
       weapon({ use: 'ranged', dk: null, rd: 3, range: { near: 0, mid: -3 } })
     );
-    expect(options.preRollContext.label).toBe('TNO.Combat.RangeBand');
+    expect(options.preRollContext.label).toBe('TNO.Combat.RangeQuestion');
     expect(options.preRollContext.choices.map((choice) => [choice.key, choice.value])).toEqual([
       ['near', 0],
       ['mid', -3],
@@ -123,7 +128,12 @@ describe('combat action builders', () => {
 
   it('gives a parry the passive handling and the same reach question', () => {
     const options = paradeOptions(actor(), weapon({ hh: { active: 0, passive: -1 } }));
-    expect(options.fixedModifiers).toEqual([{ label: 'TNO.Combat.PassiveHandling', value: -1 }]);
+    expect(options.fixedModifiers).toEqual([{
+      label: 'TNO.Combat.PassiveHandling',
+      value: -1,
+      hint: 'TNO.Combat.PassiveHandlingHint',
+    }]);
+    expect(options.preRollContext).toMatchObject({ label: 'TNO.Combat.DkQuestion', control: 'toggle' });
     expect(options.preRollContext.choices.map((choice) => choice.value)).toEqual([0, 3]);
   });
 
@@ -357,7 +367,11 @@ describe('Haltung and repeated defences', () => {
   it('prices the parry and the dodge it hands to the dialog', () => {
     const worn = actor({ stance: 'enGarde', defenses: { parry: 0, dodge: 2 } });
     expect(ausweichenOptions(worn).fixedModifiers).toEqual([
-      { label: 'TNO.Combat.RepeatedDefense(3)', value: -6 },
+      {
+        label: 'TNO.Combat.RepeatedDefense(3)',
+        value: -6,
+        hint: 'TNO.Combat.RepeatedDefenseHint',
+      },
     ]);
     // And it refuses outright where the Haltung allows no dodge at all.
     expect(ausweichenOptions(actor({ stance: 'open' }))).toBeNull();

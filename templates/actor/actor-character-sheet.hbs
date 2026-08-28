@@ -93,26 +93,25 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
       im Banner als dauerhafter Kampfzustand. Die von ihr freigeschalteten
       Handlungen liegen an ihren eigenen Spielflächen: Ausweichen an der
       Papierpuppe, Parade an der jeweiligen Nahkampfwaffe. --}}
-      <div class="banner-chip chip-stance"
-           data-tooltip-html='<dl class="tno-tooltip">
+      {{!-- Not `disabled` when read-only: a disabled button fires no pointer
+      events, and the Haltung's tooltip is exactly what a player reading someone
+      else's sheet is after. The click is gated on `editable` in the sheet. --}}
+      <button type="button" class="banner-chip chip-stance{{#unless editable}} disabled{{/unless}}"
+              aria-haspopup="dialog" aria-expanded="false"
+              {{#unless editable}}aria-disabled="true"{{/unless}}
+              data-tooltip-html='<dl class="tno-tooltip">
 <div class="tno-tooltip-row"><dt>{{localize "TNO.Combat.StanceLabel"}}</dt><dd>{{localize "TNO.Combat.StanceHint"}}</dd></div>
 </dl>'
-           data-tooltip-direction='DOWN'>
-        <i class="fa-solid fa-shield-halved chip-icon"></i>
-        <span class="chip-label">{{localize "TNO.Combat.StanceLabel"}}</span>
-        <select class="chip-stance-select" data-action="takeStance" {{#unless editable}}disabled{{/unless}}>
-          {{#each stanceOptions as |stance|}}
-          <option value="{{stance.key}}" {{#if stance.selected}}selected{{/if}}>{{stance.label}}</option>
-          {{/each}}
-        </select>
-        {{#if editable}}
-        <button type="button" class="chip-stance-retake"
-                title="{{localize 'TNO.Combat.StanceRetake'}}"
-                aria-label="{{localize 'TNO.Combat.StanceRetake'}}">
-          <i class="fa-solid fa-arrow-rotate-right" aria-hidden="true"></i>
-        </button>
-        {{/if}}
-      </div>
+              data-tooltip-direction='DOWN'>
+        <span class="chip-stance-text">
+          <span class="chip-label">{{localize "TNO.Combat.StanceLabel"}}</span>
+          <span class="chip-stance-name">
+            <i class="fa-solid {{stance.icon}} chip-icon" aria-hidden="true"></i>
+            <span>{{stance.label}}</span>
+          </span>
+        </span>
+        <i class="fa-solid fa-chevron-down chip-stance-caret" aria-hidden="true"></i>
+      </button>
 
       {{!-- Initiative moved from the portrait to the banner, but still rolls
       the same 1d10 + Initiative formula on click. --}}

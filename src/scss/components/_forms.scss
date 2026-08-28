@@ -325,57 +325,85 @@
   }
 }
 
-// The Haltung picker. The select is the chip's value, so it carries no chrome
-// of its own until hovered — exactly like the editable edge reserve.
-.chip-stance {
-  .chip-stance-select {
-    width: auto;
-    height: auto;
-    margin: 0;
-    padding: 0;
-    border: none;
-    background: transparent;
-    font-family: inherit;
-    font-size: var(--font-size-13, 13px);
-    font-weight: bold;
-    line-height: 1;
-    color: inherit;
-    box-shadow: none;
-    transition: box-shadow 0.15s ease;
+// The Haltung chip: the one chip in the banner that opens something. It is a
+// real `<button>`, so Foundry's own button chrome has to be undone before the
+// shared `.banner-chip` glass shows through. The gold outline is what separates
+// it from the read-only chips beside it — the Haltung is the value a player
+// changes most often in a fight, and it has to be findable at a glance.
+button.banner-chip.chip-stance {
+  width: auto;
+  margin: 0;
+  padding: 5px 12px;
+  border-color: rgba($c-advance, 0.8);
+  box-shadow: inset 0 1px 0 rgba($c-white, 0.76), 0 1px 3px rgba($c-dark, 0.14);
+  color: $c-dark;
+  font-family: inherit;
+  line-height: 1;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
 
-    &:hover:not(:disabled) {
-      box-shadow: inset 0 -1px 0 $c-tan;
-    }
+  &:hover:not(.disabled) {
+    border-color: $c-advance;
+    background: rgba($c-white, 0.85);
+  }
 
-    &:focus {
-      box-shadow: inset 0 -2px 0 $c-advance;
-      outline: none;
-    }
+  &:focus-visible {
+    border-color: $c-advance;
+    outline: 2px solid rgba($c-advance, 0.5);
+    outline-offset: 1px;
+  }
 
-    &:disabled {
-      color: inherit;
-      opacity: 1;
+  // Read-only: still a chip that states the Haltung and explains it on hover,
+  // just not one that opens the picker.
+  &.disabled {
+    cursor: default;
+
+    .chip-stance-caret {
+      visibility: hidden;
     }
   }
 
-  .chip-stance-retake {
-    width: 20px;
-    min-height: 20px;
-    margin: 0 -4px 0 -1px;
-    padding: 0;
-    border: 0;
-    border-radius: 50%;
-    background: transparent;
-    box-shadow: none;
-    color: $c-tan;
-    font-size: var(--font-size-11, 11px);
-    line-height: 20px;
+  // Label above, Haltung below: the label is read once, the value on every
+  // glance, so the value takes the icon and the weight.
+  .chip-stance-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
 
-    &:hover,
-    &:focus-visible {
-      background: rgba($c-tan, 0.12);
-      box-shadow: none;
-    }
+  .chip-label {
+    font-size: var(--font-size-10, 10px);
+    letter-spacing: 0.11em;
+    line-height: 1;
+  }
+
+  .chip-stance-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--font-size-14, 14px);
+    font-weight: bold;
+    line-height: 1;
+  }
+
+  .chip-icon {
+    width: 16px;
+    flex: none;
+    font-size: var(--font-size-12, 12px);
+    color: $c-advance;
+    text-align: center;
+  }
+
+  .chip-stance-caret {
+    font-size: var(--font-size-10, 10px);
+    color: $c-advance;
+    transition: transform 0.15s ease;
+  }
+
+  &[aria-expanded='true'] .chip-stance-caret {
+    transform: rotate(180deg);
   }
 }
 

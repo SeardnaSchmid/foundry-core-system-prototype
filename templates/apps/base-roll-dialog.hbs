@@ -1,11 +1,7 @@
 <form class="tno-roll-dialog flexcol">
-  <div class="tno-roll-subject">
-    <h2 class="tno-roll-subject-name">{{subject}}</h2>
-  </div>
-
   {{> "systems/tno/templates/apps/parts/advantage-picker.hbs"}}
 
-  <footer class="sheet-footer flexrow">
+  <footer class="tno-roll-footer">
     <button type="submit" class="tno-roll-submit">
       <span class="tno-roll-submit-main"><i class="fas fa-dice-d20"></i> {{localize "TNO.Roll.Submit"}}</span>
     </button>

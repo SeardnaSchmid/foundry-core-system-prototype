@@ -194,7 +194,7 @@ would be real coupling.
 
 | Workflow | Fixed components | Required context | Proof |
 |---|---|---|---|
-| **Attack** | WA + the actor's current FV-skill rank · HH active · SV malus | melee: DK modifier `+3 / 0` · ranged: one authored range band (each authored `−3 … +3`) · the Stelle, priced per [Gezielte Angriffe](#the-stelle) and free only at the Torso | `tests/documents/item-weapon-roll.test.js › offers a melee attack the two reach outcomes as its required context`<br>`tests/documents/item-weapon-roll.test.js › captions the reach tiles with the question rather than the bare number`<br>`tests/helpers/items.test.js › offers only authored ranged bands and preserves their modifiers` |
+| **Attack** | WA + the actor's current FV-skill rank · HH active · SV malus | melee: DK modifier `+3 / 0` · ranged: one authored range band (each authored `−3 … +3`) · the Stelle, priced per [Gezielte Angriffe](#the-stelle) and free only at the Torso | `tests/documents/item-weapon-roll.test.js › offers a melee attack the two reach outcomes as its required context`<br>`tests/documents/item-weapon-roll.test.js › labels both reach-toggle answers rather than showing bare numbers`<br>`tests/helpers/items.test.js › offers only authored ranged bands and preserves their modifiers` |
 | **Parry** (melee) | WA + the actor's current FV-skill rank · HH passive · SV malus | DK modifier `+3 / 0`; no Stelle | `tests/documents/item-weapon-roll.test.js › gives a parry passive handling, the same SV malus, and a reach choice` |
 | **Dodge** | Beweglichkeit + Akrobatik · armour SV malus | — | `tests/e2e/specs/combat-dodge.spec.mjs › a dodge is Beweglichkeit plus Akrobatik, less the armour step` |
 | **Resistance** | Stärke (locked) · RW(Stelle) | the penetration comparison `softer / equal / harder` **and** the announced Schadenswert, typed | `tests/documents/actor-resistance-roll.test.js › requires both the announced damage and the penetration comparison`<br>`tests/documents/roll-dialog.test.js › refuses to roll until the announced value is entered` |
@@ -233,11 +233,13 @@ one costs a Malusstufe more than the last — "eine, sich aufsummierende, Stufe
 Parries and dodges are counted apart. Taking a Haltung — including the same one
 again — clears both counters
 (`tests/helpers/combat-actions.test.js › clears both counters on taking a Haltung, including the same one again`).
-The character banner takes a different Haltung directly from its picker and
-provides a separate repeat action for the currently selected one; a native
-select cannot emit a change when its current option is chosen again. The next
-repeated-defence malus is visible on the Dodge action and on an available Parry
-action before either dialog opens.
+The character banner's Haltung chip opens a picker showing all nine at once,
+grouped into Grundhaltung, Bewegung, Kampf and Erholung, with a panel that names
+the pointed-at Haltung's effect and the defence it permits. Every option is a
+button, so taking the Haltung already in force — the act that clears both
+counters — needs no control of its own. The next repeated-defence malus is
+visible on the Dodge action and on an available Parry action before either
+dialog opens.
 Three Manöverfertigkeiten buy the malus back, and which one applies is decided
 by the Haltung — Ausweichen has two of them:
 

@@ -47,4 +47,7 @@ seeds the module-level `activeConfig` from those settings via
 `colorForCritical(config?)` read from it by default. The `TnoHeatmapLab`
 dialog is reachable from the `heatmapLabMenu` settings menu and from a
 sheet button; on change it writes back to settings, which broadcasts to all
-open sheets via Foundry's socket layer.
+open sheets via Foundry's socket layer. Both colour helpers choose whichever of
+the palette's dark and light text colours has the stronger WCAG contrast against
+the computed background; the roll dialog can therefore mute unselected heatmap
+chips without losing the 3:1 text contrast floor.

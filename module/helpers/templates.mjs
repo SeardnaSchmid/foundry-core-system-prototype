@@ -19,6 +19,7 @@ export const preloadHandlebarsTemplates = async function () {
     'systems/tno/templates/actor/parts/item-popover.hbs',
     'systems/tno/templates/actor/parts/money-popover.hbs',
     'systems/tno/templates/actor/parts/columns-popover.hbs',
+    'systems/tno/templates/actor/parts/stance-popover.hbs',
     // Item partials
     'systems/tno/templates/item/parts/item-delete.hbs',
     'systems/tno/templates/item/parts/item-scale.hbs',

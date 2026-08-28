@@ -3,7 +3,7 @@ import { formatChance, oddsTooltipHtml, successChanceFor } from '../helpers/dice
 import { colorForValue } from '../helpers/heatmap.mjs';
 import { MALUS_STEP, armorSvMalus, isAuthoredNumber } from '../helpers/items.mjs';
 import { DEFAULT_ZONE, ansageEnvelope } from '../helpers/maneuvers.mjs';
-import { advantageOptions, bindAdvantagePicker } from './roll-dialog-shared.mjs';
+import { advantageOptions, bindRadioGroup, renderSignedChips } from './roll-dialog-shared.mjs';
 
 // Namespaced rather than the bare `FormApplication` global, which is
 // deprecated. Still ApplicationV1 — see the V1 apps note in
@@ -51,10 +51,10 @@ export class TnoRollDialog extends FormApplication {
    *   When set, the dialog switches to "fixed" mode: no attribute or skill
    *   is linked at all, the fixed value alone (plus the bonus field) forms
    *   the threshold.
-   * @param {{label: string, value: number}[]} [options.fixedModifiers]
+   * @param {{label: string, value: number, hint?: string}[]} [options.fixedModifiers]
    *   Immutable rule modifiers added to the threshold and shown separately
    *   from the editable situational bonus.
-   * @param {{label: string, placeholder: string, control?: 'select'|'tiles', tileLabels?: boolean, tileColumns?: 2|3|5|7, choices: Array<{key: string, label: string, value: number, componentLabel?: string}>}} [options.preRollContext]
+   * @param {{label: string, placeholder: string, control?: 'select'|'tiles'|'toggle', tileLabels?: boolean, tileColumns?: 2|3|5|7, choices: Array<{key: string, label: string, value: number, componentLabel?: string}>}} [options.preRollContext]
    *   One optional required choice that must be made before rolling. Its
    *   selected value becomes an immutable threshold component.
    * @param {{label: string, placeholder?: string, componentLabel?: string, sign?: 1|-1, min?: number, max?: number}} [options.requiredValue]
@@ -76,7 +76,7 @@ export class TnoRollDialog extends FormApplication {
    *   brings, to which the declared Ansage and the Stelle are added. Rendered on
    *   the chat card as plain text — there is no targeting and no second document
    *   — so the defender reads it and enters what applies.
-   * @param {{label: string, value: number}} [options.maneuverMalus]
+   * @param {{label: string, value: number, hint?: string}} [options.maneuverMalus]
    *   A modifier that applies only while an Ansage is declared — the weapon's FV
    *   shortfall, which lands on "alle Manöver" and never on a Standardangriff.
    * @param {boolean|number} [options.opposingAnsage]
@@ -106,13 +106,21 @@ export class TnoRollDialog extends FormApplication {
     this.fixedValue = fixedValue;
     this.fixedModifiers = fixedModifiers
       .filter((modifier) => modifier?.label && Number.isFinite(Number(modifier.value)))
-      .map((modifier) => ({ label: modifier.label, value: Number(modifier.value) }));
+      .map((modifier) => ({
+        label: String(modifier.label),
+        value: Number(modifier.value),
+        ...(modifier.hint ? { hint: String(modifier.hint) } : {}),
+      }));
     this.preRollContext = this._normalizePreRollContext(preRollContext);
     this.requiredValue = this._normalizeRequiredValue(requiredValue);
     this.ansage = ansage?.label ? { label: String(ansage.label), hint: String(ansage.hint ?? '') } : null;
     this.zonePicker = this._normalizeZonePicker(zonePicker);
     this.maneuverMalus = maneuverMalus?.label && Number.isFinite(Number(maneuverMalus.value))
-      ? { label: String(maneuverMalus.label), value: Number(maneuverMalus.value) }
+      ? {
+          label: String(maneuverMalus.label),
+          value: Number(maneuverMalus.value),
+          ...(maneuverMalus.hint ? { hint: String(maneuverMalus.hint) } : {}),
+        }
       : null;
     this.envelope = envelope?.from ? envelope : null;
     // `true` offers an empty field; a number offers it pre-filled. Both are only
@@ -139,7 +147,7 @@ export class TnoRollDialog extends FormApplication {
    * Keep the optional context interface safe for all existing roll callers:
    * malformed or empty contexts simply behave as though no context was given.
    * @param {*} context
-   * @returns {{label: string, placeholder: string, control: 'select'|'tiles', tileLabels: boolean, tileColumns: 2|3|5|7, choices: Array<{key: string, label: string, value: number, componentLabel?: string}>}|null}
+   * @returns {{label: string, placeholder: string, control: 'select'|'tiles'|'toggle', tileLabels: boolean, tileColumns: 2|3|5|7, choices: Array<{key: string, label: string, value: number, componentLabel?: string}>}|null}
    */
   _normalizePreRollContext(context) {
     if (!context?.label || !Array.isArray(context.choices)) return null;
@@ -158,10 +166,13 @@ export class TnoRollDialog extends FormApplication {
         ...(choice.headline ? { headline: String(choice.headline) } : {}),
       }));
     if (!choices.length) return null;
+    const control = context.control === 'toggle'
+      ? choices.length === 2 ? 'toggle' : 'tiles'
+      : context.control === 'tiles' ? 'tiles' : 'select';
     return {
       label: String(context.label),
       placeholder: String(context.placeholder || game.i18n.localize('TNO.Roll.ContextPlaceholder')),
-      control: context.control === 'tiles' ? 'tiles' : 'select',
+      control,
       tileLabels: context.tileLabels === true,
       tileColumns: [2, 3, 5, 7].includes(Number(context.tileColumns)) ? Number(context.tileColumns) : 7,
       choices,
@@ -216,7 +227,7 @@ export class TnoRollDialog extends FormApplication {
    * are: anything malformed behaves as though no location was offered, and the
    * attack then lands where an unannounced one always does.
    * @param {*} picker
-   * @returns {{label: string, choices: Array<{key: string, label: string, caption: string}>}|null}
+   * @returns {{label: string, componentLabel?: string, choices: Array<{key: string, label: string, caption: string}>}|null}
    */
   _normalizeZonePicker(picker) {
     if (!picker?.label || !Array.isArray(picker.choices)) return null;
@@ -232,18 +243,27 @@ export class TnoRollDialog extends FormApplication {
         cost: Number(choice.cost) || 0,
       }));
     if (!choices.length) return null;
-    return { label: String(picker.label), choices };
+    return {
+      label: String(picker.label),
+      ...(picker.componentLabel ? { componentLabel: String(picker.componentLabel) } : {}),
+      choices,
+    };
   }
 
   /** @override */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
-      id: 'tno-roll-dialog',
       classes: ['tno', 'sheet'],
       template: 'systems/tno/templates/apps/roll-dialog.hbs',
       width: 340,
+      resizable: true,
       closeOnSubmit: true,
     });
+  }
+
+  /** @override */
+  get id() {
+    return `tno-roll-dialog-${this.appId}`;
   }
 
   /** @override */
@@ -251,34 +271,102 @@ export class TnoRollDialog extends FormApplication {
     return game.i18n.format('TNO.Roll.DialogTitleWithSubject', { name: this.flavor });
   }
 
+  /**
+   * Derive the six-question layout from the sections that actually render.
+   * Keeping this pure prevents the divider rules from drifting away from the
+   * section conditions they are meant to separate.
+   * @returns {object}
+   */
+  _sectionFlags() {
+    const hasIdeaOption = this.actor.type === 'character';
+    const isFixedMode = !!this.fixedValue;
+    const hasSituationSection = !!this.preRollContext || !!this.requiredValue;
+    const hasAgainstSection = this.opposingAnsage || !!this.toggleModifier;
+    const hasAttemptSection = !!this.ansage || !!this.zonePicker || !isFixedMode;
+    return {
+      hasIdeaOption,
+      hasSituationSection,
+      hasAgainstSection,
+      hasAttemptSection,
+      hasGivenDivider: hasSituationSection || hasAgainstSection,
+      hasChosenDivider: hasAttemptSection || hasIdeaOption || !isFixedMode,
+    };
+  }
+
+  /**
+   * The declaration question becomes a plain adjustment question when the
+   * section contains only the situational modifier stepper.
+   * @returns {string} Localization key.
+   */
+  _attemptQuestionKey() {
+    return this.ansage || this.zonePicker ? 'TNO.Roll.Question.Attempt' : 'TNO.Roll.Question.Adjust';
+  }
+
+  /**
+   * One ability as the shared heatmap readout used by selectable chips and by
+   * a workflow-locked combat attribute.
+   * @param {string} key
+   * @returns {object|null}
+   */
+  _abilityCell(key) {
+    const labelKey = CONFIG.TNO.abilities[key];
+    if (!labelKey) return null;
+    const value = this.actor.system.abilities?.[key]?.value ?? 0;
+    const color = colorForValue(value);
+    return {
+      key,
+      label: game.i18n.localize(labelKey),
+      abbr: game.i18n.localize(labelKey.replace(/\.long$/, '.abbr')).toUpperCase(),
+      value,
+      cellBg: color.bg,
+      textColor: color.textColor,
+      active: key === this.object.attributeA,
+    };
+  }
+
+  /** @returns {Array<Array<object>>} */
+  _attributeGrid() {
+    return (CONFIG.TNO.attributeRows ?? []).map((row) => row.map((key) => this._abilityCell(key)).filter(Boolean));
+  }
+
+  /** @param {number} value @returns {string} */
+  _bonusResetLabel(value) {
+    return game.i18n.format('TNO.Roll.BonusResetLabel', { value: this._formatBonus(value) });
+  }
+
   /** @override */
   getData() {
-    const abilities = {};
-    for (const [key, labelKey] of Object.entries(CONFIG.TNO.abilities)) {
-      abilities[key] = game.i18n.localize(labelKey);
-    }
-
-    const hasIdeaOption = this.actor.type === 'character';
+    const sectionFlags = this._sectionFlags();
+    const { hasIdeaOption } = sectionFlags;
     const bonus = Number(this.object.bonus) || 0;
     const contextChoice = this._contextChoice(this.object);
+    const thresholdReadout = this._thresholdReadout(this.object);
     // The armour step is data-dependent — the chosen attribute decides whether
     // it applies — so its row is rendered once, up front, and only toggled
     // afterwards; `_refresh` repaints values, never rows. A character who is
     // not penalised at all gets no row and therefore never sees it.
+    const armorMalusLabel = game.i18n.localize('TNO.Combat.ArmorSvMalus');
     const armorMalus = this.actor.system.derived?.armorSvPenalty
       ? {
-          label: game.i18n.localize('TNO.Combat.ArmorSvMalus'),
+          label: armorMalusLabel,
           display: this._formatBonus(MALUS_STEP),
-          active: this._conditionalModifiers(this.object).length > 0,
+          hint: game.i18n.localize('TNO.Combat.ArmorSvMalusHint'),
+          active: this._conditionalModifiers(this.object).some((modifier) => modifier.label === armorMalusLabel),
         }
       : null;
 
     const ansageComponent = this._ansageComponent(this.object);
     const zoneChoice = this._zoneChoice(this.object);
+    const selectedAttribute = this._abilityCell(this.object.attributeA);
 
     const data = {
       ...this.object,
-      abilities,
+      dialogId: this.id,
+      abilityOptions: Object.keys(CONFIG.TNO.abilities).map((key) => ({
+        ...this._abilityCell(key),
+        selected: key === this.object.attributeB,
+      })),
+      attributeGrid: this._attributeGrid(),
       advantageOptions: advantageOptions(),
       advantageConsequence: describeAdvantage(this.object.advantage),
       isSkillMode: !!this.skill,
@@ -286,29 +374,16 @@ export class TnoRollDialog extends FormApplication {
       isFreeMode: this.freeSkill,
       isFixedMode: !!this.fixedValue,
       fixedModifiers: this._staticModifierComponents(),
-      hasFixedModifiers: this.fixedModifiers.length > 0,
+      hasGearModifiers: this.fixedModifiers.length > 0 || !!armorMalus || !!this.maneuverMalus,
       armorMalus,
+      maneuverMalus: this.maneuverMalus && {
+        ...this.maneuverMalus,
+        display: this._formatBonus(this.maneuverMalus.value),
+        active: this._conditionalModifiers(this.object).includes(this.maneuverMalus),
+      },
       hasPreRollContext: !!this.preRollContext,
       hasRequiredValue: !!this.requiredValue,
-      // One flag per question rather than one for a shared "context" box. The
-      // old single flag or-ed five unrelated inputs together, which is how the
-      // defender's announced number and the attacker's Stelle ended up sitting
-      // in the same frame despite belonging to different people.
-      hasSituationSection: !!this.preRollContext || !!this.requiredValue,
-      hasAgainstSection: this.opposingAnsage || !!this.toggleModifier,
-      // Everything the player themselves dials in, in one block: the Ansagen
-      // they declare and the modification the GM handed them. They were two
-      // boxes and one of them was always open, which made the free ±3 look like
-      // a standing part of the roll rather than one more thing being decided.
-      // The stepper alone is enough to earn the block, so an ordinary skill roll
-      // still has somewhere to put it.
-      hasAttemptSection: !!this.ansage || !!this.zonePicker || !this.fixedValue,
-      // A divider earns its line only when something actually renders on the
-      // far side of it. On a plain skill roll the first one has nothing to
-      // separate and stays out.
-      hasGivenDivider: !!this.preRollContext || !!this.requiredValue || this.opposingAnsage
-        || !!this.toggleModifier || !this.fixedValue,
-      hasChosenDivider: !!this.ansage || !!this.zonePicker || hasIdeaOption || !this.fixedValue,
+      ...sectionFlags,
       requiredValue: this.requiredValue && {
         ...this.requiredValue,
         label: this._requiredValueLabel(this.object),
@@ -333,6 +408,7 @@ export class TnoRollDialog extends FormApplication {
           state: choice.value > 0 ? 'positive' : choice.value < 0 ? 'negative' : 'neutral',
         })),
         isTilePicker: this.preRollContext.control === 'tiles',
+        isToggle: this.preRollContext.control === 'toggle',
       },
       contextSelected: !!contextChoice,
       hasAnsage: !!this.ansage,
@@ -360,15 +436,11 @@ export class TnoRollDialog extends FormApplication {
         display: this._formatBonus(this.toggleModifier.value),
         checked: !!this.object.toggleModifier,
       },
-      canSubmit: this._canSubmit(this.object),
-      threshold: this._computeThreshold(this.object),
-      ...this._oddsData(this.object),
-      breakdown: this._breakdownText(this.object),
-      targetLabel: game.i18n.localize('TNO.Roll.SubmitTargetLabel'),
-      subject: game.i18n.format('TNO.Roll.Subject', { name: this.flavor }),
-      // A closed block must never hide a cost, so the summary states what it is
-      // carrying. Repainted by `_refresh` on every change inside it.
-      attemptBadge: this._attemptBadge(this.object),
+      ...thresholdReadout,
+      missingMessage: thresholdReadout.ready
+        ? ''
+        : game.i18n.format('TNO.Roll.Blocked.Missing', { label: thresholdReadout.missingLabel }),
+      attemptQuestion: game.i18n.localize(this._attemptQuestionKey()),
       // Open whenever the roll already carries something. A re-render must not
       // fold a declared Ansage or a named Stelle back out of sight.
       attemptOpen: !!this._attemptComponents(this.object).length,
@@ -376,6 +448,9 @@ export class TnoRollDialog extends FormApplication {
       bonusSignClass: this._bonusSignClass(bonus),
       bonusAtMin: bonus <= BONUS_MIN,
       bonusAtMax: bonus >= BONUS_MAX,
+      bonusResetLabel: this._bonusResetLabel(bonus),
+      bonusDecrementLabel: game.i18n.format('TNO.Roll.BonusStepLabel', { value: '−3' }),
+      bonusIncrementLabel: game.i18n.format('TNO.Roll.BonusStepLabel', { value: '+3' }),
       // "Idee haben" is a pre-edge: only offered here, in the roll dialog,
       // before the dice are cast. There is deliberately no way to apply it
       // retroactively to a roll already made (see problem-solving-prd.md).
@@ -395,30 +470,10 @@ export class TnoRollDialog extends FormApplication {
 
     // Named in every mode, not just skill mode: a locked attribute is shown as
     // a read-out wherever it occurs, and ability mode can lock one too.
-    data.selectedAttributeLabel = this.object.attributeA ? abilities[this.object.attributeA] : '';
+    data.selectedAttribute = selectedAttribute;
+    data.selectedAttributeLabel = selectedAttribute?.label ?? '';
 
     if (this.skill) {
-      const actorAbilities = this.actor.system.abilities ?? {};
-      // Same 3-column (physical/social/mental) x 4-row grid and heatmap
-      // color grading as the character sheet's attribute table, minus its
-      // base/temp stepper controls — here it's a pure picker with category
-      // column headers.
-      data.attributeGrid = CONFIG.TNO.attributeRows.map((row) =>
-        row.map((key) => {
-          const labelKey = CONFIG.TNO.abilities[key];
-          const value = actorAbilities[key]?.value ?? 0;
-          const dc = colorForValue(value);
-          return {
-            key,
-            label: abilities[key],
-            abbr: game.i18n.localize(labelKey.replace(/\.long$/, '.abbr')).toUpperCase(),
-            value,
-            cellBg: dc.bg,
-            textColor: dc.textColor,
-            active: key === this.object.attributeA,
-          };
-        }),
-      );
       const skillColor = colorForValue(this.skill.value);
       data.skillLabel = this.skill.label;
       data.skillValue = this.skill.value;
@@ -718,7 +773,10 @@ export class TnoRollDialog extends FormApplication {
     const choice = this.zonePicker.choices.find((entry) => entry.key === key);
     const value = Number(choice?.cost) || 0;
     if (!value) return null;
-    return { label: choice.label, value, display: this._formatBonus(value) };
+    const label = this.zonePicker.componentLabel
+      ? `${this.zonePicker.componentLabel}: ${choice.label}`
+      : choice.label;
+    return { label, value, display: this._formatBonus(value) };
   }
 
   /**
@@ -813,31 +871,55 @@ export class TnoRollDialog extends FormApplication {
   }
 
   /**
-   * A one-line, human-readable breakdown of the parts that produce the
-   * threshold, e.g. "Stärke 5 + Klettern 4 + Modifikation −3 + Idee +2".
-   * Joined with "+" (not "·", which reads as multiplication) since every
-   * part is summed into the threshold.
+   * The signed parts that produce the threshold, in display order. This one
+   * list feeds both the compact chip row and the legacy text used by tests and
+   * chat-adjacent paths.
+   * @param {object} data  Form data.
+   * @returns {Array<{label: string, display: string, value: number}>}
+   */
+  _breakdownParts(data) {
+    const parts = this._baseComponents(data).map((component) => ({
+      ...component,
+      display: String(component.value),
+    }));
+    parts.push(...this._fixedModifierComponents(data));
+    const context = this._contextComponent(data);
+    if (context) parts.push(context);
+    const required = this._requiredValueComponent(data);
+    if (required) parts.push(required);
+    const zone = this._zoneComponent(data);
+    if (zone) parts.push(zone);
+    const ansage = this._ansageComponent(data);
+    if (ansage) parts.push(ansage);
+    const opposing = this._opposingAnsageComponent(data);
+    if (opposing) parts.push(opposing);
+    const bonus = Number(data.bonus) || 0;
+    if (bonus !== 0) {
+      parts.push({
+        label: game.i18n.localize('TNO.Roll.Bonus'),
+        value: bonus,
+        display: this._formatBonus(bonus),
+      });
+    }
+    const idea = this._ideaBonus(data);
+    if (idea !== 0) {
+      parts.push({
+        label: game.i18n.localize('TNO.Roll.IdeaComponent'),
+        value: idea,
+        display: this._formatBonus(idea),
+      });
+    }
+    return parts;
+  }
+
+  /**
+   * Text form kept for the chat/tests path. The dialog itself renders the same
+   * parts as safe DOM chips through `renderSignedChips`.
    * @param {object} data  Form data.
    * @returns {string}
    */
   _breakdownText(data) {
-    const parts = this._baseComponents(data).map((c) => `${c.label} ${c.value}`);
-    parts.push(...this._fixedModifierComponents(data).map((modifier) => `${modifier.label} ${modifier.display}`));
-    const context = this._contextComponent(data);
-    if (context) parts.push(`${context.label} ${context.display}`);
-    const required = this._requiredValueComponent(data);
-    if (required) parts.push(`${required.label} ${required.display}`);
-    const zone = this._zoneComponent(data);
-    if (zone) parts.push(`${zone.label} ${zone.display}`);
-    const ansage = this._ansageComponent(data);
-    if (ansage) parts.push(`${ansage.label} ${ansage.display}`);
-    const opposing = this._opposingAnsageComponent(data);
-    if (opposing) parts.push(`${opposing.label} ${opposing.display}`);
-    const bonus = Number(data.bonus) || 0;
-    if (bonus !== 0) parts.push(`${game.i18n.localize('TNO.Roll.Bonus')} ${this._formatBonus(bonus)}`);
-    const idea = this._ideaBonus(data);
-    if (idea !== 0) parts.push(`${game.i18n.localize('TNO.Roll.IdeaComponent')} +${idea}`);
-    return parts.join(' + ');
+    return this._breakdownParts(data).map((part) => `${part.label} ${part.display}`).join(' + ');
   }
 
   /**
@@ -860,6 +942,49 @@ export class TnoRollDialog extends FormApplication {
   }
 
   /**
+   * The first unanswered required input, phrased with the label already visible
+   * in the form. The announced number leads when both are blank because it is
+   * the fact the player was just told and the dialog focuses it first.
+   * @param {object} data
+   * @returns {string}
+   */
+  _missingRequiredLabel(data) {
+    if (this.requiredValue && this._requiredValueEntry(data) === null) return this._requiredValueLabel(data);
+    if (this.preRollContext && !this._contextChoice(data)) return this.preRollContext.label;
+    return '';
+  }
+
+  /**
+   * The complete footer truth. No caller may independently combine readiness,
+   * threshold and odds, because doing so is how a partial resistance roll used
+   * to display a plausible but false target.
+   * @param {object} data
+   * @returns {{ready: boolean, threshold: number|null, thresholdDisplay: string, oddsLabel: string, oddsPercent: number, oddsTooltip: string, missingLabel: string}}
+   */
+  _thresholdReadout(data) {
+    const ready = this._canSubmit(data);
+    if (!ready) {
+      return {
+        ready: false,
+        threshold: null,
+        thresholdDisplay: '—',
+        oddsLabel: '',
+        oddsPercent: 0,
+        oddsTooltip: '',
+        missingLabel: this._missingRequiredLabel(data),
+      };
+    }
+    const threshold = this._computeThreshold(data);
+    return {
+      ready: true,
+      threshold,
+      thresholdDisplay: String(threshold),
+      ...this._oddsData(data),
+      missingLabel: '',
+    };
+  }
+
+  /**
    * Repaint the odds readout. Split out of {@link _refresh} because the
    * roll-type picker also has to call it: the roll type leaves the threshold
    * untouched but changes which dice are rolled, so the odds move while the
@@ -871,11 +996,34 @@ export class TnoRollDialog extends FormApplication {
     const form = root instanceof HTMLFormElement ? root : root.querySelector('form');
     const odds = form?.querySelector('.tno-odds');
     if (!odds) return;
-    const { oddsLabel, oddsPercent, oddsTooltip } = this._oddsData(new FormDataExtended(form).object);
-    odds.textContent = oddsLabel;
-    odds.dataset.tooltipHtml = oddsTooltip;
-    odds.setAttribute('aria-label', `${game.i18n.localize('TNO.Roll.Odds.InfoLabel')}: ${oddsLabel}`);
-    form.querySelector('.tno-odds-fill').style.width = `${oddsPercent}%`;
+    const readout = this._thresholdReadout(new FormDataExtended(form).object);
+    odds.textContent = readout.oddsLabel;
+    form.querySelector('.tno-odds-fill').style.width = `${readout.oddsPercent}%`;
+    if (readout.ready) {
+      odds.tabIndex = 0;
+      odds.setAttribute('role', 'img');
+      odds.dataset.tooltipHtml = readout.oddsTooltip;
+      odds.setAttribute('aria-label', `${game.i18n.localize('TNO.Roll.Odds.InfoLabel')}: ${readout.oddsLabel}`);
+    } else {
+      odds.removeAttribute('tabindex');
+      odds.removeAttribute('role');
+      odds.removeAttribute('data-tooltip-html');
+      odds.removeAttribute('aria-label');
+    }
+  }
+
+  /**
+   * Paint both signed component surfaces from safe DOM nodes.
+   * @param {HTMLFormElement} form
+   * @param {object} data
+   */
+  _renderSignedReadouts(form, data) {
+    renderSignedChips(form.querySelector('.tno-roll-breakdown'), this._breakdownParts(data));
+    const badge = form.querySelector('.tno-attempt-badge');
+    if (!badge) return;
+    const parts = this._attemptComponents(data);
+    renderSignedChips(badge, parts);
+    if (!parts.length) badge.textContent = '—';
   }
 
   /**
@@ -886,39 +1034,43 @@ export class TnoRollDialog extends FormApplication {
    */
   _refresh(form) {
     const data = new FormDataExtended(form).object;
-    const threshold = this._computeThreshold(data);
-    form.querySelector('.tno-threshold-value').textContent = threshold;
-    const breakdown = form.querySelector('.tno-roll-breakdown');
-    if (breakdown) breakdown.textContent = this._breakdownText(data);
+    const readout = this._thresholdReadout(data);
+    form.querySelector('.tno-threshold-value').textContent = readout.thresholdDisplay;
+    const comparator = form.querySelector('.tno-threshold-comparator');
+    if (comparator) comparator.textContent = readout.ready ? '≤ ' : '';
+    this._renderSignedReadouts(form, data);
     const echo = form.querySelector('.tno-roll-submit-echo');
-    if (echo) echo.textContent = `${game.i18n.localize('TNO.Roll.SubmitTargetLabel')} ≤ ${threshold}`;
+    if (echo) {
+      echo.textContent = readout.ready
+        ? ''
+        : game.i18n.format('TNO.Roll.Blocked.Missing', { label: readout.missingLabel });
+    }
     this._refreshOdds(form);
     // The one row that comes and goes with the form state. It is rendered up
     // front and only shown or hidden here — injecting it would put a row into
     // a section this method otherwise never touches.
     const armorRow = form.querySelector('.tno-armor-malus');
-    if (armorRow) armorRow.hidden = this._conditionalModifiers(data).length === 0;
+    if (armorRow) armorRow.hidden = !this._conditionalModifiers(data).some((modifier) => modifier.label === armorRow.dataset.modifierLabel);
+    const maneuverRow = form.querySelector('.tno-maneuver-malus');
+    if (maneuverRow) maneuverRow.hidden = !this._conditionalModifiers(data).some((modifier) => modifier.label === maneuverRow.dataset.modifierLabel);
     // The Ansage read-out, which is the only thing in that section that moves.
     const ansage = form.querySelector('.tno-ansage-readout');
     if (ansage) ansage.textContent = this._ansageComponent(data)?.display ?? '';
     // The required-value field renames itself when the context choice above it
-    // decides which number is being asked for. Matched on `for` rather than the
-    // field's class, which the opposing-Ansage row shares — that row would
-    // otherwise have its own label blanked on every defence.
-    const requiredLabel = form.querySelector('label[for="tno-roll-required-value"]');
+    // decides which number is being asked for. Scoped through the field's own
+    // input name so the opposing-Ansage row beside it is never renamed.
+    const requiredLabel = form.querySelector('input[name="requiredValue"]')?.labels?.[0];
     if (requiredLabel && this.requiredValue) requiredLabel.textContent = this._requiredValueLabel(data);
-    // The declaration block's summary badge. This is the one thing the reorder
-    // needed new code for: the block can be closed over a Stelle and an Ansage
-    // that are both costing the roll, so its heading has to keep reporting them.
-    const badge = form.querySelector('.tno-attempt-badge');
-    if (badge) badge.textContent = this._attemptBadge(data);
     const submit = form.querySelector('button[type="submit"]');
-    if (submit) submit.disabled = !this._canSubmit(data);
+    if (submit) submit.disabled = !readout.ready;
     const box = form.querySelector('.tno-threshold-box');
     if (box) {
+      box.classList.toggle('is-pending', !readout.ready);
       box.classList.remove('tno-threshold-flash');
-      void box.offsetWidth; // reflow so the animation restarts on rapid changes
-      box.classList.add('tno-threshold-flash');
+      if (readout.ready) {
+        void box.offsetWidth; // reflow so the animation restarts on rapid changes
+        box.classList.add('tno-threshold-flash');
+      }
     }
   }
 
@@ -933,6 +1085,7 @@ export class TnoRollDialog extends FormApplication {
     form.querySelector('input[name="bonus"]').value = value;
     const display = form.querySelector('.tno-bonus-value');
     display.textContent = this._formatBonus(value);
+    display.setAttribute('aria-label', this._bonusResetLabel(value));
     display.classList.toggle('tno-bonus-positive', value > 0);
     display.classList.toggle('tno-bonus-negative', value < 0);
     form.querySelector('.tno-bonus-stepper[data-action="decrement"]').disabled = value <= BONUS_MIN;
@@ -955,23 +1108,21 @@ export class TnoRollDialog extends FormApplication {
       this._refresh(ev.currentTarget.closest('form'));
     });
 
-    // Skill mode: the attribute is picked from a heatmap chip grid instead of
-    // a select, so the player sees every attribute's value at once and can
-    // freely swap to any other one. Weapon attacks lock this choice to their
-    // authored WA and therefore omit the grid altogether.
-    html.on('click', '.tno-attribute-chip', (ev) => {
-      ev.preventDefault();
-      const chip = ev.currentTarget;
-      const form = chip.closest('form');
-      form.querySelectorAll('.tno-attribute-chip').forEach((c) => {
-        const on = c === chip;
-        c.classList.toggle('active', on);
-        c.setAttribute('aria-pressed', on ? 'true' : 'false');
-      });
-      form.querySelector('input[name="attributeA"]').value = chip.dataset.key;
-      const name = form.querySelector('.tno-attribute-selected-name');
-      if (name) name.textContent = chip.title;
-      this._refresh(form);
+    // Every selectable first attribute uses the same radiogroup behaviour as
+    // the roll-type picker. Locked combat attributes remain read-only rows.
+    const root = html[0];
+    const form = root.closest('form') ?? root.querySelector('form');
+    if (!form) return;
+    bindRadioGroup({
+      group: form.querySelector('.tno-attribute-chip-grid'),
+      input: form.querySelector('input[name="attributeA"]'),
+      onSelect: (value) => {
+        const chip = [...form.querySelectorAll('.tno-attribute-chip')]
+          .find((option) => option.dataset.value === value);
+        const name = form.querySelector('.tno-attribute-selected-name');
+        if (name) name.textContent = chip?.title ?? '';
+        this._refresh(form);
+      },
     });
 
     // Bonus stepper: ± in steps of 3, clamped, caps shown as disabled buttons.
@@ -996,22 +1147,31 @@ export class TnoRollDialog extends FormApplication {
       } else if (ev.key === 'ArrowDown' || ev.key === 'ArrowLeft') {
         ev.preventDefault();
         this._setBonus(form, current - BONUS_STEP);
-      } else if (ev.key === 'Enter' || ev.key === ' ') {
-        ev.preventDefault();
-        this._setBonus(form, 0);
       }
     });
 
     // Roll-type picker, shared with the base-dice dialog. It changes which
     // dice are rolled, not the threshold — so the threshold preview stays put
     // (no flash on a number that did not move) and only the odds are rebuilt.
-    bindAdvantagePicker(html, () => this._refreshOdds(html[0]));
+    const consequence = root.querySelector('.tno-advantage-effect');
+    bindRadioGroup({
+      group: root.querySelector('.tno-advantage-group'),
+      input: root.querySelector('input[name="advantage"]'),
+      onSelect: (value) => {
+        if (consequence) consequence.textContent = describeAdvantage(Number(value));
+        this._refreshOdds(root);
+      },
+    });
+
+    // The two chip surfaces are deliberately built only from DOM nodes and
+    // textContent; populate their initial state after the template renders.
+    this._renderSignedReadouts(form, new FormDataExtended(form).object);
 
     // A required combat context must be answered before the commit button is
     // useful; every other roll keeps the existing one-Enter default path. The
     // typed value comes first where both are asked: it is the fact the player
     // was just told, while the comparison is one they can work out themselves.
-    const contextFocus = this.preRollContext?.control === 'tiles'
+    const contextFocus = this.preRollContext?.control !== 'select'
       ? 'input[name="contextChoice"]:first'
       : 'select[name="contextChoice"]';
     const focus = this.requiredValue

@@ -112,14 +112,14 @@ export function defenseMalus(actor, defense) {
  * A melee attack or parry needs the reach comparison; a ranged attack needs the
  * band it is fired at.
  * @param {Object} system  A weapon item's `system` data.
- * @returns {{label: string, placeholder: string, control: 'tiles', tileLabels: boolean, tileColumns: 2|5, choices: Array<Object>}}
+ * @returns {{label: string, placeholder: string, control: 'toggle'|'tiles', tileLabels: boolean, tileColumns: 2|5, choices: Array<Object>}}
  */
 function weaponContext(system) {
   const melee = usesMelee(system);
   return {
-    label: game.i18n.localize(melee ? 'TNO.Combat.DkDifference' : 'TNO.Combat.RangeBand'),
+    label: game.i18n.localize(melee ? 'TNO.Combat.DkQuestion' : 'TNO.Combat.RangeQuestion'),
     placeholder: game.i18n.localize('TNO.Combat.ContextPlaceholder'),
-    control: 'tiles',
+    control: melee ? 'toggle' : 'tiles',
     tileLabels: true,
     tileColumns: melee ? 2 : 5,
     choices: melee ? dkChoices() : rangeBandChoices(system),
@@ -178,13 +178,21 @@ function rangeBandChoices(system) {
  */
 function weaponFixedModifiers(actor, system, handling) {
   const { svSteps, svMalus } = weaponRequirementStatus(actor, system);
+  const active = handling === 'active';
 
   return [
     {
-      label: game.i18n.localize(handling === 'active' ? 'TNO.Combat.ActiveHandling' : 'TNO.Combat.PassiveHandling'),
+      label: game.i18n.localize(active ? 'TNO.Combat.ActiveHandling' : 'TNO.Combat.PassiveHandling'),
       value: weaponHandlingModifier(system, handling),
+      hint: game.i18n.localize(active ? 'TNO.Combat.ActiveHandlingHint' : 'TNO.Combat.PassiveHandlingHint'),
     },
-    ...(svSteps ? [{ label: game.i18n.format('TNO.Combat.SvMalus', { steps: svSteps }), value: svMalus }] : []),
+    ...(svSteps
+      ? [{
+          label: game.i18n.format('TNO.Combat.SvMalus', { steps: svSteps }),
+          value: svMalus,
+          hint: game.i18n.localize('TNO.Combat.SvMalusHint'),
+        }]
+      : []),
   ];
 }
 
@@ -200,7 +208,11 @@ function weaponFixedModifiers(actor, system, handling) {
 function maneuverFvMalus(actor, system) {
   const { fvMalus } = weaponRequirementStatus(actor, system);
   if (!fvMalus) return null;
-  return { label: game.i18n.localize('TNO.Combat.FvMalus'), value: fvMalus };
+  return {
+    label: game.i18n.localize('TNO.Combat.FvMalus'),
+    value: fvMalus,
+    hint: game.i18n.localize('TNO.Combat.FvMalusHint'),
+  };
 }
 
 /**
@@ -287,7 +299,8 @@ function ansageField() {
  */
 function zonePicker() {
   return {
-    label: game.i18n.localize('TNO.Combat.Zone'),
+    label: game.i18n.localize('TNO.Combat.ZoneQuestion'),
+    componentLabel: game.i18n.localize('TNO.Combat.Zone'),
     choices: ZONE_CHOICES.map((zone) => ({
       key: zone,
       label: game.i18n.localize(CONFIG.TNO.armorZones[zone]),
@@ -358,9 +371,9 @@ export function paradeOptions(actor, weapon) {
     skill: { key, label: definition.label, value: weaponSkillRank(actor, weapon.system) },
     fixedModifiers: [...weaponFixedModifiers(actor, weapon.system, 'passive'), ...repeatedDefense(actor, 'parry')],
     preRollContext: {
-      label: game.i18n.localize('TNO.Combat.DkDifference'),
+      label: game.i18n.localize('TNO.Combat.DkQuestion'),
       placeholder: game.i18n.localize('TNO.Combat.ContextPlaceholder'),
-      control: 'tiles',
+      control: 'toggle',
       tileLabels: true,
       tileColumns: 2,
       choices: dkChoices(),
@@ -419,7 +432,11 @@ function repeatedDefense(actor, defense) {
   const value = defenseMalus(actor, defense);
   if (!value) return [];
   const used = Number(actor?.system?.combat?.defenses?.[defense]) || 0;
-  return [{ label: game.i18n.format('TNO.Combat.RepeatedDefense', { count: used + 1 }), value }];
+  return [{
+    label: game.i18n.format('TNO.Combat.RepeatedDefense', { count: used + 1 }),
+    value,
+    hint: game.i18n.localize('TNO.Combat.RepeatedDefenseHint'),
+  }];
 }
 
 /**
@@ -486,7 +503,11 @@ export function widerstandOptions(actor, zone) {
     // Already summed over the Unterkleidung and this zone's addon by
     // `resolveArmor`, which is the value the paper doll shows.
     fixedModifiers: [
-      { label: game.i18n.format('TNO.Combat.ResistanceRw', { zone: zoneLabel }), value: armor.rw },
+      {
+        label: game.i18n.format('TNO.Combat.ResistanceRw', { zone: zoneLabel }),
+        value: armor.rw,
+        hint: game.i18n.format('TNO.Combat.ResistanceRwHint', { zone: zoneLabel }),
+      },
     ],
     // The attacker's card prints two damage values, sharp and blunt, and the
     // comparison above decides which of them landed. So this field is named by

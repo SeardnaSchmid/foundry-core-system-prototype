@@ -67,8 +67,11 @@ another user's permissions.
   optional input a combat roll can carry, all of them feeding one component list
   that the threshold, the live breakdown, the chat card and the message flags
   are all derived from:
-  - `preRollContext` — one required pick, as a compact radio-tile grid (2, 3, 5
-    or 7 columns) or a select.
+  - `preRollContext` — one required pick: a two-option `toggle` for binary
+    observations such as the reach advantage, a compact radio-tile grid (2, 3,
+    5 or 7 columns) for real ladders, or a select. The field label asks the
+    question; each choice's `componentLabel` remains the noun recorded in the
+    threshold breakdown and chat card.
   - `requiredValue` — one required typed number, e.g. the announced Schadenswert.
     Optionally `labels` (one per `preRollContext` choice key) and `hint`. The
     resistance roll uses both: the attacker's card prints a sharp *and* a blunt
@@ -140,12 +143,17 @@ answer**, and two labelled dividers make that split visible rather than implied.
 | 2 | Wie steht ihr zueinander? | `preRollContext` · `requiredValue` | `hasSituationSection` |
 | 3 | Was wurde gegen dich angesagt? | `opposingAnsage` · `toggleModifier` | `hasAgainstSection` — defences only |
 | — | *was du entscheidest* | divider | anything in 4–6 does |
-| 4 | Sagst du etwas an oder passt du etwas an? | `zonePicker` · `ansage` · the `±3` stepper | `hasAttemptSection` |
+| 4 | Sagst du etwas an oder passt du etwas an? / Passt du etwas an? | `zonePicker` · `ansage` · the `±3` stepper | `hasAttemptSection`; the shorter question is used when only the stepper renders |
 | 5 | Setzt du etwas ein? | Idee / edge pool | `hasIdeaOption` |
 | 6 | Wie würfelst du? | the advantage picker | not fixed-value mode |
 | — | sticky footer | threshold · odds · Würfeln | always |
 
 Four properties of that layout are deliberate:
+
+**A divider needs a section on its far side.** `hasGivenDivider` is exactly
+question 2 or 3, and `hasChosenDivider` is exactly question 4, 5 or 6. A plain
+skill roll therefore has only the second divider; a fixed roll with no later
+question has neither.
 
 **The question that can block the roll leads.** Only `preRollContext` and
 `requiredValue` gate submit, so they come first among the inputs. They used to
@@ -159,11 +167,16 @@ with the Ansagen — sharing one "Modifikatoren" box with the weapon's own
 requirements made a rule the player cannot change look like a number the GM
 improvised, and standing alone in a box that was always open made it look like a
 fixed part of the roll instead of one more thing being decided.
+The locked combat attribute is shown beside its heatmap-coloured value in the
+same row form as the skill rank. Unlocked skill, attribute and free rolls all
+use the same attribute radiogroup; only the optional second attribute remains a
+select, with each current value in its option label. Immutable gear rows expose
+their rule consequence through the shared rich-tooltip treatment.
 
 **Question 4 is a native `<details>`, closed by default.** Closed *is* the
 Standardangriff: no Ansage, no modification, and the Torso. It renders `open`
 whenever the roll already carries any of the three, so a re-render can never fold
-a set value out of sight, and its `<summary>` carries a live badge
+a set value out of sight, and its `<summary>` carries a live signed-chip badge
 (`Kopf −6 · Ansage −4 · Modifikation +3`) so a shut block never hides a cost.
 `_refresh` repaints values rather than rebuilding rows, so that badge is the one
 thing the restructure needed new JS for. The badge only reports — the threshold
@@ -181,4 +194,8 @@ element.
 it is the answer to everything above it, and `position: sticky` because watching
 it move while answering is the reason this is one page rather than a wizard. The
 advantage picker sits *above* it: the roll type leaves the threshold alone but
-changes the odds printed inside that box.
+changes the odds printed inside that box. `_thresholdReadout()` is the sole
+read-side for submit readiness, threshold and odds: until every required answer
+exists the box shows `—`, the odds are empty and the button names the missing
+field. Once ready, the threshold's components render as a compact wrapping chip
+row built with DOM nodes and `textContent`, never caller-provided HTML.

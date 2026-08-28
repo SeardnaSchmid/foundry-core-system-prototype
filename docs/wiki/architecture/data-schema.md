@@ -86,7 +86,7 @@ computes them in `TnoActor.prepareDerivedData()`, writing to
 | Field | Formula | Notes |
 | --- | --- | --- |
 | `initiative` | `ceil((2·base(dex) + base(per)) / 3)` | |
-| `movementWalk` / `movementSprint` / `movementCrawl` | `base(dex)`, `3·base(dex)`, `round(base(dex) / 3)` | the crawl is rounded like `sixthSense`, the system's other division the Attribute page leaves without an explicit *aufgerundet* |
+| `movementWalk` / `movementSprint` / `movementCrawl` | `base(dex)`, `3·base(dex)`, `ceil(base(dex) / 3)` | the crawl is *aufgerundet* like `initiative` and `insight`, not rounded to nearest like `sixthSense` — rounding down would leave a low Beweglichkeit with no crawl at all |
 | `canSprint` | `value(dex) >= base(dex)` **and** the load is under half capacity | the one derived value compared against damaged `value`, not `base` — detects Beweglichkeit damage. Either blocker alone rules sprinting out |
 | `carrySlots` / `carrySlotsUsed` | `2·base(str) + base(dex)` / sum of carried `slots × quantity` | worn gear is excluded; `used` is never clamped to capacity — see [inventory.md](../concepts/inventory.md) |
 | `carryState` | `ok` \| `noSprint` \| `crawlOnly` \| `noContainer` | the movement consequence of the current load |

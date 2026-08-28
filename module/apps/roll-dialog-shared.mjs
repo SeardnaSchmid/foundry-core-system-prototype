@@ -1,4 +1,4 @@
-import { TNO_ADVANTAGE, TNO_ADVANTAGE_GLYPH, describeAdvantage } from '../helpers/dice.mjs';
+import { TNO_ADVANTAGE, TNO_ADVANTAGE_GLYPH } from '../helpers/dice.mjs';
 
 /**
  * Build the advantage/disadvantage option list for the roll-type picker,
@@ -16,54 +16,86 @@ export function advantageOptions() {
 }
 
 /**
- * Wire up an advantage-picker radiogroup rendered from advantage-picker.hbs:
- * click + Left/Right arrow-key selection, aria-checked/roving-tabindex sync,
- * and a live "which dice this rolls" consequence line.
+ * Wire a button-based radiogroup to its hidden form input. Both the roll-type
+ * picker and the attribute heatmap use this one interaction pattern: one tab
+ * stop, roving focus, arrow-key selection and synchronized `aria-checked`.
  *
- * @param {JQuery|HTMLElement} html   The dialog's rendered root.
- * @param {(value: number) => void} [onChange]  Extra callback after a change
- *   (e.g. to refresh a threshold preview). The picker itself never touches
- *   the threshold, since the roll type does not change it.
+ * @param {object} options
+ * @param {HTMLElement} options.group  Element carrying `role="radiogroup"`.
+ * @param {HTMLInputElement} options.input  Hidden input that owns the value.
+ * @param {(value: string) => void} [options.onSelect]
  * @returns {(value: number|string) => void}  A programmatic select function.
  */
-export function bindAdvantagePicker(html, onChange) {
-  const root = html instanceof jQuery ? html[0] : html;
-  const group = root.querySelector('.tno-advantage-group');
-  const input = root.querySelector('input[name="advantage"]');
-  const consequence = root.querySelector('.tno-advantage-effect');
+export function bindRadioGroup({ group, input, onSelect } = {}) {
   if (!group || !input) return () => {};
-
-  const options = [...group.querySelectorAll('.tno-advantage-option')];
+  const options = [...group.querySelectorAll('[role="radio"][data-value]')];
+  if (!options.length) return () => {};
+  if (!options.some((option) => option.getAttribute('aria-checked') === 'true')) options[0].tabIndex = 0;
 
   const select = (value) => {
-    const str = String(value);
-    input.value = str;
-    for (const opt of options) {
-      const on = opt.dataset.value === str;
-      opt.classList.toggle('active', on);
-      opt.setAttribute('aria-checked', on ? 'true' : 'false');
-      opt.tabIndex = on ? 0 : -1;
+    const selectedValue = String(value);
+    input.value = selectedValue;
+    for (const option of options) {
+      const selected = option.dataset.value === selectedValue;
+      option.classList.toggle('active', selected);
+      option.setAttribute('aria-checked', selected ? 'true' : 'false');
+      option.tabIndex = selected ? 0 : -1;
     }
-    if (consequence) consequence.textContent = describeAdvantage(Number(value));
-    onChange?.(Number(value));
+    onSelect?.(selectedValue);
   };
 
-  for (const opt of options) {
-    opt.addEventListener('click', (ev) => {
-      ev.preventDefault();
-      select(opt.dataset.value);
+  for (const option of options) {
+    option.addEventListener('click', (event) => {
+      event.preventDefault();
+      select(option.dataset.value);
     });
   }
 
-  group.addEventListener('keydown', (ev) => {
-    if (ev.key !== 'ArrowLeft' && ev.key !== 'ArrowRight') return;
-    ev.preventDefault();
-    const current = options.findIndex((o) => o.getAttribute('aria-checked') === 'true');
-    const dir = ev.key === 'ArrowRight' ? 1 : -1;
-    const next = options[Math.clamp(current + dir, 0, options.length - 1)];
+  group.addEventListener('keydown', (event) => {
+    const direction = {
+      ArrowLeft: -1,
+      ArrowUp: -1,
+      ArrowRight: 1,
+      ArrowDown: 1,
+    }[event.key];
+    if (!direction) return;
+    event.preventDefault();
+    const current = Math.max(0, options.findIndex((option) => option.getAttribute('aria-checked') === 'true'));
+    const nextIndex = Math.min(options.length - 1, Math.max(0, current + direction));
+    const next = options[nextIndex];
     select(next.dataset.value);
     next.focus();
   });
 
   return select;
+}
+
+/**
+ * Render signed threshold components without parsing caller-provided labels as
+ * markup. Custom skills may be named freely, so every visible string enters the
+ * DOM through `textContent`.
+ *
+ * @param {HTMLElement} container
+ * @param {Array<{label: string, display: string, value: number}>} parts
+ */
+export function renderSignedChips(container, parts = []) {
+  if (!container) return;
+  const fragment = document.createDocumentFragment();
+  for (const part of parts) {
+    const chip = document.createElement('span');
+    chip.classList.add('tno-signed-chip');
+    chip.classList.add(part.value > 0 ? 'is-positive' : part.value < 0 ? 'is-negative' : 'is-neutral');
+
+    const label = document.createElement('span');
+    label.classList.add('tno-signed-chip-label');
+    label.textContent = String(part.label ?? '');
+
+    const value = document.createElement('span');
+    value.classList.add('tno-signed-chip-value');
+    value.textContent = String(part.display ?? '');
+
+    chip.append(label, value);
+    fragment.append(chip);
+  }
+  container.replaceChildren(fragment);
 }

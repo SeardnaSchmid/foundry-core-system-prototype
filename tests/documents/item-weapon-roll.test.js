@@ -103,7 +103,7 @@ describe('weapon roll requirement components', () => {
   it('sends the SV shortfall as one graded component', () => {
     // SV 6 against Strength 2 is 4 short: two steps.
     expect(attackRequirements(actor(), { fvRank: 8, sv: 6 })).toEqual([
-      { label: 'TNO.Combat.SvMalus(2)', value: -6 },
+      { label: 'TNO.Combat.SvMalus(2)', value: -6, hint: 'TNO.Combat.SvMalusHint' },
     ]);
   });
 
@@ -112,7 +112,7 @@ describe('weapon roll requirement components', () => {
     // the case that separates the ladder from the reading where the "weitere
     // Punkte" are counted from the requirement itself.
     expect(attackRequirements(actor(), { sv: 4 })).toEqual([
-      { label: 'TNO.Combat.SvMalus(1)', value: -3 },
+      { label: 'TNO.Combat.SvMalus(1)', value: -3, hint: 'TNO.Combat.SvMalusHint' },
     ]);
   });
 
@@ -120,8 +120,8 @@ describe('weapon roll requirement components', () => {
     opened = null;
     weapon(actor(), { fvRank: 8, sv: 6 }).openWeaponParry();
     expect(opened.fixedModifiers).toEqual([
-      { label: 'TNO.Combat.PassiveHandling', value: -1 },
-      { label: 'TNO.Combat.SvMalus(2)', value: -6 },
+      { label: 'TNO.Combat.PassiveHandling', value: -1, hint: 'TNO.Combat.PassiveHandlingHint' },
+      { label: 'TNO.Combat.SvMalus(2)', value: -6, hint: 'TNO.Combat.SvMalusHint' },
     ]);
     // "Angriffe und Paraden sind um +3 erleichtert wenn man den längeren hat":
     // the parry asks for the same reach comparison an attack does.
@@ -131,12 +131,13 @@ describe('weapon roll requirement components', () => {
   it('offers a melee attack the two reach outcomes as its required context', () => {
     opened = null;
     weapon(actor()).openWeaponCheck();
+    expect(opened.preRollContext.control).toBe('toggle');
     expect(opened.preRollContext.choices.map((choice) => choice.value)).toEqual([0, 3]);
   });
 
   // With `0` as a real outcome the number alone stops being an answer, so both
-  // melee tiles carry the question as their caption.
-  it('captions the reach tiles with the question rather than the bare number', () => {
+  // segments carry a textual answer beside their modifier.
+  it('labels both reach-toggle answers rather than showing bare numbers', () => {
     opened = null;
     weapon(actor()).openWeaponCheck();
     expect(opened.preRollContext.tileLabels).toBe(true);

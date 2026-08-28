@@ -276,19 +276,38 @@ TNO.armorAddonZones = ARMOR_ADDON_ZONES;
  * Gleichgewicht", "nicht wenn gebunden", "nur nach Handlung X" — are deliberately
  * absent: neither Gleichgewicht nor Bindung exists in the system yet, and a
  * gate nothing can evaluate is worse than no gate.
- * @type {Object<string, {label: string, defenses: Array<'parry'|'dodge'>}>}
+ *
+ * `icon` and `group` are the picker's, not the rules': nine Haltungen are too
+ * many to scan as one flat list, so each one carries a figure of its own and
+ * sits in the band it belongs to. `effect` names the one-line summary the
+ * picker's detail panel reads out beside that figure.
+ * @type {Object<string, {label: string, effect: string, icon: string, group: string, defenses: Array<'parry'|'dodge'>}>}
  */
 TNO.stances = {
-  open: { label: 'TNO.Combat.Stance.Open', defenses: [] },
-  simpleMove: { label: 'TNO.Combat.Stance.SimpleMove', defenses: ['parry', 'dodge'] },
-  carefulMove: { label: 'TNO.Combat.Stance.CarefulMove', defenses: ['dodge'] },
-  fastMove: { label: 'TNO.Combat.Stance.FastMove', defenses: ['dodge'] },
-  inCover: { label: 'TNO.Combat.Stance.InCover', defenses: ['dodge'] },
-  enGarde: { label: 'TNO.Combat.Stance.EnGarde', defenses: ['parry', 'dodge'] },
-  suppressiveFire: { label: 'TNO.Combat.Stance.SuppressiveFire', defenses: ['dodge'] },
-  grappling: { label: 'TNO.Combat.Stance.Grappling', defenses: [] },
-  catchBreath: { label: 'TNO.Combat.Stance.CatchBreath', defenses: [] },
+  open: { label: 'TNO.Combat.Stance.Open', effect: 'TNO.Combat.StanceEffect.Open', icon: 'fa-person', group: 'base', defenses: [] },
+  simpleMove: { label: 'TNO.Combat.Stance.SimpleMove', effect: 'TNO.Combat.StanceEffect.SimpleMove', icon: 'fa-person-walking', group: 'movement', defenses: ['parry', 'dodge'] },
+  carefulMove: { label: 'TNO.Combat.Stance.CarefulMove', effect: 'TNO.Combat.StanceEffect.CarefulMove', icon: 'fa-shoe-prints', group: 'movement', defenses: ['dodge'] },
+  fastMove: { label: 'TNO.Combat.Stance.FastMove', effect: 'TNO.Combat.StanceEffect.FastMove', icon: 'fa-person-running', group: 'movement', defenses: ['dodge'] },
+  inCover: { label: 'TNO.Combat.Stance.InCover', effect: 'TNO.Combat.StanceEffect.InCover', icon: 'fa-shield-halved', group: 'combat', defenses: ['dodge'] },
+  enGarde: { label: 'TNO.Combat.Stance.EnGarde', effect: 'TNO.Combat.StanceEffect.EnGarde', icon: 'fa-hand-fist', group: 'combat', defenses: ['parry', 'dodge'] },
+  suppressiveFire: { label: 'TNO.Combat.Stance.SuppressiveFire', effect: 'TNO.Combat.StanceEffect.SuppressiveFire', icon: 'fa-burst', group: 'combat', defenses: ['dodge'] },
+  grappling: { label: 'TNO.Combat.Stance.Grappling', effect: 'TNO.Combat.StanceEffect.Grappling', icon: 'fa-people-arrows', group: 'combat', defenses: [] },
+  catchBreath: { label: 'TNO.Combat.Stance.CatchBreath', effect: 'TNO.Combat.StanceEffect.CatchBreath', icon: 'fa-lungs', group: 'recovery', defenses: [] },
 };
+
+/**
+ * The bands the picker sorts the Haltungen into, in the order it shows them.
+ * Ordered as a list rather than keyed like `stances`, because the order is the
+ * whole point: the neutral one first, then the two bands a player picks between
+ * turn by turn, then the one that spends a turn recovering.
+ * @type {Array<{key: string, label: string}>}
+ */
+TNO.stanceGroups = [
+  { key: 'base', label: 'TNO.Combat.StanceGroup.Base' },
+  { key: 'movement', label: 'TNO.Combat.StanceGroup.Movement' },
+  { key: 'combat', label: 'TNO.Combat.StanceGroup.Combat' },
+  { key: 'recovery', label: 'TNO.Combat.StanceGroup.Recovery' },
+];
 
 /**
  * The Haltung a character is in before anyone has said otherwise: "Kann immer
