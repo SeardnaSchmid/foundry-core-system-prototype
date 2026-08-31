@@ -17,6 +17,7 @@ export const MIGRATIONS = [
   { version: '0.34.0', migrate: migrateSeedCombatStance },
   { version: '0.35.0', migrate: migrateDropStealthSkill },
   { version: '0.35.0', migrate: migrateDropPendingAnsage },
+  { version: '0.36.0', migrate: migrateDropTemporaryAttributeValues },
 ];
 
 /**
@@ -263,6 +264,24 @@ async function migrateDropPendingAnsage() {
     if (actor.type !== 'character') continue;
     if (!actor.system?.combat?.pending) continue;
     await actor.update({ 'system.combat.-=pending': null });
+  }
+}
+
+/**
+ * Remove the retired temporary `value` axis from every character attribute.
+ * The trained `base` rating is now the sole persisted and rolled value. Reads
+ * come from the actor's prepared data because `template.json` no longer
+ * supplies the deleted key, so only genuinely stored legacy fields appear.
+ */
+async function migrateDropTemporaryAttributeValues() {
+  for (const actor of game.actors) {
+    if (actor.type !== 'character') continue;
+
+    const update = {};
+    for (const [key, ability] of Object.entries(actor.system.abilities ?? {})) {
+      if (Object.hasOwn(ability ?? {}, 'value')) update[`system.abilities.${key}.-=value`] = null;
+    }
+    if (!foundry.utils.isEmpty(update)) await actor.update(update);
   }
 }
 

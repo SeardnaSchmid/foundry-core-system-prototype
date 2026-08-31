@@ -55,7 +55,7 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     // which is anywhere between four rows and twenty.
     position: { width: 620, height: 'auto' },
     window: { resizable: true },
-    // The sheet edits a live document that the paper doll and the carry grid
+    // The sheet edits a live document that the paper doll and the slot grid
     // render at the same time, and Foundry has no rollback to hang a Cancel
     // button off. So every change writes through, exactly as on the actor
     // sheet, and the footer counts what is still missing instead of gating a

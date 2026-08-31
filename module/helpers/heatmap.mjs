@@ -10,8 +10,6 @@
  *  - an independent curve per segment (lowCurve/highCurve) — 1 is linear;
  *    above 1 keeps most of that segment close to its start color before a
  *    sharp swing near the pivot/end (banding); below 1 does the opposite
- *  - a dedicated color for "critical" cells (temp value at rock bottom),
- *    which sits outside the 1-10 gradient entirely
  *
  * See apps/heatmap-lab.mjs for the live editor UI, wired up through the
  * "Heatmap-Stil" settings menu.
@@ -55,7 +53,6 @@ export const HEATMAP_QUICK_PRESETS = {
     midValue: 4.5,
     lowCurve: 1,
     highCurve: 1,
-    critical: '#3d1418',
   },
   // Plasma: dark indigo -> magenta -> yellow. Same design family as
   // Viridis (matplotlib/cmocean), warmer in tone.
@@ -67,7 +64,6 @@ export const HEATMAP_QUICK_PRESETS = {
     midValue: 4.5,
     lowCurve: 1,
     highCurve: 1,
-    critical: '#3d1418',
   },
   // Inferno: near-black -> crimson -> pale yellow. High-contrast member of
   // the same perceptually-uniform family, good for dark UIs.
@@ -79,7 +75,6 @@ export const HEATMAP_QUICK_PRESETS = {
     midValue: 4.5,
     lowCurve: 1,
     highCurve: 1,
-    critical: '#3d1418',
   },
   // Magma: near-black -> magenta -> pale cream. Inferno's cooler sibling.
   magma: {
@@ -90,7 +85,6 @@ export const HEATMAP_QUICK_PRESETS = {
     midValue: 4.5,
     lowCurve: 1,
     highCurve: 1,
-    critical: '#3d1418',
   },
   // Cividis: navy -> grey -> gold. Purpose-built so red-green colorblind
   // and fully-sighted viewers perceive the same value ordering.
@@ -102,7 +96,6 @@ export const HEATMAP_QUICK_PRESETS = {
     midValue: 4.5,
     lowCurve: 1,
     highCurve: 1,
-    critical: '#3d1418',
   },
   // Turbo (Google AI, 2019): an improved rainbow map — wide hue sweep like
   // classic "jet" but smoothed to avoid jet's misleading perceptual banding.
@@ -114,7 +107,6 @@ export const HEATMAP_QUICK_PRESETS = {
     midValue: 4.5,
     lowCurve: 1,
     highCurve: 1,
-    critical: '#3d1418',
   },
   // Coolwarm: blue -> near-white -> red. The standard diverging map for
   // "below/at/above a reference point" scientific heatmaps and dashboards.
@@ -126,7 +118,6 @@ export const HEATMAP_QUICK_PRESETS = {
     midValue: 4.5,
     lowCurve: 1,
     highCurve: 1,
-    critical: '#3d1418',
   },
   // Greys: white -> mid grey -> black. The classic print-safe sequential
   // scale, included alongside the color maps above.
@@ -138,7 +129,6 @@ export const HEATMAP_QUICK_PRESETS = {
     midValue: 4.5,
     lowCurve: 1,
     highCurve: 1,
-    critical: '#5c1414',
   },
   // Demonstrates the curve controls: the low segment stays close to "low"
   // for most of its span then swings hard into "mid" right at the pivot
@@ -153,7 +143,6 @@ export const HEATMAP_QUICK_PRESETS = {
     midValue: 6.5,
     lowCurve: 2.2,
     highCurve: 0.8,
-    critical: '#3d1418',
   },
 };
 
@@ -164,17 +153,16 @@ export const DEFAULT_HEATMAP_CONFIG = {
   midValue: HEATMAP_QUICK_PRESETS.banded.midValue,
   lowCurve: HEATMAP_QUICK_PRESETS.banded.lowCurve,
   highCurve: HEATMAP_QUICK_PRESETS.banded.highCurve,
-  critical: HEATMAP_QUICK_PRESETS.banded.critical,
 };
 
 let activeConfig = { ...DEFAULT_HEATMAP_CONFIG };
 
 /**
  * Merge a partial config into the active gradient config used by subsequent
- * colorForValue()/colorForCritical() calls. midValue/lowCurve/highCurve are
+ * `colorForValue()` calls. midValue/lowCurve/highCurve are
  * clamped to their sane ranges; colors are passed through as-is (expected
  * to be "#rrggbb").
- * @param {Partial<{low: string, mid: string, high: string, midValue: number, lowCurve: number, highCurve: number, critical: string}>} config
+ * @param {Partial<{low: string, mid: string, high: string, midValue: number, lowCurve: number, highCurve: number}>} config
  */
 export function setActiveHeatmapConfig(config = {}) {
   activeConfig = {
@@ -272,16 +260,4 @@ export function colorForValue(value, min = ABSOLUTE_MIN, max = ABSOLUTE_MAX, con
     textColor: textColorFor(rgb),
     isPeak: value === max,
   };
-}
-
-/**
- * Grade the "critical" state (e.g. an attribute's temp value hitting rock
- * bottom) — a dedicated color outside the 1-10 gradient entirely, since it
- * represents a distinct in-fiction consequence rather than a low roll.
- * @param {object} [config] defaults to the active config
- * @returns {{bg: string, textColor: string}}
- */
-export function colorForCritical(config = activeConfig) {
-  const rgb = hexToRgb(config.critical);
-  return { bg: rgbToHex(rgb), textColor: textColorFor(rgb) };
 }

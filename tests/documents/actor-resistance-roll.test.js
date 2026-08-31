@@ -64,16 +64,15 @@ game.tno = {
 
 describe('resistance roll', () => {
   /**
-   * A character with armour already resolved onto the paper doll. Stärke's
-   * `base` and `value` differ so the two readings can never be confused, and
-   * the worn armour outweighs the Strength so the Beweglichkeit malus is live.
+   * A character with armour already resolved onto the paper doll. The worn
+   * armour outweighs Strength so the Beweglichkeit malus is live.
    */
-  const actor = ({ strengthBase = 5, strengthCurrent = 2 } = {}) =>
+  const actor = ({ strength = 5, damageMalus = 0 } = {}) =>
     Object.assign(new TnoActor(), {
       type: 'character',
       isOwner: true,
       system: {
-        abilities: { str: { base: strengthBase, value: strengthCurrent } },
+        abilities: { str: { base: strength } },
         derived: {
           armor: {
             head: { rh: 3, rw: 4, ra: 6 },
@@ -82,6 +81,7 @@ describe('resistance roll', () => {
             legs: { rh: 0, rw: 1, ra: 0 },
           },
           armorSvPenalty: true,
+          damage: { malus: damageMalus },
         },
       },
     });
@@ -111,8 +111,7 @@ describe('resistance roll', () => {
         hint: 'TNO.Combat.ResistanceRwHint(TNO.Armor.Zone.Head)',
       },
     ]);
-    // The Stelle also says where a failed roll lands: Kopf doubles onto Stärke.
-    expect(resist('head').flavor).toBe('TNO.Combat.ResistanceFlavor(TNO.Armor.Zone.Head,TNO.Ability.Str.long ×2)');
+    expect(resist('head').flavor).toBe('TNO.Combat.ResistanceFlavor(TNO.Armor.Zone.Head,TNO.Damage.Pool ×2)');
     // A different location answers with its own padding, not the head's.
     expect(resist('legs').fixedModifiers).toEqual([
       {
@@ -123,27 +122,25 @@ describe('resistance roll', () => {
     ]);
   });
 
-  // "Schaden wird direkt auf körperliche Attribute angerechnet", and which ones
-  // is decided by the Stelle alone — so the roll that resists a hit is also the
-  // roll that can say what the hit costs if it lands.
-  it('names the attributes a failed roll lands on, per Stelle', () => {
-    // Torso, the Stelle of every attack that announced nothing: Stärke, undoubled.
-    expect(resist('torso').flavor).toBe('TNO.Combat.ResistanceFlavor(TNO.Armor.Zone.Torso,TNO.Ability.Str.long)');
-    // Arme splits, and the order is the rounding: Fingerfertigkeit first.
-    expect(resist('arms').flavor).toBe(
-      'TNO.Combat.ResistanceFlavor(TNO.Armor.Zone.Arms,TNO.Ability.Fin.long / TNO.Ability.Str.long)'
-    );
+  it('names the damage pool and the Stelle multiplier instead of attributes', () => {
+    expect(resist('torso').flavor).toBe('TNO.Combat.ResistanceFlavor(TNO.Armor.Zone.Torso,TNO.Damage.Pool)');
+    expect(resist('arms').flavor).toBe('TNO.Combat.ResistanceFlavor(TNO.Armor.Zone.Arms,TNO.Damage.Pool)');
   });
 
-  it('reads Stärke at its damage-adjusted value, not its trained base', () => {
+  it('reads the sole Stärke rating', () => {
     const dialog = resist('head');
     expect(dialog.lockAttribute).toBe(true);
-    // Stärke 2 (not the trained 5) + RW 4 − the announced 7, plus the bonus
-    // step the harder armour earns.
-    expect(dialog._computeThreshold(answered({ requiredValue: 7, contextChoice: 'harder' }))).toBe(2);
+    // Stärke 5 + RW 4 − the announced 7, plus the bonus step the harder armour earns.
+    expect(dialog._computeThreshold(answered({ requiredValue: 7, contextChoice: 'harder' }))).toBe(5);
     // And the armour SV malus stays away without being special-cased: this is
     // a Stärkewurf, and the rule names Beweglichkeit.
     expect(dialog._conditionalModifiers(answered())).toEqual([]);
+  });
+
+  it('includes the always-on damage malus on the resistance roll', () => {
+    const dialog = resist('head', { damageMalus: -3 });
+    expect(dialog._computeThreshold(answered({ requiredValue: 7, contextChoice: 'harder' }))).toBe(2);
+    expect(dialog._actorModifiers()).toEqual([{ label: 'TNO.Damage.RollMalus', value: -3 }]);
   });
 
   // "Erschwere deinen Angriff um die Rüstungsabdeckung der jeweiligen Stelle und
@@ -158,8 +155,8 @@ describe('resistance roll', () => {
       // Stärke alone.
       value: -4,
     });
-    expect(dialog._computeThreshold(answered({ requiredValue: 7, contextChoice: 'softer' }))).toBe(-1);
-    expect(dialog._computeThreshold(answered({ requiredValue: 7, contextChoice: 'softer', toggleModifier: true }))).toBe(-5);
+    expect(dialog._computeThreshold(answered({ requiredValue: 7, contextChoice: 'softer' }))).toBe(2);
+    expect(dialog._computeThreshold(answered({ requiredValue: 7, contextChoice: 'softer', toggleModifier: true }))).toBe(-2);
     // Confirming it is the defender's move, not a default: unbypassed armour
     // must never quietly vanish.
     expect(dialog._conditionalModifiers(answered())).toEqual([]);
@@ -172,7 +169,7 @@ describe('resistance roll', () => {
       type: 'character',
       isOwner: true,
       system: {
-        abilities: { str: { base: 5, value: 2 } },
+        abilities: { str: { base: 5 } },
         derived: { armor: { torso: { rh: 0, rw: 0, ra: 0 } } },
       },
     });

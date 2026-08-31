@@ -102,6 +102,11 @@ system version has advanced past what a world last recorded.
   has no reader left. The `0.34.0` step that seeds it stays untouched — a
   published step is never edited — and this one runs after it and takes the key
   back out.
+- **`0.36.0` — `migrateDropTemporaryAttributeValues`**: removes the retired
+  `system.abilities.<key>.value` field from every character attribute. The
+  trained `base` rating is now the only persisted and rolled attribute value;
+  the step preserves `base` and `xp`, skips NPCs, and writes nothing once the
+  legacy keys are gone.
 
 ## Adding a new step
 

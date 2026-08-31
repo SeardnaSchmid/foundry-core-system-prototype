@@ -34,6 +34,11 @@ which localize `CONFIG.TNO.skills[key].label` and
 `CONFIG.TNO.abilities[key]` on lookup rather than storing pre-localized
 text in config.
 
+`TNO.Damage.*` is shared by the character damage widget, the Stelle captions
+and the roll dialog's always-on damage component. Keep those labels aligned in
+both files so the same mechanic is named consistently at entry, preview and
+roll time.
+
 ## Adding a new config entry (skill, ability, category)
 
 Adding an entry to `CONFIG.TNO.*` in

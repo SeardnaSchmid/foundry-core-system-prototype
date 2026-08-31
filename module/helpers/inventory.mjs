@@ -3,10 +3,11 @@
  * it can be unit-tested without a game world. Everything here takes plain
  * objects shaped like `item.system` and returns plain objects.
  *
- * The rules model two independent axes that must not be conflated:
+ * The rules model two related axes that must not be conflated:
  *
- *  - **Carrying** — a slot economy that only exists while the character has
- *    a bag/backpack. Worn clothing and armour are exempt from it entirely.
+ *  - **Slotted load** — worn gear and carried gear share one slot budget. A
+ *    bag/backpack decides whether the carried half participates; worn gear
+ *    always does.
  *  - **Wearing** — one Unterkleidung (the spacesuit base layer) plus four
  *    zone addons, contributing RH/RW/RA and a Stärke requirement.
  *
@@ -15,8 +16,8 @@
  *  - **Worn** lives on the actor as `system.equipment` (zone key -> item id).
  *    It has to be actor-side because the *zone* is what makes it unique —
  *    only a single map can stop two chest pieces from both claiming `torso`.
- * Every owned physical item is carried unless it is currently worn. The rules
- * define no third "stowed but still owned by this actor" state.
+ * Every owned physical item is either worn or carried. The rules define no
+ * third "stowed but still owned by this actor" state.
  */
 
 import { ARMOR_ZONES, ARMOR_SUIT_ZONE, GEAR_TYPES, hasRole } from './items.mjs';
@@ -70,9 +71,8 @@ function num(n) {
 
 /**
  * The set of item ids the actor is currently wearing, derived from the
- * actor's `system.equipment` store. Used to exclude worn gear from the carry
- * sum — "Von den Inventarregeln ausgenommen sind Kleidung und Rüstung welche
- * der Charakter am Leib trägt".
+ * actor's `system.equipment` store. Wearing remains a distinct state even
+ * though those pieces now consume the shared slot budget.
  * @param {Object} equipment  actor.system.equipment — zone key -> item id.
  * @returns {Set<string>}
  */
@@ -99,27 +99,20 @@ export function wornItemIds(equipment) {
 export const CARRIED_ITEM_TYPES = GEAR_TYPES;
 
 /**
- * The gear that actually presses on the slot budget: everything the character
- * owns, minus what they are wearing (exempt by rule).
+ * Every physical item that can participate in the slot budget. Wearing is not
+ * filtered here: it decides which band an item belongs to, not whether the
+ * item costs slots.
  * @param {Array<Object>} items  All of the actor's items.
- * @param {Object} equipment  actor.system.equipment.
  * @returns {Array<Object>}
  */
-function carriedGear(items, equipment) {
-  const worn = wornItemIds(equipment);
-  return (items ?? []).filter(
-    (item) =>
-      CARRIED_ITEM_TYPES.includes(item.type) &&
-      !worn.has(item._id ?? item.id),
-  );
+function slottedGear(items) {
+  return (items ?? []).filter((item) => CARRIED_ITEM_TYPES.includes(item.type));
 }
 
 /**
- * The least a piece of armour can cost while it is being hauled rather than
- * worn. Armour is never weightless: a helmet in a bag still takes up room, and
- * the zero-slot tier is explicitly Geld, Papiere and Krimskrams, which armour
- * is not. Anything off the body is either worn, carried, or not there at all —
- * there is no third way for a breastplate to be free.
+ * The least a piece of armour can cost. Armour is never weightless, whether it
+ * is in a bag or on the body; the zero-slot tier is explicitly Geld, Papiere
+ * and Krimskrams, which armour is not.
  *
  * The floor lives here rather than only in the schema default so armour
  * authored before this rule (or hand-edited to 0) still costs its slot instead
@@ -141,10 +134,9 @@ export function itemSlotCost(item) {
 /**
  * Total Inventarslots consumed, and the movement state that follows from it.
  *
- * Without a container there is no slot economy at all: the character carries
- * what fits in their hands, which the rules describe qualitatively rather
- * than as a number, so `used` is reported as 0 and the state is `noContainer`
- * for the UI to render as its own badge.
+ * Without a container, non-worn gear does not participate in the numeric slot
+ * budget. Worn gear still does, so the missing-container fact is returned as a
+ * boolean beside the movement state rather than replacing it.
  *
  * `used` is never clamped to `capacity` — going over is legal and simply
  * degrades movement, so the UI can show 12/10 rather than refusing the item.
@@ -153,12 +145,20 @@ export function itemSlotCost(item) {
  * @param {Object} equipment  actor.system.equipment.
  * @param {boolean} hasContainer  Whether the character carries a bag/backpack.
  * @param {number} capacity  carrySlots, i.e. 2*Stärke + Beweglichkeit.
- * @returns {{used: number, capacity: number, state: 'ok'|'noSprint'|'crawlOnly'|'noContainer'}}
+ * @returns {{used: number, worn: number, carried: number, capacity: number, state: 'ok'|'noSprint'|'crawlOnly', noContainer: boolean}}
  */
 export function computeCarry(items, equipment, hasContainer, capacity) {
-  if (!hasContainer) return { used: 0, capacity, state: 'noContainer' };
-
-  const used = carriedGear(items, equipment).reduce((sum, item) => sum + itemSlotCost(item), 0);
+  const wornIds = wornItemIds(equipment);
+  const gear = slottedGear(items);
+  const worn = gear
+    .filter((item) => wornIds.has(item._id ?? item.id))
+    .reduce((sum, item) => sum + itemSlotCost(item), 0);
+  const carried = hasContainer
+    ? gear
+        .filter((item) => !wornIds.has(item._id ?? item.id))
+        .reduce((sum, item) => sum + itemSlotCost(item), 0)
+    : 0;
+  const used = worn + carried;
 
   // A capacity of 0 would make every ratio infinite; treat any load at all as
   // maxed out and no load as fine, rather than dividing by zero.
@@ -168,11 +168,11 @@ export function computeCarry(items, equipment, hasContainer, capacity) {
   if (ratio >= CARRY_THRESHOLDS.crawlOnly) state = 'crawlOnly';
   else if (ratio >= CARRY_THRESHOLDS.noSprint) state = 'noSprint';
 
-  return { used, capacity, state };
+  return { used, worn, carried, capacity, state, noContainer: !hasContainer };
 }
 
 /**
- * Lay out carried gear as a run of grid cells for the Trageslots view.
+ * Lay out slotted gear as a run of grid cells for the Trageslots view.
  *
  * The layout is *derived*, never stored: items are packed in their existing
  * `sort` order, each occupying as many cells as it costs, so nothing about a
@@ -181,9 +181,8 @@ export function computeCarry(items, equipment, hasContainer, capacity) {
  *
  * Zero-slot items (Geld, Papiere, Krimskrams) get no cell at all — they would
  * otherwise render as a zero-width block — and are returned separately for the
- * template to show as its own band. Armour can never land there: `MIN_ARMOR_SLOTS`
- * floors it at one cell, so a piece that is not worn is always visibly taking
- * up room rather than riding along free among the loose change.
+ * template to show as its own band. Armour can never land there:
+ * `MIN_ARMOR_SLOTS` floors it at one cell whether worn or carried.
  *
  * Gear is split into what fits and what does not, and a block is allowed to
  * *straddle* the boundary: as long as its first cell lands on a slot the
@@ -207,21 +206,35 @@ export function computeCarry(items, equipment, hasContainer, capacity) {
  * @param {Object} equipment  actor.system.equipment.
  * @param {number} capacity  carrySlots.
  * @returns {{blocks: Array<Object>, overflow: Array<Object>, trinkets: Array<Object>, empty: number}}
- *   `blocks` entries carry `{item, span, quantity, inside, outside}`; `overflow`
- *   entries `{item, span, quantity}`, being wholly past the budget.
+ *   Every entry carries `worn`; `blocks` additionally carry
+ *   `{item, span, quantity, inside, outside}`, while `overflow` entries are
+ *   wholly past the budget.
  */
-export function buildSlotGrid(items, equipment, capacity) {
-  const carried = carriedGear(items, equipment).sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
+export function buildSlotGrid(items, equipment, capacity, hasContainer = true) {
+  const wornIds = wornItemIds(equipment);
+  const gear = slottedGear(items);
+  const bySort = (a, b) => (a.sort ?? 0) - (b.sort ?? 0);
+  const wornGear = gear.filter((item) => wornIds.has(item._id ?? item.id)).sort(bySort);
+  const carriedGear = gear.filter((item) => !wornIds.has(item._id ?? item.id)).sort(bySort);
+  // A missing bag removes positive-cost carried gear from the slot budget, but
+  // zero-slot Kleinkram remains visible in its own band.
+  const packed = [
+    ...wornGear.map((item) => ({ item, worn: true })),
+    ...carriedGear
+      .filter((item) => hasContainer || itemSlotCost(item) <= 0)
+      .map((item) => ({ item, worn: false })),
+  ];
 
   const blocks = [];
   const overflow = [];
   const trinkets = [];
   let cursor = 0;
 
-  for (const item of carried) {
+  for (const entry of packed) {
+    const { item, worn } = entry;
     const span = itemSlotCost(item);
     if (span <= 0) {
-      trinkets.push(item);
+      trinkets.push({ item, worn });
       continue;
     }
 
@@ -231,12 +244,12 @@ export function buildSlotGrid(items, equipment, capacity) {
     // straddled, `cursor` is already past `capacity`, which is what keeps the
     // rest of the list out here behind it.
     if (cursor >= capacity) {
-      overflow.push({ item, span, quantity });
+      overflow.push({ item, span, quantity, worn });
       continue;
     }
 
     const inside = Math.min(span, capacity - cursor);
-    blocks.push({ item, span, quantity, inside, outside: span - inside });
+    blocks.push({ item, span, quantity, inside, outside: span - inside, worn });
     cursor += span;
   }
 

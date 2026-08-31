@@ -5,7 +5,7 @@ description: The 12 primary attributes, their layout, and the derived values com
 tags: [attributes, abilities, derived-values]
 resource: [module/helpers/config.mjs, module/helpers/attributes.mjs, module/documents/actor.mjs]
 spec: docs/design/character-sheet-prd.md
-related: [architecture/data-schema, concepts/heatmap, concepts/advancement]
+related: [architecture/data-schema, concepts/heatmap, concepts/advancement, concepts/damage]
 ---
 
 # Attributes
@@ -30,39 +30,24 @@ rendered on the character sheet.
 
 ## Value shape
 
-Each attribute is `{ base, value, xp }` in
+Each attribute is `{ base, xp }` in
 `system.abilities.<key>` (see
-[data-schema.md](../architecture/data-schema.md)). `base` is the trained
-rating; `value` is the current, damage-adjusted rating actual rolls use.
-Range is 1–10 per the rulebook's "Bedeutung der Werte" (values pushed above
-10 by cyberware/drugs are clamped visually by the heatmap, not by the data
-itself — see [heatmap.md](heatmap.md)).
+[data-schema.md](../architecture/data-schema.md)). `base` is the sole rating:
+it is displayed, rolled, and used by derived values. Range is 1–10 per the
+rulebook's "Bedeutung der Werte".
 
 ## Derived values
 
-All computed in `TnoActor._prepareCharacterData()` from `base`, not damaged
-`value` — see the full table in
-[data-schema.md](../architecture/data-schema.md#derived-data). The one
-exception, `canSprint`, deliberately compares `value` against `base` to
-detect Beweglichkeit (mobility) damage.
+All computed in `TnoActor._prepareCharacterData()` from `base` — see the full
+table in [data-schema.md](../architecture/data-schema.md#derived-data). Damage
+lives in the separate pools described in [damage.md](damage.md) and never
+rewrites attributes.
 
 ## Where they're edited
 
-- **Sheet steppers**: `.heatmap-stepper` on
-  [`actor-sheet.mjs`](../../../module/sheets/actor-sheet.mjs) adjusts
-  `base` (Shift-click) or `value` (default) by ±1; `.heatmap-delta` resets
-  `value` back to `base`.
-- **Advancement**: raising `base` costs XP — see
-  [advancement.md](advancement.md).
+- **Advancement**: click the cell's XP bar to open `TnoAdvanceDialog`; raising
+  `base` costs XP, while its correction block permits an explicit rank repair
+  — see [advancement.md](advancement.md).
 
-## Moving `base` without losing the temp modifier
-
-A temporary modifier lives as the gap between `value` and `base`, so every
-write that changes `base` routes the new `value` through
-`tempValueForBase()`
-([`module/helpers/attributes.mjs`](../../../module/helpers/attributes.mjs)),
-which carries that gap along and clamps to the temp range (`TEMP_MIN` 0 –
-`TEMP_MAX` 20; base range `BASE_MIN` 1 – `BASE_MAX` 10, all exported from
-the same module). A character at base 4 lowered to 2 who advances to base 5
-ends up at temp 3 — advancement no longer heals the penalty. Only the
-explicit `.heatmap-delta` reset clears the gap.
+The heatmap has no quick rank steppers. Character development remains a
+deliberate dialog action rather than an easy-to-hit sheet control.

@@ -39,10 +39,7 @@ editing (native HTML5 min/max validation via `checkValidity()`/
 
 ## Persisting
 
-`_persist()` writes to the actor. For attributes, advancing raises
-`system.abilities.<key>.base` **and** shifts `.value` by the same step via
-`tempValueForBase()`, so a temporary modifier survives the advance (matching
-the sheet's base stepper — see [attributes.md](attributes.md)); for skills, it
-writes only `system.skills.<key>.value` (skills have no separate
-base/value split — see [skills.md](skills.md)). Both also write the
+`_persist()` writes the selected rank and remaining XP to the actor. Attributes
+use `system.abilities.<key>.base`; skills use
+`system.skills.<key>.value` — see [skills.md](skills.md). Both also write the
 remaining `.xp`.

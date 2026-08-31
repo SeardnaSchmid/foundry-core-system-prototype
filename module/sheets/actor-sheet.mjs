@@ -3,7 +3,8 @@ import {
   prepareActiveEffectCategories,
 } from '../helpers/effects.mjs';
 import { ausweichenOptions, canDefend, takeStance } from '../helpers/combat-actions.mjs';
-import { colorForValue, colorForCritical } from '../helpers/heatmap.mjs';
+import { colorForValue } from '../helpers/heatmap.mjs';
+import { damageTrackRows } from '../helpers/damage.mjs';
 import { TnoRollDialog } from '../apps/roll-dialog.mjs';
 import { TnoAdvanceDialog } from '../apps/advance-dialog.mjs';
 import { TnoHeatmapLab } from '../apps/heatmap-lab.mjs';
@@ -11,11 +12,7 @@ import { TnoCustomSkillDialog } from '../apps/custom-skill-dialog.mjs';
 import { TNO_ADVANTAGE, rollTno } from '../helpers/dice.mjs';
 import { getSkillDefinitions, getSkillDefinition } from '../helpers/skills.mjs';
 import {
-  BASE_MIN,
   BASE_MAX,
-  TEMP_MIN,
-  TEMP_MAX,
-  tempValueForBase,
 } from '../helpers/attributes.mjs';
 import {
   buildSlotGrid,
@@ -336,61 +333,33 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           );
           const axisPrefix = `${rowLabel} · ${colLabel} — `;
           const ability = abilities[key];
-          const baseValue = ability?.base ?? 0;
-          const tempValue = ability?.value ?? 0;
+          const value = ability?.base ?? 0;
           const xp = ability?.xp ?? 0;
-          const delta = tempValue - baseValue;
-          const isCritical = tempValue === 0;
-          const dc = colorForValue(baseValue);
-          const cc = isCritical ? colorForCritical() : null;
+          const dc = colorForValue(value);
 
           // XP progress toward the next base rank: advancing to rank N costs
           // N*N XP; the bar fills as XP accrues and turns "ready" once enough
           // is banked (and the attribute isn't already at the cap).
-          const xpAtMax = baseValue >= BASE_MAX;
-          const xpCost = (baseValue + 1) ** 2;
+          const xpAtMax = value >= BASE_MAX;
+          const xpCost = (value + 1) ** 2;
           const xpReady = !xpAtMax && xp >= xpCost;
           const xpPercent = xpAtMax ? 100 : Math.min(100, Math.round((xp / xpCost) * 100));
-
-          // Zero cells swap their tooltip for the attribute's specific
-          // in-fiction consequence (e.g. "FIN 0: keine Handaktionen")
-          // instead of the generic ability description.
-          const abilitySuffix = labelKey.split('.')[2];
-          const abbr = game.i18n.localize(labelKey.replace('.long', '.abbr')).toUpperCase();
-          const zeroConsequence = game.i18n.localize(`TNO.AttributeZero.${abilitySuffix}`);
-          const zeroHint = `${abbr} 0: ${zeroConsequence}`;
 
           return {
             key,
             label: game.i18n.localize(labelKey),
-            hint: axisPrefix + (isCritical ? zeroHint : game.i18n.localize(labelKey.replace('.long', '.hint'))),
-            tempValue,
-            baseValue,
+            hint: axisPrefix + game.i18n.localize(labelKey.replace('.long', '.hint')),
+            value,
             xp,
             xpCost,
             xpReady,
             xpAtMax,
             xpPercent,
-            // The XP bar reuses the stepper chip's adaptive colors so it stays
-            // legible whether the cell is a light/dark heatmap tone or the
-            // critical (temp = 0) red state.
-            xpBarTrack: isCritical ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)',
-            xpBarFill: isCritical ? 'rgba(255,217,220,0.6)' : 'rgba(51,45,34,0.45)',
-            tempHint: game.i18n.localize('TNO.AttributeCurrent'),
-            baseHint: game.i18n.localize('TNO.AttributeBase'),
-            cellBg: isCritical ? cc.bg : dc.bg,
-            textColor: isCritical ? cc.textColor : dc.textColor,
-            critBorder: isCritical ? 'rgba(255,90,100,0.7)' : 'transparent',
-            isPeak: dc.isPeak && !isCritical,
-            isCritical,
-            isZero: isCritical,
-            hasDelta: delta !== 0,
-            deltaLabel: (delta > 0 ? '+' : '') + delta,
-            deltaBg: delta > 0 ? '#1F6B3A' : '#7A2028',
-            deltaText: delta > 0 ? '#E9FFEA' : '#FFE1E4',
-            stepperBorder: isCritical ? 'rgba(255,217,220,0.5)' : 'rgba(60,50,20,0.3)',
-            stepperBg: isCritical ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.85)',
-            stepperColor: isCritical ? '#FFD9DC' : '#332D22',
+            xpBarTrack: 'rgba(0,0,0,0.12)',
+            xpBarFill: 'rgba(51,45,34,0.45)',
+            cellBg: dc.bg,
+            textColor: dc.textColor,
+            isPeak: dc.isPeak,
           };
         }),
         };
@@ -516,14 +485,31 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       filled: i < edgeNow,
     }));
 
+    const derived = this.actor.system.derived ?? {};
+    const damage = derived.damage ?? {
+      sharp: 0,
+      blunt: 0,
+      capacity: 0,
+      bluntCarried: 0,
+      bluntConverted: 0,
+      effectiveSharp: 0,
+      total: 0,
+      malus: 0,
+      downed: false,
+      full: false,
+    };
+    // The banner draws counted boxes rather than a scaled bar: at a capacity of
+    // trained Stärke there are only ever a handful of them, and a box that sits
+    // past the capacity mark says "over the line" without the mark having to
+    // move as a percentage track would make it.
+    context.damage = { ...damage, rows: damageTrackRows(damage) };
+
     // Which movement tiers the character has lost, for the banner's movement
     // chip. The load's consequence is shown on the number it takes away rather
-    // than as a badge over the carry grid: what a player wants to know is
+    // than as a badge over the slot grid: what a player wants to know is
     // "how far can I move", and a struck-through figure answers that where the
-    // figure already is. Sprinting has two independent blockers — a damaged
-    // Beweglichkeit or a load at half the budget — and `canSprint` already
-    // folds both together.
-    const derived = this.actor.system.derived ?? {};
+    // figure already is. Sprinting is blocked once the load reaches half the
+    // budget; `canSprint` carries that result into the sheet context.
     context.movement = {
       sprintBlocked: derived.canSprint === false,
       walkBlocked: derived.carryState === 'crawlOnly',
@@ -547,10 +533,9 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const gear = [];
     const features = [];
 
-    // Which items are on the body. Worn gear is exempt from the slot economy
-    // and its state belongs to the paper doll, so those rows show a static
-    // marker. NPCs have no equipment store, so
-    // this is simply empty for them.
+    // Which items are on the body. Wearing remains its own state even though
+    // those pieces now share the slot budget, so ledger rows keep their marker.
+    // NPCs have no equipment store, so this is simply empty for them.
     const worn = wornItemIds(this.actor.system.equipment);
 
     // Iterate through items, allocating to containers
@@ -578,8 +563,8 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     context.features = features;
 
     // The ledger covers everything the inventory rules touch, armour and
-    // weapons included: a piece that is neither worn nor carried appears in no
-    // other view, so leaving it out would strand it entirely.
+    // weapons included. It is the complete owned-item view, independent of
+    // whether a piece is currently worn or packed.
     context.itemTable = this.#itemTableContext(gear, worn);
 
     if (context.actor.type === 'character') this._prepareEquipment(context);
@@ -726,7 +711,6 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   /** Why a cell is n/a, in the words the item sheet already uses for it. */
   #naReason(column, item) {
-    if (column.key === 'footprint') return game.i18n.localize('TNO.Inventory.WornHint');
     if (column.appliesTo === 'weapon') {
       if (!itemRoles(item).weapon) return game.i18n.localize('TNO.Item.NaNoWeapon');
       return game.i18n.localize(weaponUse(item.system) === 'melee' ? 'TNO.Item.NaMelee' : 'TNO.Item.NaRanged');
@@ -865,8 +849,8 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   /**
    * Build the view models the paper doll and Trageslots grid render from.
    * Both are derived on every render rather than stored: the paper doll reads
-   * `system.equipment`, and the grid packs carried gear in its existing sort
-   * order, so a player's arrangement never needs persisting.
+   * `system.equipment`, and the grid packs worn gear first, then packed gear,
+   * while preserving each band's existing sort order.
    *
    * @param {object} context The context object to mutate
    */
@@ -883,8 +867,10 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       sv: derived.armorSv ?? 0,
       // The summed SV lands on quarter steps, so it needs a decimal separator
       // the reader's locale actually uses — the table writes +0,25 in German.
-      svLabel: new Intl.NumberFormat(game.i18n.lang, { maximumFractionDigits: 2 })
-        .format(derived.armorSv ?? 0),
+      svLabel: this.#formatNumber(derived.armorSv ?? 0),
+      // The base layer's own share of that sum, on its own row like every
+      // addon's. Whole values here, quarter steps up there.
+      suitSvLabel: suit ? this.#formatNumber(Number(suit.system?.sv) || 0) : null,
       zones: ARMOR_ADDON_ZONES.map((zone) => {
         const item = this.actor.items.get(equipment[zone]) ?? null;
         const armor = derived.armor?.[zone] ?? { rh: 0, rw: 0, ra: 0, rwSuit: 0, rwAddon: 0 };
@@ -903,12 +889,23 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           // "added up" would send the reader looking for a second summand that
           // changes nothing.
           rwStacked: !!item && armor.rwSuit > 0 && armor.rwAddon > 0,
+          // What this location costs to wear. Unlike RH/RW/RA it is not a
+          // resolved zone value: SV is summed for the whole body, so the row
+          // shows the addon's own share and the total stays with the warning
+          // below the doll. An empty zone has nothing to charge for — the
+          // suit's share is on the suit's own row, not spread over four.
+          svLabel: item ? this.#formatNumber(Number(item.system?.sv) || 0) : null,
         };
       }),
     };
 
     const capacity = derived.carrySlots ?? 0;
-    const grid = buildSlotGrid(this.actor.items.contents, equipment, capacity);
+    const grid = buildSlotGrid(
+      this.actor.items.contents,
+      equipment,
+      capacity,
+      !(derived.carryNoContainer ?? false)
+    );
     const used = derived.carrySlotsUsed ?? 0;
 
     // A stack's multiplier is only worth the pixels when there is more than
@@ -935,12 +932,13 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       // the same {item, quantity} block the cells use and carry the same
       // multiplier. `buildSlotGrid` stays free of view concerns and hands back
       // the bare items.
-      trinkets: grid.trinkets.map((item) => {
+      trinkets: grid.trinkets.map(({ item, worn }) => {
         const quantity = Number(item.system?.quantity) || 1;
         return withQty({
           item,
           icon: inventoryIcon(item),
           quantity,
+          worn,
         });
       }),
       // Handlebars has no "repeat n times", so the free-cell count becomes a
@@ -957,6 +955,9 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       // How far past the budget the load runs, for the over-capacity read-out.
       excess: Math.max(0, used - capacity),
       state: derived.carryState ?? 'ok',
+      noContainer: derived.carryNoContainer ?? false,
+      worn: derived.carryWorn ?? 0,
+      carried: derived.carryCarried ?? 0,
     };
   }
 
@@ -973,7 +974,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    * grabbed or dropped onto anywhere along its length. `_onSortItem` is
    * overridden to cope with the repeated id that implies.
    *
-   * @param {{item: Item, span: number, quantity: number}} block
+   * @param {{item: Item, span: number, quantity: number, worn: boolean}} block
    * @param {number} inside  Cells of this block that fit the budget.
    * @returns {Array<object>}
    * @private
@@ -993,6 +994,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         subcategory: this.#slotSubcategory(block.item),
         quantity: block.quantity,
         showQty: block.quantity > 1,
+        worn: block.worn,
       };
     });
   }
@@ -1270,6 +1272,33 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (!this._stancePopover.matches(':popover-open')) this._stancePopover.showPopover();
     this._stancePopover.querySelector('.stance-option.selected')?.focus();
     this.#positionStancePopover();
+  }
+
+  /**
+   * Mirror the picker's state onto the banner chip: `aria-expanded`, and the
+   * chip's tooltip, which is taken off the chip while the picker is open. The
+   * tooltip explains what a Haltung is, which is the question the open picker
+   * is already answering — in a panel that hangs directly below the chip, where
+   * the tooltip would sit on top of it. Deactivating the shown one is not
+   * enough: Foundry re-arms it on every pointerenter, so it would come back the
+   * next time the cursor crossed the chip on its way into the picker.
+   * @private
+   */
+  #syncStanceChip() {
+    const chip = this.element?.querySelector('.chip-stance');
+    if (!chip) return;
+    const open = !!this._stancePopover?.matches(':popover-open');
+    chip.setAttribute('aria-expanded', String(open));
+    if (open) {
+      if (chip.dataset.tooltipHtml !== undefined) {
+        chip.dataset.stanceTooltip = chip.dataset.tooltipHtml;
+        delete chip.dataset.tooltipHtml;
+      }
+      game.tooltip?.deactivate();
+    } else if (chip.dataset.stanceTooltip !== undefined) {
+      chip.dataset.tooltipHtml = chip.dataset.stanceTooltip;
+      delete chip.dataset.stanceTooltip;
+    }
   }
 
   /** Keep the picker beside its chip across re-renders and window moves. */
@@ -1643,13 +1672,12 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       if (event.key === 'Escape' && this._stancePopover.matches(':popover-open')) event.stopPropagation();
     });
     this._stancePopover.addEventListener('toggle', (event) => {
-      const chip = this.element?.querySelector('.chip-stance');
-      chip?.setAttribute('aria-expanded', String(event.newState === 'open'));
+      this.#syncStanceChip();
       if (event.newState === 'closed') this._stancePopoverAnchor = null;
     });
 
     // Custom clickable chips (anchors without `href`, plus `.skill-info` and
-    // the carry grid's cells) are promoted to real keyboard targets in
+    // the slot grid's cells) are promoted to real keyboard targets in
     // _onRender; this forwards their Enter/Space to the same click listeners
     // bound below.
     this.#delegate('keydown', 'a:not([href]), .skill-info, .slot-cell, .slot-trinket, .armor-row[data-item-id], .money-wallet-block.editable, .banner-portrait .profile-img[data-action="editImage"]', (event, target) => {
@@ -1712,7 +1740,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     });
 
     // Sort the table by a column. Deliberately **view-only**: `item.sort` is
-    // the order the Basics carry raster packs from, and a header click here
+    // the order the Basics slot bands pack from, and a header click here
     // must not repack a raster the player arranged by hand in another tab.
     this.#delegate('click', '.item-table-sort', (event, target) => {
       event.preventDefault();
@@ -1840,17 +1868,16 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       else this.#openStancePopover(target);
     }, editable);
 
-    // Heatmap +/- steppers: adjust temp (value) by default, or base while
-    // holding Shift, since base is the rarer, more deliberate change.
-    this.#delegate('click', '.heatmap-stepper', (event, target) => {
-      const { key, action } = target.dataset;
-      const field = event.shiftKey ? 'base' : 'value';
-      this._stepAttribute(key, action === 'increment' ? 1 : -1, field);
+    // Damage is its own persisted health track. It is deliberately allowed to
+    // overfill; only the lower bound is clamped.
+    this.#delegate('click', '.damage-stepper', (event, target) => {
+      const { kind, action } = target.dataset;
+      this._stepDamage(kind, action === 'increment' ? 1 : -1);
     }, editable);
 
-    // Reset an attribute's temp value back to its base value.
-    this.#delegate('click', '.heatmap-delta', (event, target) => {
-      this._resetTemp(target.dataset.key);
+    this.#delegate('click', '.damage-clear', (event) => {
+      event.preventDefault();
+      this._clearDamage();
     }, editable);
 
     // Open the skill advancement dialog, either from the dedicated arrow
@@ -1909,7 +1936,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       this.actor.items.get(row?.dataset.itemId)?.confirmDelete();
     }, editable);
 
-    // Author a new item from the carry grid (or the Inventar tab's list). One
+    // Author a new item from the slot grid (or the Inventar tab's list). One
     // dialog for all three physical types rather than a create control per
     // type: the type is a choice inside the act of adding something, not three
     // separate acts.
@@ -2065,6 +2092,9 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (this._stancePopover?.matches(':popover-open')) {
       await this.#refreshStancePopover();
       this.#positionStancePopover();
+      // The chip is a fresh element after a render, with the template's
+      // tooltip and `aria-expanded="false"` back on it.
+      this.#syncStanceChip();
     }
   }
 
@@ -2097,7 +2127,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    * @private
    */
   _makeKeyboardAccessible() {
-    // The carry grid's cells are divs, and with equipping gone drag-only they
+    // The slot grid's cells are divs, and with equipping gone drag-only they
     // are the only way left to reach a carried item's own sheet — so they have
     // to be reachable without a mouse. Only the first cell of a run takes the
     // stop: the others are the same item continuing, and tabbing through a
@@ -2260,13 +2290,12 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const item = await Item.implementation.fromDropData(data);
     if (!item) return;
 
-    // Dropped back among the carried gear. Taking a piece off by dragging it
+    // Dropped back into the slot grid. Taking a piece off by dragging it
     // there is the mirror of putting it on by dragging it to the doll — the x
     // on the row is the same act, but a player who learned to equip by dragging
     // has no reason to expect the way back to be a different gesture. The
-    // unequip has to land before any sort: while the piece is worn it is not in
-    // the carry list at all, so sorting it against that list first would order
-    // something that is not yet there.
+    // unequip has to land before sorting so the body assignment and slot-band
+    // assignment describe the same state.
     if (!zoneEl) {
       if (item.parent !== this.actor) return super._onDrop(event);
       const wornZone = this.#wornZone(item.id);
@@ -2274,8 +2303,8 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       // The free tail has no neighbour to sort against, so it means "put this
       // last" — for a piece just taken off as much as for anything else.
       if (emptyCell) return this._sortItemToEnd(item);
-      // A piece that was worn has no place in the old list to sort against, so
-      // it simply rejoins it; anything already carried sorts as before.
+      // A piece just taken off keeps its stored order as it moves into the
+      // packed band; anything already packed sorts as before.
       return wornZone ? undefined : super._onDrop(event);
     }
 
@@ -2360,7 +2389,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // reader sorted it on, so a row has no position to be dropped *into*: the
     // place a piece would appear to land is decided by its role and its values,
     // not by the list. Writing `item.sort` from a drop there would silently
-    // repack the Basics carry raster to match an order nobody arranged.
+    // repack the Basics slot bands to match an order nobody arranged.
     if (dropTarget.closest('.item-table')) return;
 
     const target = this.actor.items.get(dropTarget.dataset.itemId);
@@ -2428,8 +2457,8 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     this.element.classList.add('dragging-item');
 
     // Which way this drag can go decides what lights up. A piece still in the
-    // carry slots is on its way onto the body, so the doll answers; a piece
-    // already worn is on its way off, so the carry grid does. Marking both at
+    // packed band is on its way onto the body, so the doll answers; a piece
+    // already worn is on its way off, so the slot grid does. Marking both at
     // once would offer the player a move they cannot make in that direction.
     const worn = this.#wornZone(item.id);
     const zones = worn ? [] : armorZones(item);
@@ -2558,42 +2587,18 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     }
   }
 
-  /**
-   * Step an ability's temp or base value up/down by one, clamped to its
-   * valid range.
-   *
-   * @param {string} key    Ability key, e.g. "str"
-   * @param {number} delta  +1 or -1
-   * @param {"value"|"base"} field  Which number to adjust
-   * @private
-   */
-  async _stepAttribute(key, delta, field = 'value') {
-    const ability = this.actor.system.abilities[key];
-    if (!ability) return;
-
-    if (field === 'value') {
-      const next = Math.clamp(ability.value + delta, TEMP_MIN, TEMP_MAX);
-      await this.actor.update({ [`system.abilities.${key}.value`]: next });
-    } else {
-      const next = Math.clamp(ability.base + delta, BASE_MIN, BASE_MAX);
-      await this.actor.update({
-        [`system.abilities.${key}.base`]: next,
-        // Keep any temporary modifier instead of snapping the temp value onto
-        // the new base.
-        [`system.abilities.${key}.value`]: tempValueForBase(ability, next),
-      });
-    }
+  /** Adjust one raw damage pool by one point, clamped only at zero. */
+  async _stepDamage(kind, delta) {
+    if (!['sharp', 'blunt'].includes(kind)) return;
+    const current = Number(this.actor.system.damage?.[kind]);
+    const safeCurrent = Number.isFinite(current) ? current : 0;
+    const next = Math.max(0, safeCurrent + delta);
+    await this.actor.update({ [`system.damage.${kind}`]: next });
   }
 
-  /**
-   * Reset an ability's temp value back to its base value.
-   * @param {string} key  Ability key, e.g. "str"
-   * @private
-   */
-  async _resetTemp(key) {
-    const ability = this.actor.system.abilities[key];
-    if (!ability) return;
-    await this.actor.update({ [`system.abilities.${key}.value`]: ability.base });
+  /** Clear both damage pools in one actor update. */
+  async _clearDamage() {
+    await this.actor.update({ 'system.damage.sharp': 0, 'system.damage.blunt': 0 });
   }
 
   /**

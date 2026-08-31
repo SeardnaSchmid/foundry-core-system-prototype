@@ -47,17 +47,14 @@ export const test = base.extend({
  * Create a character actor and return its id plus its computed derived data.
  *
  * @param {import('@playwright/test').Page} page
- * @param {{name?: string, abilities?: Record<string, number|{base: number, value: number}>, system?: object}} spec
+ * @param {{name?: string, abilities?: Record<string, number|{base: number}>, system?: object}} spec
  * @returns {Promise<{id: string, derived: object}>}
  */
 export async function createCharacter(page, spec = {}) {
   return page.evaluate(async (spec) => {
     const abilities = {};
     for (const [key, val] of Object.entries(spec.abilities ?? {})) {
-      // A bare number sets base and value together (the undamaged case); an
-      // object lets a spec drive them apart to exercise damage-related derived
-      // values such as canSprint.
-      abilities[key] = typeof val === 'number' ? { base: val, value: val, xp: 0 } : { xp: 0, ...val };
+      abilities[key] = typeof val === 'number' ? { base: val, xp: 0 } : { xp: 0, ...val };
     }
 
     const actor = await Actor.create({

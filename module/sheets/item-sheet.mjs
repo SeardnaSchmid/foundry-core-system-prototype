@@ -74,7 +74,7 @@ export class TnoItemSheet extends ItemSheet {
     // Whether this sheet may offer to delete its own item. Worn gear is held
     // back: the actor's `system.equipment` addresses the piece by id, and
     // deleting it out from under the paper doll would leave a zone pointing at
-    // nothing. Taking it off is one click and hands it back to the carry grid,
+    // nothing. Taking it off is one click and moves it into the packed slot band,
     // so the sheet says that rather than showing a control that would refuse.
     context.isWorn = this.item.isWorn;
     context.canDelete = this.isEditable && !context.isWorn;

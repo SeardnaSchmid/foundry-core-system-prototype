@@ -18,17 +18,15 @@ const { TnoActor } = await import('../../module/documents/actor.mjs');
 /**
  * A character with nothing worn and nothing carried, so the load thresholds
  * never enter into it and the movement numbers are the attribute alone.
- * `base` and `value` are set apart wherever a test needs to tell damage from
- * training.
  */
-const prepared = ({ dexBase = 4, dexValue = dexBase } = {}) => {
+const prepared = ({ dexBase = 4, legacyValue } = {}) => {
   const actor = Object.assign(new TnoActor(), {
     type: 'character',
     items: [],
     system: {
       abilities: {
-        str: { base: 4, value: 4 },
-        dex: { base: dexBase, value: dexValue },
+        str: { base: 4 },
+        dex: { base: dexBase, ...(legacyValue === undefined ? {} : { value: legacyValue }) },
       },
       skills: {},
       equipment: {},
@@ -64,15 +62,11 @@ describe('Bewegungsreichweiten', () => {
     expect(prepared({ dexBase: 2 }).movementCrawl).toBe(1);
   });
 
-  // "Bewegungsreichweiten ändern sich nie, stattdessen verhindert jeder
-  // Beweglichkeitsschaden, dass der Charakter sprintet." So damage moves the
-  // sprint flag and leaves all three numbers exactly where they were.
-  it('holds every tier steady under Beweglichkeitsschaden, blocking only the sprint', () => {
-    const hurt = prepared({ dexBase: 6, dexValue: 3 });
-    expect(hurt.movementWalk).toBe(6);
-    expect(hurt.movementSprint).toBe(18);
-    expect(hurt.movementCrawl).toBe(2);
-    expect(hurt.canSprint).toBe(false);
-    expect(prepared({ dexBase: 6 }).canSprint).toBe(true);
+  it('ignores a stale legacy value field and derives everything from base', () => {
+    const derived = prepared({ dexBase: 6, legacyValue: 3 });
+    expect(derived.movementWalk).toBe(6);
+    expect(derived.movementSprint).toBe(18);
+    expect(derived.movementCrawl).toBe(2);
+    expect(derived.canSprint).toBe(true);
   });
 });

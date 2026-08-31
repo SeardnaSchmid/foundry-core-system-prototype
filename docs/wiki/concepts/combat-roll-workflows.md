@@ -5,7 +5,7 @@ description: Code map for the uncoupled Attack, Parry, Dodge and Resistance roll
 tags: [combat, weapons, defence, rolls, maneuvers]
 resource: [module/helpers/combat-actions.mjs, module/helpers/maneuvers.mjs, module/helpers/items.mjs, module/documents/item.mjs, module/documents/actor.mjs, module/apps/roll-dialog.mjs, module/sheets/actor-sheet.mjs, templates/actor/parts/item-popover.hbs, templates/actor/parts/actor-paperdoll.hbs, templates/actor/actor-character-sheet.hbs, templates/apps/roll-dialog.hbs, templates/chat/roll-card.hbs]
 spec: docs/design/workflows/combat-workflow-prd.md
-related: [concepts/dice-resolution, concepts/item-roles, concepts/skills]
+related: [concepts/dice-resolution, concepts/item-roles, concepts/skills, concepts/damage]
 ---
 
 # Standalone combat roll workflows
@@ -34,8 +34,8 @@ another user's permissions.
 - [`helpers/maneuvers.mjs`](../../../module/helpers/maneuvers.mjs) is pure and
   global-free, and holds everything a Stelle is: `ZONE_CHOICES` / `DEFAULT_ZONE`
   (the Stellen an attack can name, Torso first), `ZONE_COSTS` / `zoneCost(zone)`
-  (what aiming there costs, from Gezielte Angriffe), `DAMAGE_RULES` (where a hit
-  lands, given the Stelle) and `ansageEnvelope(ansage, zone)` (what crosses to
+  (what aiming there costs, from Gezielte Angriffe), `DAMAGE_RULES` (the pool
+  multiplier for that Stelle) and `ansageEnvelope(ansage, zone)` (what crosses to
   the defender). It models no *other* Manöver at all — the table of nine, their
   governing Fertigkeiten and the `ansageKosten` ladder are gone, because every
   other Ansage is one free magnitude the players agree on before typing it. The
@@ -86,7 +86,7 @@ another user's permissions.
   - `ansage` — one optional integer that worsens this roll by what it declares,
     unpriced and ungated. `_ansageValue` reads it, `_ansageComponent` signs it,
     and nothing else touches it.
-  - `zonePicker` — the Stelle, as tiles carrying both the damage rule and the
+  - `zonePicker` — the Stelle, as tiles carrying both the pool multiplier and the
     price Gezielte Angriffe puts on aiming there (`ZONE_COSTS`, Torso free,
     limbs `−3`, head `−6`). `_zoneComponent` turns the pick into its own
     threshold component, deliberately never merged with the Ansage beside it
@@ -109,7 +109,10 @@ another user's permissions.
   - `afterRoll` — runs only once the dice are cast, which is what lets the
     repeated-defence counter count rolls rather than intentions.
 
-  It also owns two *conditional* components: `_conditionalModifiers` adds the
+  It also owns an independent actor-state bucket: `_actorModifiers` reads the
+  damage malus for every roll, regardless of workflow or form state, and
+  `_fixedModifierComponents` merges it first. It then owns two *conditional*
+  components: `_conditionalModifiers` adds the
   armour SV step to whatever roll is currently built on Beweglichkeit, and the
   FV step to whatever roll has declared anything at all. Two things declare: a
   non-zero Ansage, and a Stelle other than the Torso — the zone prices *are*
@@ -138,7 +141,7 @@ answer**, and two labelled dividers make that split visible rather than implied.
 
 | # | Question | Holds | Renders when |
 | --- | --- | --- | --- |
-| 1 | Womit würfelst du? | attribute · skill rank · `fixedModifiers` · `armorMalus` | always |
+| 1 | Womit würfelst du? | attribute · skill rank · `damageMalus` · `fixedModifiers` · `armorMalus` | always |
 | — | *was dir gegeben wird* | divider | anything in 2–3 does |
 | 2 | Wie steht ihr zueinander? | `preRollContext` · `requiredValue` | `hasSituationSection` |
 | 3 | Was wurde gegen dich angesagt? | `opposingAnsage` · `toggleModifier` | `hasAgainstSection` — defences only |
@@ -160,9 +163,9 @@ question has neither.
 sit *below* the zone tiles, which put the optional pick in front of the
 mandatory one.
 
-**A weapon's own maluses are not modifiers.** HH, the SV step and the
-repeated-defence malus sit in question 1 with the attribute they qualify,
-because they are facts about the character. The GM's `±3` sits in question 4
+**A weapon's own maluses are not situational modifiers.** The global damage
+malus, HH, the SV step and the repeated-defence malus sit in question 1 because
+they are facts about the character. The GM's `±3` sits in question 4
 with the Ansagen — sharing one "Modifikatoren" box with the weapon's own
 requirements made a rule the player cannot change look like a number the GM
 improvised, and standing alone in a box that was always open made it look like a

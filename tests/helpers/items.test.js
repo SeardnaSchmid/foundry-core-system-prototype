@@ -160,9 +160,9 @@ describe('weaponAttribute', () => {
 });
 
 describe('weapon roll helpers', () => {
-  const actor = ({ skill = 0, strengthBase = 4, strengthCurrent = strengthBase } = {}) => ({
+  const actor = ({ skill = 0, strength = 4 } = {}) => ({
     system: {
-      abilities: { str: { base: strengthBase, value: strengthCurrent } },
+      abilities: { str: { base: strength } },
       skills: { swords: { value: skill } },
     },
   });
@@ -199,21 +199,21 @@ describe('weapon roll helpers', () => {
   it('reports FV and SV separately, and never grades FV', () => {
     // FV 2 / SV 4. Rank 0 is 2 short and Strength 0 is 4 short, but only SV
     // climbs: "alle Manöver mit einem Malus" is one step however far under.
-    expect(weaponRequirementStatus(actor({ skill: 0, strengthBase: 0 }), system()))
+    expect(weaponRequirementStatus(actor({ skill: 0, strength: 0 }), system()))
       .toMatchObject({ fvSteps: 1, svSteps: 2, fvMalus: -3, svMalus: -6 });
 
     // Each requirement stands alone: missing one says nothing about the other.
-    expect(weaponRequirementStatus(actor({ skill: 1, strengthBase: 5 }), system()))
+    expect(weaponRequirementStatus(actor({ skill: 1, strength: 5 }), system()))
       .toMatchObject({ fvSteps: 1, svSteps: 0, svMalus: 0 });
-    expect(weaponRequirementStatus(actor({ skill: 2, strengthBase: 3 }), system()))
+    expect(weaponRequirementStatus(actor({ skill: 2, strength: 3 }), system()))
       .toMatchObject({ fvSteps: 0, svSteps: 1, fvMalus: 0 });
-    expect(weaponRequirementStatus(actor({ skill: 2, strengthBase: 4 }), system()))
+    expect(weaponRequirementStatus(actor({ skill: 2, strength: 4 }), system()))
       .toMatchObject({ fvSteps: 0, svSteps: 0, fvMalus: 0, svMalus: 0 });
   });
 
-  it('checks weapon SV against base Strength, not its current temporary value', () => {
-    const status = weaponRequirementStatus(actor({ skill: 2, strengthBase: 3, strengthCurrent: 8 }), system({ sv: 4 }));
-    expect(weaponBaseStrength(actor({ strengthBase: 3, strengthCurrent: 8 }))).toBe(3);
+  it('checks weapon SV against Strength', () => {
+    const status = weaponRequirementStatus(actor({ skill: 2, strength: 3 }), system({ sv: 4 }));
+    expect(weaponBaseStrength(actor({ strength: 3 }))).toBe(3);
     expect(status.svMet).toBe(false);
     expect(status.svMalus).toBe(-3);
   });

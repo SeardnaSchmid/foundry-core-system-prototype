@@ -1,0 +1,63 @@
+{{!-- Schaden sitzt in der Meta-Kopfleiste, nicht mehr als Karte in der
+Grundlagen-Spalte: die Zahl, die an jedem Wurf angesagt wird, steht damit
+neben den anderen Werten, die am Tisch laut gesagt werden.
+
+Zwei Kästchenzeilen — Wucht oben, Scharf unten —, je ein Stepper-Paar hinter
+dem Strich und ein hohes Malusfeld, das beide Zeilen bindet. Die Lineale sind
+gleich lang, messen aber je den eigenen Pool: die Zeilen sind aneinander
+ausgerichtet, teilen sich aber keine Kapazität. Vorn steht je ein Kürzel: die
+vollen deutschen Wörter sind zu lang für die Leiste, zwei namenlose
+Kästchenzeilen erklären sich aber auch nicht von selbst. Ausgeschrieben stehen
+sie im Tooltip, zusammen mit Kapazität, freiem Rest und Umwandlung.
+
+Was ein Kästchen bedeutet, entscheidet damageTrackRows() — insbesondere, dass
+ein Kästchen hinter dem Strich der Scharf-Zeile die Kampfunfähigkeit selbst
+ist und nicht deren zweite Anzeige. --}}
+<div class='banner-chip chip-damage{{#if damage.downed}} is-downed{{/if}}'>
+
+  <div class='damage-rows'>
+    {{#each damage.rows as |row|}}
+    <div class='damage-row damage-row-{{row.kind}}'
+         data-tooltip-html='<dl class="tno-tooltip">
+<div class="tno-tooltip-row"><dt>{{localize row.labelKey}} <span class="tno-tooltip-value">{{row.value}}</span></dt><dd>{{localize "TNO.Damage.RowHint" free=row.free capacity=@root.damage.capacity converted=@root.damage.bluntConverted}}</dd></div>
+</dl>'
+         data-tooltip-direction='DOWN'>
+      <span class='damage-row-tag' aria-hidden='true'>{{localize row.tagKey}}</span>
+      <span class='damage-boxes'>
+        {{#each row.boxes as |box|}}<span class='damage-box is-{{box.tone}}'></span>{{/each}}
+        <span class='damage-mark' aria-hidden='true'></span>
+        {{#each row.overflow as |box|}}<span class='damage-box is-{{box.tone}}'></span>{{/each}}
+      </span>
+      {{#if @root.editable}}
+      <span class='damage-stepper-group'>
+        <button type='button' class='damage-stepper' data-kind='{{row.kind}}' data-action='decrement'
+                aria-label='{{localize row.decreaseKey}}' {{#unless row.value}}disabled{{/unless}}>−</button>
+        <button type='button' class='damage-stepper' data-kind='{{row.kind}}' data-action='increment'
+                aria-label='{{localize row.increaseKey}}'>+</button>
+      </span>
+      {{/if}}
+    </div>
+    {{/each}}
+  </div>
+
+  {{!-- Die größte Zahl im Block, weil sie bei jedem Wurf angesagt wird. Leer
+  bleibt sie als gedämpfte 0 stehen, damit der Block nicht die Form wechselt. --}}
+  <div class='damage-malus{{#unless damage.total}} is-zero{{/unless}}'
+       data-tooltip-html='<dl class="tno-tooltip">
+<div class="tno-tooltip-row"><dt>{{localize "TNO.Damage.Malus"}} <span class="tno-tooltip-value">{{damage.malus}}</span></dt><dd>{{localize "TNO.Damage.MalusBreakdown" blunt=damage.blunt sharp=damage.sharp}}</dd></div>
+{{#if damage.downed}}<div class="tno-tooltip-row"><dt>{{localize "TNO.Damage.Downed"}}</dt><dd>{{localize "TNO.Damage.DownedHint" effective=damage.effectiveSharp capacity=damage.capacity}}</dd></div>{{/if}}
+</dl>'
+       data-tooltip-direction='DOWN'>
+    {{#if damage.downed}}<i class='fa-solid fa-triangle-exclamation' aria-hidden='true'></i>{{/if}}
+    <span>{{damage.malus}}</span>
+  </div>
+
+  {{!-- Nur sichtbar, wenn es etwas zu leeren gibt: ohne Schaden wäre der Knopf
+  eine Handlung ohne Wirkung. --}}
+  {{#if @root.editable}}{{#if damage.total}}
+  <button type='button' class='damage-clear' aria-label='{{localize "TNO.Damage.ClearHint"}}'
+          data-tooltip='{{localize "TNO.Damage.ClearHint"}}'>
+    <i class='fa-solid fa-rotate-left' aria-hidden='true'></i>
+  </button>
+  {{/if}}{{/if}}
+</div>

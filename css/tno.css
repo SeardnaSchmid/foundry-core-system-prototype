@@ -404,18 +404,26 @@
   z-index: 1;
   background: linear-gradient(103deg, rgba(25, 24, 19, 0.96) 0%, rgba(25, 24, 19, 0.8) 27%, rgba(25, 24, 19, 0.42) 48%, rgba(184, 134, 11, 0.1) 59%, transparent 72%);
 }
-.tno .banner-chips,
+.tno .banner-meta,
 .tno .banner-portrait,
 .tno .banner-identity {
   position: relative;
   z-index: 1;
 }
-.tno .banner-chips {
+.tno .banner-meta {
   grid-area: chips;
   justify-self: end;
-  width: fit-content;
   min-width: 0;
   max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.tno .banner-chips {
+  width: fit-content;
+  max-width: 100%;
+  min-width: 0;
   display: flex;
   flex-wrap: wrap;
   align-items: stretch;
@@ -618,6 +626,174 @@
 .tno .edge-pip.filled {
   background: #b8860b;
 }
+.tno .chip-damage {
+  position: relative;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.tno .damage-rows {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 10px;
+}
+.tno .damage-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: -1px -3px;
+  padding: 1px 3px;
+  border-radius: 4px;
+}
+.tno .damage-row:hover {
+  background: rgba(255, 255, 255, 0.62);
+}
+.tno .damage-row-tag {
+  width: 18px;
+  flex: none;
+  color: #444;
+  font-size: var(--font-size-10, 10px);
+  font-weight: bold;
+  letter-spacing: 0.03em;
+  line-height: 1;
+}
+.tno .damage-boxes {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.tno .damage-box {
+  width: 16px;
+  height: 14px;
+  flex: none;
+  border: 1px solid rgba(25, 24, 19, 0.72);
+  border-radius: 2px;
+  background: transparent;
+}
+.tno .damage-box.is-empty {
+  border-style: dashed;
+  border-color: rgba(25, 24, 19, 0.34);
+}
+.tno .damage-box.is-blunt {
+  background: #7e9fa4;
+}
+.tno .damage-box.is-sharp {
+  background: #e0a33c;
+}
+.tno .damage-box.is-converted, .tno .damage-box.is-over {
+  background: #6f1a22;
+  border-color: rgba(0, 0, 0, 0.6);
+}
+.tno .damage-mark {
+  width: 2px;
+  height: 18px;
+  flex: none;
+  margin: 0 2px;
+  border-radius: 1px;
+  background: #191813;
+}
+.tno .damage-stepper-group {
+  display: inline-flex;
+  flex: none;
+  border: 1px solid rgba(25, 24, 19, 0.72);
+  border-radius: 5px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.6);
+}
+.tno button.damage-stepper {
+  width: 20px;
+  height: 18px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #191813;
+  font-family: inherit;
+  font-size: var(--font-size-11, 11px);
+  font-weight: bold;
+  line-height: 1;
+  cursor: pointer;
+}
+.tno button.damage-stepper + .damage-stepper {
+  border-left: 1px solid rgba(25, 24, 19, 0.4);
+}
+.tno button.damage-stepper:hover:not(:disabled) {
+  background: rgba(25, 24, 19, 0.12);
+}
+.tno button.damage-stepper:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.tno .damage-malus {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  flex: none;
+  min-width: 54px;
+  padding: 0 12px;
+  border-left: 1px solid rgba(25, 24, 19, 0.5);
+  background: rgba(201, 199, 184, 0.5);
+  font-size: var(--font-size-20, 20px);
+  font-weight: bold;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.tno .damage-malus i {
+  font-size: var(--font-size-13, 13px);
+}
+.tno .damage-malus.is-zero {
+  color: rgba(68, 68, 68, 0.55);
+}
+.tno button.damage-clear {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 16px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-left: 1px solid rgba(25, 24, 19, 0.5);
+  border-bottom: 1px solid rgba(25, 24, 19, 0.5);
+  border-radius: 0 0 0 5px;
+  background: rgba(201, 199, 184, 0.5);
+  box-shadow: none;
+  color: #444;
+  font-size: var(--font-size-11, 11px);
+  line-height: 1;
+  cursor: pointer;
+}
+.tno button.damage-clear:hover {
+  background: rgba(25, 24, 19, 0.1);
+  color: #191813;
+}
+.tno .chip-damage.is-downed {
+  border-color: #b3212b;
+  background: rgba(179, 33, 43, 0.14);
+}
+.tno .chip-damage.is-downed .damage-malus {
+  border-left-color: rgba(179, 33, 43, 0.7);
+  background: rgba(179, 33, 43, 0.2);
+  color: #b3212b;
+}
+.tno .chip-damage.is-downed .damage-clear {
+  border-color: rgba(179, 33, 43, 0.7);
+  background: rgba(255, 255, 255, 0.78);
+  color: #b3212b;
+}
+.tno .chip-damage.is-downed .damage-clear:hover {
+  background: #fff;
+  color: #191813;
+}
 .tno .banner-portrait {
   grid-area: portrait;
   position: relative;
@@ -721,11 +897,14 @@
     grid-template-columns: var(--portrait-size) minmax(280px, 1fr);
     grid-template-areas: "portrait identity" "portrait chips";
   }
-  .tno .banner-chips {
+  .tno .banner-meta {
     justify-self: stretch;
+    align-items: flex-start;
+    max-width: none;
+  }
+  .tno .banner-chips {
     justify-content: flex-start;
     width: 100%;
-    max-width: none;
   }
 }
 @container character-sheet (max-width: 520px) {
@@ -1351,7 +1530,7 @@
   outline: 2px solid #444;
   outline-offset: 1px;
 }
-.tno .slot-badge, .tno .skill-level, .tno .attribute-table.heatmap .heatmap-cell .heatmap-delta, .tno .xp-badge {
+.tno .slot-badge, .tno .skill-level, .tno .xp-badge {
   font-size: var(--font-size-11, 11px);
   font-weight: bold;
   line-height: 1;
@@ -1376,14 +1555,6 @@
   }
   50% {
     box-shadow: 0 0 0 2px rgba(241, 244, 247, 0.6), 0 0 4px 1px rgba(241, 244, 247, 0.2);
-  }
-}
-@keyframes heatmap-critical-pulse {
-  0%, 100% {
-    box-shadow: 0 0 0 2px rgba(255, 90, 100, 0.85), 0 0 8px 1px rgba(255, 90, 100, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 0 2px rgba(255, 90, 100, 0.5), 0 0 4px 1px rgba(255, 90, 100, 0.2);
   }
 }
 .tno .attributes-card {
@@ -1454,10 +1625,7 @@
   border: 1.5px solid transparent;
   overflow: hidden;
 }
-.tno .attribute-table.heatmap .heatmap-cell.heatmap-critical {
-  animation: heatmap-critical-pulse 1.4s ease-in-out infinite;
-}
-.tno .attribute-table.heatmap .heatmap-cell.heatmap-peak:not(.heatmap-critical) {
+.tno .attribute-table.heatmap .heatmap-cell.heatmap-peak {
   animation: heatmap-peak-pulse 2.2s ease-in-out infinite;
 }
 .tno .attribute-table.heatmap .heatmap-cell .heatmap-cell-top {
@@ -1466,12 +1634,6 @@
   align-items: center;
   justify-content: center;
   min-height: 9px;
-}
-.tno .attribute-table.heatmap .heatmap-cell .heatmap-warn-badge {
-  position: absolute;
-  top: 0;
-  left: 0;
-  font-size: var(--font-size-12, 12px);
 }
 .tno .attribute-table.heatmap .heatmap-cell .heatmap-cell-name {
   font-weight: 400;
@@ -1510,87 +1672,16 @@
   height: 100%;
   transition: width 0.15s ease;
 }
-.tno .attribute-table.heatmap .heatmap-cell .heatmap-delta {
-  position: absolute;
-  top: 0;
-  left: 0;
-  cursor: pointer;
-  font-size: var(--font-size-9, 9px);
-  padding: 1px 3px;
-}
 .tno .attribute-table.heatmap .heatmap-cell .heatmap-cell-values {
-  gap: 4px;
   min-height: 23px;
   justify-content: center;
 }
-.tno .attribute-table.heatmap .heatmap-cell.heatmap-modified .heatmap-cell-values {
-  padding-left: 20px;
-}
-.tno .attribute-table.heatmap .heatmap-cell .heatmap-value-pair {
-  flex: 0 0 auto;
-}
-.tno .attribute-table.heatmap .heatmap-cell .heatmap-stepper {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  flex: none;
-  border-radius: 50%;
-  border: 1.5px solid;
-  font-weight: bold;
-  cursor: pointer;
-  opacity: 0.35;
-  transition: opacity 0.15s ease;
-}
-@media (hover: hover) and (pointer: fine) {
-  .tno .attribute-table.heatmap .heatmap-cell .heatmap-stepper {
-    opacity: 0;
-  }
-}
-.tno .attribute-table.heatmap .heatmap-cell .heatmap-stepper:hover {
-  filter: brightness(0.95);
-}
-.tno .attribute-table.heatmap .heatmap-cell .heatmap-stepper:focus-visible {
-  opacity: 1;
-}
-.tno .attribute-table.heatmap .heatmap-cell:hover .heatmap-stepper {
-  opacity: 1;
-}
-.tno .attribute-table.heatmap .heatmap-cell .heatmap-value-pair {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 1px;
-  min-width: 30px;
-  justify-content: center;
-}
-.tno .attribute-table.heatmap .heatmap-cell .heatmap-temp,
-.tno .attribute-table.heatmap .heatmap-cell .heatmap-base {
+.tno .attribute-table.heatmap .heatmap-cell .heatmap-value {
   font-weight: 800;
-  line-height: 1;
-  transition: font-size 0.15s ease, opacity 0.15s ease;
-}
-.tno .attribute-table.heatmap .heatmap-cell .heatmap-temp.active,
-.tno .attribute-table.heatmap .heatmap-cell .heatmap-base.active {
   font-size: var(--font-size-18, 18px);
-  opacity: 1;
-}
-.tno .attribute-table.heatmap .heatmap-cell .heatmap-temp.inactive,
-.tno .attribute-table.heatmap .heatmap-cell .heatmap-base.inactive {
-  font-size: var(--font-size-11, 11px);
-  opacity: 0.55;
-}
-.tno .attribute-table.heatmap .heatmap-cell .heatmap-arrow {
-  margin: 0 2px;
-  font-weight: 700;
-  font-size: var(--font-size-11, 11px);
-  opacity: 0.55;
+  line-height: 1;
 }
 @container (min-width: 401px) {
-  .tno .attribute-table.heatmap .heatmap-cell .heatmap-delta {
-    font-size: var(--font-size-11, 11px);
-    padding: 1px 5px;
-  }
   .tno .attribute-table.heatmap .heatmap-cell .heatmap-cell-name {
     font-size: var(--font-size-10, 10px);
   }
@@ -1608,16 +1699,6 @@
   .tno .attribute-table.heatmap .heatmap-cell {
     padding-inline: 6px;
   }
-  .tno .attribute-table.heatmap .heatmap-cell .heatmap-cell-values {
-    gap: 6px;
-  }
-  .tno .attribute-table.heatmap .heatmap-cell .heatmap-value-pair {
-    min-width: 36px;
-  }
-  .tno .attribute-table.heatmap .heatmap-cell .heatmap-stepper {
-    width: 18px;
-    height: 18px;
-  }
 }
 @container (min-width: 559px) {
   .tno .attribute-table.heatmap thead {
@@ -1633,31 +1714,8 @@
   .tno .attribute-table.heatmap .heatmap-cell {
     padding-inline: 2px;
   }
-  .tno .attribute-table.heatmap .heatmap-cell .heatmap-cell-values {
-    gap: 2px;
-  }
-  .tno .attribute-table.heatmap .heatmap-cell.heatmap-modified .heatmap-cell-values {
-    padding-left: 14px;
-  }
-  .tno .attribute-table.heatmap .heatmap-cell .heatmap-stepper {
-    width: 14px;
-    height: 14px;
-    font-size: var(--font-size-10, 10px);
-  }
-  .tno .attribute-table.heatmap .heatmap-cell .heatmap-value-pair {
-    min-width: 24px;
-  }
-  .tno .attribute-table.heatmap .heatmap-cell .heatmap-temp.active,
-  .tno .attribute-table.heatmap .heatmap-cell .heatmap-base.active {
+  .tno .attribute-table.heatmap .heatmap-cell .heatmap-value {
     font-size: var(--font-size-17, 17px);
-  }
-  .tno .attribute-table.heatmap .heatmap-cell .heatmap-temp.inactive,
-  .tno .attribute-table.heatmap .heatmap-cell .heatmap-base.inactive {
-    font-size: var(--font-size-10, 10px);
-  }
-  .tno .attribute-table.heatmap .heatmap-cell .heatmap-arrow {
-    margin-inline: 1px;
-    font-size: var(--font-size-9, 9px);
   }
 }
 .tno .attributes-header,
@@ -3336,9 +3394,11 @@
 }
 .tno .armor-row {
   --armor-action-size: 1.25em;
+  --armor-row-gap: 10px;
+  --armor-action-gap: calc(var(--armor-action-size) + var(--armor-row-gap));
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--armor-row-gap);
   min-height: 34px;
   padding: 6px 12px;
   border: 1px solid #8ba06f;
@@ -3346,10 +3406,11 @@
   background: #dfe8d5;
   font-size: var(--font-size-13, 13px);
 }
-.tno .armor-row:not(:has(.armor-unequip))::after, .tno .armor-row:not(:has(.armor-resist))::before {
-  content: "";
-  order: 1;
-  flex: 0 0 var(--armor-action-size);
+.tno .armor-row:not(:has(.armor-resist)) .armor-values {
+  margin-right: var(--armor-action-gap);
+}
+.tno .armor-row:not(:has(.armor-unequip)) .armor-resist {
+  margin-right: var(--armor-action-gap);
 }
 .tno .armor-row.armor-empty {
   border-style: dashed;
@@ -3394,10 +3455,12 @@
   font-weight: bold;
 }
 .tno .armor-values {
-  --armor-value-col: 4.1em;
+  --armor-value-col: 4.4em;
+  --armor-sv-col: 4em;
+  --armor-num-col: 1.6em;
   display: grid;
   flex: 0 0 auto;
-  grid-template-columns: repeat(3, var(--armor-value-col));
+  grid-template-columns: var(--armor-sv-col) repeat(3, var(--armor-value-col));
   align-items: baseline;
   justify-items: end;
   white-space: nowrap;
@@ -3405,14 +3468,18 @@
   font-weight: bold;
   color: #191813;
 }
-.tno .armor-values .armor-value-rh {
+.tno .armor-values .armor-value-sv {
   grid-column: 1;
+  --armor-num-col: 2.1em;
 }
-.tno .armor-values .armor-value-rw {
+.tno .armor-values .armor-value-rh {
   grid-column: 2;
 }
-.tno .armor-values .armor-value-ra {
+.tno .armor-values .armor-value-rw {
   grid-column: 3;
+}
+.tno .armor-values .armor-value-ra {
+  grid-column: 4;
 }
 .tno .armor-values .armor-value + .armor-value::before {
   content: "·";
@@ -3423,16 +3490,26 @@
 .tno .armor-values.armor-values-suit {
   opacity: 0.6;
 }
+.tno .armor-suit .armor-values .armor-value + .armor-value::before {
+  content: none;
+}
 .tno .armor-value-stacked {
   cursor: help;
 }
 .tno .armor-value-stacked .armor-stack-mark {
+  display: inline-block;
+  width: 0;
   margin-left: 1px;
   vertical-align: super;
   font-size: 0.7em;
   font-weight: bold;
   line-height: 0;
   color: #444;
+}
+.tno .armor-num {
+  display: inline-block;
+  min-width: var(--armor-num-col);
+  text-align: right;
 }
 .tno .armor-key {
   margin-right: 4px;
@@ -3625,6 +3702,19 @@
   border-color: #b3212b;
   background: rgba(179, 33, 43, 0.35);
   color: #fff;
+}
+.tno .slot-cell.worn:not(.over-capacity) {
+  border-color: #7e9fa4;
+  background: #c5dce0;
+}
+.tno .slot-worn-caption {
+  display: block;
+  font-size: var(--font-size-9, 9px);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: rgba(25, 24, 19, 0.65);
 }
 .tno .slot-cell.slot-joined {
   border-right: 0;

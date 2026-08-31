@@ -29,7 +29,7 @@ client-scoped and hidden (`config: false` — edited only through the
 `heatmapLabMenu` below):
 
 `heatmapLow`, `heatmapMid`, `heatmapHigh`, `heatmapMidValue`,
-`heatmapLowCurve`, `heatmapHighCurve`, `heatmapCritical` — see
+`heatmapLowCurve`, `heatmapHighCurve` — see
 [heatmap.md](../concepts/heatmap.md).
 
 `basicsLayout` — how the character sheet's Basics tab divides each of its two
@@ -97,5 +97,5 @@ on the unresolved term.
 
 Historical note: this used to be Foundry's stock Simple System template
 value, `'1d20 + @abilities.dex.mod'`, referencing a `mod` field TNO never
-computes (`system.abilities.<key>` only has `base`, `value`, `xp` — see
+computes (`system.abilities.<key>` only has `base` and `xp` — see
 [data-schema.md](data-schema.md)). That was a live bug; it is now fixed.

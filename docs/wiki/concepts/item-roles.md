@@ -45,7 +45,7 @@ migration writes, and the shape that survives if a piece ever does need two —
 whereas a string would have to be migrated twice to find out.
 
 The inventory views use `inventoryIcon(item)` from the same helper, so the
-carry grid, Kleinkram list and the Inventar tab's ledger all show the same quick
+slot grid, Kleinkram list and the Inventar tab's ledger all show the same quick
 read: ranged weapon, melee weapon, armour, consumable or a generic object.
 The item image remains available on the item's own sheet.
 
@@ -156,7 +156,7 @@ under the cursor. Whole role blocks are the exception: a role that is off is a
 section the item does not have, not a field it cannot fill.
 
 **No save button.** The sheet edits a live document that the paper doll and the
-carry grid render at the same time; a local draft would desync them, and
+slot grid render at the same time; a local draft would desync them, and
 Foundry has no rollback to hang a Cancel off. Every change writes through, and
 the footer *counts what is still missing* (`missingRequired()`) instead of
 gating a save.

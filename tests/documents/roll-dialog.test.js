@@ -113,12 +113,12 @@ describe('TnoRollDialog pre-roll context', () => {
 });
 
 /** An actor whose worn armour may or may not outweigh its Strength. */
-const armoured = (penalised) => ({
+const armoured = (penalised, damageMalus = 0) => ({
   type: 'npc',
   system: {
-    abilities: { str: { value: 5 }, dex: { value: 4 } },
+    abilities: { str: { base: 5 }, dex: { base: 4 } },
     skills: {},
-    derived: { armorSvPenalty: penalised },
+    derived: { armorSvPenalty: penalised, damage: { malus: damageMalus } },
   },
   update: async () => {},
 });
@@ -198,6 +198,47 @@ describe('TnoRollDialog armour SV step', () => {
   });
 });
 
+describe('TnoRollDialog global damage malus', () => {
+  it('keeps actor state separate from form-dependent modifiers', () => {
+    const dialog = new TnoRollDialog(armoured(true, -4), { attributeA: 'dex' });
+    expect(dialog._actorModifiers()).toEqual([{ label: 'TNO.Damage.RollMalus', value: -4 }]);
+    expect(dialog._conditionalModifiers(form({ attributeA: 'dex' }))).toEqual([
+      { label: 'TNO.Combat.ArmorSvMalus', value: -3 },
+    ]);
+    expect(dialog._fixedModifierComponents(form({ attributeA: 'dex' })).map((part) => part.label)).toEqual([
+      'TNO.Damage.RollMalus',
+      'TNO.Combat.ArmorSvMalus',
+    ]);
+  });
+
+  it('applies to every roll and reaches the breakdown, components and flags', async () => {
+    const dialog = new TnoRollDialog(armoured(false, -3), {
+      attributeA: 'str',
+      flavor: 'Widerstand',
+    });
+    const data = form({ attributeA: 'str' });
+    expect(dialog._computeThreshold(data)).toBe(2);
+    expect(dialog._breakdownText(data)).toContain('TNO.Damage.RollMalus −3');
+
+    await dialog._updateObject(null, data);
+    expect(rolled.payload.threshold).toBe(2);
+    expect(rolled.payload.components[0]).toEqual({
+      label: 'TNO.Ability.Str.long',
+      value: 5,
+    });
+    expect(rolled.payload.components[1]).toEqual({
+      label: 'TNO.Damage.RollMalus',
+      value: -3,
+      display: '−3',
+    });
+    expect(rolled.payload.components.reduce((sum, part) => sum + part.value, 0)).toBe(2);
+  });
+
+  it('adds no component for an undamaged actor', () => {
+    expect(new TnoRollDialog(armoured(false), { attributeA: 'str' })._actorModifiers()).toEqual([]);
+  });
+});
+
 // "Würfelt er alle Manöver mit einem Malus" — and a Standardangriff is not a
 // Manöver, so what makes this roll one is whether anything was declared on it.
 //
@@ -228,10 +269,10 @@ describe('TnoRollDialog Ansagen', () => {
   const zonePicker = {
     label: 'Trefferzone',
     choices: [
-      { key: 'torso', label: 'Torso', caption: 'Stärke', cost: 0 },
-      { key: 'arms', label: 'Arme', caption: 'Fingerfertigkeit / Stärke', cost: -3 },
-      { key: 'legs', label: 'Beine', caption: 'Beweglichkeit / Stärke', cost: -3 },
-      { key: 'head', label: 'Kopf', caption: 'Stärke ×2', cost: -6 },
+      { key: 'torso', label: 'Torso', caption: 'Schadenspool', cost: 0 },
+      { key: 'arms', label: 'Arme', caption: 'Schadenspool', cost: -3 },
+      { key: 'legs', label: 'Beine', caption: 'Schadenspool', cost: -3 },
+      { key: 'head', label: 'Kopf', caption: 'Schadenspool ×2', cost: -6 },
     ],
   };
 

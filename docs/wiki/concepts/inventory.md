@@ -10,24 +10,20 @@ related: [concepts/attributes, concepts/item-roles, reference/ui-surfaces, archi
 
 # Inventory (carrying and wearing)
 
-The rules model **two axes that must not be conflated**:
+The rules model **two related axes that must not be conflated**:
 
-- **Carrying** — a slot economy that only exists while the character has a
-  bag or backpack.
+- **Slot load** — worn and carried gear share one budget. A bag or backpack
+  decides whether the carried half participates; worn gear always does.
 - **Wearing** — one Unterkleidung (the spacesuit base layer) plus four zone
   addons, contributing RH/RW/RA and a Stärke requirement.
 
-Worn clothing and armour are exempt from the slot economy entirely ("Von
-den Inventarregeln ausgenommen sind Kleidung und Rüstung welche der
-Charakter am Leib trägt"), which is why the same item can be invisible to
-one axis and decisive on the other.
-
 ## Where the state is stored
 
-Worn armour lives in `actor.system.equipment` as zone key → item id. Every
-other owned physical item is carried and participates in the slot budget; the
-rules define no persisted “stowed” state. Removing an item from the character
-therefore means deleting or transferring the embedded item.
+Worn armour lives in `actor.system.equipment` as zone key → item id. That map
+decides the item's band in the shared budget as well as the paper-doll layer;
+it no longer exempts the item from slots. Every other owned physical item is
+carried, and the rules define no persisted “stowed” state. Removing an item
+from the character therefore means deleting or transferring the embedded item.
 
 Money is separate actor state under `actor.system.money`: one whole-unit
 balance per supported currency. It is not represented by zero-slot Items, so
@@ -46,15 +42,16 @@ without a game world (`tests/helpers/inventory.test.js`).
 | `CARRIED_ITEM_TYPES` | The types the slot economy applies to — an alias of `GEAR_TYPES`. `feature` and `spell` are not objects and never appear in the grid or the sum. Which *roles* a piece has took over from its type everywhere else, but not here: the budget applies to anything that is an object at all — see [item-roles.md](item-roles.md) |
 | `CARRY_THRESHOLDS` | The fractions of capacity at which movement degrades |
 | `ARMOR_SV_STEP` | The quarter step the Rüstungen table writes SV increments in, and the granularity the summed SV is snapped to |
-| `wornItemIds(equipment)` | The id set currently on the body, used to exclude worn gear from the carry sum |
+| `wornItemIds(equipment)` | The id set currently on the body, used to partition the worn and carried slot bands |
 | `itemSlotCost(item)` | `slots × quantity` for one stack, floored at 1 slot per piece for anything carrying the armour role |
-| `computeCarry(items, equipment, hasContainer, capacity)` | `{ used, capacity, state }` |
-| `buildSlotGrid(items, equipment, capacity)` | `{ blocks, overflow, trinkets, empty }` — the view layout |
+| `computeCarry(items, equipment, hasContainer, capacity)` | `{ used, worn, carried, capacity, state, noContainer }` |
+| `buildSlotGrid(items, equipment, capacity, hasContainer)` | `{ blocks, overflow, trinkets, empty }` — worn first, then carried; every entry carries `worn` |
 | `resolveArmor(equipment, items)` | `{ zones, sv }` — effective per-zone values |
 
 [`TnoActor.prepareDerivedData()`](../../../module/documents/actor.mjs)
 calls `computeCarry` and `resolveArmor` and writes `carrySlots`,
-`carrySlotsUsed`, `carryState`, `armor`, `armorSv` and `armorSvPenalty`
+`carrySlotsUsed`, `carryWorn`, `carryCarried`, `carryState`,
+`carryNoContainer`, `armor`, `armorSv` and `armorSvPenalty`
 into `system.derived` — see
 [data-schema.md](../architecture/data-schema.md).
 
@@ -96,19 +93,18 @@ and the zero-slot tier is the narrow exception for loose change and paperwork.
 Defaulting to 0 meant every item a GM created was free until someone
 remembered to type a number, which quietly emptied the budget.
 
-**Armour is floored at one slot per piece** (`MIN_ARMOR_SLOTS`). Off the body,
-a piece is either carried and visibly taking up room or not there at all —
-there is no third way for a breastplate to be free, and the zero-slot tier is
-explicitly Krimskrams, which armour is not. The floor sits in `itemSlotCost`
-rather than only in the schema default so armour authored at 0 under the old
-default still costs its slot instead of slipping into the zero-slot band.
+**Armour is floored at one slot per piece** (`MIN_ARMOR_SLOTS`) whether worn or
+carried. Armour is never weightless, and the zero-slot tier is explicitly
+Krimskrams. The floor sits in `itemSlotCost` rather than only in the schema
+default so armour authored at 0 under the old default still costs its slot
+instead of slipping into the zero-slot band.
 
 Two consequences are worth knowing before changing anything here:
 
-- **Without a container there is no slot economy at all.** `hasContainer`
-  false reports `used: 0` and the state `noContainer`, which the sheet
-  renders as its own badge — the character carries what fits in their
-  hands, which the rules describe qualitatively rather than as a number.
+- **Without a container only the worn band participates.** `hasContainer`
+  false reports `carried: 0`, keeps the worn subtotal in `used`, and sets
+  `noContainer: true` beside the ordinary movement state. The badge and the
+  load consequence can therefore appear at the same time.
 - **`used` is never clamped to `capacity`.** Going over is legal and simply
   degrades movement, so the UI shows 12/10 rather than refusing the item.
 
@@ -125,15 +121,14 @@ is not decided by leaving a gap for it now.
 
 Load states come from `CARRY_THRESHOLDS`: at half capacity or more,
 `noSprint`; once the budget is full, `crawlOnly`. `derived.canSprint`
-therefore has two independent blockers — a damaged Beweglichkeit *or* a
-load at/over half.
+is false exactly when the load reaches the `noSprint` or `crawlOnly` state.
 
 **Where the load state is shown is the banner, not the bag.** The movement chip
 strikes through the tier the load takes away (sprint for `noSprint`, walk as
 well for `crawlOnly`), because the question a player is asking is "how far can I
-move" and the answer belongs on the figure that changes. The carry grid's header
-keeps only `noContainer`, which is not a movement state but the reason the whole
-budget reads 0.
+move" and the answer belongs on the figure that changes. The slot grid's header
+keeps only `noContainer`, which is not a movement state but explains why the
+carried band is outside the calculation.
 
 > **Open rules question:** the half-capacity rule is the one bit still in
 > question — Ojster said he removed the "halbieren" clause as confusing,
@@ -191,7 +186,7 @@ make derived data circular. Callers that need the item look it up from
 actor sheet does.
 
 Armour is put on by dragging it onto its zone and taken off by dragging the row
-back into the carry grid, or with the row's `x` — see
+back into the slot grid, or with the row's `x` — see
 [Moving things between the two views](#moving-things-between-the-two-views).
 
 ## The two views
@@ -201,12 +196,13 @@ Both are **derived on every render, never stored** — see
 [character-sheet-prd.md](../../design/character-sheet-prd.md#inventory-tab)
 for the UX spec.
 
-The slot grid packs blocks in the items' existing `sort` order, so
-reordering is purely a view concern and a player's arrangement never needs
-persisting.
+The slot grid packs the worn band first, sorted within that band by the items'
+existing `sort`, then the carried band in its own `sort` order. Reordering is
+purely a view concern and a player's arrangement never needs extra persisted
+state.
 
 **Three columns, not two, and they sit in different rows.** The paper doll is in
-the Basics tab's top row and the carry raster in its bottom one, because the
+the Basics tab's top row and the slot raster in its bottom one, because the
 raster is a long list and belongs beside the other long list on the sheet. The
 wallet and zero-slot items share the third: `buildSlotGrid` splits those items
 off as `trinkets`, and they render as Kleinkram above the wallet
@@ -243,11 +239,10 @@ changes state**:
   `armor-drop-target` and the silhouette's shapes as `zone-drop-target`, both
   set in `_onDragStart` — so the targets are visible before the player lets go,
   and the shape under the pointer goes solid (`drop-onto`).
-- **A worn row back onto the carry grid** takes the piece off: the mirror of the
+- **A worn row back onto the slot grid** takes the piece off: the mirror of the
   gesture that put it on, so the way back is not a different kind of act. The
-  unequip lands before any sort, since a worn piece is not in the carry list to
-  sort against; dropped on the free tail it also sorts to the end, dropped
-  anywhere else in the grid it simply rejoins the list where it already sat.
+  unequip lands before any sort; dropped on the free tail it also sorts to the
+  end, dropped anywhere else it keeps its existing document order.
   While a worn piece is in flight the whole grid block lights up
   (`carry-drop-target`) rather than a cell — coming off the body is not a drop
   at a position.
@@ -256,13 +251,12 @@ changes state**:
 to author a piece on the spot, which conjured armour out of an empty doll —
 wearing something is a state change on gear already in hand.
 
-Clicking a cell, a trinket or a worn row opens that item's own sheet — the doll
-row is the only place a worn piece appears, so without it equipping something
-would make it uneditable. The row hands the click over when it landed on the
-`x`, so taking a piece off does not also open the sheet behind it. With the doll
-gone drag-only, clicking is the only path left to a carried item's data from
-this view, so the cells are promoted into the keyboard tab order along with the
-sheet's other custom chips (`_makeKeyboardAccessible`).
+Clicking a cell, a trinket or a worn row opens that item's own sheet. A worn
+piece deliberately appears both on the paper doll (its armour state) and in the
+first slot band (its budget cost). The row hands the click over when it landed
+on the `x`, so taking a piece off does not also open the sheet behind it. Cells
+are promoted into the keyboard tab order along with the sheet's other custom
+chips (`_makeKeyboardAccessible`).
 
 New gear is authored through one dialog (`_promptCreateItem`, opened by the
 `+` in the grid header or by the same control on the Inventar tab): a name, and
@@ -276,12 +270,10 @@ leaves a short second row. Gear that does not fit is split off into `overflow`
 and rendered on past the budget in the warning colour, so the run of normal
 cells *is* the capacity and the colour break marks where it ended.
 
-A block only stays inside the budget if it fits there **whole**: an item
-straddling the boundary has overflowed, because a slot the character does not
-have cannot hold half of it. Once one item overflows every later item follows
-it out, even where a gap remains — otherwise a small item would jump ahead of
-a large one it was sorted behind and the grid would silently reorder the
-player's list.
+A block may straddle the boundary: the cells that still fit remain in the
+normal run and the rest turn into overload. Once a block straddles, every later
+item follows it into overflow — otherwise a small item would jump ahead of a
+large one it was sorted behind and silently reorder the player's list.
 
 The paper doll's silhouette renders each zone as two possible layers. The
 full-size base uses the sheet-derived `baseState` (`bare` / `suited`), and a
@@ -294,10 +286,10 @@ remain the location-specific Resistance entry points.
 
 ## The ledger
 
-The Basics tab's two views show a piece only while it is in that state. The
-Inventar tab is the ledger behind them: every object the character owns appears
-there **exactly once**, whatever state it is in, which is what makes a piece
-that is neither worn nor carried reachable at all.
+The paper doll shows only worn state; the slot raster shows the complete numeric
+load, including its worn band. The Inventar tab is the ledger behind them:
+every object the character owns appears there **exactly once**, whatever state
+it is in.
 
 [`module/helpers/item-table.mjs`](../../../module/helpers/item-table.mjs) holds
 it, composed from `items.mjs` and `inventory.mjs` and free of Foundry globals
@@ -324,12 +316,11 @@ to be read as "that group is gone" instead.
 **Three kinds of silence, and keeping them apart is the whole job.**
 
 - A column the row cannot be *asked* is `applies: false`, painted as a hatched
-  `n/a`. Four rules produce it: the column belongs to a role the piece has not
+  `n/a`. Three rules produce it: the column belongs to a role the piece has not
   taken on; DK and RB are melee questions and RD a ranged one, so only the use
   the weapon has answers them; the Unterkleidung has no Rüstungshärte and covers
   no single location, so RH and RA are values a suit cannot have (the same
-  exception `missingRequired` makes); and worn gear is exempt from the slot
-  economy, so its footprint is not zero but not a question.
+  exception `missingRequired` makes).
 - A column it could answer that nobody filled in is `value: null`, painted as a
   dash. `isAuthoredNumber` guards every read, because `Number(null)` is 0 and
   the nullable fields exist precisely so that blank and the lowest step stay
@@ -341,7 +332,7 @@ also why the whole table is a single CSS grid with `subgrid` rows rather than
 one grid per group.
 
 **Sorting is a view concern and never writes `item.sort`.** That field is the
-order the carry raster packs from, so a header click here would otherwise
+order the slot bands pack from, so a header click here would otherwise
 silently repack a raster the player arranged by hand in the other tab. The same
 reasoning disables in-table drop-sorting (`_onSortItem` bails inside
 `.item-table`): a row in a role-grouped, column-sorted table has no position to

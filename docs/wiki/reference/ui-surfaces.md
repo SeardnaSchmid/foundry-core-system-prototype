@@ -18,7 +18,8 @@ related: [reference/module-map]
 | `actor/parts/actor-items.hbs` | The actor sheet's Inventar tab, on both actor types: the gear ledger as a role-grouped table, then Merkmale, then Active Effects. Not a second carry view — see the note below |
 | `actor/parts/actor-effects.hbs` | Included by `actor-items.hbs`, once, under its own heading |
 | `actor/parts/actor-features.hbs` | Included by `actor-items.hbs`, once, under its own heading |
-| `actor/parts/actor-paperdoll.hbs`, `actor-money-wallet.hbs`, `actor-trinkets.hbs`, `actor-slot-grid.hbs` | The equipment/money surfaces of the character sheet's Basics tab — see [inventory.md](../concepts/inventory.md). The paper doll, including its compact Dodge control beneath the silhouette, and the stacked Kleinkram/wallet column sit in the top row; the carry raster sits in the bottom one |
+| `actor/parts/actor-damage.hbs` | Character-only damage block in the banner's `.banner-meta` lane, below the value chips: two counted box rows (Wucht over Scharf) against one capacity mark, a stepper pair per row, the global malus as a tall cell and the incapacitation state as the block's own colour — see [damage.md](../concepts/damage.md) |
+| `actor/parts/actor-paperdoll.hbs`, `actor-money-wallet.hbs`, `actor-trinkets.hbs`, `actor-slot-grid.hbs` | The equipment/money surfaces of the character sheet's Basics tab — see [inventory.md](../concepts/inventory.md). The paper doll, including its compact Dodge control beneath the silhouette, and the stacked Kleinkram/wallet column sit in the top row; the slot raster sits in the bottom one |
 | `actor/parts/item-popover.hbs` | The actor-sheet item popover: the shared view-mode card plus the live item actions |
 | `actor/parts/money-popover.hbs` | Body-level five-currency wallet editor with money forms, rates and live euro conversions; reuses the item-popover component structure |
 | `actor/parts/columns-popover.hbs` | The Inventar table's column picker, the third body-level popover; reuses the item-popover frame and specializes only the checkbox sections |
@@ -52,7 +53,7 @@ Two full-width rows, each a flex row of `.basics-cell` columns with a
 
 | Row (`data-split-row`) | Columns |
 | --- | --- |
-| `top` | attribute matrix · paper doll · Kleinkram |
+| `top` | attribute matrix + damage widget · paper doll · Kleinkram |
 | `bottom` | skill list · Trageslots raster |
 
 Both rows size to their own content. Long skill and inventory lists extend the
@@ -84,13 +85,13 @@ them in step with `BASICS_LAYOUT_DEFAULT`.
 | Partial | Covers |
 | --- | --- |
 | `components/_dice-dialog.scss`, `_dice-card.scss` | Roll dialogs and the chat roll card / edge panel |
-| `components/_forms.scss` | Shared form controls plus actor-sheet layout, including the dark-fade portrait banner, restrained glass chips, portrait edit affordance, responsive identity/chip grid and Basics split rows. Its banner breakpoints consume the named `character-sheet` inline-size container declared on `.window-content` in `global/_window.scss` |
+| `components/_forms.scss` | Shared form controls plus actor-sheet layout, including the dark-fade portrait banner, restrained glass chips, the two-row `.banner-meta` lane holding the chips and the damage block, portrait edit affordance, responsive identity/chip grid and Basics split rows. Its banner breakpoints consume the named `character-sheet` inline-size container declared on `.window-content` in `global/_window.scss` |
 | `components/_resource.scss` | Largest component partial — attribute heatmap grid, skill groups, edge pool display |
 | `components/_items.scss` | The two plain lists left on the Inventar tab — Merkmale and Active Effects — plus the tab's own spacing |
 | `components/_item-table.scss` | The Inventar tab's gear ledger: toolbar, the single CSS grid the header band, group bands and `subgrid` rows all share, the hatched n/a cell, and the column picker's popover body |
 | `components/_item-dialog.scss` | Both gear views: overview cards/profiles/actions plus the editor's label column, scales, cycleable range bands, repeatable consumable effects, resizable description editor, chips, segments, splits and steppers. Also the add-to-inventory dialog (`&.create-item-dialog`), which reuses the same name-as-title input and selected-chip colours. Nested with `&.gear-dialog` / `&.create-item-dialog` because those classes sit on the window root alongside `tno`, not inside it |
 | `components/_item-popover.scss` | The view-mode card in both its homes — the actor sheet's top-layer popover (`&.item-popover`) and the chat card (`&.item-chat-summary`) — plus the wallet editor (`&.item-popover.money-popover`) and Haltung picker (`&.item-popover.stance-popover`) variants. Header, value tiles, detail rows and action bar are shared |
-| `components/_inventory.scss` | The paper doll and its Dodge action, compact borderless wallet, Kleinkram column and Trageslots grid — see [inventory.md](../concepts/inventory.md). The narrower padding they take inside a Basics column is set on `.basics-cell` in `_forms.scss`, not here |
+| `components/_inventory.scss` | The paper doll and its Dodge action, compact borderless wallet, Kleinkram column and Trageslots grid including the worn band — see [inventory.md](../concepts/inventory.md). The narrower padding they take inside a Basics column is set on `.basics-cell` in `_forms.scss`, not here |
 | `components/_effects.scss` | Active effect list rendering |
 | `components/_tooltip.scss` | Both halves of the rich `data-tooltip-html` tooltip: the `.tno-tooltip` card itself, declared at the top level of `tno.scss` because Foundry mounts `#tooltip` on `<body>` outside any `.tno` element, and `.tno-tooltip-hint`, the dotted underline marking a plain-text trigger. Icon and chip triggers are left unmarked — they already carry their own affordance |
 | `components/_base-roll-button.scss` | The chat-log "Basiswürfel" quick-roll button |

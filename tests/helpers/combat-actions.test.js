@@ -72,7 +72,7 @@ describe('combat action builders', () => {
       this.updates.push(changes);
     },
     system: {
-      abilities: { str: { base: 4, value: 4 }, dex: { base: 4, value: 4 } },
+      abilities: { str: { base: 4 }, dex: { base: 4 } },
       skills,
       combat: { stance, defenses },
       derived: { armor: { torso: { rh: 1, rw: 2, ra: 3 } } },
@@ -185,21 +185,20 @@ describe('combat action builders', () => {
   });
 
   // The Stelle stayed a pick when everything else collapsed into the number,
-  // because it is a location rather than an amount: it decides which attributes
-  // a failed resistance roll lands on, and the defender opens that roll by
-  // clicking the same location on their paper doll.
+  // because it is a location rather than an amount: it decides the multiplier,
+  // and the defender opens that roll from the same location on their paper doll.
   it('offers every Stelle as a tile captioned with what a hit there costs', () => {
     const { zonePicker } = angriffOptions(actor({ skills: { swords: { value: 5 } } }), weapon());
     expect(zonePicker.choices.map((choice) => choice.key)).toEqual(['torso', 'arms', 'legs', 'head']);
     // The caption is the damage rule, which is the one thing about a Trefferzone
     // worth saying in the dialog.
     expect(zonePicker.choices.find((choice) => choice.key === 'head').caption)
-      .toBe('TNO.Ability.Str.long ×2');
+      .toBe('TNO.Damage.Pool ×2');
     expect(zonePicker.choices.find((choice) => choice.key === 'arms').caption)
-      .toBe('TNO.Ability.Fin.long / TNO.Ability.Str.long');
+      .toBe('TNO.Damage.Pool');
     // Torso is the plain one, which is exactly why it is the default.
     expect(zonePicker.choices.find((choice) => choice.key === 'torso').caption)
-      .toBe('TNO.Ability.Str.long');
+      .toBe('TNO.Damage.Pool');
   });
 
   it('prices every tile the way Gezielte Angriffe does', () => {
@@ -240,7 +239,7 @@ describe('Haltung and repeated defences', () => {
       this.updates.push(changes);
     },
     system: {
-      abilities: { dex: { base: 4, value: 4 } },
+      abilities: { dex: { base: 4 } },
       skills: { acrobatics: { value: 3 }, ...skills },
       combat: { stance, defenses },
     },
@@ -331,7 +330,7 @@ describe('Haltung and repeated defences', () => {
     const character = () => ({
       isOwner: true,
       system: {
-        abilities: { str: { base: 4, value: 4 }, dex: { base: 4, value: 4 } },
+        abilities: { str: { base: 4 }, dex: { base: 4 } },
         skills: { swords: { value: 5 }, acrobatics: { value: 3 } },
         combat: { stance: 'enGarde', defenses: { parry: 0, dodge: 0 } },
         derived: { armor: { torso: { rh: 1, rw: 2, ra: 3 } } },
@@ -389,7 +388,7 @@ describe('what a defence takes from the other side', () => {
       this.updates.push(changes);
     },
     system: {
-      abilities: { dex: { base: 4, value: 4 } },
+      abilities: { dex: { base: 4 } },
       skills: { acrobatics: { value: 3 } },
       combat: { stance: 'enGarde', defenses: { parry: 0, dodge: 0 } },
       derived: { armor: { torso: { rh: 1, rw: 2, ra: 3 } } },

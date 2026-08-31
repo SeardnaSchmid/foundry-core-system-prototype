@@ -16,6 +16,7 @@ circular dependencies:
 module/tno.mjs                          (entry point, imports everything below)
 ├── documents/  {actor,item}.mjs        — reach no further than helpers/
 │                 → both import helpers/inventory.mjs
+│                 → actor.mjs imports helpers/damage.mjs
 │                 → both import helpers/combat-actions.mjs for the combat
 │                   workflows they open; the dialog itself is reached through
 │                   game.tno.TnoRollDialog, never imported from apps/
@@ -24,12 +25,14 @@ module/tno.mjs                          (entry point, imports everything below)
 │                   combat-actions}.mjs
 │                 → apps/{roll-dialog,advance-dialog,heatmap-lab,custom-skill-dialog}.mjs
 ├── helpers/    config, dice, dice-odds, dice-odds-table, chat, heatmap, skills,
-│               effects, inventory, items, item-presentation, combat-actions,
+│               effects, inventory, damage, items, item-presentation, combat-actions,
 │               maneuvers, migrations, templates
 │                 → items.mjs is the base of the helper graph: it imports
 │                   nothing, and inventory.mjs and config.mjs import it
 │                 → maneuvers.mjs is the second global-free base: it imports
 │                   nothing and holds the Stellen and the A→B envelope
+│                 → damage.mjs is another global-free base: it imports nothing
+│                   and resolves the two raw health counters
 │                 → inventory.mjs → items.mjs,
 │                   item-presentation.mjs → {inventory,items}.mjs,
 │                   config.mjs → {inventory,items}.mjs,
@@ -52,8 +55,8 @@ module/tno.mjs                          (entry point, imports everything below)
 **Rule of thumb when adding code:** `documents/` reaches no further than
 `helpers/` (it's what `getRollData()` and `prepareDerivedData()` need, and
 other layers call *into* it, not the reverse). `helpers/` may depend on each
-other sparingly, but never on `sheets/` or `apps/` — and `inventory.mjs`,
-`items.mjs` and `maneuvers.mjs` additionally hold themselves free of Foundry
+other sparingly, but never on `sheets/` or `apps/` — and `damage.mjs`,
+`inventory.mjs`, `items.mjs` and `maneuvers.mjs` additionally hold themselves free of Foundry
 globals so they can be unit-tested without a game world, which is why they sit
 at the bottom and may never import back up. `apps/` and `sheets/` may both
 depend on `helpers/`; `sheets/` may additionally depend on `apps/` (a sheet

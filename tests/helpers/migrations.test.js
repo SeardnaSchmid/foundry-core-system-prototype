@@ -481,6 +481,46 @@ describe('migrateDropPendingAnsage (0.35.0)', () => {
   });
 });
 
+describe('migrateDropTemporaryAttributeValues (0.36.0)', () => {
+  it('removes the retired value field from every character attribute', async () => {
+    const actor = makeActor({
+      system: {
+        abilities: {
+          str: { base: 6, value: 3, xp: 4 },
+          dex: { base: 5, value: 5, xp: 0 },
+        },
+      },
+    });
+    stubFoundry({ actors: [actor] });
+
+    await step('0.36.0')();
+
+    expect(actor.system.abilities).toEqual({
+      str: { base: 6, xp: 4 },
+      dex: { base: 5, xp: 0 },
+    });
+  });
+
+  it('is idempotent', async () => {
+    const actor = makeActor({ system: { abilities: { str: { base: 6, value: 3, xp: 4 } } } });
+    stubFoundry({ actors: [actor] });
+
+    await step('0.36.0')();
+    await step('0.36.0')();
+
+    expect(actor.updates).toHaveLength(1);
+  });
+
+  it('leaves non-character actors alone', async () => {
+    const npc = makeActor({ type: 'npc', system: { abilities: { str: { base: 6, value: 3 } } } });
+    stubFoundry({ actors: [npc] });
+
+    await step('0.36.0')();
+
+    expect(npc.updates).toHaveLength(0);
+  });
+});
+
 /* -------------------------------------------------------------------------- */
 
 describe('migrateWorld', () => {
@@ -510,7 +550,7 @@ describe('migrateWorld', () => {
 
   it('runs nothing once the stored version covers every step', async () => {
     const item = makeItem({ type: 'weapon', system: { weight: 2 } });
-    stubFoundry({ items: [item], stored: '0.34.0' });
+    stubFoundry({ items: [item], stored: '0.36.0' });
 
     await migrateWorld();
 
@@ -529,7 +569,7 @@ describe('migrateWorld', () => {
 
     await migrateWorld();
 
-    expect(pinned).toBe('0.35.0');
+    expect(pinned).toBe('0.36.0');
     expect(notifications).toHaveLength(0);
   });
 

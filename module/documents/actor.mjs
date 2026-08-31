@@ -1,4 +1,5 @@
 import { actorStance, canDefend, defenseMalus, widerstandOptions } from '../helpers/combat-actions.mjs';
+import { resolveDamage } from '../helpers/damage.mjs';
 import { computeCarry, resolveArmor } from '../helpers/inventory.mjs';
 
 /**
@@ -58,17 +59,11 @@ export class TnoActor extends Actor {
     // Fall back to 0 for any key missing on actors created under an older
     // version of the schema, so a half-migrated actor degrades gracefully
     // instead of crashing prepareDerivedData (and the whole sheet) outright.
-    // `value` is the current, damage-adjusted rating (what rolls use);
-    // `base` is the trained/leveled rating, unaffected by damage.
-    const value = (key) => systemData.abilities[key]?.value ?? 0;
+    // `base` is the character's sole trained/leveled attribute rating. Actors
+    // from older worlds may still carry a legacy `value`, but no rule reads it.
     const base = (key) => systemData.abilities[key]?.base ?? 0;
 
-    // Derived attributes, per the "Attribute" rules, are all computed from
-    // the undamaged base rating so they stay stable regardless of temporary
-    // attribute changes (damage, buffs, etc.) — "Abgeleitete Werte bleiben
-    // gleich, auch mit temporären Attributen". `canSprint` is the one
-    // deliberate exception: it compares value against base to detect
-    // Beweglichkeit damage and block sprinting entirely.
+    // Every derived attribute is computed from the one persisted rating.
     // The edge pool refills to its max (Willenskraft+Wissen)/2 whenever
     // derived data is recomputed; `problemSolving.spent` (the persisted key,
     // kept under its old name so existing actors need no migration) tracks how
@@ -76,9 +71,8 @@ export class TnoActor extends Actor {
     const edgePoolMax = Math.ceil((base('wil') + base('wis')) / 2);
     const edgePoolSpent = Math.min(systemData.problemSolving?.spent ?? 0, edgePoolMax);
 
-    // The two equipment axes. Worn armour resolves zone-by-zone against the
-    // paper doll and is invisible to the slot sum; carried gear hits the slot
-    // sum only while a container is present. See helpers/inventory.mjs.
+    // Worn and carried gear share the slot budget, while only the carried half
+    // depends on a container. Armour still resolves zone-by-zone separately.
     const carrySlots = 2 * base('str') + base('dex');
     const carry = computeCarry(
       actorData.items,
@@ -87,6 +81,7 @@ export class TnoActor extends Actor {
       carrySlots
     );
     const armor = resolveArmor(systemData.equipment, actorData.items);
+    const damage = resolveDamage(systemData.damage, base('str'));
 
     systemData.derived = {
       initiative: Math.ceil((2 * base('dex') + base('per')) / 3),
@@ -96,12 +91,14 @@ export class TnoActor extends Actor {
       // — not rounded to nearest as `sixthSense` is. A crawl that rounds down
       // can reach zero, and no Beweglichkeit leaves a character unable to move.
       movementCrawl: Math.ceil(base('dex') / 3),
-      // Sprinting needs both an undamaged Beweglichkeit and a load under half
-      // the slot budget — either one alone is enough to rule it out.
-      canSprint: value('dex') >= base('dex') && (carry.state === 'ok' || carry.state === 'noContainer'),
+      canSprint: carry.state === 'ok',
       carrySlots,
       carrySlotsUsed: carry.used,
+      carryWorn: carry.worn,
+      carryCarried: carry.carried,
       carryState: carry.state,
+      carryNoContainer: carry.noContainer,
+      damage,
       armor: armor.zones,
       // The summed requirement of everything worn, in quarter steps.
       armorSv: armor.sv,
@@ -112,10 +109,7 @@ export class TnoActor extends Actor {
       // reaching the next whole value: SV 2.25 needs Stärke 3.
       armorSvPenalty: armor.sv > 0 && base('str') < armor.sv,
       sixthSense: Math.round((base('per') + base('emp') + base('inv')) / 3),
-      // Unlike the other derived probes, dodge uses the damage-adjusted
-      // Beweglichkeit (value, not base): a character with a hobbled leg
-      // dodges worse right now, not just once the damage is healed.
-      dodge: value('dex') + (systemData.skills?.acrobatics?.value ?? 0),
+      dodge: base('dex') + (systemData.skills?.acrobatics?.value ?? 0),
       insight: Math.ceil((base('int') + base('wis')) / 2),
       trialErrorMax: Math.ceil((base('int') + base('wil')) / 2),
       edgePoolMax: edgePoolMax,

@@ -73,10 +73,10 @@ describe('computeCarry', () => {
     expect(computeCarry(items, {}, true, capacity).used).toBe(2);
   });
 
-  it('exempts worn armour from the slot budget', () => {
+  it('counts worn armour against the slot budget', () => {
     const items = [armor('helm', { slots: 2, rh: 5 }), gear('a', 1)];
     const equipment = { head: 'helm' };
-    expect(computeCarry(items, equipment, true, capacity).used).toBe(1);
+    expect(computeCarry(items, equipment, true, capacity)).toMatchObject({ used: 3, worn: 2, carried: 1 });
   });
 
   it('counts armour that is carried rather than worn', () => {
@@ -84,10 +84,22 @@ describe('computeCarry', () => {
     expect(computeCarry(items, {}, true, capacity).used).toBe(3);
   });
 
-  it('reports no slot economy at all without a container', () => {
-    const { used, state } = computeCarry([gear('a', 9)], {}, false, capacity);
+  it('reports the missing container separately from the movement state', () => {
+    const { used, state, noContainer } = computeCarry([gear('a', 9)], {}, false, capacity);
     expect(used).toBe(0);
-    expect(state).toBe('noContainer');
+    expect(state).toBe('ok');
+    expect(noContainer).toBe(true);
+  });
+
+  it('still counts worn gear without a container and derives movement from it', () => {
+    const items = [armor('suit', { slots: 6 }), gear('a', 9)];
+    expect(computeCarry(items, { suit: 'suit' }, false, capacity)).toMatchObject({
+      used: 6,
+      worn: 6,
+      carried: 0,
+      state: 'noSprint',
+      noContainer: true,
+    });
   });
 
   it('stays ok below the half-capacity threshold', () => {
@@ -136,7 +148,7 @@ describe('buildSlotGrid', () => {
   it('separates zero-slot trinkets out of the grid entirely', () => {
     const { blocks, trinkets } = buildSlotGrid([gear('coin', 0), gear('a', 1)], {}, 10);
     expect(blocks).toHaveLength(1);
-    expect(trinkets.map((t) => t._id)).toEqual(['coin']);
+    expect(trinkets.map((t) => [t.item._id, t.worn])).toEqual([['coin', false]]);
   });
 
   it('moves a block with no slot left to start on into the overflow', () => {
@@ -187,17 +199,31 @@ describe('buildSlotGrid', () => {
     expect(buildSlotGrid([gear('a', 4)], {}, 10).overflow).toEqual([]);
   });
 
-  it('omits worn armour from the carry grid', () => {
-    const items = [armor('helm', { slots: 2 }), gear('a', 1)];
+  it('packs worn gear before carried gear and marks both bands', () => {
+    const items = [sorted('a', 1, 5), { ...armor('helm', { slots: 2 }), sort: 20 }];
     const { blocks } = buildSlotGrid(items, { head: 'helm' }, 10);
-    expect(blocks.map((b) => b.item._id)).toEqual(['a']);
+    expect(blocks.map((b) => [b.item._id, b.worn])).toEqual([
+      ['helm', true],
+      ['a', false],
+    ]);
+    expect(blocks.reduce((sum, block) => sum + block.span, 0))
+      .toBe(computeCarry(items, { head: 'helm' }, true, 10).used);
+  });
+
+  it('keeps only worn positive-cost gear in the grid without a container', () => {
+    const items = [armor('helm', { slots: 2 }), gear('a', 3), gear('coin', 0)];
+    const { blocks, trinkets } = buildSlotGrid(items, { head: 'helm' }, 10, false);
+    expect(blocks.map((b) => [b.item._id, b.worn])).toEqual([['helm', true]]);
+    expect(trinkets.map((t) => t.item._id)).toEqual(['coin']);
+    expect(blocks.reduce((sum, block) => sum + block.span, 0))
+      .toBe(computeCarry(items, { head: 'helm' }, false, 10).used);
   });
 
   it('gives unworn armour a cell instead of dropping it among the trinkets', () => {
     const items = [armor('helm', { slots: 0 }), gear('coin', 0)];
     const { blocks, trinkets } = buildSlotGrid(items, {}, 10);
     expect(blocks.map((b) => [b.item._id, b.span])).toEqual([['helm', 1]]);
-    expect(trinkets.map((t) => t._id)).toEqual(['coin']);
+    expect(trinkets.map((t) => t.item._id)).toEqual(['coin']);
   });
 
 });

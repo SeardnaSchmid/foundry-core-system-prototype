@@ -123,6 +123,11 @@ export function buildGearSummary(item) {
     );
   } else if (roles.armor) {
     tiles.push(
+      // SV leads the read-out: it is what the piece costs to wear, and it is
+      // read before the three values it buys. `decimal` marks it as the one
+      // tile that comes in quarter steps and therefore wants the reader's own
+      // separator — the localizer, not this global-free builder, applies it.
+      { ...tile('sv', 'TNO.Item.Cap.Sv', system.sv, Number), decimal: true },
       // A suit's hardness is the fixed 0 of the Rüstungstabelle — a real value
       // the RD comparison uses — while its coverage does not exist at all.
       zones.includes(ARMOR_SUIT_ZONE)
@@ -169,21 +174,20 @@ export function buildGearSummary(item) {
   if ((roles.weapon || roles.armor) && quantity > 1) {
     rows.push({ key: 'quantity', labelKey: 'TNO.Inventory.Quantity', value: `×${quantity}` });
   }
-  if ((roles.weapon || roles.armor) && !item?.isWorn) {
+  if (roles.weapon || roles.armor) {
     rows.push({ key: 'slots', labelKey: 'TNO.Inventory.Slots', value: itemSlotCost(item) });
   }
 
-  const required = Math.max(0, numberOrNull(system.sv) ?? 0);
+  // Armour states its SV as a tile beside the values it buys, and carries no
+  // comparison at all: its SV is one addend in the sum of everything worn, so
+  // measuring this piece's share against Strength on its own would report
+  // "met" for a glove that pushes the body's total out of reach. The
+  // comparison that matters is on the paper doll, against `derived.armorSv`.
+  const required = roles.armor ? 0 : Math.max(0, numberOrNull(system.sv) ?? 0);
   if (required > 0) {
     // The shortfall is plain arithmetic against the owner's Strength. How many
     // penalty steps it costs is combat resolution and is not decided here.
-    //
-    // Armour carries no note at all: its SV is one addend in the sum of
-    // everything worn, so comparing this piece's share against Strength on its
-    // own would report "met" for a glove that pushes the body's total out of
-    // reach. The comparison that matters is on the paper doll, against
-    // `derived.armorSv`.
-    const actual = roles.armor ? null : numberOrNull(item?.actor?.system?.abilities?.str?.base);
+    const actual = numberOrNull(item?.actor?.system?.abilities?.str?.base);
     rows.push({
       key: 'sv',
       labelKey: 'TNO.Item.Cap.Sv',

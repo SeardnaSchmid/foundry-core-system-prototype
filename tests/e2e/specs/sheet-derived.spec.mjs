@@ -28,10 +28,21 @@ const EXPECTED = {
   movementWalk: 7,    // dex
   movementSprint: 21, // 3 * dex
   movementCrawl: 1,   // constant
-  canSprint: true,    // dex value is undamaged
+  canSprint: true,    // the empty slot budget permits sprinting
   carrySlots: 17,     // 2*5 + 7
-  carrySlotsUsed: 0,  // no items carried
+  carrySlotsUsed: 0,  // no items worn or carried
+  carryWorn: 0,
+  carryCarried: 0,
   carryState: 'ok',   // an empty pack is never a movement penalty
+  carryNoContainer: false,
+  damage: {
+    sharp: 0,
+    blunt: 0,
+    capacity: 5,
+    total: 0,
+    malus: 0,
+    downed: false,
+  },
   armorSv: 0,         // nothing worn, so no strength requirement
   sixthSense: 5,      // round((5 + 6 + 3) / 3) = round(4.67)
   insight: 6,         // ceil((8 + 4) / 2)
@@ -85,14 +96,12 @@ test('the attribute heatmap renders one coloured cell per attribute', async ({ w
   expect(new Set(backgrounds).size, 'differing attribute values produce differing colours').toBeGreaterThan(1);
 });
 
-test('damaged Beweglichkeit blocks sprinting but leaves derived values stable', async ({ world }) => {
-  // canSprint is the one derived value that compares value against base; the
-  // rest are computed from base alone so they stay put under temporary damage.
+test('a stale legacy value cannot override the sole attribute rating', async ({ world }) => {
   const { derived } = await createCharacter(world.page, {
     abilities: { ...ABILITIES, dex: { base: 7, value: 4 } },
   });
 
-  expect(derived.canSprint).toBe(false);
+  expect(derived.canSprint).toBe(true);
   expect(derived.movementWalk).toBe(7);
   expect(derived.movementSprint).toBe(21);
   expect(derived.initiative).toBe(7);
@@ -138,7 +147,7 @@ test('carried items consume slots by slot cost times quantity', async ({ world }
   expect(derived.canSprint).toBe(false);
 });
 
-test('worn armour is exempt from the slot budget, carried armour is not', async ({ world }) => {
+test('worn armour remains in the slot budget and moves into the worn subtotal', async ({ world }) => {
   const { id } = await createCharacter(world.page, { abilities: ABILITIES });
 
   const result = await world.page.evaluate(async (actorId) => {
@@ -161,12 +170,16 @@ test('worn armour is exempt from the slot budget, carried armour is not', async 
 
     await actor.update({ 'system.equipment.head': helm.id });
     const worn = actor.system.derived.carrySlotsUsed;
+    const wornSubtotal = actor.system.derived.carryWorn;
+    const carriedSubtotal = actor.system.derived.carryCarried;
 
-    return { carried, worn };
+    return { carried, worn, wornSubtotal, carriedSubtotal };
   }, id);
 
   expect(result.carried).toBe(5); // 2 + 3, neither worn yet
-  expect(result.worn).toBe(3); // the helmet no longer counts once worn
+  expect(result.worn).toBe(5); // wearing changes the band, not the shared total
+  expect(result.wornSubtotal).toBe(2);
+  expect(result.carriedSubtotal).toBe(3);
 });
 
 test('the Unterkleidung layers under every zone without granting hardness', async ({ world }) => {
@@ -218,18 +231,23 @@ test('exceeding the slot budget drops the character to crawling', async ({ world
   expect(derived.canSprint).toBe(false);
 });
 
-test('without a container there is no slot economy at all', async ({ world }) => {
+test('without a container only worn gear participates in the slot economy', async ({ world }) => {
   const { id } = await createCharacter(world.page, { abilities: ABILITIES });
 
   const derived = await world.page.evaluate(async (actorId) => {
     const actor = game.actors.get(actorId);
-    await actor.createEmbeddedDocuments('Item', [
+    const [, suit] = await actor.createEmbeddedDocuments('Item', [
       { name: 'Cargo', type: 'item', system: { slots: 4, quantity: 5 } },
+      { name: 'Suit', type: 'item', system: { roles: { armor: true }, zone: 'suit', slots: 6 } },
     ]);
+    await actor.update({ 'system.equipment.suit': suit.id });
     await actor.update({ 'system.hasContainer': false });
     return foundry.utils.deepClone(actor.system.derived);
   }, id);
 
-  expect(derived.carrySlotsUsed).toBe(0);
-  expect(derived.carryState).toBe('noContainer');
+  expect(derived.carrySlotsUsed).toBe(6);
+  expect(derived.carryWorn).toBe(6);
+  expect(derived.carryCarried).toBe(0);
+  expect(derived.carryState).toBe('ok');
+  expect(derived.carryNoContainer).toBe(true);
 });

@@ -69,8 +69,8 @@ export class TnoRollDialog extends FormApplication {
    *   the form has no business re-deriving.
    * @param {{label: string, choices: Array<{key: string, label: string, caption?: string}>}} [options.zonePicker]
    *   The Stelle this attack names. A pick rather than part of the Ansage number
-   *   because it is a location, not an amount: it decides which attributes a
-   *   failed resistance roll lands on. Costs the threshold nothing on its own.
+   *   because it is a location, not an amount: it decides the multiplier of a
+   *   failed resistance roll. Costs the threshold nothing on its own.
    * @param {{from: string, penetration: number|null, sharp: number|null, blunt: number|null}} [options.envelope]
    *   The attacker's half of an exchange: who is attacking and what their weapon
    *   brings, to which the declared Ansage and the Stelle are added. Rendered on
@@ -311,7 +311,7 @@ export class TnoRollDialog extends FormApplication {
   _abilityCell(key) {
     const labelKey = CONFIG.TNO.abilities[key];
     if (!labelKey) return null;
-    const value = this.actor.system.abilities?.[key]?.value ?? 0;
+    const value = this.actor.system.abilities?.[key]?.base ?? 0;
     const color = colorForValue(value);
     return {
       key,
@@ -354,6 +354,14 @@ export class TnoRollDialog extends FormApplication {
           active: this._conditionalModifiers(this.object).some((modifier) => modifier.label === armorMalusLabel),
         }
       : null;
+    const actorModifier = this._actorModifiers()[0];
+    const damageMalus = actorModifier
+      ? {
+          ...actorModifier,
+          display: this._formatBonus(actorModifier.value),
+          hint: game.i18n.localize('TNO.Damage.RollMalusHint'),
+        }
+      : null;
 
     const ansageComponent = this._ansageComponent(this.object);
     const zoneChoice = this._zoneChoice(this.object);
@@ -374,7 +382,8 @@ export class TnoRollDialog extends FormApplication {
       isFreeMode: this.freeSkill,
       isFixedMode: !!this.fixedValue,
       fixedModifiers: this._staticModifierComponents(),
-      hasGearModifiers: this.fixedModifiers.length > 0 || !!armorMalus || !!this.maneuverMalus,
+      hasGearModifiers: this.fixedModifiers.length > 0 || !!damageMalus || !!armorMalus || !!this.maneuverMalus,
+      damageMalus,
       armorMalus,
       maneuverMalus: this.maneuverMalus && {
         ...this.maneuverMalus,
@@ -523,7 +532,7 @@ export class TnoRollDialog extends FormApplication {
     }
     const abilities = this.actor.system.abilities ?? {};
     const abilityLabel = (key) => (key && CONFIG.TNO.abilities[key] ? game.i18n.localize(CONFIG.TNO.abilities[key]) : '');
-    const valueOf = (key) => abilities[key]?.value ?? 0;
+    const valueOf = (key) => abilities[key]?.base ?? 0;
     const components = [];
     if (data.attributeA) {
       components.push({ label: abilityLabel(data.attributeA), value: valueOf(data.attributeA) });
@@ -615,15 +624,31 @@ export class TnoRollDialog extends FormApplication {
   }
 
   /**
-   * Every immutable modifier on this roll — the workflow's own and the ones
-   * the form state brings in. The single list behind the threshold sum, the
-   * live breakdown, the chat card's components and the message flags, so none
-   * of the four can disagree with the others.
+   * Immutable modifiers from the actor's own current state. Unlike conditional
+   * modifiers, these do not depend on any workflow or form choice.
+   * @returns {Array<{label: string, value: number}>}
+   */
+  _actorModifiers() {
+    const value = Number(this.actor.system.derived?.damage?.malus) || 0;
+    return value
+      ? [{ label: game.i18n.localize('TNO.Damage.RollMalus'), value }]
+      : [];
+  }
+
+  /**
+   * Every immutable modifier on this roll — actor state first, then the
+   * workflow's own and the ones the form state brings in. The single list
+   * behind the threshold sum, the live breakdown, the chat card's components
+   * and the message flags, so none of the four can disagree with the others.
    * @param {object} data  Form data.
    * @returns {Array<{label: string, value: number, display: string}>}
    */
   _fixedModifierComponents(data) {
     return [
+      ...this._actorModifiers().map((modifier) => ({
+        ...modifier,
+        display: this._formatBonus(modifier.value),
+      })),
       ...this._staticModifierComponents(),
       ...this._conditionalModifiers(data).map((modifier) => ({
         ...modifier,

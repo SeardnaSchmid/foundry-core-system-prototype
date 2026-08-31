@@ -100,7 +100,6 @@ Hooks.once('init', function () {
   game.settings.register('tno', 'heatmapMidValue', { scope: 'client', config: false, type: Number, default: DEFAULT_HEATMAP_CONFIG.midValue });
   game.settings.register('tno', 'heatmapLowCurve', { scope: 'client', config: false, type: Number, default: DEFAULT_HEATMAP_CONFIG.lowCurve });
   game.settings.register('tno', 'heatmapHighCurve', { scope: 'client', config: false, type: Number, default: DEFAULT_HEATMAP_CONFIG.highCurve });
-  game.settings.register('tno', 'heatmapCritical', { scope: 'client', config: false, type: String, default: DEFAULT_HEATMAP_CONFIG.critical });
 
   // How the character sheet's Basics tab divides each of its two rows, as one
   // share per column keyed by row. Client-scoped and hidden: it is dragged on
@@ -148,7 +147,6 @@ Hooks.once('init', function () {
     midValue: game.settings.get('tno', 'heatmapMidValue'),
     lowCurve: game.settings.get('tno', 'heatmapLowCurve'),
     highCurve: game.settings.get('tno', 'heatmapHighCurve'),
-    critical: game.settings.get('tno', 'heatmapCritical'),
   });
 
   // Wire up the "Fehler finden" reroll tracker on failed roll cards.

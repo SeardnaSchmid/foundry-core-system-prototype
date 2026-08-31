@@ -64,16 +64,5 @@
     {{/each}}
   </div>
 
-  {{!-- The dedicated color for the attribute's "critical" (temp value at
-  rock bottom) state — outside the 1-10 gradient entirely, since it
-  represents a distinct in-fiction consequence rather than a low roll. --}}
-  <div class="form-group heatmap-lab-critical">
-    <label>{{localize "TNO.HeatmapLab.Critical"}}</label>
-    <div class="heatmap-lab-critical-row flexrow">
-      <input type="color" name="critical" value="{{critical}}"/>
-      <span class="heatmap-lab-critical-swatch" style="background:{{criticalPreview.bg}}; color:{{criticalPreview.textColor}};">0</span>
-    </div>
-  </div>
-
   <p class="heatmap-lab-hint">{{localize "TNO.HeatmapLab.Hint"}}</p>
 </form>

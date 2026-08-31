@@ -87,12 +87,18 @@ by name, so a control may be moved but never renamed. --}}
       {{/if}}
     {{/if}}
 
-    {{!-- The requirements the character's own gear imposes: the weapon's
-          Handhabung and its SV shortfall, and the repeated-defence malus the
-          current Haltung has run up. Immutable here — the way to change any of
-          them is to change what is worn or carried. --}}
+    {{!-- Immutable facts from the character: the global damage malus, then the
+          requirements their own gear imposes. --}}
     {{#if hasGearModifiers}}
     <div class="tno-roll-gear-modifiers">
+      {{#if damageMalus}}
+      <div class="tno-roll-detail tno-damage-malus tno-tooltip-hint"
+           data-tooltip-html='<dl class="tno-tooltip"><div class="tno-tooltip-row"><dt>{{damageMalus.label}}</dt><dd>{{damageMalus.hint}}</dd></div></dl>'>
+        <span class="tno-roll-detail-label">{{damageMalus.label}}</span>
+        <span class="tno-roll-detail-value">{{damageMalus.display}}</span>
+      </div>
+      {{/if}}
+
       {{#each fixedModifiers as |modifier|}}
       <div class="tno-roll-detail {{#if modifier.hint}}tno-tooltip-hint{{/if}}"
            {{#if modifier.hint}}data-tooltip-html='<dl class="tno-tooltip"><div class="tno-tooltip-row"><dt>{{modifier.label}}</dt><dd>{{modifier.hint}}</dd></div></dl>'{{/if}}>

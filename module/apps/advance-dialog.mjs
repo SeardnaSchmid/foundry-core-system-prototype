@@ -1,5 +1,3 @@
-import { tempValueForBase } from '../helpers/attributes.mjs';
-
 // Namespaced rather than the bare `FormApplication` global, which is
 // deprecated. Still ApplicationV1 — see the V1 apps note in
 // docs/wiki/reference/module-map.md.
@@ -166,12 +164,8 @@ export class TnoAdvanceDialog extends FormApplication {
   async _persist() {
     const { rank, xp } = this.object;
     if (this.type === 'attribute') {
-      // Advancement raises the trained base value; the current (temp) value
-      // moves with it but keeps any temporary modifier, mirroring the base
-      // stepper on the sheet.
       await this.actor.update({
         [`system.abilities.${this.key}.base`]: rank,
-        [`system.abilities.${this.key}.value`]: tempValueForBase(this.actor.system.abilities?.[this.key], rank),
         [`system.abilities.${this.key}.xp`]: xp,
       });
     } else {

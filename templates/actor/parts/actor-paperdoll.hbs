@@ -2,7 +2,7 @@
 mirroring the Rüstungen table's hit locations (Kopf, Torso, Arme, Beine).
 
 An empty row is a drop target and nothing else: a piece is worn by dragging it
-from the carry grid onto its zone (see `_onDrop`). Clicking one used to offer to
+from the slot grid onto its zone (see `_onDrop`). Clicking one used to offer to
 author a piece on the spot, which conjured gear out of an empty doll — wearing
 something is a state change on gear already in hand.
 
@@ -97,8 +97,15 @@ worn, and reading them off the armour card said otherwise. --}}
           Each value names the slot it owns, so the read-outs line up as
           columns even on the rows that carry RW alone. --}}
           <span class='armor-values'>
+            {{!-- SV is not a zone value: it is this piece's own share of the
+            body's total, which the warning below the doll compares against
+            Strength. It leads the read-out because it is what the row costs,
+            read before the three numbers it buys. --}}
+            <span class='armor-value armor-value-sv' title='{{localize "TNO.Armor.Sv"}}'>
+              <span class='armor-key'>{{localize 'TNO.Armor.SvShort'}}</span><span class='armor-num'>{{z.svLabel}}</span>
+            </span>
             <span class='armor-value armor-value-rh' title='{{localize "TNO.Armor.Rh"}}'>
-              <span class='armor-key'>{{localize 'TNO.Armor.RhShort'}}</span>{{z.rh}}
+              <span class='armor-key'>{{localize 'TNO.Armor.RhShort'}}</span><span class='armor-num'>{{z.rh}}</span>
             </span>
             {{!-- RW is the only number on the doll that is a sum, and it is the
             one the reader is most likely to check against the piece itself. A
@@ -112,10 +119,10 @@ worn, and reading them off the armour card said otherwise. --}}
 <div class="tno-tooltip-row"><dt>{{localize z.label}} · {{z.item.name}} <span class="tno-tooltip-value">+{{z.rwAddon}}</span></dt><dd>{{localize "TNO.Armor.RwStackedHint"}}</dd></div>{{/if}}
 </dl>'
                   data-tooltip-direction='LEFT'>
-              <span class='armor-key'>{{localize 'TNO.Armor.RwShort'}}</span>{{z.rw}}{{#if z.rwStacked}}<span class='armor-stack-mark' aria-hidden='true'>+</span>{{/if}}
+              <span class='armor-key'>{{localize 'TNO.Armor.RwShort'}}</span><span class='armor-num'>{{z.rw}}{{#if z.rwStacked}}<span class='armor-stack-mark' aria-hidden='true'>+</span>{{/if}}</span>
             </span>
             <span class='armor-value armor-value-ra' title='{{localize "TNO.Armor.Ra"}}'>
-              <span class='armor-key'>{{localize 'TNO.Armor.RaShort'}}</span>{{z.ra}}
+              <span class='armor-key'>{{localize 'TNO.Armor.RaShort'}}</span><span class='armor-num'>{{z.ra}}</span>
             </span>
           </span>
           {{!-- The resistance roll of this location. The silhouette answers the
@@ -141,7 +148,7 @@ worn, and reading them off the armour card said otherwise. --}}
 <div class="tno-tooltip-row"><dt>{{localize "TNO.Armor.Zone.Suit"}} · {{../paperdoll.suit.name}} <span class="tno-tooltip-value">+{{z.rwSuit}}</span></dt><dd>{{localize "TNO.Armor.RwFromSuitHint"}}</dd></div>
 </dl>'
                     data-tooltip-direction='LEFT'>
-                <span class='armor-key'>{{localize 'TNO.Armor.RwShort'}}</span>{{z.rw}}
+                <span class='armor-key'>{{localize 'TNO.Armor.RwShort'}}</span><span class='armor-num'>{{z.rw}}</span>
               </span>
             </span>
           {{/if}}
@@ -173,6 +180,9 @@ worn, and reading them off the armour card said otherwise. --}}
         same, so the layer that adds to every zone reads down the same line as
         what it adds to. --}}
         <span class='armor-values'>
+          <span class='armor-value armor-value-sv' title='{{localize "TNO.Armor.Sv"}}'>
+            <span class='armor-key'>{{localize 'TNO.Armor.SvShort'}}</span><span class='armor-num'>{{paperdoll.suitSvLabel}}</span>
+          </span>
           {{!-- The summand every marked zone above points back at, so it
           explains itself the same way from this end too. --}}
           <span class='armor-value armor-value-rw'
@@ -181,7 +191,7 @@ worn, and reading them off the armour card said otherwise. --}}
 <div class="tno-tooltip-row"><dt>{{localize "TNO.Armor.Zone.Suit"}}</dt><dd>{{localize "TNO.Armor.RwSuitAddsHint"}}</dd></div>
 </dl>'
                 data-tooltip-direction='LEFT'>
-            <span class='armor-key'>{{localize 'TNO.Armor.RwShort'}}</span>{{paperdoll.suit.system.rw}}
+            <span class='armor-key'>{{localize 'TNO.Armor.RwShort'}}</span><span class='armor-num'>{{paperdoll.suit.system.rw}}</span>
           </span>
         </span>
         <a class='armor-unequip' data-zone='suit' title='{{localize "TNO.Armor.Unequip"}}'>

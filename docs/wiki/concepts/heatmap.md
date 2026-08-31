@@ -23,9 +23,7 @@ Three color stops (`low`, `mid`, `high`, each `#rrggbb`), `midValue`
 much of the range each side of the gradient covers), independent
 `lowCurve`/`highCurve` exponents per segment (1 = linear; >1 holds close to
 the segment's start color before swinging hard near the pivot, for a sharp
-"this is bad" cutoff; <1 the reverse), and a separate `critical` color for
-the rock-bottom "temp value hit zero" state, which sits outside the 1–10
-gradient entirely rather than being an extension of it.
+"this is bad" cutoff; <1 the reverse).
 
 ## Presets
 
@@ -39,15 +37,15 @@ values: see source.
 
 ## Where it's stored and applied
 
-Persisted as 7 **client-scoped** settings (each player sees their own
+Persisted as 6 **client-scoped** settings (each player sees their own
 gradient) — see
 [hooks-and-settings.md](../architecture/hooks-and-settings.md). `init`
 seeds the module-level `activeConfig` from those settings via
-`setActiveHeatmapConfig()`; `colorForValue(value, min, max, config?)` and
-`colorForCritical(config?)` read from it by default. The `TnoHeatmapLab`
+`setActiveHeatmapConfig()`; `colorForValue(value, min, max, config?)` reads
+from it by default. The `TnoHeatmapLab`
 dialog is reachable from the `heatmapLabMenu` settings menu and from a
 sheet button; on change it writes back to settings, which broadcasts to all
-open sheets via Foundry's socket layer. Both colour helpers choose whichever of
+open sheets via Foundry's socket layer. The colour helper chooses whichever of
 the palette's dark and light text colours has the stronger WCAG contrast against
 the computed background; the roll dialog can therefore mute unselected heatmap
 chips without losing the 3:1 text contrast floor.

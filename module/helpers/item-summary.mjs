@@ -42,11 +42,16 @@ export function localizeGearSummary(item) {
     };
   }
 
+  // Quarter-step values want the reader's own decimal separator — the
+  // Rüstungen table writes 0,25 in German. Whole numbers come out unchanged.
+  const decimal = new Intl.NumberFormat(game.i18n.lang, { maximumFractionDigits: 2 });
+
   const tiles = summary.tiles.map((tile) => ({
     ...tile,
     display: tile.state === 'missing' ? absent()
       : tile.state === 'na' ? loc('TNO.Item.Summary.Na')
-        : tile.value,
+        : tile.decimal ? decimal.format(tile.value)
+          : tile.value,
   }));
 
   const rows = summary.rows.map((row) => ({

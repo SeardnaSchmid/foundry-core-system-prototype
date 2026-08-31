@@ -2,8 +2,8 @@
  * The Inventar tab's ledger, as a grouped and sortable table.
  *
  * The tab lists every object the character owns exactly once, whatever state it
- * is in — that is what makes a piece which is neither worn nor carried
- * reachable at all. What this file adds is a way to *read* that list: rows
+ * is in — it is the complete ledger rather than another carry-state view.
+ * What this file adds is a way to *read* that list: rows
  * grouped by the role each piece has taken on, and a column set the player
  * picks from the whole gear schema instead of the four fields the flat list
  * used to show.
@@ -20,7 +20,7 @@
  *    n/a. Nothing is hidden per row: the grid keeps its shape down the list.
  *
  * Sorting here is a **view** concern and never writes `item.sort`. That field
- * is the order the Basics carry raster packs from, so letting a header click
+ * is the order the Basics slot bands pack from, so letting a header click
  * rewrite it would silently repack a raster the player arranged by hand in a
  * different tab.
  *
@@ -246,17 +246,11 @@ export function itemGroupKey(item) {
  *    RH and RA are values a suit cannot have at all (see `missingRequired`,
  *    which makes the same exception).
  *
- * Worn gear is the fourth case and the only one about the actor rather than the
- * item: it is exempt from the slot economy, so its footprint is not zero, it is
- * not a question.
- *
  * @param {object} column  One entry of ITEM_TABLE_COLUMNS.
  * @param {object} item
- * @param {boolean} worn
  * @returns {boolean}
  */
-function columnApplies(column, item, worn) {
-  if (column.key === 'footprint') return !worn;
+function columnApplies(column, item) {
   if (!column.appliesTo) return true;
   if (!hasRole(item, column.appliesTo)) return false;
 
@@ -284,7 +278,7 @@ function columnApplies(column, item, worn) {
 export function columnCell(item, key, { worn = false } = {}) {
   const column = ITEM_TABLE_COLUMNS.find((entry) => entry.key === key);
   if (!column) return { key, applies: false, value: null, sort: null };
-  if (!columnApplies(column, item, worn)) return { key, applies: false, value: null, sort: null };
+  if (!columnApplies(column, item)) return { key, applies: false, value: null, sort: null };
 
   const system = item?.system ?? {};
   const value = readValue(item, system, key, worn);
@@ -373,8 +367,8 @@ function compareRows(a, b, key, dir, collator) {
  * Group totals are the two figures that mean something added up. Slots because
  * the budget is the rule the tab exists to serve, and money because "what are
  * my weapons worth" is a question a ledger should be able to answer. Neither
- * counts what it may not: a worn piece spends no slots, and a piece with no
- * authored price contributes nothing rather than a zero.
+ * counts what it may not: every slotted piece contributes its footprint, and a
+ * piece with no authored price contributes nothing rather than a zero.
  *
  * Every group renders even when empty, so the table keeps its shape as items
  * come and go and the reader never has to work out whether a missing heading
@@ -414,7 +408,7 @@ export function buildItemGroups(items, { worn, columns, sort, collator } = {}) {
     const group = groups.get(itemGroupKey(item));
     group.rows.push({ item, id: item._id ?? item.id, name: item.name ?? '', worn: isWorn, cells });
     group.count += 1;
-    if (!isWorn) group.footprint += itemSlotCost(item);
+    group.footprint += itemSlotCost(item);
 
     const price = authored(item?.system?.price);
     if (price !== null) {

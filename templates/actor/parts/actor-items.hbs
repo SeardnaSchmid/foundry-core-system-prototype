@@ -1,16 +1,14 @@
 {{!-- The Inventar tab: the three administrative lists.
 
-This is deliberately *not* a second carry view. The Basics tab answers "what am
-I wearing" and "what am I hauling" — questions asked mid-roll — and both are
-derived views that show a piece only while it is in that state. This tab is the
-ledger behind them: every object the character owns appears here exactly once,
-whatever state it is in, which is what makes a piece that is neither worn nor
-carried reachable at all. Creating, editing and deleting live here for the same
-reason.
+This is deliberately *not* a second slot-budget view. The Basics tab answers
+"what am I wearing" and "what counts against my budget" — questions asked
+mid-roll. This tab is the complete ledger behind them: every object the
+character owns appears here exactly once, whatever state it is in. Creating,
+editing and deleting live here for the same reason.
 
 Features and Active Effects follow it because they are the other two things an
 actor owns that are not objects — they cost no slots, so they can never appear
-in the carry raster, and before this tab existed they had nowhere to be. --}}
+in the slot raster, and before this tab existed they had nowhere to be. --}}
 
 {{!-- ------------------------------------------------------------------
 Gear, grouped by the role each piece carries. Roles are mutually exclusive, so
@@ -47,7 +45,7 @@ because that is what keeps every group's columns lined up under one header. --}}
 
       {{!-- One header row for the whole table. Each caption sorts the table by
       its column; the sort is view-only and never rewrites `item.sort`, which is
-      what the Basics carry raster packs from. --}}
+      what the Basics slot bands pack from. --}}
       <div class='item-thead'>
         {{#each itemTable.headers as |column|}}
           <a class='item-th item-table-sort{{#if column.numeric}} numeric{{/if}}{{#if column.sorted}} sorted{{/if}}'

@@ -54,7 +54,7 @@ describe('weapon roll requirement components', () => {
   const actor = ({ skill = 5, strength = 2 } = {}) => ({
     isOwner: true,
     system: {
-      abilities: { str: { base: strength, value: strength } },
+      abilities: { str: { base: strength } },
       skills: { swords: { value: skill } },
     },
   });

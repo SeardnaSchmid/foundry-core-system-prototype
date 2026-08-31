@@ -293,8 +293,8 @@ export function weaponSkillRank(actor, system) {
 }
 
 /**
- * The weapon SV comparison deliberately uses the actor's base Strength, not
- * its current value. This is the same requirement axis armour already uses.
+ * The weapon SV comparison uses the actor's Strength rating. This is the same
+ * requirement axis armour already uses.
  * @param {Object} actor  An actor document (or plain actor data).
  * @returns {number}
  */
@@ -545,7 +545,7 @@ export const ROLE_ICONS = {
 /**
  * The compact, recognisable icon for a physical item in an inventory view.
  * Item artwork is useful on an item's own sheet, but a repeated role icon is
- * quicker to scan in the dense carry grid and flat inventory list.
+ * quicker to scan in the dense slot grid and flat inventory list.
  *
  * @param {Object} item An item document (or plain object).
  * @returns {string} A Font Awesome icon class without the style prefix.

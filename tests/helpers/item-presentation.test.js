@@ -142,7 +142,9 @@ describe('item presentation', () => {
 
     // Underclothing is RH 0 and has no coverage at all, so the hardness tile
     // reads zero, the coverage tile is hatched, and the piece is complete.
+    // SV leads the tiles and is therefore no longer one of the rows.
     expect(summary.tiles).toEqual([
+      { key: 'sv', labelKey: 'TNO.Item.Cap.Sv', value: 3, state: 'value', decimal: true },
       { key: 'rh', labelKey: 'TNO.Armor.RhShort', value: '0', state: 'value' },
       { key: 'rw', labelKey: 'TNO.Armor.RwShort', value: '2', state: 'value' },
       { key: 'ra', labelKey: 'TNO.Armor.RaShort', value: null, state: 'na' },
@@ -151,15 +153,19 @@ describe('item presentation', () => {
     expect(summary.badges[1]).toEqual({
       key: 'zone', state: 'zone', join: ': ', labelKeys: ['TNO.Armor.Zone.Label', 'TNO.Armor.Zone.Suit'],
     });
-    // Worn armour is exempt from the slot economy, so no carry row.
-    expect(summary.rows).toEqual([{ key: 'sv', labelKey: 'TNO.Item.Cap.Sv', value: 3, note: null }]);
+    expect(summary.rows).toEqual([
+      { key: 'slots', labelKey: 'TNO.Inventory.Slots', value: 3 },
+    ]);
 
     const plate = buildGearSummary({
       name: 'Armour',
       type: 'item',
-      system: { roles: { armor: true }, zone: 'torso', slots: 2, quantity: 1, rh: 4, rw: 3 },
+      system: { roles: { armor: true }, zone: 'torso', slots: 2, quantity: 1, rh: 4, rw: 3, sv: 0.25 },
     });
-    expect(plate.tiles[2]).toEqual({ key: 'ra', labelKey: 'TNO.Armor.RaShort', value: null, state: 'missing' });
+    // The one value written in quarter steps, kept as a number so the
+    // localizer can apply the reader's decimal separator to it.
+    expect(plate.tiles[0]).toEqual({ key: 'sv', labelKey: 'TNO.Item.Cap.Sv', value: 0.25, state: 'value', decimal: true });
+    expect(plate.tiles[3]).toEqual({ key: 'ra', labelKey: 'TNO.Armor.RaShort', value: null, state: 'missing' });
     expect(plate.missing).toEqual(['ra']);
   });
 

@@ -28,9 +28,9 @@ paths `actor.system.*`.
 
 | Rule term | Code | Meaning |
 |---|---|---|
-| Stärke | `abilities.str.{base,value}` | Strength; requirements compare `base` |
-| Beweglichkeit | `abilities.dex.{base,value}` | Agility |
-| Fingerfertigkeit | `abilities.fin.{base,value}` | Dexterity |
+| Stärke | `abilities.str.base` | Strength; the sole rating used by requirements, damage capacity and resistance rolls |
+| Beweglichkeit | `abilities.dex.base` | Agility |
+| Fingerfertigkeit | `abilities.fin.base` | Dexterity |
 | Akrobatik | `skills.acrobatics.value` | Acrobatics |
 | Raufen | `skills.brawling.value` | Brawling |
 | **FV** Fertigkeitsvorraussetzung | `fv.skill`, `fv.rank` | which skill the weapon needs, at which rank |
@@ -44,6 +44,7 @@ paths `actor.system.*`.
 | **RW** Rüstungswert | `rw` | padding; feeds the resistance value |
 | **RA** Rüstungsabdeckung | `ra` | how well the location is covered |
 | Stelle | `zone` | hit location: `head`, `torso`, `arms`, `legs` |
+| Scharfer Schaden / Wuchtschaden | `damage.{sharp,blunt}` | the two raw health counters; conversion is derived, never persisted |
 | Malusstufe | `MALUS_STEP` in `helpers/items.mjs` | `−3` |
 | Bonusstufe | `BONUS_STEP` in `helpers/items.mjs` | `+3` |
 | worn armour totals | `derived.armorSv`, `derived.armorSvPenalty`, `derived.armor.<zone>` | summed SV, whether it is unmet, per-location RH/RW/RA |
@@ -70,12 +71,11 @@ All addends signed; maluses are negative numbers.
 | **Attack** (Angriffswert) | WA + weapon skill + HH (attack) + DK modifier + SV malus (weapon) | `tests/e2e/specs/combat-attack.spec.mjs › a weapon attack carries its requirement maluses from dialog to chat card` |
 | **Parry** (Paradewert) | WA + weapon skill + HH (parry) + DK modifier + SV malus (weapon) | `tests/documents/item-weapon-roll.test.js › gives a parry passive handling, the same SV malus, and a reach choice` |
 | **Dodge** (Ausweichenwert) | Beweglichkeit + Akrobatik + SV malus (armour) | `tests/documents/roll-dialog.test.js › adds the armour step the moment the chosen attribute becomes Beweglichkeit`<br>`tests/e2e/specs/combat-dodge.spec.mjs › a dodge is Beweglichkeit plus Akrobatik, less the armour step` |
-| **Resistance** (Widerstandswert) | Stärke + RW(Stelle) − the weapon's SS or WS, `+3` when RH > RB/RD | `tests/documents/actor-resistance-roll.test.js › opens the resistance roll of the location that was clicked, with its armour value`<br>`tests/documents/actor-resistance-roll.test.js › reads Stärke at its damage-adjusted value, not its trained base` |
+| **Resistance** (Widerstandswert) | Stärke + RW(Stelle) − the weapon's SS or WS, `+3` when RH > RB/RD | `tests/documents/actor-resistance-roll.test.js › opens the resistance roll of the location that was clicked, with its armour value`<br>`tests/documents/actor-resistance-roll.test.js › reads the sole Stärke rating` |
 
-Resistance takes Stärke at its damage-adjusted `value`, not the `base` every
-requirement compares against: `base` answers "did you train up to what this gear
-demands", and resisting a blow is a statement about performance right now — the
-same reading `derived.dodge` already takes.
+Resistance takes the same sole `base` rating as requirements, regular attribute
+rolls and `derived.dodge`; there is no separate temporary/effective attribute
+axis.
 
 HH and the DK modifier appear on the Parry row on the authority of the
 Nahkampfwaffen table ("Basismodifikator für alle Angriffe / Paraden") and the DK
@@ -97,6 +97,7 @@ other's.
 | **SV weapon** | base Stärke < SV | `ceil((SV − Stärke) / 2)`, uncapped | `steps × (−3)` | every attack / parry with this weapon | `tests/helpers/items.test.js › grades a shortfall one step per two points, rounded up`<br>`tests/documents/item-weapon-roll.test.js › sends the SV shortfall as one graded component` |
 | **FV weapon** | skill rank < FV rank | 1, flat | `−3` | Manöver only — **not** a standard attack | `tests/helpers/items.test.js › reports FV and SV separately, and never grades FV`<br>`tests/documents/item-weapon-roll.test.js › keeps the FV shortfall out of a standard attack`<br>consumer: `tests/documents/roll-dialog.test.js › leaves a standard attack free of the FV malus and charges a declared one` |
 | **SV armour** | base Stärke < Σ SV of everything worn | 1, flat | `−3` | every Beweglichkeit roll | `tests/helpers/inventory.test.js › sums the strength requirement over every worn piece`<br>`tests/helpers/items.test.js › costs one flat step on a Beweglichkeit roll and nothing on any other attribute`<br>`tests/documents/roll-dialog.test.js › sends the armour step into the breakdown, the roll components and the message flags` |
+| **Damage** | every raw point in either damage pool | 1 point, flat | `−(sharp + blunt)` | every roll, including Resistance | `tests/helpers/damage.test.js › accumulates both raw pools and applies one malus per point`<br>`tests/documents/roll-dialog.test.js › applies to every roll and reaches the breakdown, components and flags`<br>`tests/documents/actor-resistance-roll.test.js › includes the always-on damage malus on the resistance roll` |
 
 SV weapon, worked out:
 
@@ -132,7 +133,7 @@ FV is missed — they stay two components:
 | 2 | Defender, if their Haltung allows a defence | Dodge **or** Parry value (Parry is melee-only) | success |
 | 3 | Defender | Resistance value | success |
 
-If 3 fails, the target takes the applicable damage value in dice:
+If 3 fails, the target takes the applicable damage value:
 
 | | RH < RB/RD | RH = RB/RD | RH > RB/RD |
 |---|---|---|---|
@@ -143,32 +144,41 @@ The comparison needs one number from each side, and the direction it runs in is
 what keeps the armour private: **the attacker reads their weapon card out** —
 RB/RD, Scharf, Wucht — and the defender, who alone knows their RH, picks.
 
-### Where damage lands
+### Damage pools and Stelle
 
-Fully determined by the Stelle, which is why an attack announces the location
-and never the rule
-(`tests/helpers/maneuvers.test.js › puts an unannounced hit on Stärke, which is the attribute that kills`).
-The resistance roll names it on the dialog and on the card it posts
-(`tests/documents/actor-resistance-roll.test.js › names the attributes a failed roll lands on, per Stelle`).
+Per-Stelle attribute damage is gone. The penetration comparison selects the raw
+pool — SS enters Scharfer Schaden, WS enters Wuchtschaden — while Stelle keeps
+only its multiplier: Kopf ×2, every other location ×1
+(`tests/helpers/maneuvers.test.js › doubles a head hit, and only a head hit`).
+The resistance dialog and the attack's Stelle tiles therefore name the pool and
+multiplier, never an attribute
+(`tests/documents/actor-resistance-roll.test.js › names the damage pool and the Stelle multiplier instead of attributes`).
 
-| Stelle | Attribute | At zero |
-|---|---|---|
-| **Torso** *(default)* | Stärke | dead |
-| **Kopf** | Stärke, **×2** after the resistance roll | dead |
-| **Arme** | Fingerfertigkeit (½ up) · Stärke (½ down) | no hand actions |
-| **Beine** | Beweglichkeit (½ up) · Stärke (½ down) | crawl only |
+The character's health model resolves against trained Stärke
+(`abilities.str.base`):
 
-A Standardangriff therefore kills, and the Ansage is the way *not* to — which is
-what Gezielter Stich promises in as many words: "jemandem in die Brust zu
-schießen ist zwar gut um ihn zu töten, aber was, wenn du jemanden nur entwaffnen
-oder an der Flucht hindern willst"
-(`tests/helpers/maneuvers.test.js › splits an arm hit over Fingerfertigkeit and Stärke, in that order`).
+1. Each pool has its own budget of the full Stärke. Sharp damage never takes
+   room away from blunt damage, and blunt never takes room away from sharp
+   (`tests/helpers/damage.test.js › gives each pool its own budget instead of letting sharp damage crowd blunt out`).
+   Blunt is derived as converted sharp only past *its own* Stärke, while the
+   stored raw counters remain untouched
+   (`tests/helpers/damage.test.js › converts blunt damage only once it has filled its own track`).
+2. `effectiveSharp = sharp + bluntConverted`. The character is
+   **Kampfunfähig** only when `effectiveSharp > base Stärke`, strictly greater,
+   with a warning badge but no enforced status
+   (`tests/helpers/damage.test.js › incapacitates only once effective sharp damage is strictly greater than capacity`).
+3. Every raw point in either pool applies `−1` to every roll. A converted point
+   remains one point and is never counted twice
+   (`tests/helpers/damage.test.js › counts converted damage once rather than adding it to the raw total again`).
+
+Damage is entered manually on the owning character sheet. The system does not
+automatically transfer a failed resistance roll into either pool.
 
 **How much** damage lands is still open, and deliberately unbuilt: a failed
 resistance roll costs "Schaden in Höhe des verwendeten Schadenswert **als
 Würfel**", and which dice those are is written nowhere. The Stelle can therefore
-say where a hit lands and at what multiple, but nothing can turn it into a
-number — so nothing tries.
+say which pool and multiplier apply, but nothing can turn the unresolved dice
+instruction into an automatic number — so nothing tries.
 
 `Rüstung umgehen` cancels the Stelle's RW on the resistance roll. It is offered
 on every location that has padding to cancel and is ticked by the defender alone
@@ -191,6 +201,10 @@ things, and the kind decides how it is asked for.
 The reach comparison is the first kind of shared observation, the announced
 Schadenswert the first announced result. Anything that fits none of the three
 would be real coupling.
+
+The damage malus is own state and applies before every workflow-specific
+modifier. It is neither a fixed option supplied by the opener nor a conditional
+component decided by form state.
 
 | Workflow | Fixed components | Required context | Proof |
 |---|---|---|---|
@@ -307,10 +321,9 @@ they are standing bonuses of rank on some other roll.
 #### The Stelle
 
 The one declaration that stayed a discrete pick, because it is **a location as
-well as an amount**: it decides which attributes a failed resistance roll lands
-on, and the defender opens that roll by clicking the same location on their
-paper doll. Four tiles in the declaration section, each carrying its price and
-its damage rule, Torso preselected
+well as an amount**: it decides the damage multiplier, and the defender opens
+that roll by clicking the same location on their paper doll. Four tiles in the
+declaration section, each carrying its price and multiplier, Torso preselected
 (`tests/helpers/combat-actions.test.js › offers every Stelle as a tile captioned with what a hit there costs`).
 
 There is no "keine Ansage" option beside Torso: an attack always lands somewhere,
@@ -427,10 +440,11 @@ readying, chat-card follow-up chains.
 
 **Nothing is applied automatically.** The attack card states the envelope, the
 defender enters what applies to them, and a failed resistance roll leaves the
-damage to be written onto the attributes by hand. That is deliberate rather than
-unfinished: an automatic hand-off needs targets and cross-actor writes, which is
-exactly the coupling this document refuses while the rules are still moving. The
-format would not change if it were automated later — only the transport.
+applicable raw pool to be stepped manually on the target's own damage widget.
+That is deliberate rather than unfinished: an automatic hand-off needs targets
+and cross-actor writes, which is exactly the coupling this document refuses
+while the rules are still moving. The format would not change if it were
+automated later — only the transport.
 
 Riposte is the one Ansage whose effect outlives its roll ("dein *nächster*
 Angriff gegen ihn"), so it needs actor-scoped state keyed by target and is not
@@ -453,7 +467,7 @@ location on the paper doll. There is no random hit table anywhere in the rules.
 3. **What produces the Gleichgewicht steps?** Sich Fangen and Durchatmen both
    spend them and nothing in the rules hands them out. Open whether they are
    Beweglichkeit damage or a separate, self-clearing track — the latter is
-   assumed, because no other attribute damage heals mid-fight.
+   assumed, because the damage model no longer writes to attributes at all.
 4. **Does the Kopf's cap block the tile, or can you buy past it?** The entry
    prices a head shot at `−6` "maximal um die Höhe deiner 'Gezielter Stich'
    Fertigkeit". Read strictly that bars the Stelle outright below rank 6; read

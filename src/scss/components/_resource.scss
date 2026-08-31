@@ -52,11 +52,6 @@ button:focus-visible {
   50% { box-shadow: 0 0 0 2px rgba(241, 244, 247, 0.6), 0 0 4px 1px rgba(241, 244, 247, 0.2); }
 }
 
-@keyframes heatmap-critical-pulse {
-  0%, 100% { box-shadow: 0 0 0 2px rgba(255, 90, 100, 0.85), 0 0 8px 1px rgba(255, 90, 100, 0.4); }
-  50% { box-shadow: 0 0 0 2px rgba(255, 90, 100, 0.5), 0 0 4px 1px rgba(255, 90, 100, 0.2); }
-}
-
 // Holds the heatmap table only — no card border/background of its own. The
 // SKILLS section has no single box enclosing its header + all categories,
 // just borders on each individual category card below; ATTRIBUTES now
@@ -177,13 +172,7 @@ button:focus-visible {
       // clip it to the cell's rounded corners.
       overflow: hidden;
 
-      &.heatmap-critical {
-        animation: heatmap-critical-pulse 1.4s ease-in-out infinite;
-      }
-
-      // A critical cell (temp = 0) always overrides the calm peak glow with
-      // the red pulse above, so the two states never fight visually.
-      &.heatmap-peak:not(.heatmap-critical) {
+      &.heatmap-peak {
         animation: heatmap-peak-pulse 2.2s ease-in-out infinite;
       }
 
@@ -193,16 +182,6 @@ button:focus-visible {
         align-items: center;
         justify-content: center;
         min-height: 9px;
-      }
-
-      // Standalone warning badge (top-left), only shown for the rare case of
-      // a critical cell without a temp/base delta. Normally the warning is
-      // folded into .heatmap-delta instead — see below.
-      .heatmap-warn-badge {
-        position: absolute;
-        top: 0;
-        left: 0;
-        font-size: var(--font-size-12, 12px);
       }
 
       .heatmap-cell-name {
@@ -229,8 +208,7 @@ button:focus-visible {
       // the bar's fill/color already communicates progress, and the exact
       // numbers are still available via tooltip). The fill turns to the
       // advance accent once the next rank is affordable; track/fill colors
-      // come from the cell data (mirroring the stepper chips' light/dark
-      // adaptation) so the bar stays legible on every heatmap tone.
+      // come from the cell data so the bar stays legible on every heatmap tone.
       .heatmap-xp-bar {
         position: absolute;
         left: 0;
@@ -266,109 +244,15 @@ button:focus-visible {
         transition: width 0.15s ease;
       }
 
-      // Temp/base delta badge, pinned to the cell's top-left corner. For a
-      // critical cell (temp = 0) it also carries the warning icon instead of
-      // showing a separate one, since that case always coincides with a
-      // delta (base is never 0).
-      .heatmap-delta {
-        @extend %stat-chip;
-        position: absolute;
-        top: 0;
-        left: 0;
-        cursor: pointer;
-        // Base (narrowest): shrink below %stat-chip's default size so the
-        // name (dropped below it above) has clear room next to it.
-        font-size: var(--font-size-9, 9px);
-        padding: 1px 3px;
-      }
-
-      // Foundry's .flexrow would let the value pair (flex: 1) expand and
-      // shove the flex:none steppers out to the cell's left/right edges,
-      // leaving them looking orphaned. Centre the whole "− value +" trio as
-      // one tight cluster instead.
       .heatmap-cell-values {
-        gap: 4px;
         min-height: 23px;
         justify-content: center;
       }
 
-      // Reserve horizontal rather than vertical room for the reset chip. A
-      // modified attribute must not make its entire table row taller.
-      &.heatmap-modified .heatmap-cell-values {
-        padding-left: 20px;
-      }
-
-      .heatmap-value-pair {
-        flex: 0 0 auto;
-      }
-
-      // The steppers stay out of the way at rest and come to full strength
-      // when the cell is hovered — letting the attribute value and heatmap
-      // colour be the focal point at a glance instead of the +/- chrome. On
-      // hover-capable pointers they hide completely (revealed on cell hover
-      // or keyboard focus); on touch, where there's no hover, they rest at a
-      // quiet 0.35 so they stay discoverable.
-      .heatmap-stepper {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 16px;
-        height: 16px;
-        flex: none;
-        border-radius: 50%;
-        border: 1.5px solid;
-        font-weight: bold;
-        cursor: pointer;
-        opacity: 0.35;
-        transition: opacity 0.15s ease;
-
-        @media (hover: hover) and (pointer: fine) {
-          opacity: 0;
-        }
-
-        &:hover {
-          filter: brightness(0.95);
-        }
-
-        &:focus-visible {
-          opacity: 1;
-        }
-      }
-
-      &:hover .heatmap-stepper {
-        opacity: 1;
-      }
-
-      .heatmap-value-pair {
-        display: inline-flex;
-        align-items: baseline;
-        gap: 1px;
-        min-width: 30px;
-        justify-content: center;
-      }
-
-      .heatmap-temp,
-      .heatmap-base {
+      .heatmap-value {
         font-weight: 800;
+        font-size: var(--font-size-18, 18px);
         line-height: 1;
-        transition: font-size 0.15s ease, opacity 0.15s ease;
-
-        &.active {
-          font-size: var(--font-size-18, 18px);
-          opacity: 1;
-        }
-
-        &.inactive {
-          font-size: var(--font-size-11, 11px);
-          opacity: 0.55;
-        }
-      }
-
-      .heatmap-arrow {
-        margin: 0 2px;
-        font-weight: 700;
-        font-size: var(--font-size-11, 11px);
-        opacity: 0.55;
       }
     }
   }
@@ -381,16 +265,11 @@ button:focus-visible {
   // would double-fire both rules at the exact boundary pixel.
   //
   // Once each data column has a little more room, enlarge only the small
-  // reset/name text. The header row remains hidden so crossing this breakpoint
+  // name text. The header row remains hidden so crossing this breakpoint
   // does not suddenly make the component taller.
   @container (min-width: 401px) {
     &.heatmap {
       .heatmap-cell {
-        .heatmap-delta {
-          font-size: var(--font-size-11, 11px);
-          padding: 1px 5px;
-        }
-
         .heatmap-cell-name {
           font-size: var(--font-size-10, 10px);
         }
@@ -414,19 +293,6 @@ button:focus-visible {
 
       .heatmap-cell {
         padding-inline: 6px;
-
-        .heatmap-cell-values {
-          gap: 6px;
-        }
-
-        .heatmap-value-pair {
-          min-width: 36px;
-        }
-
-        .heatmap-stepper {
-          width: 18px;
-          height: 18px;
-        }
       }
     }
   }
@@ -452,45 +318,15 @@ button:focus-visible {
   }
 
   // Splitters can make the attribute column extremely narrow. Preserve all
-  // controls in that state by scaling the value cluster horizontally while
-  // keeping the same compact cell height and ellipsising long labels.
+  // the value readable while keeping the same compact cell height and
+  // ellipsising long labels.
   @container (max-width: 300px) {
     &.heatmap {
       .heatmap-cell {
         padding-inline: 2px;
 
-        .heatmap-cell-values {
-          gap: 2px;
-        }
-
-        &.heatmap-modified .heatmap-cell-values {
-          padding-left: 14px;
-        }
-
-        .heatmap-stepper {
-          width: 14px;
-          height: 14px;
-          font-size: var(--font-size-10, 10px);
-        }
-
-        .heatmap-value-pair {
-          min-width: 24px;
-        }
-
-        .heatmap-temp,
-        .heatmap-base {
-          &.active {
-            font-size: var(--font-size-17, 17px);
-          }
-
-          &.inactive {
-            font-size: var(--font-size-10, 10px);
-          }
-        }
-
-        .heatmap-arrow {
-          margin-inline: 1px;
-          font-size: var(--font-size-9, 9px);
+        .heatmap-value {
+          font-size: var(--font-size-17, 17px);
         }
       }
     }

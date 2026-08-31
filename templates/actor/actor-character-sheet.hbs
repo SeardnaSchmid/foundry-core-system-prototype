@@ -17,13 +17,19 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
       <img class="banner-backdrop-image" src="{{actor.img}}" alt="" />
     </div>
 
+    {{!-- Die rechte Bahn des Banners führt zwei Zeilen: die Wertechips oben,
+    darunter der Schadensblock. Der Block bleibt außerhalb von `.banner-chips`,
+    weil er zwei Kästchenzeilen hoch ist — in derselben Flex-Zeile würde er über
+    `align-items: stretch` alle Pillen neben sich mitwachsen lassen. --}}
+    <div class="banner-meta">
+
     <div class="banner-chips">
 
       {{!-- Bewegungsreichweiten sind reine Anzeigewerte, kein Wurf — drei
       Zahlen in aufsteigender Reichweite, mit einem gemeinsamen Tooltip wie
       beim Edge-Chip (statt drei konkurrierenden `title`-Attributen). Eine
-      Stufe, die Last oder Beweglichkeitsschaden gekostet haben, wird hier
-      durchgestrichen statt über dem Trageslot-Block als Badge geführt: die
+      Stufe, die Last gekostet hat, wird hier durchgestrichen statt über dem
+      Trageslot-Block als Badge geführt: die
       Frage ist "wie weit komme ich", und die Antwort steht an der Zahl. --}}
       <div class="banner-chip chip-movement"
            data-tooltip-html='<dl class="tno-tooltip">
@@ -128,6 +134,10 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
 
     </div>
 
+    {{> "systems/tno/templates/actor/parts/actor-damage.hbs"}}
+
+    </div>
+
     {{!-- The portrait is only the character image. Initiative lives in the
     rollable chip at the upper right of the banner. Owners get a quiet edit
     affordance; read-only viewers get an ordinary image with no dead action. --}}
@@ -178,7 +188,7 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
 
     {{!-- Basics Tab, as two full-width rows rather than a left/right split.
     Top: the attribute matrix, what is on the body, and the zero-slot pocket.
-    Bottom: the skill list and the carry raster — the two long lists, each of
+    Bottom: the skill list and the slot raster — the two long lists, each of
     which wants width more than the blocks above them do.
 
     Every boundary between two columns is a draggable handle, and each row keeps
@@ -224,22 +234,9 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
                 <span class="heatmap-row-label">{{row.label}}</span>
               </th>
               {{#each row.cells as |cell|}}
-              <td class="heatmap-cell{{#if cell.hasDelta}} heatmap-modified{{/if}}{{#if cell.isPeak}} heatmap-peak{{/if}}{{#if cell.isCritical}} heatmap-critical{{/if}}" style="background:{{cell.cellBg}}; color:{{cell.textColor}}; border-color:{{cell.critBorder}};" title="{{cell.hint}}">
-                  {{#if cell.hasDelta}}
-                  <a class="heatmap-delta" data-key="{{cell.key}}" title="{{#if cell.isCritical}}{{localize 'TNO.AttributeCritical'}} — {{/if}}{{localize 'TNO.ResetTemp'}}" style="background:{{cell.deltaBg}}; color:{{cell.deltaText}};">{{#if cell.isCritical}}⚠ {{/if}}{{cell.deltaLabel}}</a>
-                  {{else if cell.isCritical}}
-                  <span class="heatmap-warn-badge" title="{{localize 'TNO.AttributeCritical'}}">⚠</span>
-                  {{/if}}
+              <td class="heatmap-cell{{#if cell.isPeak}} heatmap-peak{{/if}}" style="background:{{cell.cellBg}}; color:{{cell.textColor}};" title="{{cell.hint}}">
                 <div class="heatmap-cell-values flexrow flex-center">
-                  <a class="heatmap-stepper" data-key="{{cell.key}}" data-action="decrement" title="{{localize 'TNO.AttributeDecrease'}}" style="background:{{cell.stepperBg}}; border-color:{{cell.stepperBorder}}; color:{{cell.stepperColor}};">−</a>
-                  {{!-- Modified attributes read as "base → effective" (e.g.
-                  6→4) so the direction of the change is explicit and never
-                  gets misread as an x/y progress ratio. The effective (temp)
-                  value stays the emphasised one on the right. --}}
-                  <span class="heatmap-value-pair">
-                    {{#if cell.hasDelta}}<span class="heatmap-base inactive" title="{{cell.baseHint}}">{{cell.baseValue}}</span><span class="heatmap-arrow">→</span>{{/if}}<span class="heatmap-temp active" title="{{cell.tempHint}}">{{cell.tempValue}}</span>
-                  </span>
-                  <a class="heatmap-stepper" data-key="{{cell.key}}" data-action="increment" title="{{localize 'TNO.AttributeIncrease'}}" style="background:{{cell.stepperBg}}; border-color:{{cell.stepperBorder}}; color:{{cell.stepperColor}};">+</a>
+                  <strong class="heatmap-value">{{cell.value}}</strong>
                 </div>
                 <div class="heatmap-cell-top">
                   <span class="heatmap-cell-name">{{cell.label}}</span>

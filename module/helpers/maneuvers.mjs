@@ -14,9 +14,9 @@
  * the number.
  *
  * The Stelle is the exception, because it is two things at once. It is a
- * location — it decides which attributes a failed resistance roll lands on, and
- * the defender opens that roll by clicking it on the paper doll, so it has to be
- * a discrete pick or the damage rule has nothing to read. And it is an Ansage
+ * location — it decides the damage multiplier, and the defender opens that
+ * roll by clicking it on the paper doll, so it has to be a discrete pick or the
+ * damage rule has nothing to read. And it is an Ansage
  * with a price the rulebook writes down, which is what {@link ZONE_COSTS} holds.
  * The pick and the price travel separately on purpose: the price worsens the
  * attacker's own roll, while only the location crosses to the defender.
@@ -44,33 +44,15 @@ export const DEFAULT_ZONE = 'torso';
 export const ZONE_CHOICES = [DEFAULT_ZONE, 'arms', 'legs', 'head'];
 
 /**
- * Where the damage of a hit lands, and at what multiple, given the Stelle.
- *
- * "Schaden wird direkt auf körperliche Attribute angerechnet." The Trefferzonen
- * Manöver are what redirect it: Arme splits it "auf Fingerfertigkeit und
- * Stärke", Beine "auf Beweglichkeit und Stärke", and Kopf doubles it "nach der
- * Wiederstandsprobe". Torso — the Stelle of every attack that announced
- * nothing — takes it on Stärke, and Stärke at zero is death, which is why a
- * Standardangriff kills and the Ansage is the way *not* to: "jemandem in die
- * Brust zu schießen ist zwar gut um ihn zu töten, aber was, wenn du jemanden
- * nur entwaffnen oder an der Flucht hindern willst".
- *
- * `split` marks the two zones whose damage is shared — "die (aufgerundete)
- * Hälfte … und die (abgerundete) Hälfte" — though nothing halves anything yet:
- * a failed resistance roll costs "Schaden in Höhe des verwendeten Schadenswert
- * **als Würfel**", and which dice those are is not written anywhere in the
- * rules. Until it is, the Stelle can say where damage lands and at what
- * multiple, but not how much.
- *
- * The rule is fully determined by the Stelle, which is why an attack announces
- * the location and never the rule.
- * @type {Object<string, {attributes: Array<string>, split: boolean, multiplier: number}>}
+ * The damage multiplier of a hit, given its Stelle. Attribute routing is gone:
+ * the multiplier applies to whichever pool the penetration comparison selected.
+ * @type {Object<string, {multiplier: number}>}
  */
 export const DAMAGE_RULES = {
-  torso: { attributes: ['str'], split: false, multiplier: 1 },
-  head: { attributes: ['str'], split: false, multiplier: 2 },
-  arms: { attributes: ['fin', 'str'], split: true, multiplier: 1 },
-  legs: { attributes: ['dex', 'str'], split: true, multiplier: 1 },
+  torso: { multiplier: 1 },
+  head: { multiplier: 2 },
+  arms: { multiplier: 1 },
+  legs: { multiplier: 1 },
 };
 
 /**

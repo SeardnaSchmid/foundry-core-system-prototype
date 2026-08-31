@@ -199,9 +199,8 @@
     background: rgba($c-white, 0.5);
   }
 
-  // Worn gear is on the body and exempt from the slot economy — the same green
-  // the paper doll and the armour rows use, so the state reads as one thing
-  // across every view that shows it.
+  // Worn gear is on the body — the same green the paper doll and armour rows
+  // use keeps that location distinct even though the piece still costs slots.
   &.is-worn .item-state {
     color: $c-ready;
   }

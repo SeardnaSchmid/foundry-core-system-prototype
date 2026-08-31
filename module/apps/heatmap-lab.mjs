@@ -1,6 +1,5 @@
 import {
   colorForValue,
-  colorForCritical,
   getActiveHeatmapConfig,
   setActiveHeatmapConfig,
   HEATMAP_QUICK_PRESETS,
@@ -16,7 +15,7 @@ import {
 const { FormApplication } = foundry.appv1.api;
 
 const PREVIEW_VALUES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-const CONFIG_FIELDS = ['low', 'mid', 'high', 'midValue', 'lowCurve', 'highCurve', 'critical'];
+const CONFIG_FIELDS = ['low', 'mid', 'high', 'midValue', 'lowCurve', 'highCurve'];
 
 /**
  * Live editor for the attribute heatmap's gradient:
@@ -24,7 +23,6 @@ const CONFIG_FIELDS = ['low', 'mid', 'high', 'midValue', 'lowCurve', 'highCurve'
  *  - the attribute value at which the middle stop sits (midValue) — moving
  *    it shifts how much of the 1-10 range each side of the gradient covers
  *  - an independent curve per segment (lowCurve/highCurve) for banding
- *  - a dedicated "critical" color for the attribute's rock-bottom state
  *
  * Dragging any control updates the in-dialog preview immediately (a cheap
  * direct DOM write, no re-render, so a drag isn't interrupted); releasing it
@@ -59,7 +57,6 @@ export class TnoHeatmapLab extends FormApplication {
 
   /** @override */
   getData() {
-    const criticalColor = colorForCritical(this.object);
     return {
       ...this.object,
       midValueMin: MID_VALUE_MIN,
@@ -74,7 +71,6 @@ export class TnoHeatmapLab extends FormApplication {
         const dc = colorForValue(value, 1, 10, this.object);
         return { value, bg: dc.bg, textColor: dc.textColor };
       }),
-      criticalPreview: { bg: criticalColor.bg, textColor: criticalColor.textColor },
     };
   }
 
@@ -114,8 +110,6 @@ export class TnoHeatmapLab extends FormApplication {
       el.style.background = dc.bg;
       el.style.color = dc.textColor;
     });
-    const cc = colorForCritical(config);
-    html.find('.heatmap-lab-critical-swatch').css({ background: cc.bg, color: cc.textColor });
   }
 
   /**
@@ -131,7 +125,6 @@ export class TnoHeatmapLab extends FormApplication {
       midValue: Number(html.find('[name="midValue"]').val()) || 4.5,
       lowCurve: Number(html.find('[name="lowCurve"]').val()) || 1,
       highCurve: Number(html.find('[name="highCurve"]').val()) || 1,
-      critical: html.find('[name="critical"]').val(),
     };
   }
 
@@ -144,7 +137,6 @@ export class TnoHeatmapLab extends FormApplication {
       midValue: Number(formData.midValue) || 4.5,
       lowCurve: Number(formData.lowCurve) || 1,
       highCurve: Number(formData.highCurve) || 1,
-      critical: formData.critical,
     };
     await this._apply();
   }
@@ -164,7 +156,6 @@ export class TnoHeatmapLab extends FormApplication {
       game.settings.set('tno', 'heatmapMidValue', this.object.midValue),
       game.settings.set('tno', 'heatmapLowCurve', this.object.lowCurve),
       game.settings.set('tno', 'heatmapHighCurve', this.object.highCurve),
-      game.settings.set('tno', 'heatmapCritical', this.object.critical),
     ]);
     Object.values(ui.windows).forEach((w) => {
       if (w !== this) w.render?.(false);

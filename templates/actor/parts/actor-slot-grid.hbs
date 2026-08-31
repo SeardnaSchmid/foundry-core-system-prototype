@@ -1,9 +1,6 @@
-{{!-- Trageslots: carried gear packed into the slot budget. The layout is
+{{!-- Trageslots: worn gear first, then carried gear, packed into one budget. The layout is
 derived on every render from the items' existing sort order — nothing about
 the arrangement is stored — so reordering is purely a view concern.
-
-Worn clothing and armour never appear here: "Von den Inventarregeln
-ausgenommen sind Kleidung und Rüstung welche der Charakter am Leib trägt".
 The grid holds exactly as many cells as the character has slots; there is no
 padding out to the raster width. Anything past the budget keeps running on in
 the same grid, marked over capacity. --}}
@@ -22,13 +19,13 @@ the same grid, marked over capacity. --}}
     {{!-- What the load costs in movement is shown on the movement chip in the
     banner, struck through the tier it takes away — the question it answers is
     "how far can I move", so it belongs on the numbers, not over the bag.
-    "Keine Tasche" stays here: it is not a load level but the reason this whole
-    budget reads 0, and nowhere else says so. --}}
-    {{#ifEquals slotGrid.state 'noContainer'}}
+    "Keine Tasche" stays here: it is not a load level but the reason only the
+    worn band participates, and nowhere else says so. --}}
+    {{#if slotGrid.noContainer}}
       <span class='slot-badge badge-no-container' title='{{localize "TNO.Inventory.NoContainerHint"}}'>
         {{localize 'TNO.Inventory.NoContainer'}}
       </span>
-    {{/ifEquals}}
+    {{/if}}
 
     {{#if @root.editable}}
       <a class='section-add inventory-add' title='{{localize "TNO.Inventory.AddHint"}}'>
@@ -53,9 +50,10 @@ the same grid, marked over capacity. --}}
   it to the end, and armour dragged onto its paper doll zone is worn. --}}
   <div class='slot-grid'>
     {{#each slotGrid.cells as |cell|}}
-      <div class='slot-cell slot-filled draggable{{#if cell.over}} over-capacity{{/if}}{{#if cell.first}} slot-first{{/if}}{{#if cell.showQty}} slot-with-qty{{/if}}{{#unless cell.last}} slot-joined{{/unless}}'
+      <div class='slot-cell slot-filled draggable{{#if cell.worn}} worn{{/if}}{{#if cell.over}} over-capacity{{/if}}{{#if cell.first}} slot-first{{/if}}{{#if cell.showQty}} slot-with-qty{{/if}}{{#unless cell.last}} slot-joined{{/unless}}'
            style='--slot-run: {{cell.span}}'
-           data-item-id='{{cell.item._id}}'>
+           data-item-id='{{cell.item._id}}'
+           {{#if cell.worn}}title='{{localize "TNO.Inventory.WornSlotHint"}}'{{/if}}>
         {{#if cell.first}}
           <i class='fas fa-grip-vertical slot-grip'></i>
           {{#if cell.over}}<i class='fas fa-triangle-exclamation slot-overflow-icon'></i>{{/if}}
@@ -65,6 +63,7 @@ the same grid, marked over capacity. --}}
             stay reachable on hover as well as through the popover a click
             opens — the skill list carries its own title for the same reason. --}}
             <span class='slot-name' title='{{cell.item.name}}'>{{cell.item.name}}</span>
+            {{#if cell.worn}}<span class='slot-worn-caption'>{{localize 'TNO.Inventory.WornSlot'}}</span>{{/if}}
             {{#if cell.subcategory}}<span class='slot-subcategory'>{{cell.subcategory}}</span>{{/if}}
           </span>
           {{#if cell.showQty}}<span class='slot-qty'>×{{cell.quantity}}</span>{{/if}}

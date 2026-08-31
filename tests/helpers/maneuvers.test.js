@@ -44,16 +44,10 @@ describe('ansageEnvelope', () => {
   });
 });
 
-// The damage rule follows from the Stelle alone, which is why an attack
-// announces the location and never the rule. Only the table is asserted: a
-// failed resistance roll costs "Schaden … als Würfel" and the rules never say
-// which dice, so nothing can yet turn a Stelle into an amount.
+// The Stelle now changes only the multiplier applied to the selected pool.
 describe('DAMAGE_RULES', () => {
-  it('puts an unannounced hit on Stärke, which is the attribute that kills', () => {
-    // Torso is the Stelle of every attack that declared nothing, and Stärke at
-    // zero is death — so a Standardangriff kills and the Ansage is the way not
-    // to.
-    expect(DAMAGE_RULES.torso).toEqual({ attributes: ['str'], split: false, multiplier: 1 });
+  it('leaves an unannounced torso hit at the normal multiplier', () => {
+    expect(DAMAGE_RULES.torso).toEqual({ multiplier: 1 });
   });
 
   it('doubles a head hit, and only a head hit', () => {
@@ -61,13 +55,9 @@ describe('DAMAGE_RULES', () => {
     for (const zone of ['torso', 'arms', 'legs']) expect(DAMAGE_RULES[zone].multiplier).toBe(1);
   });
 
-  it('splits an arm hit over Fingerfertigkeit and Stärke, in that order', () => {
-    // "Die (aufgerundete) Hälfte des Schadens auf Fingerfertigkeit und die
-    // (abgerundete) Hälfte auf Stärke" — the order is the rounding, so it is
-    // load-bearing. Fingerfertigkeit at zero is what disarms, which is what the
-    // Manöver is for; Beweglichkeit at zero is what stops the escape.
-    expect(DAMAGE_RULES.arms).toEqual({ attributes: ['fin', 'str'], split: true, multiplier: 1 });
-    expect(DAMAGE_RULES.legs).toEqual({ attributes: ['dex', 'str'], split: true, multiplier: 1 });
+  it('does not route arm or leg hits into attributes', () => {
+    expect(DAMAGE_RULES.arms).toEqual({ multiplier: 1 });
+    expect(DAMAGE_RULES.legs).toEqual({ multiplier: 1 });
   });
 
   it('covers every Stelle an attack can announce, and the default first', () => {

@@ -3,8 +3,8 @@ type: architecture
 title: Data schema
 description: How actor/item data is shaped by template.json and computed in prepareDerivedData.
 tags: [schema, template-json, derived-data, actor, item]
-resource: [template.json, module/documents/actor.mjs, module/documents/item.mjs]
-related: [architecture/datamodel-migration, concepts/attributes]
+resource: [template.json, module/documents/actor.mjs, module/documents/item.mjs, module/helpers/damage.mjs]
+related: [architecture/datamodel-migration, concepts/attributes, concepts/damage]
 ---
 
 # Data schema
@@ -21,7 +21,7 @@ in Foundry v14+.
   surfaces `role`, in its banner subtitle. Both are **flavour fields with no
   mechanical role** — the system models no class or profession, and nothing
   reads either one when resolving a roll or computing a derived value.
-  - `character.abilities.<key>` — `{ base, value, xp }` for each of the 12
+  - `character.abilities.<key>` — `{ base, xp }` for each of the 12
     keys in `CONFIG.TNO.abilities` (see
     [attributes.md](../concepts/attributes.md)).
   - `character.skills.<key>` — `{ value, xp, lastAttribute }` for **every**
@@ -41,12 +41,15 @@ in Foundry v14+.
   - `character.equipment.<zone>` — the worn-gear store: `suit`, `head`,
     `torso`, `arms`, `legs`, each holding an owned item id or `null`. See
     [inventory.md](../concepts/inventory.md).
+  - `character.damage.{sharp,blunt}` — the two raw non-negative damage counters.
+    Their conversion, global malus and incapacitation state are derived; old
+    actors without the block read as undamaged. See [damage.md](../concepts/damage.md).
   - `character.money.<currency>` — non-negative whole-unit balances for
     OR (`templeOr`), `imperialQian`, `orNior`, `orOdur` and `orForseti`. The
     euro comparison value is calculated for display rather than persisted. See
     [inventory.md](../concepts/inventory.md#money).
   - `character.hasContainer` — whether the character carries a bag or
-    backpack. Without one there is no slot economy at all.
+    backpack. Without one only worn gear participates in the slot economy.
   - `character.combat.stance` — the Haltung, announced on activation and held
     until the next one. It alone decides which defence the character may make.
   - `character.combat.defenses.{parry,dodge}` — how many of each have been made
@@ -87,9 +90,11 @@ computes them in `TnoActor.prepareDerivedData()`, writing to
 | --- | --- | --- |
 | `initiative` | `ceil((2·base(dex) + base(per)) / 3)` | |
 | `movementWalk` / `movementSprint` / `movementCrawl` | `base(dex)`, `3·base(dex)`, `ceil(base(dex) / 3)` | the crawl is *aufgerundet* like `initiative` and `insight`, not rounded to nearest like `sixthSense` — rounding down would leave a low Beweglichkeit with no crawl at all |
-| `canSprint` | `value(dex) >= base(dex)` **and** the load is under half capacity | the one derived value compared against damaged `value`, not `base` — detects Beweglichkeit damage. Either blocker alone rules sprinting out |
-| `carrySlots` / `carrySlotsUsed` | `2·base(str) + base(dex)` / sum of carried `slots × quantity` | worn gear is excluded; `used` is never clamped to capacity — see [inventory.md](../concepts/inventory.md) |
-| `carryState` | `ok` \| `noSprint` \| `crawlOnly` \| `noContainer` | the movement consequence of the current load |
+| `canSprint` | the load is under half capacity | the inventory state alone rules sprinting out |
+| `carrySlots` / `carrySlotsUsed` | `2·base(str) + base(dex)` / `carryWorn + carryCarried` | worn gear always counts; carried gear counts only with a container; `used` is never clamped — see [inventory.md](../concepts/inventory.md) |
+| `carryWorn` / `carryCarried` | sum of each slot band | the carried subtotal is 0 without a container |
+| `carryState` / `carryNoContainer` | `ok` \| `noSprint` \| `crawlOnly` / boolean | movement consequence and missing-container fact are independent |
+| `damage` | `resolveDamage(system.damage, base(str))` | raw pools, blunt split/conversion, total, `−1` per-point malus, and strict `effectiveSharp > capacity` incapacitation — see [damage.md](../concepts/damage.md) |
 | `armor.<zone>` | `{ equipped, rh, rw, ra }` per hit location | RH and RA from the addon alone — a suit is RH 0 with no hit location to cover — while RW is summed with the Unterkleidung |
 | `armorSv` / `armorSvPenalty` | sum of `sv` over all worn pieces, snapped to `ARMOR_SV_STEP` (0.25) / `armorSv > 0 && base(str) < armorSv` | the requirements of all worn clothing and armour add up; falling short is a single Malusstufe however far short, and Stärke being whole means a quarter-step total is only met at the next whole value |
 | `sixthSense` | `round((base(per) + base(emp) + base(inv)) / 3)` | |
@@ -101,9 +106,9 @@ computes them in `TnoActor.prepareDerivedData()`, writing to
 | `defenses.<kind>.available` | whether `CONFIG.TNO.stances[stance].defenses` lists it | the value that lets the defence side of an exchange answer itself |
 | `defenses.<kind>.malus` | `0` for the first and while `used <= rank`, else `−3 × used` | a Malusstufe per repeat, summing up. The rank *skips* that many repeats rather than shifting the ladder, which is the one reading matching the rulebook's own three-parry examples (rank 1 gives full / full / −6). The skill is Defensiver Kampf, Deckung nutzen or Haken schlagen, decided by the Haltung — see [combat-roll-workflows.md](../concepts/combat-roll-workflows.md) |
 
-All derived values are computed from `base`, never damaged `value` (per the
-rulebook's "Abgeleitete Werte bleiben gleich, auch mit temporären
-Attributen") — `canSprint` is the deliberate exception noted above.
+All attribute-backed derived values and rolls use the sole persisted `base`
+rating. Temporary attribute values are not part of the schema; short-lived
+conditions belong in their own domain state rather than a second rating axis.
 
 `getRollData()` additionally flattens `system.abilities.*` to the top level
 of the roll data object so formulas like `@str.mod + 4` resolve — for

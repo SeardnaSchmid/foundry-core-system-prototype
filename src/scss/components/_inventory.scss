@@ -135,15 +135,17 @@ $c-trinket-label: rgba($c-dark, 0.55);
 }
 
 .armor-row {
-  // One row-action column — resist, unequip, or the placeholder standing in for
-  // either. In em so it tracks the row's own font size: the icons are 1.25em
-  // glyphs, and a px constant would drift the moment the doll is trimmed inside
-  // a Basics column.
+  // One row-action column — resist or unequip — and the gap the row would have
+  // put beside it. In em so they track the row's own font size: the icons are
+  // 1.25em glyphs, and a px constant would drift the moment the doll is trimmed
+  // inside a Basics column.
   --armor-action-size: 1.25em;
+  --armor-row-gap: 10px;
+  --armor-action-gap: calc(var(--armor-action-size) + var(--armor-row-gap));
 
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--armor-row-gap);
   min-height: 34px;
   padding: 6px 12px;
   border: 1px solid $c-zone-filled-border;
@@ -151,20 +153,23 @@ $c-trinket-label: rgba($c-dark, 0.55);
   background: $c-zone-filled-bg;
   font-size: var(--font-size-13, 13px);
 
-  // A row missing either action still reserves its column, so the RH/RW/RA
+  // A row missing one of the two actions still holds that column open, so the
   // read-outs stay in one line down the whole doll instead of stepping right
-  // wherever a zone happens to be empty. As flex items the placeholders also
-  // pick up the row's gap, which is the other half of the offset.
+  // wherever a zone happens to be empty. Two rules, because the two actions go
+  // missing on different rows: an empty zone has nothing to take off, and the
+  // Unterkleidung has nothing to resist with — it is not a hit location.
   //
-  // Two of them, because the two actions are missing on different rows: an
-  // empty zone has nothing to take off, and the Unterkleidung has nothing to
-  // resist with — it is not a hit location. The `::before` is ordered last so
-  // it stands in for the tail column rather than leading the row.
-  &:not(:has(.armor-unequip))::after,
-  &:not(:has(.armor-resist))::before {
-    content: '';
-    order: 1;
-    flex: 0 0 var(--armor-action-size);
+  // The column is held open by a margin on whatever precedes it rather than by
+  // a placeholder pseudo-element. The suit row's `::before` is already the
+  // base-layer break below, and the two uses cancelled: the break won, the
+  // placeholder was never generated, and that row's whole read-out sat one
+  // column right of every other row's.
+  &:not(:has(.armor-resist)) .armor-values {
+    margin-right: var(--armor-action-gap);
+  }
+
+  &:not(:has(.armor-unequip)) .armor-resist {
+    margin-right: var(--armor-action-gap);
   }
 
   // An empty zone is a drop target, not a button — no pointer cursor, since
@@ -237,25 +242,36 @@ $c-trinket-label: rgba($c-dark, 0.55);
 }
 
 .armor-values {
-  // One slot per value, held open whether or not the row fills it, so RH, RW
-  // and RA read as three columns down the whole doll. A row that carries RW
-  // alone — the Unterkleidung, or a bare zone padded by it — otherwise packed
-  // its single value against the unequip control, which put the suit's RW under
-  // the addons' RA and invited reading one as the other.
+  // One slot per value, held open whether or not the row fills it, so SV, RH,
+  // RW and RA read as four columns down the whole doll. A row that carries RW
+  // alone — a bare zone padded by the Unterkleidung — otherwise packed its
+  // single value against the unequip control, which put that RW under the
+  // addons' RA and invited reading one as the other.
   //
   // The slot width is the one constant here, in em so it tracks the row's font
   // size. It is a fixed track rather than a `minmax` floor on purpose: the
   // point of the slot is that every row's RW sits at the same x, and a track
   // that grows to its content would buy a wide value its own alignment at the
   // cost of the column. Sized for the widest read-out the tables produce
-  // ("· RA 10", two digits behind a separator and a label); a value past that
-  // reaches left into the empty space beside it rather than clipping or
-  // shoving the column over.
-  --armor-value-col: 4.1em;
+  // ("· RA 10", the number's box behind a separator and a label); a value past
+  // that reaches left into the empty space beside it rather than clipping or
+  // shoving the column over. SV is the narrower track of the two despite being
+  // the one value written in quarter steps: it leads the read-out, so it never
+  // carries a separator.
+  --armor-value-col: 4.4em;
+  --armor-sv-col: 4em;
+
+  // The number's own box inside that slot: wide enough for the widest reading
+  // the tables produce, so the label in front of it starts at the same x on
+  // every row. Right-aligning the label-and-number pair as a whole lines the
+  // numbers up but lets the label swing with the number's width — "SV 0,5"
+  // stood 5px right of the "SV 0,75" above it, which is exactly the stagger
+  // the column is supposed to remove.
+  --armor-num-col: 1.6em;
 
   display: grid;
   flex: 0 0 auto;
-  grid-template-columns: repeat(3, var(--armor-value-col));
+  grid-template-columns: var(--armor-sv-col) repeat(3, var(--armor-value-col));
   align-items: baseline;
   justify-items: end;
   white-space: nowrap;
@@ -265,9 +281,16 @@ $c-trinket-label: rgba($c-dark, 0.55);
 
   // Which slot each value owns. Placing them by name rather than by source
   // order is what lets a row skip a value without the rest sliding along.
-  .armor-value-rh { grid-column: 1; }
-  .armor-value-rw { grid-column: 2; }
-  .armor-value-ra { grid-column: 3; }
+  .armor-value-sv {
+    grid-column: 1;
+
+    // Quarter steps, so four glyphs where the others carry at most two.
+    --armor-num-col: 2.1em;
+  }
+
+  .armor-value-rh { grid-column: 2; }
+  .armor-value-rw { grid-column: 3; }
+  .armor-value-ra { grid-column: 4; }
 
   // Middot separators between the pairs, so RH/RW/RA read as one read-out
   // rather than three loose labels — cheaper than a divider element each.
@@ -287,22 +310,33 @@ $c-trinket-label: rgba($c-dark, 0.55);
   }
 }
 
+// The separator above assumes source order and column order agree, which holds
+// on every row but the Unterkleidung's: a suit carries SV and RW and nothing in
+// between, so the two are siblings two tracks apart. Drawn there, the middot
+// would hang at the start of the RW slot with a gap and no value behind it.
+.armor-suit .armor-values .armor-value + .armor-value::before {
+  content: none;
+}
+
 // An RW that is the sum of the Unterkleidung and the zone's addon. Marked
 // because it is the one read-out on the doll that does not match what the
 // worn item's own sheet says, and a player checking the helmet against the
 // row would otherwise find a discrepancy with nothing to explain it. The
 // tooltip carries the summands; this is only the flag that says to hover.
 //
-// The mark rides in the value's own slot rather than widening the column: it
-// is a superscript sitting on the number's right, so the three-column grid
-// (see --armor-value-col) is untouched and a marked row stays aligned with
-// the rows around it.
+// The mark hangs off the number's right edge without occupying any width: it
+// sits inside the number's box (see --armor-num-col), which is what keeps the
+// digit in the RW column at the same x whether or not the row is marked. Given
+// width of its own, it pushed a summed RW half a glyph left of an unsummed one
+// — a stagger down the one column the mark exists to explain.
 .armor-value-stacked {
   cursor: help;
 
   // Deliberately not one of the accent colours: $c-advance and $c-primary both
   // mean "you can act on this", and a summed number is a fact, not an offer.
   .armor-stack-mark {
+    display: inline-block;
+    width: 0;
     margin-left: 1px;
     vertical-align: super;
     font-size: 0.7em;
@@ -310,6 +344,15 @@ $c-trinket-label: rgba($c-dark, 0.55);
     line-height: 0;
     color: $c-tan;
   }
+}
+
+// The number half of a value pair. A fixed box so the label in front of it
+// cannot drift with the number's own width, and right-aligned inside it so the
+// numbers themselves read down one edge.
+.armor-num {
+  display: inline-block;
+  min-width: var(--armor-num-col);
+  text-align: right;
 }
 
 // The label half of a value pair: present but recessive, so the eye lands on
@@ -323,7 +366,8 @@ $c-trinket-label: rgba($c-dark, 0.55);
 }
 
 .armor-unequip {
-  // Same width as the placeholder above, so both kinds of row end identically.
+  // The same width the row holds open for it when it is missing, so both kinds
+  // of row end identically.
   flex: 0 0 var(--armor-action-size);
   text-align: center;
   color: $c-tan;
@@ -611,6 +655,24 @@ $c-trinket-label: rgba($c-dark, 0.55);
     background: rgba($c-warning, 0.35);
     color: $c-white;
   }
+}
+
+// Worn gear is the first band of the same slot run. It is ordinary load, not
+// an overload warning, so the cool suit palette distinguishes location without
+// competing with the red over-capacity state.
+.slot-cell.worn:not(.over-capacity) {
+  border-color: $c-zone-suited-stroke;
+  background: $c-zone-suited;
+}
+
+.slot-worn-caption {
+  display: block;
+  font-size: var(--font-size-9, 9px);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: rgba($c-dark, 0.65);
 }
 
 // Weld a run into one surface: every cell but the last drops its right edge and

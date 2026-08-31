@@ -246,17 +246,15 @@ function attackEnvelope(actor, weapon) {
 }
 
 /**
- * Where a failed resistance roll lands, as a label: the attributes the Stelle
- * feeds and the multiple it applies.
+ * What a failed resistance roll does to the selected damage pool: Stelle keeps
+ * only its multiplier now that damage no longer routes into attributes.
  * @param {string} zone
  * @returns {string}
  */
 function damageTargetLabel(zone) {
   const rule = DAMAGE_RULES[zone] ?? DAMAGE_RULES[DEFAULT_ZONE];
-  const attributes = rule.attributes
-    .map((key) => game.i18n.localize(CONFIG.TNO.abilities[key] ?? key))
-    .join(' / ');
-  return rule.multiplier > 1 ? `${attributes} ×${rule.multiplier}` : attributes;
+  const pool = game.i18n.localize('TNO.Damage.Pool');
+  return rule.multiplier > 1 ? `${pool} ×${rule.multiplier}` : pool;
 }
 
 /**
@@ -286,13 +284,13 @@ function ansageField() {
  * costs you, and what it buys.
  *
  * This is the one declaration that stayed a pick rather than becoming part of
- * the free number, because it is not only a magnitude: it decides which
- * attributes a failed resistance roll lands on, and the defender opens that roll
- * by clicking the same location on their paper doll.
+ * the free number, because it is not only a magnitude: it decides the damage
+ * multiplier, and the defender opens that roll by clicking the same location
+ * on their paper doll.
  *
  * It does have a magnitude too — Gezielte Angriffe prices every location — and
  * putting the price on the tile beside the damage rule is what makes the choice
- * legible: "Kopf", "−6" and "×2 auf Stärke" are one decision seen from three
+ * legible: "Kopf", "−6" and "Schadenspool ×2" are one decision seen from three
  * ends. The tile is the only place the dialog still explains a Manöver, and this
  * is the Manöver worth explaining.
  * @returns {{label: string, choices: Array<{key: string, label: string, caption: string, cost: number}>}}
@@ -481,10 +479,8 @@ export async function takeStance(actor, stance) {
  * asked for: the Schadenswert as a typed value, the RH-versus-RB/RD comparison
  * as a choice.
  *
- * Stärke enters at its damage-adjusted `value`, not its trained `base`. The
- * `base` axis is for requirements ("did you train up to what this gear
- * demands"); resisting a blow is a statement about performance right now, the
- * same reading `derived.dodge` already takes.
+ * Stärke enters at its sole persisted `base` rating, the same reading
+ * `derived.dodge` and regular attribute rolls use.
  *
  * @param {Actor} actor
  * @param {string} zone  One of the four addon zones. The Unterkleidung is not a
@@ -567,10 +563,8 @@ export function widerstandOptions(actor, zone) {
           },
         }
       : {}),
-    // The Stelle names where a failed roll lands, so the roll says so — on the
-    // dialog and, through the flavor, on the card it posts. How *much* it costs
-    // is still open: "Schaden in Höhe des verwendeten Schadenswert als Würfel"
-    // never says which dice.
+    // The Stelle keeps only its multiplier. The penetration comparison names
+    // whether the announced value enters the sharp or blunt pool.
     flavor: game.i18n.format('TNO.Combat.ResistanceFlavor', {
       zone: zoneLabel,
       damage: damageTargetLabel(zone),

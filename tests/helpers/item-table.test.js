@@ -112,11 +112,9 @@ describe('columnCell', () => {
     expect(columnCell(plates, 'footprint').value).toBe(3);
   });
 
-  it('has no footprint to report for a worn piece', () => {
-    // Worn gear is exempt from the slot economy, so the cell is n/a rather than
-    // a zero that would read as "this costs nothing to carry".
+  it('reports the footprint of a worn piece', () => {
     const worn = roled('w', 'Vest', 'armor', { zone: 'torso', slots: 2 });
-    expect(columnCell(worn, 'footprint', { worn: true })).toMatchObject({ applies: false, value: null });
+    expect(columnCell(worn, 'footprint', { worn: true })).toMatchObject({ applies: true, value: 2 });
   });
 
   it('multiplies the base price by the stack for the value column', () => {
@@ -214,16 +212,16 @@ describe('buildItemGroups', () => {
     expect(groups.find((group) => group.role === 'weapon').rows).toEqual([]);
   });
 
-  it('sums the carried slots per group', () => {
+  it('sums the complete slot footprint per group', () => {
     const weapons = build().find((group) => group.role === 'weapon');
     expect(weapons.footprint).toBe(3);
     const plain = build().find((group) => group.role === PLAIN_ROLE);
     expect(plain.footprint).toBe(2);
   });
 
-  it('leaves worn gear out of the slot total', () => {
+  it('keeps worn gear in the slot total while preserving its state', () => {
     const groups = build({ worn: new Set(['helm']) });
-    expect(groups.find((group) => group.role === 'armor').footprint).toBe(0);
+    expect(groups.find((group) => group.role === 'armor').footprint).toBe(1);
     expect(groups.find((group) => group.role === 'armor').rows[0].worn).toBe(true);
   });
 
