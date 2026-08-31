@@ -1,5 +1,24 @@
 # Changelog
 
+# [0.36.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.33.0...v0.36.0) (2026-08-31)
+
+
+### Bug Fixes
+
+* sum the Stärkevorraussetzung of every worn piece ([a018c29](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/a018c29347bb7492b52e8230d0f8be554141bee7))
+* Unterkleidung has RH 0 and no Rüstungsabdeckung ([a6c4657](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/a6c465764c3f7b091cee83706687d94a2a3e0807))
+
+
+### Features
+
+* adapt to the revised skill, combat and attribute rules ([6412f61](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/6412f61f89d62b120bdde35c9a3916a2d5c6dc4e))
+* add sharp/blunt damage pools and retire temporary attributes ([921080e](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/921080e4cf80616aae1a5fa535c2b814f5c8b1a0))
+* close every "Not implemented" row in the combat PRD ([9d1c4af](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/9d1c4af8ac3636c9566883b6a43ee55097120c66))
+* implement combat workflows and character stances ([182e7fd](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/182e7fd836baf00b90e867ddc4b03d08e2e1b19d))
+* mark a summed RW on the paper doll and explain it ([39f3339](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/39f3339e4e66773cd3d584ead06bf02b3bb74f9d))
+* move dodge action to paper doll ([f3c72fd](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/f3c72fd84dfa940971daf0988158e2dc0ab44158))
+* rework the Haltung picker and the roll dialog's question layout ([0e9b07d](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/0e9b07d03e58aea1949d21041dad34b72a4cda90))
+
 # [0.33.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.32.0...v0.33.0) (2026-08-06)
 
 
