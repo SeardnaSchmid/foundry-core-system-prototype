@@ -17,10 +17,14 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
       <img class="banner-backdrop-image" src="{{actor.img}}" alt="" />
     </div>
 
-    {{!-- Die rechte Bahn des Banners führt zwei Zeilen: die Wertechips oben,
-    darunter der Schadensblock. Der Block bleibt außerhalb von `.banner-chips`,
-    weil er zwei Kästchenzeilen hoch ist — in derselben Flex-Zeile würde er über
-    `align-items: stretch` alle Pillen neben sich mitwachsen lassen. --}}
+    {{!-- Die rechte Bahn des Banners führt drei Zeilen: die beiden Chipreihen
+    und darunter den Schadensblock. Die Chips sind auf zwei eigene
+    `.banner-chips`-Zeilen verteilt statt auf eine umbrechende — die Aufteilung
+    ist inhaltlich (oben, was dauerhaft zur Figur gehört, unten der
+    Kampfzustand) und darf nicht von der Breite abhängen. Jede Zeile bricht bei
+    Bedarf weiterhin für sich um. Der Schadensblock bleibt außerhalb beider
+    Zeilen, weil er zwei Kästchenzeilen hoch ist — in derselben Flex-Zeile würde
+    er über `align-items: stretch` alle Pillen neben sich mitwachsen lassen. --}}
     <div class="banner-meta">
 
     <div class="banner-chips">
@@ -45,16 +49,6 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
         <span class="chip-sep">|</span>
         <span class="chip-move{{#if movement.sprintBlocked}} move-blocked{{/if}}">{{system.derived.movementSprint}}</span>
       </div>
-
-      {{!-- Sechster Sinn wird mit dem regulären 3d20-Wurf gegen den Wert selbst gewürfelt, ohne Mods/Advantage. --}}
-      <a class="banner-chip chip-sense rollable" data-roll-type="sixthSense" data-label="{{localize 'TNO.Derived.SixthSense'}}"
-         data-tooltip-html='<dl class="tno-tooltip">
-<div class="tno-tooltip-row"><dt>{{localize "TNO.Derived.SixthSense"}} <span class="tno-tooltip-value">{{system.derived.sixthSense}}</span></dt><dd>{{localize "TNO.DerivedHint.SixthSense"}}</dd></div>
-</dl>'
-         data-tooltip-direction='DOWN'>
-        <i class="fa-solid fa-eye chip-icon"></i>
-        <span class="chip-value">{{system.derived.sixthSense}}</span>
-      </a>
 
       {{!-- Problemlösen. Der Vorrat ist die einzige Zahl, die hier gesetzt
       wird — als Pip-Reihe statt als Zahlenfeld: ein Klick setzt den Vorrat auf
@@ -94,6 +88,13 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
         <i class="fa-solid fa-circle-info chip-info"></i>
       </div>
 
+    </div>
+
+    {{!-- Zweite Chipreihe: der Kampfzustand. Die Haltung führt sie an, weil sie
+    im Kampf am häufigsten geändert wird; Sechster Sinn und Initiative sind die
+    beiden Würfe, die daneben gehören. --}}
+    <div class="banner-chips">
+
       {{!-- Die Haltung entscheidet allein, ob und womit verteidigt werden darf,
       und löscht beim Einnehmen den Wiederholungsmalus. Sie steht deshalb direkt
       im Banner als dauerhafter Kampfzustand. Die von ihr freigeschalteten
@@ -118,6 +119,16 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
         </span>
         <i class="fa-solid fa-chevron-down chip-stance-caret" aria-hidden="true"></i>
       </button>
+
+      {{!-- Sechster Sinn wird mit dem regulären 3d20-Wurf gegen den Wert selbst gewürfelt, ohne Mods/Advantage. --}}
+      <a class="banner-chip chip-sense rollable" data-roll-type="sixthSense" data-label="{{localize 'TNO.Derived.SixthSense'}}"
+         data-tooltip-html='<dl class="tno-tooltip">
+<div class="tno-tooltip-row"><dt>{{localize "TNO.Derived.SixthSense"}} <span class="tno-tooltip-value">{{system.derived.sixthSense}}</span></dt><dd>{{localize "TNO.DerivedHint.SixthSense"}}</dd></div>
+</dl>'
+         data-tooltip-direction='DOWN'>
+        <i class="fa-solid fa-eye chip-icon"></i>
+        <span class="chip-value">{{system.derived.sixthSense}}</span>
+      </a>
 
       {{!-- Initiative moved from the portrait to the banner, but still rolls
       the same 1d10 + Initiative formula on click. --}}

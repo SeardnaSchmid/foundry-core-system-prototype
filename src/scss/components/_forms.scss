@@ -170,10 +170,12 @@
   z-index: 1;
 }
 
-// The banner's right-hand lane, as two stacked rows: the value chips, and the
-// damage block beneath them. The block is two box rows tall, so it cannot share
-// the chips' flex line — `align-items: stretch` would grow every pill beside it
-// to its height.
+// The banner's right-hand lane, as three stacked rows: two chip rows, and the
+// damage block beneath them. The chips are split across two `.banner-chips`
+// lines in the markup rather than left to wrap, so the grouping holds at every
+// width. The damage block gets its own row because it is two box rows tall and
+// cannot share a chip line — `align-items: stretch` would grow every pill
+// beside it to its height.
 .banner-meta {
   grid-area: chips;
   justify-self: end;

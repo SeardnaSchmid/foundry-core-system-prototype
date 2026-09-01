@@ -85,7 +85,7 @@ them in step with `BASICS_LAYOUT_DEFAULT`.
 | Partial | Covers |
 | --- | --- |
 | `components/_dice-dialog.scss`, `_dice-card.scss` | Roll dialogs and the chat roll card / edge panel |
-| `components/_forms.scss` | Shared form controls plus actor-sheet layout, including the dark-fade portrait banner, restrained glass chips, the two-row `.banner-meta` lane holding the chips and the damage block, portrait edit affordance, responsive identity/chip grid and Basics split rows. Its banner breakpoints consume the named `character-sheet` inline-size container declared on `.window-content` in `global/_window.scss` |
+| `components/_forms.scss` | Shared form controls plus actor-sheet layout, including the dark-fade portrait banner, restrained glass chips, the three-row `.banner-meta` lane holding two `.banner-chips` rows (Bewegung/Edge over Haltung/Sechster Sinn/Initiative) and the damage block, portrait edit affordance, responsive identity/chip grid and Basics split rows. Its banner breakpoints consume the named `character-sheet` inline-size container declared on `.window-content` in `global/_window.scss` |
 | `components/_resource.scss` | Largest component partial — attribute heatmap grid, skill groups, edge pool display |
 | `components/_items.scss` | The two plain lists left on the Inventar tab — Merkmale and Active Effects — plus the tab's own spacing |
 | `components/_item-table.scss` | The Inventar tab's gear ledger: toolbar, the single CSS grid the header band, group bands and `subgrid` rows all share, the hatched n/a cell, and the column picker's popover body |
