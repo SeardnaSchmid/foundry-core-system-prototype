@@ -1113,6 +1113,14 @@
 .tno .cell-gear .armor-row.armor-suit {
   --suit-break: 8px;
 }
+.tno .cell-gear .armor-total {
+  --total-break: 6px;
+  padding-inline: 6px;
+}
+.tno .cell-gear .armor-total::before {
+  right: 2px;
+  left: 2px;
+}
 .tno .basics-splitter {
   flex: 0 0 13px;
   position: relative;
@@ -3387,15 +3395,15 @@
   stroke: #b8860b;
 }
 .tno .paperdoll-zones {
+  --armor-action-size: 1.25em;
+  --armor-row-gap: 10px;
+  --armor-action-gap: calc(var(--armor-action-size) + var(--armor-row-gap));
   display: flex;
   min-width: 0;
   flex-direction: column;
   gap: 6px;
 }
 .tno .armor-row {
-  --armor-action-size: 1.25em;
-  --armor-row-gap: 10px;
-  --armor-action-gap: calc(var(--armor-action-size) + var(--armor-row-gap));
   display: flex;
   align-items: center;
   gap: var(--armor-row-gap);
@@ -3533,6 +3541,41 @@
 }
 .tno .armor-resist:hover {
   color: #2f6bff;
+}
+.tno .armor-total {
+  --total-break: 8px;
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: var(--armor-row-gap);
+  margin-top: auto;
+  padding: var(--total-break) 12px 0;
+  font-size: var(--font-size-13, 13px);
+  color: #444;
+}
+.tno .armor-total::before {
+  content: "";
+  position: absolute;
+  top: calc(var(--total-break) / 2);
+  right: 6px;
+  left: 6px;
+  border-top: 1px solid rgba(25, 24, 19, 0.14);
+}
+.tno .armor-total .armor-values {
+  margin-right: calc(2 * var(--armor-action-gap));
+}
+.tno .armor-total.armor-total-short .armor-values {
+  color: #b3212b;
+}
+.tno .armor-total-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--font-size-11, 11px);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 .tno .armor-warning {
   margin-top: 6px;

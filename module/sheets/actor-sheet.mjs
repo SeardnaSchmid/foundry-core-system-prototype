@@ -891,8 +891,8 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           rwStacked: !!item && armor.rwSuit > 0 && armor.rwAddon > 0,
           // What this location costs to wear. Unlike RH/RW/RA it is not a
           // resolved zone value: SV is summed for the whole body, so the row
-          // shows the addon's own share and the total stays with the warning
-          // below the doll. An empty zone has nothing to charge for — the
+          // shows the addon's own share and `svLabel` above closes the column
+          // with the total. An empty zone has nothing to charge for — the
           // suit's share is on the suit's own row, not spread over four.
           svLabel: item ? this.#formatNumber(Number(item.system?.sv) || 0) : null,
         };

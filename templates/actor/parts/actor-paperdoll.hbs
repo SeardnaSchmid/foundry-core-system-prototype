@@ -202,6 +202,26 @@ worn, and reading them off the armour card said otherwise. --}}
       {{/if}}
     </div>
 
+    {{!-- The body's total SV: what the rows above add up to, and the only SV
+    Strength is ever measured against. It is a footer to the column that sums
+    it, so it closes the list under the SV values it adds and is pushed onto the
+    block's bottom edge when the silhouette leaves the column spare height.
+    Shown whenever anything is worn — the total is a fact about the load, not a
+    verdict on it, so it no longer waits for the warning to carry it. --}}
+    {{#if paperdoll.sv}}
+      <div class='armor-total{{#if paperdoll.svPenalty}} armor-total-short{{/if}}'
+           title='{{localize "TNO.Armor.SvPenaltyHint"}}'>
+        <span class='armor-total-label'>{{localize 'TNO.Armor.SvTotal'}}</span>
+        <span class='armor-values'>
+          <span class='armor-value armor-value-sv' title='{{localize "TNO.Armor.Sv"}}'>
+            <span class='armor-key'>{{localize 'TNO.Armor.SvShort'}}</span><span class='armor-num'>{{paperdoll.svLabel}}</span>
+          </span>
+        </span>
+      </div>
+    {{/if}}
+
+    {{!-- Falling short is still said in words: the total above is the number,
+    this is what it costs. --}}
     {{#if paperdoll.svPenalty}}
       <div class='armor-warning' title='{{localize "TNO.Armor.SvPenaltyHint"}}'>
         <i class='fas fa-triangle-exclamation'></i>

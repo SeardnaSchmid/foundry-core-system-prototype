@@ -711,6 +711,7 @@
       "Sv": "Stärkevoraussetzung (SV)",
       "SvShort": "SV",
       "SvHint": "Zählt zur Summe aller getragenen Teile — Unterkleidung in ganzen, Addons in Viertelschritten. Unter der Gesamt-SV erhält jeder Beweglichkeitswurf eine Malusstufe.",
+      "SvTotal": "Summe",
       "SvPenalty": "Stärke {str} < SV {sv} · Malusstufe auf Beweglichkeit",
       "SvPenaltyHint": "Die Stärkevorraussetzungen aller getragenen Kleidungs- und Rüstungsteile werden addiert.",
       "Rh": "Rüstungshärte (RH)",

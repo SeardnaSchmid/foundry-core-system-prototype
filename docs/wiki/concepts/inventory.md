@@ -165,6 +165,13 @@ carried band is outside the calculation.
   short, which is what makes a single body-wide total the right shape. Stärke
   is a whole number, so a total of 2.25 is met only at Stärke 3.
 
+  The doll closes its rows with that total (`.armor-total`), in the SV column
+  the rows above it fill and pushed onto the block's bottom edge by the spare
+  height the silhouette leaves. It shows whenever anything is worn, because the
+  sum is a fact about the load rather than a verdict on it; falling short only
+  recolours the figure and keeps the warning line under it, which is where the
+  shortfall is still said in words.
+
   The **weapon** SV rule is a different one and must not be folded in here: it
   is per weapon and graded ("eine Malusstufe für jeden Angriff und eine weitere
   für je 2 weitere Punkte darunter"), and it lands on attacks and parries rather

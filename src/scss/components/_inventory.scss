@@ -128,6 +128,17 @@ $c-trinket-label: rgba($c-dark, 0.55);
 }
 
 .paperdoll-zones {
+  // One row-action column — resist or unequip — and the gap the row would have
+  // put beside it. In em so they track the row's own font size: the icons are
+  // 1.25em glyphs, and a px constant would drift the moment the doll is trimmed
+  // inside a Basics column. Declared on the column rather than on the row
+  // because the summary line below the rows has no actions of its own and still
+  // has to reserve exactly the width they take, or its total would sit right of
+  // the SV values it sums.
+  --armor-action-size: 1.25em;
+  --armor-row-gap: 10px;
+  --armor-action-gap: calc(var(--armor-action-size) + var(--armor-row-gap));
+
   display: flex;
   min-width: 0;
   flex-direction: column;
@@ -135,14 +146,6 @@ $c-trinket-label: rgba($c-dark, 0.55);
 }
 
 .armor-row {
-  // One row-action column — resist or unequip — and the gap the row would have
-  // put beside it. In em so they track the row's own font size: the icons are
-  // 1.25em glyphs, and a px constant would drift the moment the doll is trimmed
-  // inside a Basics column.
-  --armor-action-size: 1.25em;
-  --armor-row-gap: 10px;
-  --armor-action-gap: calc(var(--armor-action-size) + var(--armor-row-gap));
-
   display: flex;
   align-items: center;
   gap: var(--armor-row-gap);
@@ -389,6 +392,64 @@ $c-trinket-label: rgba($c-dark, 0.55);
   &:hover {
     color: $c-primary;
   }
+}
+
+// The summed SV, under the column of SV values it adds up. Not a row: it is
+// read as the last line of the list rather than as another thing worn, so it
+// takes no box, no border and no drop behaviour — only the rows' horizontal
+// padding, so its label starts where every name above it does.
+//
+// `margin-top: auto` is what puts it "at the bottom": the zones column is a
+// flex column stretched to the silhouette's height, so any height the rows
+// leave over collects above the total instead of below it. With no spare height
+// the auto margin is 0 and the total simply follows the base layer.
+.armor-total {
+  --total-break: 8px;
+
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: var(--armor-row-gap);
+  margin-top: auto;
+  padding: var(--total-break) 12px 0;
+  font-size: var(--font-size-13, 13px);
+  color: $c-tan;
+
+  // The same inset hairline the base layer's break draws, for the same reason:
+  // a border on the element would run the full width of the column and read as
+  // an edge of the rows above rather than as a rule between two readings.
+  &::before {
+    content: '';
+    position: absolute;
+    top: calc(var(--total-break) / 2);
+    right: 6px;
+    left: 6px;
+    border-top: 1px solid rgba($c-dark, 0.14);
+  }
+
+  // The width the rows spend on their two actions. Held open here so the total
+  // lands in the SV column instead of under the read-outs' right edge.
+  .armor-values {
+    margin-right: calc(2 * var(--armor-action-gap));
+  }
+
+  // Strength does not reach the total. The number turns the warning colour for
+  // the same reason the slot grid paints its overflow: the figure that is out
+  // of reach says so where it is read, and the line below says what it costs.
+  &.armor-total-short .armor-values {
+    color: $c-warning;
+  }
+}
+
+.armor-total-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--font-size-11, 11px);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .armor-warning {

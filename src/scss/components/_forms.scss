@@ -1156,6 +1156,19 @@ button.damage-clear {
       --suit-break: 8px;
     }
   }
+
+  // The summary follows the trimmed rows' padding, or its label would start
+  // 6px right of every name it sums.
+  .armor-total {
+    --total-break: 6px;
+
+    padding-inline: 6px;
+
+    &::before {
+      right: 2px;
+      left: 2px;
+    }
+  }
 }
 
 // The grabbable strip between two columns. A real element rather than a CSS

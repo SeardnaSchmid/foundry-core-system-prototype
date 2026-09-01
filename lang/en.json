@@ -711,6 +711,7 @@
       "Sv": "Strength Req. (SV)",
       "SvShort": "SV",
       "SvHint": "Counts towards the sum of every worn piece — whole values for the base layer, quarter steps for addons. Below the total SV, every Agility roll takes one penalty step.",
+      "SvTotal": "Total",
       "SvPenalty": "Strength {str} < SV {sv} · one penalty step on Agility",
       "SvPenaltyHint": "The Strength requirements of all worn clothing and armour are summed.",
       "Rh": "Armour Hardness (RH)",
