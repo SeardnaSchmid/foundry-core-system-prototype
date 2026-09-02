@@ -168,6 +168,14 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   #dragging = null;
 
   /**
+   * Watches the carry raster's width so the wrap marks can be re-measured. The
+   * grid element is replaced on every render, so the observer is re-pointed in
+   * `_onRender` rather than bound once.
+   * @type {ResizeObserver|null}
+   */
+  #slotGridObserver = null;
+
+  /**
    * ApplicationV2 owns the form element, so the actor-type class the template's
    * own <form> used to carry has to come from the options instead. The SCSS
    * keys the sheet's root flex direction off it (see `_forms.scss`).
@@ -483,7 +491,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     context.totalXpUnspent = context.attributeXpBanked + context.skillXpBanked;
     context.totalXpAcquired = context.totalXpSpent + context.totalXpUnspent;
 
-    // The edge reserve as a pip row for the banner chip: one pip per point of
+    // The edge reserve as a pip row for the banner pill: one pip per point of
     // the maximum, filled up to the current pool. Built here rather than in the
     // template because Handlebars has no "repeat n times".
     const edgeMax = this.actor.system.derived?.edgePoolMax ?? 0;
@@ -493,7 +501,37 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     }));
 
     const derived = this.actor.system.derived ?? {};
-    const damage = derived.damage ?? {
+    context.damage = this.#damageContext();
+    context.conditions = this.#conditionsContext();
+
+    // Which movement tiers the character has lost, for the derived strip under
+    // the attribute matrix. The load's consequence is shown on the number it
+    // takes away rather than as a badge over the slot grid: what a player wants
+    // to know is "how far can I move", and a struck-through figure answers that
+    // where the figure already is — wherever that figure lives. Sprinting is
+    // blocked once the load reaches half the budget; `canSprint` carries that
+    // result into the sheet context.
+    context.movement = {
+      sprintBlocked: derived.canSprint === false,
+      walkBlocked: derived.carryState === 'crawlOnly',
+    };
+  }
+
+  /**
+   * The two damage tracks as the band and the condition panel both draw them:
+   * counted boxes rather than a scaled bar. At a capacity of trained Stärke
+   * there are only ever a handful of them, and a box past the capacity mark
+   * says "over the line" without the mark having to move as a percentage track
+   * would make it.
+   *
+   * Built here rather than in `_prepareCharacterData` because the panel is
+   * rendered on its own, outside a sheet render, and has to draw the same rows
+   * the band does.
+   * @returns {object}
+   * @private
+   */
+  #damageContext() {
+    const damage = this.actor.system.derived?.damage ?? {
       sharp: 0,
       blunt: 0,
       capacity: 0,
@@ -505,21 +543,63 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       downed: false,
       full: false,
     };
-    // The banner draws counted boxes rather than a scaled bar: at a capacity of
-    // trained Stärke there are only ever a handful of them, and a box that sits
-    // past the capacity mark says "over the line" without the mark having to
-    // move as a percentage track would make it.
-    context.damage = { ...damage, rows: damageTrackRows(damage) };
+    // The malus is only drawn when it is a figure worth announcing — from −1
+    // down, or from +1 up should anything ever add to a roll instead. At zero
+    // the cell is left out entirely rather than held open as a dimmed `0`: it
+    // sits on the name's baseline, so nothing collapses when it goes, and the
+    // tracks under it already say the character is unhurt.
+    const malus = Number(damage.malus) || 0;
+    return {
+      ...damage,
+      rows: damageTrackRows(damage),
+      hasMalus: malus !== 0,
+      // A true minus sign rather than a hyphen: at this size the difference
+      // between the two is the difference between a figure and a stray dash.
+      malusLabel: `${malus < 0 ? '\u2212' : '+'}${Math.abs(malus)}`,
+    };
+  }
 
-    // Which movement tiers the character has lost, for the banner's movement
-    // chip. The load's consequence is shown on the number it takes away rather
-    // than as a badge over the slot grid: what a player wants to know is
-    // "how far can I move", and a struck-through figure answers that where the
-    // figure already is. Sprinting is blocked once the load reaches half the
-    // budget; `canSprint` carries that result into the sheet context.
-    context.movement = {
-      sprintBlocked: derived.canSprint === false,
-      walkBlocked: derived.carryState === 'crawlOnly',
+  /**
+   * The condition collection with its presentation strings added. The rule
+   * layer supplies the plain list; nothing here decides what is active.
+   *
+   * `active` is what the Zustände pill draws — every active condition,
+   * severity-sorted by `resolveConditions()` and including the three derived
+   * entries (load, armour weight, a Haltung without Ausweichen). `rows` is the
+   * panel's 3x2 raster, which keeps Wucht above Schaden and holds the six
+   * damage warnings only. `items` is the whole list.
+   * @returns {object}
+   * @private
+   */
+  #conditionsContext() {
+    const conditions = this.actor.system.derived?.conditions ?? {
+      items: [],
+      rows: [[], []],
+      active: [],
+      hasActive: false,
+    };
+    const statusItems = conditions.items.map((condition) => {
+      return {
+        ...condition,
+        label: game.i18n.localize(condition.labelKey),
+        // Two letters off the label's own words. The collection surfaces have
+        // room for a mark, not a name, and an abbreviation of the name is one
+        // fewer vocabulary than a pictogram would be.
+        tag: game.i18n.localize(condition.tagKey),
+        reason: this.#conditionReason(condition),
+        // Every condition names what it costs. Only the three derived ones are
+        // enforced by the system; the six damage effects are the table's, and
+        // the sheet states them without acting on them.
+        effect: condition.effectKey ? game.i18n.localize(condition.effectKey) : '',
+        stateLabel: game.i18n.localize(`TNO.Status.State.${condition.state}`),
+      };
+    });
+    const byKey = new Map(statusItems.map((condition) => [condition.key, condition]));
+    return {
+      ...conditions,
+      items: statusItems,
+      rows: conditions.rows.map((row) => row.map((condition) => byKey.get(condition.key))),
+      active: conditions.active.map((condition) => byKey.get(condition.key)),
     };
   }
 
@@ -777,6 +857,46 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    */
   #formatNumber(value) {
     return new Intl.NumberFormat(game.i18n.lang, { maximumFractionDigits: 2 }).format(value);
+  }
+
+  /**
+   * Why one condition is on, in its own terms. Each source compares a different
+   * pair, so the panel's second line is built per source rather than from one
+   * generic sentence that would have to fit all of them badly.
+   */
+  #conditionReason(condition) {
+    switch (condition.source) {
+      case 'carry':
+        return game.i18n.format(condition.reasonKey, {
+          used: condition.value,
+          capacity: condition.threshold,
+        });
+      // The summed SV runs in quarter steps, so it needs the reader's own
+      // decimal separator exactly as the paper doll's warning line does.
+      case 'armor':
+        return game.i18n.format(condition.reasonKey, {
+          str: this.#formatNumber(condition.value),
+          sv: this.#formatNumber(condition.threshold),
+        });
+      case 'defense':
+        return game.i18n.format(condition.reasonKey, {
+          stance: condition.stanceLabelKey
+            ? game.i18n.localize(condition.stanceLabelKey)
+            : '—',
+        });
+      default:
+        return game.i18n.format(
+          condition.derivedActive
+            ? 'TNO.Status.ThresholdReached'
+            : 'TNO.Status.ThresholdPending',
+          {
+            pool: game.i18n.localize(condition.poolLabelKey),
+            value: condition.value,
+            attribute: game.i18n.localize(condition.abilityLabelKey),
+            threshold: condition.threshold,
+          }
+        );
+    }
   }
 
   /** Localize a value that is a key into one of the CONFIG.TNO label maps. */
@@ -1142,7 +1262,14 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    */
   #mountPopovers() {
     const host = this.#hostDocument();
-    for (const popover of [this._itemPopover, this._moneyPopover, this._columnsPopover, this._stancePopover]) {
+    for (const popover of [
+      this._itemPopover,
+      this._moneyPopover,
+      this._columnsPopover,
+      this._stancePopover,
+      this._conditionPopover,
+      this._edgePopover,
+    ]) {
       if (!popover || popover.ownerDocument === host) continue;
       if (popover.matches(':popover-open')) popover.hidePopover();
       host.body.append(popover);
@@ -1315,6 +1442,142 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       this._stancePopoverAnchor = this.element.querySelector('.chip-stance');
     }
     this.#positionPopover(this._stancePopover, this._stancePopoverAnchor);
+  }
+
+  /**
+   * The condition panel's own context. It draws the same two damage tracks the
+   * band does and the same six-light raster the band used to carry, so both are
+   * built from the shared helpers rather than from a second reading of the
+   * actor.
+   *
+   * `editable` decides whether the steppers, the clear action and the clickable
+   * lights are rendered at all — a read-only viewer gets the same panel with
+   * the same tooltips on non-interactive elements.
+   * @returns {object}
+   * @private
+   */
+  #conditionPanelContext() {
+    return {
+      damage: this.#damageContext(),
+      conditions: this.#conditionsContext(),
+      editable: this.isEditable,
+    };
+  }
+
+  /**
+   * Redraw the condition panel from the actor as it stands now. Stepping a pool
+   * or cycling a light re-renders the sheet, and the panel has to follow it or
+   * it would keep showing the state the click just left behind.
+   *
+   * Replacing the panel's markup destroys the focus inside it, so the element
+   * the keyboard was on is found again by its `data-focus-key` — a stepper that
+   * moved focus to nowhere on every press would be unusable without a mouse.
+   * @private
+   */
+  async #refreshConditionPopover() {
+    const popover = this._conditionPopover;
+    if (!popover) return;
+    const focusKey = popover.ownerDocument.activeElement?.closest?.('[data-focus-key]')
+      ?.dataset.focusKey ?? null;
+    popover.innerHTML = await foundry.applications.handlebars.renderTemplate(
+      'systems/tno/templates/actor/parts/condition-panel.hbs',
+      this.#conditionPanelContext()
+    );
+    popover.setAttribute('aria-label', game.i18n.localize('TNO.Status.PanelTitle'));
+    if (focusKey) popover.querySelector(`[data-focus-key="${focusKey}"]`)?.focus();
+  }
+
+  /** Open the condition panel beside whichever of its doors was used. */
+  async #openConditionPopover(anchor) {
+    if (!this._conditionPopover) return;
+    this.#mountPopovers();
+    this._conditionPopoverAnchor = anchor;
+    // Which door, not just which element: a stepper press re-renders the sheet
+    // and replaces the anchor, and a panel that re-anchored to a different door
+    // would jump across the band under the cursor that opened it.
+    this._conditionPopoverDoor = ['chip-status', 'banner-malus', 'banner-tracks']
+      .find((door) => anchor.classList.contains(door)) ?? 'chip-status';
+    await this.#refreshConditionPopover();
+    if (!this._conditionPopover.matches(':popover-open')) this._conditionPopover.showPopover();
+    this.#positionConditionPopover();
+  }
+
+  /** Keep the panel beside its own door across re-renders and window moves. */
+  #positionConditionPopover() {
+    if (!this._conditionPopover?.matches(':popover-open')) return;
+    if (!this._conditionPopoverAnchor?.isConnected) {
+      this._conditionPopoverAnchor = this.element.querySelector(`.${this._conditionPopoverDoor}`);
+    }
+    this.#positionPopover(this._conditionPopover, this._conditionPopoverAnchor);
+  }
+
+  /**
+   * Mirror an open panel's state onto every door that opens it. All of them
+   * carry `aria-expanded`, so a reader is told the panel is open whichever one
+   * they are on.
+   * @param {string} selector
+   * @param {HTMLElement|null} popover
+   * @private
+   */
+  #syncPopoverDoors(selector, popover) {
+    const open = !!popover?.matches(':popover-open');
+    for (const door of this.element?.querySelectorAll(selector) ?? []) {
+      door.setAttribute('aria-expanded', String(open));
+    }
+  }
+
+  /**
+   * The Edge popover's context: the reserve, its three derived thresholds and
+   * whether the correction may be used at all.
+   * @returns {object}
+   * @private
+   */
+  #edgePopoverContext() {
+    const derived = this.actor.system.derived ?? {};
+    const pool = derived.edgePool ?? 0;
+    const max = derived.edgePoolMax ?? 0;
+    return {
+      pool,
+      max,
+      atMax: pool >= max,
+      insight: derived.insight ?? 0,
+      postMortem: derived.postMortem ?? 0,
+      trialErrorMax: derived.trialErrorMax ?? 0,
+      editable: this.isEditable,
+    };
+  }
+
+  /** Redraw the Edge popover, keeping the keyboard on the stepper it was on. */
+  async #refreshEdgePopover() {
+    const popover = this._edgePopover;
+    if (!popover) return;
+    const focusKey = popover.ownerDocument.activeElement?.closest?.('[data-focus-key]')
+      ?.dataset.focusKey ?? null;
+    popover.innerHTML = await foundry.applications.handlebars.renderTemplate(
+      'systems/tno/templates/actor/parts/edge-popover.hbs',
+      this.#edgePopoverContext()
+    );
+    popover.setAttribute('aria-label', game.i18n.localize('TNO.Derived.EdgePool'));
+    if (focusKey) popover.querySelector(`[data-focus-key="${focusKey}"]`)?.focus();
+  }
+
+  /** Open the Edge popover beneath its pill. */
+  async #openEdgePopover(anchor) {
+    if (!this._edgePopover) return;
+    this.#mountPopovers();
+    this._edgePopoverAnchor = anchor;
+    await this.#refreshEdgePopover();
+    if (!this._edgePopover.matches(':popover-open')) this._edgePopover.showPopover();
+    this.#positionEdgePopover();
+  }
+
+  /** Keep the Edge popover beside its pill across re-renders and window moves. */
+  #positionEdgePopover() {
+    if (!this._edgePopover?.matches(':popover-open')) return;
+    if (!this._edgePopoverAnchor?.isConnected) {
+      this._edgePopoverAnchor = this.element.querySelector('.chip-edge');
+    }
+    this.#positionPopover(this._edgePopover, this._edgePopoverAnchor);
   }
 
   /**
@@ -1496,11 +1759,60 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   }
 
   /**
+   * Mark the cells a multi-slot run is cut between by the raster's right edge.
+   *
+   * Which cells those are cannot be derived from the data: `.slot-grid` fills
+   * as many columns as the column's current width allows, so the wrap moves
+   * whenever the splitter is dragged or the window resized. It is measured
+   * instead — a joined cell whose successor starts on a lower row is the last
+   * one before the break, and that successor is where the item resumes.
+   * @private
+   */
+  #markSlotWraps() {
+    const grid = this.element.querySelector('.slot-grid');
+    if (!grid) return;
+
+    const cells = [...grid.querySelectorAll('.slot-cell.slot-filled')];
+    for (const cell of cells) cell.classList.remove('slot-continues', 'slot-resumes');
+
+    for (let i = 0; i < cells.length - 1; i++) {
+      const cell = cells[i];
+      const next = cells[i + 1];
+      // `slot-joined` is exactly "this cell is not the last of its run", so a
+      // row break after it is a break inside one item rather than between two.
+      if (!cell.classList.contains('slot-joined')) continue;
+      // All cells share one offset parent — the grid itself is unpositioned —
+      // so the raw offsets compare directly.
+      if (next.offsetTop <= cell.offsetTop) continue;
+      cell.classList.add('slot-continues');
+      next.classList.add('slot-resumes');
+    }
+  }
+
+  /**
+   * Re-point the wrap observer at the current render's raster. `observe` fires
+   * once immediately, which is also what paints the marks after a render — so
+   * this is the only place `#markSlotWraps` needs calling from.
+   * @private
+   */
+  #observeSlotGrid() {
+    this.#slotGridObserver?.disconnect();
+    const grid = this.element.querySelector('.slot-grid');
+    if (!grid) return;
+    this.#slotGridObserver ??= new ResizeObserver(() => this.#markSlotWraps());
+    this.#slotGridObserver.observe(grid);
+  }
+
+  /**
    * Set the problem-solving edge reserve, clamped to 0..max. Stored as "spent"
    * (max minus the wanted value) since the pool itself is derived, recomputed
-   * from `problemSolving.spent`. Any manual change — up or down — happens
-   * outside the dedicated actions (Insight, Post-mortem), so it is announced in
-   * chat too.
+   * from `problemSolving.spent`.
+   *
+   * A correction downward happens outside the dedicated actions (Insight,
+   * Post-mortem) and is announced in chat, because the table has to know a
+   * point left the reserve. Topping the reserve back up is a GM correction of
+   * that same bookkeeping and stays silent: announcing it would report a spend
+   * that never happened.
    * @param {number} value  The reserve the character should be left with
    * @private
    */
@@ -1511,6 +1823,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (next === current) return;
 
     this.actor.update({ 'system.problemSolving.spent': max - next });
+    if (next > current) return;
     ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this.actor }),
       content: game.i18n.format('TNO.Chat.EdgeSpent', {
@@ -1683,6 +1996,75 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       if (event.newState === 'closed') this._stancePopoverAnchor = null;
     });
 
+    // The condition panel. An anchored popover sharing the Haltung picker's
+    // chrome rather than an inline <details> in the band: painting the panel
+    // inside the banner is what forced the banner's whole stacking context up
+    // with a z-index override, and that override is gone with this.
+    //
+    // Its controls live here rather than in the sheet's own delegation, because
+    // the popover is a child of the host document's body and never of
+    // `this.element`.
+    this._conditionPopover = host.createElement('div');
+    this._conditionPopover.className = 'tno item-popover condition-popover';
+    this._conditionPopover.setAttribute('popover', 'auto');
+    host.body.append(this._conditionPopover);
+    this._conditionPopover.addEventListener('click', async (event) => {
+      if (!this.isEditable) return;
+      const stepper = event.target.closest('.damage-stepper');
+      if (stepper) {
+        event.preventDefault();
+        const { kind, action } = stepper.dataset;
+        // Damage is its own persisted health track. It is deliberately allowed
+        // to overfill; only the lower bound is clamped.
+        return this._stepDamage(kind, action === 'increment' ? 1 : -1);
+      }
+      if (event.target.closest('.damage-clear')) {
+        event.preventDefault();
+        return this._clearDamage();
+      }
+      // A condition light cycles through the three persisted override choices:
+      // follow the threshold -> force on -> force off -> follow the threshold.
+      // Lights are only rendered as buttons for owners, so read-only viewers
+      // retain the same tooltips without a dead click target.
+      const light = event.target.closest('.status-light-button');
+      if (light) {
+        event.preventDefault();
+        return this._cycleConditionOverride(light.dataset.conditionKey);
+      }
+    });
+    this._conditionPopover.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && this._conditionPopover.matches(':popover-open')) {
+        event.stopPropagation();
+      }
+    });
+    this._conditionPopover.addEventListener('toggle', (event) => {
+      this.#syncPopoverDoors('.chip-status, .vitals-door', this._conditionPopover);
+      if (event.newState === 'closed') this._conditionPopoverAnchor = null;
+    });
+
+    // The Edge popover: the three derived thresholds, and the manual correction
+    // that replaced the band's number field. A GM/admin correction does not
+    // need a permanently visible input.
+    this._edgePopover = host.createElement('div');
+    this._edgePopover.className = 'tno item-popover edge-popover';
+    this._edgePopover.setAttribute('popover', 'auto');
+    host.body.append(this._edgePopover);
+    this._edgePopover.addEventListener('click', (event) => {
+      if (!this.isEditable) return;
+      const step = event.target.closest('.edge-step');
+      if (!step) return;
+      event.preventDefault();
+      const pool = this.actor.system.derived?.edgePool ?? 0;
+      this.#setEdgePool(pool + (step.dataset.action === 'increment' ? 1 : -1));
+    });
+    this._edgePopover.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && this._edgePopover.matches(':popover-open')) event.stopPropagation();
+    });
+    this._edgePopover.addEventListener('toggle', (event) => {
+      this.#syncPopoverDoors('.chip-edge', this._edgePopover);
+      if (event.newState === 'closed') this._edgePopoverAnchor = null;
+    });
+
     // Custom clickable chips (anchors without `href`, plus `.skill-info` and
     // the slot grid's cells) are promoted to real keyboard targets in
     // _onRender; this forwards their Enter/Space to the same click listeners
@@ -1844,27 +2226,32 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       this.#storeColumnSplit(key, next);
     });
 
+    // The condition panel's two doors: the Zustände pill and the vitals row,
+    // which 4b splits into the malus cell and the tracks beneath it. One panel,
+    // because a stepper and the light it lights belong next to each other; two
+    // doors, because both surfaces ask the same question of the same model.
+    //
+    // Not gated on `editable`: the panel is where someone reading another
+    // player's sheet finds out what is wrong with that character. What an owner
+    // gets on top of that is the steppers and the clickable lights, and those
+    // are gated inside the panel.
+    this.#delegate('click', '.chip-status, .vitals-door', (event, target) => {
+      event.preventDefault();
+      if (this._conditionPopover?.matches(':popover-open')) this._conditionPopover.hidePopover();
+      else this.#openConditionPopover(target);
+    });
+
+    // The Edge pill. The pips are the read-out; the thresholds and the manual
+    // correction are behind this click.
+    this.#delegate('click', '.chip-edge', (event, target) => {
+      event.preventDefault();
+      if (this._edgePopover?.matches(':popover-open')) this._edgePopover.hidePopover();
+      else this.#openEdgePopover(target);
+    });
+
     // -------------------------------------------------------------
     // Everything below here only acts on an editable sheet.
     const editable = { requireEditable: true };
-
-    // The banner's edge-reserve field. It carries no `name`, so the form never
-    // submits it — the pool is derived and would be recomputed away. This
-    // inverts the typed reserve back into the stored `spent` instead. A blank
-    // or non-numeric entry means "no change", so the render restores the old
-    // number rather than reading as a zero the player never asked for.
-    this.#delegate('change', '.chip-value-input', (event, target) => {
-      const typed = Number(target.value);
-      if (target.value.trim() === '' || !Number.isFinite(typed)) {
-        this.render();
-        return;
-      }
-      this.#setEdgePool(typed);
-      // #setEdgePool no-ops when the clamped value matches the current pool, in
-      // which case no update fires and nothing re-renders — so an out-of-range
-      // entry would otherwise sit in the box looking accepted.
-      this.render();
-    }, editable);
 
     // The banner chip only opens the picker; taking the Haltung happens in the
     // popover and is immediate. Deliberately not form-bound: the Haltung is
@@ -1873,18 +2260,6 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       event.preventDefault();
       if (this._stancePopover?.matches(':popover-open')) this._stancePopover.hidePopover();
       else this.#openStancePopover(target);
-    }, editable);
-
-    // Damage is its own persisted health track. It is deliberately allowed to
-    // overfill; only the lower bound is clamped.
-    this.#delegate('click', '.damage-stepper', (event, target) => {
-      const { kind, action } = target.dataset;
-      this._stepDamage(kind, action === 'increment' ? 1 : -1);
-    }, editable);
-
-    this.#delegate('click', '.damage-clear', (event) => {
-      event.preventDefault();
-      this._clearDamage();
     }, editable);
 
     // Open the skill advancement dialog, either from the dedicated arrow
@@ -1923,10 +2298,6 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         xp: ability.xp ?? 0,
       }).render(true);
     }, editable);
-
-    // Edge pool is set via the banner's number field rather than by clicking
-    // pips; the pips are read-only display. That field is `.chip-value-input`,
-    // handled above.
 
     // Add Inventory Item
     this.#delegate('click', '.item-create', (event, target) => {
@@ -2077,6 +2448,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     this._applyItemFilter();
     this._applyColumnSplit();
     this.#resizeBiography();
+    this.#observeSlotGrid();
     // Detaching moves the sheet into a second window; the popovers have to
     // follow it there before either is opened again.
     this.#mountPopovers();
@@ -2103,10 +2475,26 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       // tooltip and `aria-expanded="false"` back on it.
       this.#syncStanceChip();
     }
+    // Every stepper press and every cycled light re-renders the sheet, so the
+    // panel that fired them has to be redrawn from what it just changed. The
+    // doors are fresh elements after a render, carrying the template's
+    // `aria-expanded="false"` again.
+    if (this._conditionPopover?.matches(':popover-open')) {
+      await this.#refreshConditionPopover();
+      this.#positionConditionPopover();
+      this.#syncPopoverDoors('.chip-status, .vitals-door', this._conditionPopover);
+    }
+    if (this._edgePopover?.matches(':popover-open')) {
+      await this.#refreshEdgePopover();
+      this.#positionEdgePopover();
+      this.#syncPopoverDoors('.chip-edge', this._edgePopover);
+    }
   }
 
   /** @inheritDoc */
   async _onClose(options) {
+    this.#slotGridObserver?.disconnect();
+    this.#slotGridObserver = null;
     if (this._itemPopover?.matches(':popover-open')) this._itemPopover.hidePopover();
     this._itemPopover?.remove();
     this._itemPopover = null;
@@ -2119,6 +2507,12 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (this._stancePopover?.matches(':popover-open')) this._stancePopover.hidePopover();
     this._stancePopover?.remove();
     this._stancePopover = null;
+    if (this._conditionPopover?.matches(':popover-open')) this._conditionPopover.hidePopover();
+    this._conditionPopover?.remove();
+    this._conditionPopover = null;
+    if (this._edgePopover?.matches(':popover-open')) this._edgePopover.hidePopover();
+    this._edgePopover?.remove();
+    this._edgePopover = null;
     return super._onClose(options);
   }
 
@@ -2606,6 +3000,23 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   /** Clear both damage pools in one actor update. */
   async _clearDamage() {
     await this.actor.update({ 'system.damage.sharp': 0, 'system.damage.blunt': 0 });
+  }
+
+  /** Cycle one damage condition's manual override without changing damage. */
+  async _cycleConditionOverride(key) {
+    const condition = this.actor.system.derived?.conditions?.items
+      ?.find((entry) => entry.key === key);
+    // The derived entries live in the same list but have no raster light and
+    // no override slot in the schema, so they must never be cycled from here.
+    // Only the six damage warnings carry no `source`.
+    if (!condition || condition.source) return;
+
+    const next = condition.override === null
+      ? true
+      : condition.override === true
+        ? false
+        : null;
+    await this.actor.update({ [`system.conditionOverrides.${key}`]: next });
   }
 
   /**

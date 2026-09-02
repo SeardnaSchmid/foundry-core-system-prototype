@@ -45,11 +45,11 @@ test('the tracker rolls 1d10 plus the derived initiative value', async ({ world 
   expect(initiative).toBeLessThanOrEqual(17);
 });
 
-test('the sheet initiative chip and tracker share one formula', async ({ world }) => {
+test('the sheet initiative cell and tracker share one formula', async ({ world }) => {
   const { id } = await createCharacter(world.page, { abilities: ABILITIES });
   const sheet = await openSheet(world.page, id);
 
-  const sheetFormula = await sheet.locator('.chip-initiative.rollable[data-roll]').getAttribute('data-roll');
+  const sheetFormula = await sheet.locator('.derived-initiative.rollable[data-roll]').getAttribute('data-roll');
   const configured = await world.page.evaluate(() => CONFIG.Combat.initiative.formula);
 
   expect(sheetFormula).toBe(configured);

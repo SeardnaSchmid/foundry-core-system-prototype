@@ -56,7 +56,10 @@ another user's permissions.
   builder and render what comes back. Both reach the dialog through
   `game.tno.TnoRollDialog` rather than by importing it, which keeps
   `documents/` from depending on `apps/`. `prepareDerivedData` publishes
-  `derived.stance` and `derived.defenses.{parry,dodge}.{available,malus}`.
+  `derived.stance` and `derived.defenses.{parry,dodge}.{available,malus}`, and
+  feeds the pair to the `noDodge` condition — a Haltung without Ausweichen is
+  chosen rather than suffered, so it is worth saying out loud in the Zustände
+  collection. See [damage.md](damage.md#the-condition-collection).
   [`sheets/actor-sheet.mjs`](../../../module/sheets/actor-sheet.mjs) exposes
   Dodge and the Haltung picker, including the explicit repeat action needed to
   take the current Haltung again, routes paper-doll clicks to the resistance
@@ -74,9 +77,9 @@ another user's permissions.
     threshold breakdown and chat card.
   - `requiredValue` — one required typed number, e.g. the announced Schadenswert.
     Optionally `labels` (one per `preRollContext` choice key) and `hint`. The
-    resistance roll uses both: the attacker's card prints a sharp *and* a blunt
-    value, and the penetration comparison is precisely what decides which of
-    them landed — so the field renames itself to `Scharfer Schadenswert (SS)` or
+    resistance roll uses both: the attacker's card prints a Schaden *and* a
+    Wucht value, and the penetration comparison is precisely what decides which
+    of them landed — so the field renames itself to `Schadenswert (S)` or
     `Wucht-Schadenswert (WS)` as the tile above is picked, the breakdown carries
     that same name, and the hint says the numbers are on the attacker's card.
     Without it the player had to hold that mapping in their head
@@ -106,6 +109,15 @@ another user's permissions.
   - `envelope` — the attacker's half of an exchange, merged with
     `ansageEnvelope(ansage, zone)` at roll time into `flags.tno.envelope`. No
     per-Manöver list rides along beside it any more.
+  - `consequence` — what a failure costs, worded by the builder rather than the
+    dialog: a function of the answers, whose result `rollTno` keeps only when the
+    dice actually failed. The resistance roll is the only caller, and what it
+    returns is the applied damage — `appliedDamage(value, zone)` from
+    `maneuvers.mjs` cashing in the Stelle multiplier the rest of the system only
+    ever names
+    (`tests/documents/actor-resistance-roll.test.js › cashes in the Stelle multiplier and shows the arithmetic it did`).
+    It reads the same two answers the threshold does, so the card and the
+    breakdown cannot disagree, and it writes nothing: damage entry stays manual.
   - `afterRoll` — runs only once the dice are cast, which is what lets the
     repeated-defence counter count rolls rather than intentions.
 
@@ -121,7 +133,10 @@ another user's permissions.
   (`tests/documents/roll-dialog.test.js › makes an aimed attack a Manöver, and the Torso not`).
 - [`roll-card.hbs`](../../../templates/chat/roll-card.hbs) renders the envelope
   as plain text under the outcome — always visible, never inside the collapsible
-  tooltip, because the card is the only record of what was announced.
+  tooltip, because the card is the only record of what was announced. Above it
+  sits the `consequence` box, on failed rolls only: the one thing on a card that
+  still asks something of the player, so it is stated in the unit the damage
+  widget takes rather than as the arithmetic that produced it.
   `envelopeLines` in [`helpers/dice.mjs`](../../../module/helpers/dice.mjs)
   builds those lines: one Ansage figure rather than a penalty per defence,
   because which roll it was aimed at is what the two players said out loud.

@@ -14,7 +14,7 @@ import {
   weaponSkillRank,
   MALUS_STEP,
 } from './items.mjs';
-import { DAMAGE_RULES, DEFAULT_ZONE, ZONE_CHOICES, zoneCost } from './maneuvers.mjs';
+import { DAMAGE_RULES, DEFAULT_ZONE, ZONE_CHOICES, appliedDamage, zoneCost } from './maneuvers.mjs';
 import { getSkillDefinition, getSkillDefinitions } from './skills.mjs';
 
 /**
@@ -64,6 +64,17 @@ export function actorStance(actor) {
   const stances = CONFIG.TNO?.stances ?? {};
   const stance = actor?.system?.combat?.stance;
   return stance in stances ? stance : CONFIG.TNO?.defaultStance ?? 'open';
+}
+
+/**
+ * The i18n key naming this actor's Haltung, for surfaces that only need to say
+ * which one it is. Read through here rather than from `CONFIG` at the call
+ * site, so the defensive lookup stays in one place with `actorStance()`.
+ * @param {Actor} actor
+ * @returns {string|null}
+ */
+export function stanceLabelKey(actor) {
+  return CONFIG.TNO?.stances?.[actorStance(actor)]?.label ?? null;
 }
 
 /**
@@ -221,7 +232,7 @@ function maneuverFvMalus(actor, system) {
  * The three weapon values travel because the penetration comparison needs one
  * number from each side, and this is the direction that keeps the armour
  * private: the attacker reads their own weapon card out, and the defender —
- * who alone knows their RH — decides whether Scharfer or Wucht applies.
+ * who alone knows their RH — decides whether Schaden or Wucht applies.
  * @param {Actor} actor
  * @param {Item} weapon
  * The Distanzklasse rides along as information only. It settles nothing on its
@@ -255,6 +266,55 @@ function damageTargetLabel(zone) {
   const rule = DAMAGE_RULES[zone] ?? DAMAGE_RULES[DEFAULT_ZONE];
   const pool = game.i18n.localize('TNO.Damage.Pool');
   return rule.multiplier > 1 ? `${pool} ×${rule.multiplier}` : pool;
+}
+
+/**
+ * What a failed resistance roll costs, as the one sentence the card owes the
+ * defender: how much goes into which pool.
+ *
+ * Both halves are already on the roll, and neither is legible as it stands
+ * there. The pool is the penetration tile's consequence rather than its wording
+ * ("hält · Wuchtschaden"), the amount is the Schadenswert — recorded in the
+ * breakdown *negated*, because there it is a threshold component — and the
+ * Stelle's multiplier is named on the flavor line as a rule with no number
+ * attached. The player was left to multiply a sign-flipped figure by a
+ * multiplier printed three lines above it.
+ *
+ * Nothing is written to either pool from here. Damage entry stays manual and
+ * deliberately so — the card states, the owner enters — so this is a read-out,
+ * and the sheet's own stepper remains the only writer.
+ *
+ * @param {string} zone        The Stelle that was resisted at.
+ * @param {string} contextKey  The penetration comparison that was picked.
+ * @param {number|null} value  The announced Schadenswert, as typed.
+ * @returns {{label: string, text: string, note: string, hint: string}|null}
+ */
+function resistanceConsequence(zone, contextKey, value) {
+  const choice = armorPenetrationChoices().find((entry) => entry.key === contextKey);
+  // Both halves or nothing: `null` is the unanswered field, and reading it
+  // through `Number()` would turn it into a confidently applied zero.
+  if (!choice || !isAuthoredNumber(value)) return null;
+
+  const sharp = choice.damage === 'ss';
+  const { base, multiplier, total } = appliedDamage(value, zone);
+  return {
+    label: game.i18n.localize('TNO.Combat.Applied'),
+    text: game.i18n.format('TNO.Combat.AppliedAmount', {
+      amount: total,
+      pool: game.i18n.localize(sharp ? 'TNO.Damage.Sharp' : 'TNO.Damage.Blunt'),
+      tag: game.i18n.localize(sharp ? 'TNO.Damage.TagSharp' : 'TNO.Damage.TagBlunt'),
+    }),
+    // Only the Kopf carries one, and only then is the arithmetic worth showing:
+    // ×1 spelled out would make the plain case look like it had a rule on it.
+    note: multiplier > 1
+      ? game.i18n.format('TNO.Combat.AppliedMultiplier', {
+          base,
+          multiplier,
+          zone: game.i18n.localize(CONFIG.TNO.armorZones[zone]),
+        })
+      : '',
+    hint: game.i18n.localize('TNO.Combat.AppliedHint'),
+  };
 }
 
 /**
@@ -505,8 +565,8 @@ export function widerstandOptions(actor, zone) {
         hint: game.i18n.format('TNO.Combat.ResistanceRwHint', { zone: zoneLabel }),
       },
     ],
-    // The attacker's card prints two damage values, sharp and blunt, and the
-    // comparison above decides which of them landed. So this field is named by
+    // The attacker's card prints two damage values, Schaden and Wuchtschaden,
+    // and the comparison above decides which landed. So this field is named by
     // that pick rather than left as a bare "Schadenswert" the player has to map
     // back to the right column of the card themselves.
     requiredValue: {
@@ -527,7 +587,7 @@ export function widerstandOptions(actor, zone) {
     // the only terms it *can* state: it knows this location's RH and says so, so
     // the player answers about the single unknown — where the weapon's
     // Rüstungsdurchdringung sat against that number. Each tile then spells out
-    // what its answer does, because "weicher · SS" said neither whose armour was
+    // what its answer does, because "weicher · S" said neither whose armour was
     // meant nor what followed from it, and the +3 on the third looked arbitrary.
     preRollContext: {
       label: game.i18n.format('TNO.Combat.Penetration.Label', { rh: armor.rh }),
@@ -563,8 +623,12 @@ export function widerstandOptions(actor, zone) {
           },
         }
       : {}),
+    // The two answers above are also the two halves of the damage: which pool,
+    // and how much of it. Stated on the card, because a roll the player has to
+    // do arithmetic on afterwards is a roll they will get wrong at the table.
+    consequence: ({ contextKey, value }) => resistanceConsequence(zone, contextKey, value),
     // The Stelle keeps only its multiplier. The penetration comparison names
-    // whether the announced value enters the sharp or blunt pool.
+    // whether the announced value enters Schaden or Wuchtschaden.
     flavor: game.i18n.format('TNO.Combat.ResistanceFlavor', {
       zone: zoneLabel,
       damage: damageTargetLabel(zone),

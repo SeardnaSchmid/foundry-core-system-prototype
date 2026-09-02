@@ -90,12 +90,17 @@ export class TnoRollDialog extends FormApplication {
    *   'Rüstung umgehen' cancelling the padding of the Stelle being resisted at.
    *   Never pre-set from anything the other side sent: an attack card carries an
    *   amount, not a reason.
+   * @param {(answers: {contextKey: string, value: number|null}) => {label: string, text: string, note?: string, hint?: string}|null} [options.consequence]
+   *   What this roll costs the roller if it fails, phrased by the workflow that
+   *   opened the dialog — the resistance roll's applied damage is the first.
+   *   Called with the answers that decide it, and rendered on the chat card only
+   *   once the dice have actually failed. It states; nothing here applies it.
    * @param {() => Promise<void>} [options.afterRoll]
    *   Run once the dice have actually been cast, never when the dialog is
    *   cancelled. For state a workflow owes its own sheet — the repeated-defence
    *   counter is the first — which must count rolls and not intentions.
    */
-  constructor(actor, { attributeA = '', lockAttribute = false, skill = null, freeSkill = false, fixedValue = null, fixedModifiers = [], preRollContext = null, requiredValue = null, ansage = null, zonePicker = null, maneuverMalus = null, envelope = null, opposingAnsage = false, toggleModifier = null, afterRoll = null, flavor = '' } = {}) {
+  constructor(actor, { attributeA = '', lockAttribute = false, skill = null, freeSkill = false, fixedValue = null, fixedModifiers = [], preRollContext = null, requiredValue = null, ansage = null, zonePicker = null, maneuverMalus = null, envelope = null, opposingAnsage = false, toggleModifier = null, consequence = null, afterRoll = null, flavor = '' } = {}) {
     // `requiredValue` starts empty rather than at 0: an untouched field and a
     // typed zero are different answers, and only one of them may roll.
     super({ attributeA, attributeB: '', skillValue: 0, bonus: 0, advantage: TNO_ADVANTAGE.none, useIdea: false, contextChoice: '', requiredValue: '', ansage: '', zoneChoice: DEFAULT_ZONE, opposingAnsage: '', toggleModifier: false });
@@ -139,6 +144,7 @@ export class TnoRollDialog extends FormApplication {
       ? { label: String(toggleModifier.label), hint: String(toggleModifier.hint ?? ''), value: Number(toggleModifier.value) }
       : null;
     if (this.toggleModifier && toggleModifier.checked === true) this.object.toggleModifier = true;
+    this.consequence = typeof consequence === 'function' ? consequence : null;
     this.afterRoll = typeof afterRoll === 'function' ? afterRoll : null;
     this.flavor = flavor || game.i18n.localize('TNO.Roll.DialogTitle');
   }
@@ -576,6 +582,23 @@ export class TnoRollDialog extends FormApplication {
   }
 
   /**
+   * What a failed roll costs, as the workflow that opened this dialog words it.
+   *
+   * Read off the same two answers the threshold used, so the card cannot state
+   * one thing and the breakdown another. Whether it is shown at all is decided
+   * after the dice, in `rollTno` — this only says what the cost would be.
+   * @param {object} data  Form data with contextChoice and requiredValue.
+   * @returns {{label: string, text: string, note?: string, hint?: string}|null}
+   */
+  _consequence(data) {
+    if (!this.consequence) return null;
+    return this.consequence({
+      contextKey: this._contextChoice(data)?.key ?? '',
+      value: this._requiredValueEntry(data),
+    }) ?? null;
+  }
+
+  /**
    * Rule modifiers supplied by the workflow that opened this dialog. They
    * remain distinct from the user's situational bonus so authored weapon
    * handling cannot be reset or overwritten in the UI.
@@ -689,7 +712,7 @@ export class TnoRollDialog extends FormApplication {
     // reaches a signed read-out.
     const value = entry === 0 ? 0 : this.requiredValue.sign * entry;
     // Named the same way the field that took it was named, so a breakdown
-    // reading "Scharfer Schadenswert −4" says which of the attacker's two
+    // reading "Schadenswert −4" says which of the attacker's two
     // damage values this roll was resisting.
     const label = this.requiredValue.labels
       ? this._requiredValueLabel(data)
@@ -1221,6 +1244,7 @@ export class TnoRollDialog extends FormApplication {
       return;
     }
     const zoneComponent = this._zoneComponent(formData);
+    const consequence = this._consequence(formData);
     const ansageComponent = this._ansageComponent(formData);
     const opposing = this._opposingAnsageComponent(formData);
     const components = [
@@ -1282,6 +1306,9 @@ export class TnoRollDialog extends FormApplication {
         // Signed the way it entered the threshold, so the flag and the
         // component list say the same thing about the same number.
         ...(required ? { requiredValue: { label: required.label, value: required.value } } : {}),
+        // What a failure would cost, handed over unconditionally: only the dice
+        // decide whether it happened, and they have not been rolled yet.
+        ...(consequence ? { consequence } : {}),
         // The A→B channel, as numbers the defender can act on without ever
         // reading this sheet: the amount that was declared and where the blow
         // was aimed.

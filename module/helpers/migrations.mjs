@@ -303,7 +303,7 @@ async function migrateDropTemporaryAttributeValues() {
  *    more (see `TnoItem#roll`).
  *  - the weapon free-text trio (`dice`, `damage`, `range`) is appended to the
  *    description rather than parsed. There is no reliable reading of "2W6+3"
- *    as an SS count, a die and an RD, and guessing wrong would silently
+ *    as an S count, a die and an RD, and guessing wrong would silently
  *    mis-state a weapon at the table. Preserved as prose, the GM can retype it
  *    into the real fields with the original still in front of them.
  *

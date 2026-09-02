@@ -77,7 +77,7 @@ $c-roll-negative: #c62828;
   // It follows the context picker whose choice renames this field; that order
   // makes the selected damage kind and the number it asks for read together.
   // Core's `.form-group` lays label and control out as a row with a narrow
-  // label column, which folded "Scharfer Schadenswert (SS)" over three lines
+  // label column, which folded "Wucht-Schadenswert (WS)" over three lines
   // next to a half-width box. The name of the value being asked for is the
   // whole point of this field, so it gets its own line above a full-width one.
   .tno-required-value-field {

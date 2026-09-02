@@ -1,0 +1,33 @@
+{{!-- Die Zustände-Pille ist die eine Sammlung aller aktiven Zustände: die sechs
+Schadenswarnungen und die drei, die die Regeln von sich aus anwenden — eine
+Haltung ohne Ausweichen, die Last in ihren beiden Schweregraden und Rüstung,
+deren summierte Stärkevoraussetzung nicht erfüllt ist.
+
+Die Pille zeigt je ein zweibuchstabiges Kürzel pro aktivem Zustand, schwer vor
+mild sortiert — die Anfangsbuchstaben des Zustandsnamens, wie schon bei den
+Schadensleisten darüber: neun Piktogramme wären eine zweite Sprache, das Kürzel
+liest man. Ein manuell erzwungener Schadenszustand trägt den kleinen blauen
+Eckpunkt. Sie behält immer das neutrale Glas des Banners — die Einfärbung nach
+Klassifikation tragen erst die Kästen im Panel.
+
+Vollständigkeit ist das, was eine "in welcher Verfassung bin ich"-Fläche
+schuldet, und nur diese Sammlung führt alle neun. Das Raster ist ein
+schadensspezifischer Editor mit fester anatomischer Geometrie und steht deshalb
+im Panel neben den Leisten, die es bearbeitet. --}}
+<button type='button' class='banner-chip chip-status'
+        aria-haspopup='dialog' aria-expanded='false'
+        aria-label='{{localize "TNO.Status.Summary" count=conditions.active.length}}'
+        data-tooltip-html='<dl class="tno-tooltip">
+<div class="tno-tooltip-row"><dt>{{localize "TNO.Status.Title"}}</dt><dd>{{localize "TNO.Status.Summary" count=conditions.active.length}}</dd></div>
+</dl>'
+        data-tooltip-direction='DOWN'>
+  <span class='chip-label'>{{localize 'TNO.Status.Title'}}</span>
+  <span class='status-chip-dots' aria-hidden='true'>
+    {{#each conditions.active as |condition|}}
+    <span class='status-dot is-{{condition.classification}} is-{{condition.tone}}{{#if condition.manual}} is-manual{{/if}}'>{{condition.tag}}</span>
+    {{/each}}
+    {{#unless conditions.hasActive}}
+    <span class='status-chip-none'>—</span>
+    {{/unless}}
+  </span>
+</button>

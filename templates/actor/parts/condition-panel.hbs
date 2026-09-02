@@ -1,0 +1,137 @@
+{{!-- Das Zustandspanel: die eine Fläche, auf der die Verfassung der Figur
+bearbeitet wird. Es trägt an einem Ort, was das Banner vorher über ein Raster,
+vier Stepper und einen Löschknopf verteilt hatte.
+
+Es hängt an zwei Türen — der Zustände-Pille und der Vitalzeile —, weil Leiste
+und Raster dasselbe Modell bearbeiten und ein Stepper neben der Leuchte stehen
+soll, die er anzündet.
+
+Chrome ist das des Haltungs-Pickers: ein verankertes Popover, kein eingebettetes
+<details>. Genau das macht den z-index-Griff am Banner überflüssig — den
+gesamten Stapelkontext des Bandes anzuheben war nur nötig, weil das Panel
+überhaupt im Band gezeichnet wurde. --}}
+<div class='condition-panel'>
+
+  {{!-- 1 · Schaden. Dieselben zwei Leisten wie im Banner, hier mit ihrem
+  Stepper-Paar hinter der Marke, dem Löschen-beider-Pools und den Zahlen, die
+  oben nur in den Tooltip passten: Poolname, Rohwert, freier Rest, Kapazität,
+  Umwandlung. Jeder Stepper schreibt seinen Rohpool, nach oben ungebremst und
+  bei null geklammert. --}}
+  <section class='condition-panel-section'>
+    <h5 class='condition-panel-title'>{{localize 'TNO.Damage.PanelTitle'}}</h5>
+
+    <div class='condition-damage-rows'>
+      {{#each damage.rows as |row|}}
+      <div class='condition-damage-row'>
+        <span class='condition-damage-name'>{{localize row.labelKey}}</span>
+        <span class='damage-boxes'>
+          {{#each row.boxes as |box|}}<span class='damage-box is-{{box.tone}}'></span>{{/each}}
+          <span class='damage-mark' aria-hidden='true'></span>
+          {{#each row.overflow as |box|}}<span class='damage-box is-{{box.tone}}'></span>{{/each}}
+        </span>
+        <span class='condition-damage-figures'>
+          <b>{{row.value}}</b>
+          {{localize "TNO.Damage.RowHint" free=row.free capacity=@root.damage.capacity converted=@root.damage.bluntConverted}}
+        </span>
+        {{#if @root.editable}}
+        <span class='damage-stepper-group'>
+          <button type='button' class='damage-stepper' data-kind='{{row.kind}}' data-action='decrement'
+                  data-focus-key='step-{{row.kind}}-down'
+                  aria-label='{{localize row.decreaseKey}}' {{#unless row.value}}disabled{{/unless}}>−</button>
+          <button type='button' class='damage-stepper' data-kind='{{row.kind}}' data-action='increment'
+                  data-focus-key='step-{{row.kind}}-up'
+                  aria-label='{{localize row.increaseKey}}'>+</button>
+        </span>
+        {{/if}}
+      </div>
+      {{/each}}
+    </div>
+
+    {{#if editable}}{{#if damage.total}}
+    <button type='button' class='condition-panel-clear damage-clear' data-focus-key='damage-clear'>
+      <i class='fa-solid fa-rotate-left' aria-hidden='true'></i>
+      <span>{{localize 'TNO.Damage.ClearHint'}}</span>
+    </button>
+    {{/if}}{{/if}}
+  </section>
+
+  {{!-- 2 · Das 3×2-Raster mit allen sechs festen Positionen — Wucht über
+  Schaden, Rumpf / Beine / Arme von links nach rechts — direkt unter den
+  Leisten, die es treiben. Besitzer schalten eine Leuchte weiter: automatisch →
+  manuell gesetzt → manuell negiert → automatisch; eine manuelle Wahl trägt das
+  Handzeichen, eine negierte ist gestrichelt und durchgestrichen. Lesende
+  Betrachter bekommen dieselben Tooltips auf nicht bedienbaren Elementen.
+
+  Jede Position trägt ihren Namen. Im Banner musste das Zeichen allein die
+  Bedeutung tragen, weil dort keine Breite dafür war — hier ist sie da, und ein
+  Raster aus sechs benannten Pillen muss nicht erst über den Tooltip erklären,
+  welche Stelle welche ist. Position und Form des Zeichens identifizieren die
+  Position weiterhin, wenn die Füllung matt ist. --}}
+  <section class='condition-panel-section'>
+    <h5 class='condition-panel-title'>{{localize 'TNO.Status.RasterLabel'}}</h5>
+
+    <div class='status-raster' role='group' aria-label='{{localize "TNO.Status.RasterLabel"}}'>
+      {{#each conditions.rows as |row|}}
+      <span class='status-raster-row'>
+        {{#each row as |condition|}}
+        {{#if @root.editable}}
+        <button type='button'
+                class='status-light status-light-button is-{{condition.tone}}{{#if condition.active}} is-active{{/if}}{{#if condition.manual}} is-manual{{/if}}{{#if condition.suppressed}} is-suppressed{{/if}}'
+                data-condition-key='{{condition.key}}'
+                data-focus-key='light-{{condition.key}}'
+                aria-label='{{condition.label}}: {{condition.stateLabel}}'
+                data-tooltip-html='<dl class="tno-tooltip">
+<div class="tno-tooltip-row"><dt>{{condition.label}}</dt><dd>{{condition.effect}}<br>{{condition.reason}}<br>{{condition.stateLabel}} · {{localize "TNO.Status.CycleHint"}}</dd></div>
+</dl>'
+                data-tooltip-direction='DOWN'>
+          <span class='status-light-tag' aria-hidden='true'>{{condition.tag}}</span>
+          <span class='status-light-name'>{{condition.label}}</span>
+        </button>
+        {{else}}
+        <span class='status-light is-{{condition.tone}}{{#if condition.active}} is-active{{/if}}{{#if condition.manual}} is-manual{{/if}}{{#if condition.suppressed}} is-suppressed{{/if}}'
+              data-tooltip-html='<dl class="tno-tooltip">
+<div class="tno-tooltip-row"><dt>{{condition.label}}</dt><dd>{{condition.effect}}<br>{{condition.reason}}<br>{{condition.stateLabel}}</dd></div>
+</dl>'
+              data-tooltip-direction='DOWN'>
+          <span class='status-light-tag' aria-hidden='true'>{{condition.tag}}</span>
+          <span class='status-light-name'>{{condition.label}}</span>
+        </span>
+        {{/if}}
+        {{/each}}
+      </span>
+      {{/each}}
+    </div>
+
+    <p class='condition-panel-hint'>{{localize 'TNO.Status.PanelDamageHint'}}</p>
+  </section>
+
+  {{!-- 3 · Jeder aktive Zustand, schwer vor mild, jeder in der Reihenfolge
+  Zustand → Wirkung → Schwelle: die Wirkung ist, wofür die Zeile da ist, und der
+  Vergleich, der sie eingeschaltet hat, ist die Fußnote. Die Wirkungszeile nimmt
+  die eigene Tinte des Panels statt des Warnrots — neun rote Absätze wären eine
+  Wand, wo der gefüllte Kasten schon sagt, dass der Eintrag negativ ist.
+
+  Die drei abgeleiteten Zustände erscheinen nur hier, nie im Raster: sie sind
+  Arithmetik auf Slotbudget, summierter Stärkevoraussetzung und der
+  Verteidigungsliste der Haltung, und ein Override wäre nur eine erzwungene
+  falsche Zahl. --}}
+  <section class='condition-panel-section'>
+    <h5 class='condition-panel-title'>{{localize 'TNO.Status.PanelTitle'}}</h5>
+
+    {{#each conditions.active as |condition|}}
+    <div class='status-panel-row is-{{condition.classification}} is-{{condition.tone}} is-active{{#if condition.manual}} is-manual{{/if}}'>
+      <span class='status-panel-light' aria-hidden='true'>{{condition.tag}}</span>
+      <span class='status-panel-copy'>
+        <strong>{{condition.label}}</strong>
+        {{#if condition.effect}}<small class='status-panel-effect'>{{condition.effect}}</small>{{/if}}
+        <small>{{condition.reason}}</small>
+      </span>
+      <span class='status-panel-state'>{{condition.stateLabel}}</span>
+    </div>
+    {{/each}}
+    {{#unless conditions.hasActive}}
+    <p class='status-panel-empty'>{{localize 'TNO.Status.Empty'}}</p>
+    {{/unless}}
+  </section>
+
+</div>

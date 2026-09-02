@@ -159,6 +159,8 @@ export function criticalResultFor(values, advantage) {
  * @param {number} [options.bonus]             Situational modifier shown in the breakdown.
  * @param {object} [options.extraFlags]        Extra properties merged into the message's
  *   `flags.tno`, e.g. `{ edgeExempt: true }` for a roll that must not offer the edge panel.
+ *   `consequence` is the one key read rather than merely stored: what a failure costs,
+ *   kept on the card and in the flags only when the roll actually failed.
  * @returns {Promise<{roll: Roll, success: boolean|null, message: ChatMessage}>}
  */
 export async function rollTno({
@@ -194,6 +196,13 @@ export async function rollTno({
 
   const advantageKey = Object.keys(TNO_ADVANTAGE).find((key) => TNO_ADVANTAGE[key] === advantage);
 
+  // A consequence is offered before the roll and only earned by failing it, so
+  // it is filtered here rather than at the caller — nothing that opens a dialog
+  // can know how the dice will land. Both the card and the flag are gated on the
+  // same read, so a stored consequence always means it applies.
+  const { consequence: declaredConsequence = null, ...otherFlags } = extraFlags;
+  const consequence = outcome === 'failure' || outcome === 'criticalFailure' ? declaredConsequence : null;
+
   const content = await foundry.applications.handlebars.renderTemplate('systems/tno/templates/chat/roll-card.hbs', {
     flavor,
     hasThreshold,
@@ -211,7 +220,8 @@ export async function rollTno({
     components,
     showBonus: bonus !== 0,
     bonusDisplay: bonus > 0 ? `+${bonus}` : `${bonus}`,
-    envelope: envelopeLines(extraFlags.envelope),
+    envelope: envelopeLines(otherFlags.envelope),
+    consequence,
   });
 
   // Failed rolls carry enough context in flags.tno (threshold, advantage) for
@@ -241,7 +251,8 @@ export async function rollTno({
         bonus,
         outcome,
         edge: { consumed: null, findFlaw: null, newAttempt: null, xpClaim: null, analyzeFlaw: null },
-        ...extraFlags,
+        ...otherFlags,
+        ...(consequence ? { consequence } : {}),
       },
     },
   });

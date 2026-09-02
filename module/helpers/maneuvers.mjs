@@ -56,6 +56,29 @@ export const DAMAGE_RULES = {
 };
 
 /**
+ * What a failed resistance roll puts into the pool, given the Schadenswert that
+ * was announced and the Stelle it landed on.
+ *
+ * The multiplier is the only thing the Stelle still contributes, and this is
+ * where it is finally cashed in: every earlier consumer of {@link DAMAGE_RULES}
+ * only *names* it ("Schadenspool ×2"), because until the resistance roll has
+ * failed there is no amount to multiply.
+ *
+ * The rule reads "Schaden in Höhe des verwendeten Schadenswert als Würfel", and
+ * which dice those would be is written nowhere — so this takes the announced
+ * value at face value. See the combat PRD's Open section.
+ *
+ * @param {number} value  The Schadenswert the defender was told, as typed.
+ * @param {string} zone   The Stelle that was resisted at.
+ * @returns {{base: number, multiplier: number, total: number}}
+ */
+export function appliedDamage(value, zone) {
+  const base = Math.max(0, Math.trunc(Number(value) || 0));
+  const { multiplier } = DAMAGE_RULES[zone] ?? DAMAGE_RULES[DEFAULT_ZONE];
+  return { base, multiplier, total: base * multiplier };
+}
+
+/**
  * What naming a Stelle costs the attack that names it.
  *
  * Straight out of Gezielte Angriffe, which prices each location in Stufen and

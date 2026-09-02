@@ -22,7 +22,7 @@ describe('resolveDamage', () => {
     });
   });
 
-  it('gives each pool its own budget instead of letting sharp damage crowd blunt out', () => {
+  it('gives each pool its own budget instead of letting Schaden crowd Wuchtschaden out', () => {
     expect(resolveDamage({ sharp: 3, blunt: 4 }, 5)).toMatchObject({
       bluntCarried: 4,
       bluntConverted: 0,
@@ -42,7 +42,7 @@ describe('resolveDamage', () => {
     });
   });
 
-  it('incapacitates only once effective sharp damage is strictly greater than capacity', () => {
+  it('incapacitates only once effective Schaden is strictly greater than capacity', () => {
     expect(resolveDamage({ sharp: 3, blunt: 7 }, 5).downed).toBe(false);
     expect(resolveDamage({ sharp: 3, blunt: 8 }, 5).downed).toBe(true);
   });
@@ -91,19 +91,19 @@ describe('damageTrackRows', () => {
   };
   const tones = (row) => row.boxes.map((box) => box.tone);
 
-  it('draws Wuchtschaden above Scharfer Schaden, each row on its own budget', () => {
+  it('draws Wuchtschaden above Schaden, each row on its own budget', () => {
     const { blunt, sharp } = rows({ sharp: 1, blunt: 3 }, 4);
 
     expect(blunt.kind).toBe('blunt');
     expect(sharp.kind).toBe('sharp');
     expect(tones(blunt)).toEqual(['blunt', 'blunt', 'blunt', 'empty']);
     expect(tones(sharp)).toEqual(['sharp', 'empty', 'empty', 'empty']);
-    // Three blunt points leave the sharp row all but one of its own four boxes.
+    // Three Wucht points leave the Schaden row all but one of its own four boxes.
     expect([blunt.free, sharp.free]).toEqual([1, 3]);
     expect([blunt.overflow, sharp.overflow]).toEqual([[], []]);
   });
 
-  it('sends blunt damage past its own mark and lands the same points in the sharp row', () => {
+  it('sends Wuchtschaden past its own mark and lands the same points in the Schaden row', () => {
     const { blunt, sharp } = rows({ sharp: 1, blunt: 6 }, 4);
 
     expect(tones(blunt)).toEqual(['blunt', 'blunt', 'blunt', 'blunt']);
@@ -112,7 +112,7 @@ describe('damageTrackRows', () => {
     expect(sharp.overflow).toEqual([]);
   });
 
-  it('puts a box past the sharp row mark exactly when the character is kampfunfähig', () => {
+  it('puts a box past the Schaden row mark exactly when the character is kampfunfähig', () => {
     expect(rows({ sharp: 1, blunt: 6 }, 4).sharp.overflow).toEqual([]);
     expect(resolveDamage({ sharp: 1, blunt: 6 }, 4).downed).toBe(false);
 

@@ -6,6 +6,7 @@ import {
   ZONE_CHOICES,
   ZONE_COSTS,
   ansageEnvelope,
+  appliedDamage,
   zoneCost,
 } from '../../module/helpers/maneuvers.mjs';
 
@@ -85,5 +86,30 @@ describe('DAMAGE_RULES', () => {
     // Anything that is not a Stelle costs nothing rather than NaN.
     expect(zoneCost('suit')).toBe(0);
     expect(zoneCost(undefined)).toBe(0);
+  });
+});
+
+// The multiplier is named everywhere and cashed in exactly once: here, on the
+// Schadenswert a failed resistance roll let through.
+describe('appliedDamage', () => {
+  it('applies the announced value unchanged everywhere but the head', () => {
+    for (const zone of ['torso', 'arms', 'legs']) {
+      expect(appliedDamage(4, zone)).toEqual({ base: 4, multiplier: 1, total: 4 });
+    }
+  });
+
+  it('doubles what reaches the head', () => {
+    expect(appliedDamage(4, 'head')).toEqual({ base: 4, multiplier: 2, total: 8 });
+  });
+
+  it('reads an unannounced Stelle as the Torso rather than dropping the damage', () => {
+    expect(appliedDamage(3, 'suit').total).toBe(3);
+    expect(appliedDamage(3, undefined).total).toBe(3);
+  });
+
+  it('takes no damage from a blank, negative or fractional value', () => {
+    expect(appliedDamage('', 'head').total).toBe(0);
+    expect(appliedDamage(-5, 'head').total).toBe(0);
+    expect(appliedDamage(2.8, 'head')).toEqual({ base: 2, multiplier: 2, total: 4 });
   });
 });

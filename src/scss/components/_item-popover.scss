@@ -574,7 +574,7 @@
       width: 22px;
       flex: none;
       font-size: var(--font-size-15, 15px);
-      color: $c-advance;
+      color: $c-dark;
       text-align: center;
     }
 
@@ -586,7 +586,7 @@
 
     &:hover,
     &:focus-visible {
-      border-color: $c-advance;
+      border-color: rgba($c-dark, 0.62);
       background: rgba($c-white, 0.85);
       outline: none;
     }
@@ -594,12 +594,12 @@
     // The Haltung in force, inverted so it is found without reading. It stays
     // clickable: taking it again is what clears the repeated-defence counters.
     &.selected {
-      border-color: $c-advance;
+      border-color: $c-dark;
       background: $c-dark;
       color: $c-faint;
 
       i {
-        color: $c-idea;
+        color: $c-white;
       }
     }
   }
@@ -624,7 +624,7 @@
     border: 1px solid rgba($c-dark, 0.16);
     border-radius: 6px;
     background: rgba($c-white, 0.6);
-    color: $c-advance;
+    color: $c-dark;
     font-size: var(--font-size-18, 18px);
   }
 
@@ -660,6 +660,255 @@
       font-weight: bold;
       line-height: 1.35;
     }
+  }
+}
+
+// The stepper pair, shared by the condition panel's two damage rows and the
+// Edge popover's correction — the same gesture on different pools.
+//
+// Declared here rather than with the banner in `_forms.scss`: these controls
+// only ever appear inside a popover, and the generic `.item-popover button`
+// reset above matches `.tno button.damage-stepper` at equal specificity and
+// wins on source order, which silently collapsed them to their glyph's width.
+&.item-popover {
+  .damage-stepper-group {
+    display: inline-flex;
+    flex: none;
+    border: 1px solid rgba($c-dark, 0.72);
+    border-radius: 6px;
+    overflow: hidden;
+    background: rgba($c-white, 0.6);
+  }
+
+  button.damage-stepper {
+    width: 48px;
+    height: 30px;
+    min-height: 0;
+    flex: none;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: $c-dark;
+    font-family: inherit;
+    font-size: var(--font-size-18, 18px);
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.12s ease;
+
+    & + .damage-stepper {
+      border-left: 1px solid rgba($c-dark, 0.4);
+    }
+
+    &:hover:not(:disabled) {
+      background: rgba($c-dark, 0.12);
+    }
+
+    &:focus-visible {
+      outline: 2px solid rgba($c-dark, 0.45);
+      outline-offset: -2px;
+    }
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+  }
+}
+
+// The condition panel is an item-popover variant too: same frame, same
+// parchment, three stacked sections. It is what retired the banner's inline
+// <details> and the z-index override that disclosure needed — a panel painted
+// inside the band can only escape it by lifting the band's whole stacking
+// context, and a top-layer popover never has that problem.
+//
+// One panel with two doors: the Zustände pill and the vitals row. The sections
+// run damage → raster → written-out rows, so a stepper sits directly above the
+// light it lights, and the light directly above the sentence it stands for.
+&.item-popover.condition-popover {
+  width: min(560px, calc(100vw - 16px));
+
+  .condition-panel {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .condition-panel-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 11px 13px;
+    border-bottom: 1px solid rgba($c-dark, 0.14);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .condition-panel-title {
+    margin: 0;
+    color: $c-tan;
+    font-size: var(--font-size-10, 10px);
+    font-weight: bold;
+    letter-spacing: 0.13em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .condition-damage-rows {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 9px 12px;
+  }
+
+  // The panel is where the two pools finally have room for their names. The
+  // band can only afford the two-letter tag and a tooltip.
+  .condition-damage-row {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    align-items: center;
+  }
+
+  .condition-damage-name {
+    font-size: var(--font-size-11, 11px);
+    font-weight: bold;
+    white-space: nowrap;
+  }
+
+  // Pool name, raw value, free remainder, capacity and converted count — the
+  // figures the band could only fit into a tooltip.
+  .condition-damage-figures {
+    min-width: 0;
+    color: $c-tan;
+    font-size: var(--font-size-10, 10px);
+    line-height: 1.35;
+    text-wrap: pretty;
+
+    b {
+      color: $c-dark;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  // Only offered while there is damage to clear: without it the control would
+  // be an action with no effect.
+  .condition-panel-clear {
+    display: inline-flex;
+    align-self: flex-start;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 9px;
+    border: 1px solid rgba($c-dark, 0.2);
+    border-radius: 6px;
+    background: rgba($c-white, 0.55);
+    color: $c-dark;
+    font-size: var(--font-size-11, 11px);
+    cursor: pointer;
+
+    i {
+      font-size: var(--font-size-13, 13px);
+    }
+
+    &:hover {
+      border-color: rgba($c-dark, 0.4);
+      background: rgba($c-white, 0.85);
+    }
+  }
+
+  .condition-panel-hint {
+    margin: 0;
+    color: $c-tan;
+    font-size: var(--font-size-10, 10px);
+    line-height: 1.4;
+  }
+}
+
+// The Edge popover: the three derived thresholds the pill's pips cannot show,
+// and the manual correction that replaced the band's number field.
+&.item-popover.edge-popover {
+  width: min(260px, calc(100vw - 16px));
+
+  .edge-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    padding: 11px 13px;
+  }
+
+  .edge-panel-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .edge-panel-title {
+    color: $c-tan;
+    font-size: var(--font-size-10, 10px);
+    font-weight: bold;
+    letter-spacing: 0.13em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .edge-panel-count {
+    color: $c-tan;
+    font-size: var(--font-size-12, 12px);
+    font-variant-numeric: tabular-nums;
+
+    b {
+      color: $c-dark;
+      font-size: var(--font-size-15, 15px);
+    }
+  }
+
+  .edge-panel-thresholds {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+
+    > div {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    dt {
+      color: $c-tan;
+      font-size: var(--font-size-11, 11px);
+    }
+
+    dd {
+      margin: 0;
+      font-size: var(--font-size-12, 12px);
+      font-weight: bold;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  // A GM correction of the bookkeeping, not a spend: it needs no permanently
+  // visible input, and only a decrease is announced in chat.
+  .edge-panel-adjust {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 8px;
+    border-top: 1px dashed rgba($c-dark, 0.24);
+  }
+
+  .edge-panel-adjust-label {
+    color: $c-tan;
+    font-size: var(--font-size-10, 10px);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
 }
 

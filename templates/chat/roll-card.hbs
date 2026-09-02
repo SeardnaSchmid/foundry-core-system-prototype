@@ -23,6 +23,19 @@
     <div class="tno-roll-outcome {{outcome}}">{{outcomeLabel}}</div>
     {{/if}}
 
+    {{!-- Was dieser misslungene Wurf kostet, in der Einheit, in der es
+    eingetragen wird. Steht nur auf gescheiterten Würfen und trägt selbst nichts
+    ein: Schaden bucht der Besitzer des Bogens, wie überall sonst auch. --}}
+    {{#if consequence}}
+    <div class="tno-roll-consequence" {{#if consequence.hint}}data-tooltip="{{consequence.hint}}"{{/if}}>
+      <span class="tno-consequence-label">{{consequence.label}}</span>
+      <span class="tno-consequence-value">{{consequence.text}}</span>
+      {{#if consequence.note}}
+      <span class="tno-consequence-note">{{consequence.note}}</span>
+      {{/if}}
+    </div>
+    {{/if}}
+
     {{!-- Was der Verteidiger wissen muss, als Text. Kein Target, kein zweites
     Dokument, keine Rechte-Prüfung: der Angreifer sagt an, der Verteidiger trägt
     ein, was ihn betrifft — dieselbe Teilung, auf der der angesagte Schadenswert

@@ -1,0 +1,26 @@
+{{!-- Der Malus ist die größte Zahl des Banners: er wird bei jedem Wurf laut
+angesagt, und das ist das ganze Argument für seine Größe. Er erscheint nur,
+wenn er auch einer ist — ab −1, oder ab +1, falls je etwas einen Wurf anhebt.
+Bei null steht die Zelle nicht als gedämpfte 0 da: sie sitzt auf der Grundlinie
+des Namens, es klappt also nichts zusammen, wenn sie fehlt, und die Leisten
+darunter sagen bereits, dass die Figur unverletzt ist.
+
+Er steht in derselben Grundlinie wie der Name — die Vitalwerte teilen sich die
+Identitätsbahn, weil die Zahl dorthin gehört, wo sie gelesen wird, und nicht in
+die Spalte der Bedienelemente.
+
+Die Zelle ist eine der beiden Türen zum Zustandspanel; die andere ist die
+Zustände-Pille. Bearbeitet wird der Schaden ausschließlich dort. --}}
+{{#if damage.hasMalus}}
+<button type='button' class='banner-malus vitals-door{{#if damage.downed}} is-downed{{/if}}'
+        aria-haspopup='dialog' aria-expanded='false'
+        aria-label='{{localize "TNO.Damage.Malus"}}: {{damage.malusLabel}}'
+        data-tooltip-html='<dl class="tno-tooltip">
+<div class="tno-tooltip-row"><dt>{{localize "TNO.Damage.Malus"}} <span class="tno-tooltip-value">{{damage.malus}}</span></dt><dd>{{localize "TNO.Damage.MalusBreakdown" blunt=damage.blunt sharp=damage.sharp}}</dd></div>
+{{#if damage.downed}}<div class="tno-tooltip-row"><dt>{{localize "TNO.Damage.Downed"}}</dt><dd>{{localize "TNO.Damage.DownedHint" effective=damage.effectiveSharp capacity=damage.capacity}}</dd></div>{{/if}}
+</dl>'
+        data-tooltip-direction='DOWN'>
+  {{#if damage.downed}}<i class='fa-solid fa-triangle-exclamation' aria-hidden='true'></i>{{/if}}
+  <span class='banner-malus-value'>{{damage.malusLabel}}</span>
+</button>
+{{/if}}

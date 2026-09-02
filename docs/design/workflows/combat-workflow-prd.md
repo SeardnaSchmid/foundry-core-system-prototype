@@ -39,12 +39,12 @@ paths `actor.system.*`.
 | **DK** Distanzklasse | `dk` (melee), `range.{sn,near,mid,far,sf}` (ranged) | reach class 0–6 / the five range bands |
 | **HH** Handhabung | `hh.active`, `hh.passive` | base modifier, attack / parry |
 | **RB / RD** Rüstungsbrechung / -durchdringung | `rb` (melee), `rd` (ranged) | armour ignored up to this hardness |
-| **SS / WS** Scharfer / Wucht Schadenswert | `ss.count`, `ws.count` | damage on a penetrating / non-penetrating hit |
+| **S / WS** Schadenswert / Wucht Schadenswert | `ss.count`, `ws.count` | damage on a penetrating / non-penetrating hit |
 | **RH** Rüstungshärte | `rh` | how hard the armour is to punch through |
 | **RW** Rüstungswert | `rw` | padding; feeds the resistance value |
 | **RA** Rüstungsabdeckung | `ra` | how well the location is covered |
 | Stelle | `zone` | hit location: `head`, `torso`, `arms`, `legs` |
-| Scharfer Schaden / Wuchtschaden | `damage.{sharp,blunt}` | the two raw health counters; conversion is derived, never persisted |
+| Schaden / Wuchtschaden | `damage.{sharp,blunt}` | the two raw health counters; conversion is derived, never persisted. The stored keys predate the rename — read `sharp` as Schaden |
 | Malusstufe | `MALUS_STEP` in `helpers/items.mjs` | `−3` |
 | Bonusstufe | `BONUS_STEP` in `helpers/items.mjs` | `+3` |
 | worn armour totals | `derived.armorSv`, `derived.armorSvPenalty`, `derived.armor.<zone>` | summed SV, whether it is unmet, per-location RH/RW/RA |
@@ -137,17 +137,25 @@ If 3 fails, the target takes the applicable damage value:
 
 | | RH < RB/RD | RH = RB/RD | RH > RB/RD |
 |---|---|---|---|
-| Damage value | SS (Scharfer) | WS (Wucht) | WS (Wucht) |
+| Damage value | S (Schaden) | WS (Wucht) | WS (Wucht) |
 | Resistance roll | — | — | `+3` (1 bonus step) |
 
 The comparison needs one number from each side, and the direction it runs in is
 what keeps the armour private: **the attacker reads their weapon card out** —
-RB/RD, Scharf, Wucht — and the defender, who alone knows their RH, picks.
+RB/RD, Schaden, Wucht — and the defender, who alone knows their RH, picks.
 
 ### Damage pools and Stelle
 
+There are two kinds of damage. **Schaden** is the obvious one and measures how
+badly a person or object is injured or damaged. **Wuchtschaden** measures how
+restricted they currently are — knocked to the ground, off balance, or with
+their orientation impaired. Each level of either shows up as a `−1` malus on
+every roll. The kind that used to be called *Scharfer Schaden* is this plain
+`Schaden`, abbreviated **S** where the old name was abbreviated SS; `WS` is
+unchanged.
+
 Per-Stelle attribute damage is gone. The penetration comparison selects the raw
-pool — SS enters Scharfer Schaden, WS enters Wuchtschaden — while Stelle keeps
+pool — S enters Schaden, WS enters Wuchtschaden — while Stelle keeps
 only its multiplier: Kopf ×2, every other location ×1
 (`tests/helpers/maneuvers.test.js › doubles a head hit, and only a head hit`).
 The resistance dialog and the attack's Stelle tiles therefore name the pool and
@@ -157,28 +165,89 @@ multiplier, never an attribute
 The character's health model resolves against trained Stärke
 (`abilities.str.base`):
 
-1. Each pool has its own budget of the full Stärke. Sharp damage never takes
-   room away from blunt damage, and blunt never takes room away from sharp
-   (`tests/helpers/damage.test.js › gives each pool its own budget instead of letting sharp damage crowd blunt out`).
-   Blunt is derived as converted sharp only past *its own* Stärke, while the
-   stored raw counters remain untouched
+1. Each pool has its own budget of the full Stärke. Schaden never takes room
+   away from Wuchtschaden, and Wuchtschaden never takes room away from Schaden
+   (`tests/helpers/damage.test.js › gives each pool its own budget instead of letting Schaden crowd Wuchtschaden out`).
+   Wuchtschaden is derived as converted Schaden only past *its own* Stärke,
+   while the stored raw counters remain untouched
    (`tests/helpers/damage.test.js › converts blunt damage only once it has filled its own track`).
 2. `effectiveSharp = sharp + bluntConverted`. The character is
    **Kampfunfähig** only when `effectiveSharp > base Stärke`, strictly greater,
    with a warning badge but no enforced status
-   (`tests/helpers/damage.test.js › incapacitates only once effective sharp damage is strictly greater than capacity`).
+   (`tests/helpers/damage.test.js › incapacitates only once effective Schaden is strictly greater than capacity`).
 3. Every raw point in either pool applies `−1` to every roll. A converted point
    remains one point and is never counted twice
    (`tests/helpers/damage.test.js › counts converted damage once rather than adding it to the raw total again`).
 
+The header also derives a fixed **3×2 condition raster** from those pools. Its
+columns are core, legs and arms; Wuchtschaden is the upper mild row and Schaden
+the lower severe row. Each light activates only when its pool is strictly
+greater than the associated trained attribute: core compares with Stärke, legs
+with Beweglichkeit and arms with Fingerfertigkeit. The severe row reads
+effective Schaden, so converted Wuchtschaden crosses the same thresholds as raw
+Schaden. The named warnings are Handlungsunfähig / Kampfunfähig, Beine
+behindert / verkrüppelt and Arme behindert / verkrüppelt.
+
+Was jeder Zustand bedeutet — die Wortlaute, die Sheet und Tooltip anzeigen:
+
+| Zustand | Schwelle | Effekt |
+| --- | --- | --- |
+| Kampfunfähig | Schaden > Stärke | Scheidet aus dem Kampf aus |
+| Beine verkrüppelt | Schaden > Beweglichkeit | Kann sich nur noch mit der Geschwindigkeit „Kriechend" fortbewegen — im Kampf also nur in der Haltung „Vorsichtige Bewegung" |
+| Arme verkrüppelt | Schaden > Fingerfertigkeit | Kann keine Handlungen mehr durchführen, für die die Hände benötigt werden: neben allen Angriffen auch Klettern, Geräte bedienen usw. nach GM-Entscheid |
+| Handlungsunfähig | Wuchtschaden > Stärke | Kann keine Handlung außer „Sich fangen" ausführen und keine Haltung außer „Offen" einnehmen |
+| Beine behindert | Wuchtschaden > Beweglichkeit | Kann sich nur noch mit „Kriechend" oder „Gehen" fortbewegen — im Kampf also nicht in der Haltung „Schnelle Bewegung" |
+| Arme behindert | Wuchtschaden > Fingerfertigkeit | Kann nichts mehr in der Hand halten und lässt es fallen |
+
+**Der Effekt wird angesagt, nicht erzwungen.** Keine dieser Zeilen greift in
+eine Regelrechnung ein: das Sheet sperrt weder Haltungen noch Handlungen, und
+der globale Wurfmalus kommt weiterhin allein aus den rohen Pools. Die Zustände
+sind das, was am Tisch gilt — die Anzeige sagt es, der Tisch wendet es an. Ob
+die Haltungssperren der Beine- und Kern-Zustände einmal in den Haltungswähler
+wandern, ist offen und bewusst nicht vorweggenommen.
+
+Each light follows its derived comparison by default and may be forced on or
+off by the actor's owner. This override changes only the displayed condition:
+it never changes either damage pool, the global malus or another rule result.
+The conditions are warnings, not enforced restrictions. The header status
+component is always visible as the character's read-only collection of active
+conditions: both its compact summary and opened panel omit inactive and manually
+negated entries, and the panel shows an empty state when none are active. A
+blue point marks a manually set condition. The full damage raster alone keeps
+all six positions visible and cycles each one through automatic, manually set
+and manually negated. Damage conditions are negative conditions; the shared
+warning red colours only their small boxes in the status collection, never the
+surrounding `ZUSTÄNDE` pill.
+
+**Both surfaces lead with the effect from the table above.** The panel row
+reads condition → effect → threshold, and a raster light's tooltip does the
+same, including on a light that is off — "what would this one do to me" is the
+question an unlit position is looked at with. The threshold comparison stays
+the footnote: it explains why the entry is on, which is a smaller question than
+what it costs.
+
 Damage is entered manually on the owning character sheet. The system does not
 automatically transfer a failed resistance roll into either pool.
 
-**How much** damage lands is still open, and deliberately unbuilt: a failed
-resistance roll costs "Schaden in Höhe des verwendeten Schadenswert **als
-Würfel**", and which dice those are is written nowhere. The Stelle can therefore
-say which pool and multiplier apply, but nothing can turn the unresolved dice
-instruction into an automatic number — so nothing tries.
+A failed resistance roll therefore **states its cost on the chat card**: the
+announced Schadenswert times the Stelle's multiplier, named as the pool it goes
+into — "4 Wuchtschaden (WS)", plus the arithmetic whenever the multiplier is not
+1 (`tests/documents/actor-resistance-roll.test.js › states how much of which pool a failed resistance roll costs`,
+`tests/documents/actor-resistance-roll.test.js › cashes in the Stelle multiplier and shows the arithmetic it did`).
+It states only; the owner still enters it. That line appears on failed rolls and
+on nothing else, decided after the dice rather than by whatever opened the dialog
+(`tests/helpers/dice.test.js › says nothing at all on the roll that succeeded`).
+
+Both figures were already on the card before, and neither was readable: the pool
+was the penetration tile's consequence rather than its wording, the amount was
+recorded in the breakdown **negated** (it is a threshold component there), and
+the multiplier was named on the flavor line as a rule with no number attached.
+
+**How much** it should be is still open: the rule says "Schaden in Höhe des
+verwendeten Schadenswert **als Würfel**", and which dice those are is written
+nowhere. Read here as the value itself — the damage track counts in points, and
+the alternative is a roll no rule defines. Should dice turn out to be meant,
+`appliedDamage` in `helpers/maneuvers.mjs` is the single place that decides it.
 
 `Rüstung umgehen` cancels the Stelle's RW on the resistance roll. It is offered
 on every location that has padding to cancel and is ticked by the defender alone
@@ -383,7 +452,7 @@ attack's chat card — no targeting, no second document, no permission check
 (`tests/documents/roll-dialog.test.js › emits the envelope with the amount and the Stelle, and no attacker stats`).
 
 ```
-from · Ansage −n · DK · Stelle · RB/RD · Scharf / Wucht
+from · Ansage −n · DK · Stelle · RB/RD · Schaden / Wucht
 ```
 
 **One Ansage figure, not one per defence.** Which of the defender's rolls it
@@ -439,8 +508,9 @@ Targets, combatant state, Initiative, Bindung, action economy, ammunition,
 readying, chat-card follow-up chains.
 
 **Nothing is applied automatically.** The attack card states the envelope, the
-defender enters what applies to them, and a failed resistance roll leaves the
-applicable raw pool to be stepped manually on the target's own damage widget.
+defender enters what applies to them, and a failed resistance roll names the
+amount and the pool but leaves both to be stepped manually on the target's own
+damage widget — stating a number is not writing it.
 That is deliberate rather than unfinished: an automatic hand-off needs targets
 and cross-actor writes, which is exactly the coupling this document refuses
 while the rules are still moving. The format would not change if it were
@@ -475,7 +545,11 @@ location on the paper doll. There is no random hit table anywhere in the rules.
    ladder should let it be bought. **Shipped flat**: the `−6` applies, the tile
    is never disabled and nothing warns, consistent with the standing rule that
    this dialog never re-derives the Ansage ladder.
-5. **Where does `Rüstung umgehen` charge?** The rule puts the cost on the
+5. **Is "Schaden in Höhe des verwendeten Schadenswert als Würfel" a roll?**
+   **Shipped flat**: the card applies the Schadenswert itself, times the Stelle
+   multiplier — the damage track counts in points, and no dice are named. If a
+   roll was meant, `appliedDamage` is the one function to change.
+6. **Where does `Rüstung umgehen` charge?** The rule puts the cost on the
    attacker, measured in the defender's RA — see [The Stelle](#the-stelle). The
    implementation charges the attacker nothing and lets the defender cancel
    their own RW instead. Resolving it needs an announced-RA channel; deferred

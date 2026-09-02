@@ -206,7 +206,7 @@ export function buildGearSummary(item) {
 /**
  * Present a damage pair without deciding which combat branch applies.
  *
- * SS and WS are plain values on a 0..N scale, not counts of dice — there is no
+ * S and WS are plain values on a 0..N scale, not counts of dice — there is no
  * unit to append, and a "W" suffix said there was one.
  */
 export function damagePresentation(damage) {
@@ -235,7 +235,7 @@ export function buildRangeProfile(system) {
 /**
  * Divide the RH domain around RD without inventing the unresolved damage rule.
  * Consumers may show the comparison and both damage values, but must not label
- * a segment as SS/WS until the combat PRD defines equality and overflow.
+ * a segment as S/WS until the combat PRD defines equality and overflow.
  */
 export function buildPenetrationProfile(system) {
   const key = weaponUse(system) === 'ranged' ? 'rd' : 'rb';

@@ -69,7 +69,7 @@ worn, and reading them off the armour card said otherwise. --}}
     location. The Haltung can make the action unavailable without hiding the
     value the character would otherwise roll against. --}}
     <button type='button'
-            class='paperdoll-dodge{{#if dodgeDefense.available}} rollable{{/if}}'
+            class='paperdoll-dodge{{#if dodgeDefense.available}} rollable{{else}} is-unavailable{{/if}}'
             {{#if dodgeDefense.available}}data-roll-type='dodge' data-label='{{localize "TNO.Combat.Dodge"}}'{{/if}}
             {{#if dodgeDefense.disabled}}disabled{{/if}}
             aria-label='{{localize "TNO.Combat.Dodge"}}: {{system.derived.dodge}}{{#if dodgeDefense.malus}}, {{dodgeDefense.hint}}{{/if}}'

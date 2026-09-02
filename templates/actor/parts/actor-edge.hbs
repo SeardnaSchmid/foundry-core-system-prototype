@@ -1,0 +1,25 @@
+{{!-- Der verbleibende Edge-Vorrat, nur als Pips: einer je Punkt von
+`derived.edgePoolMax`, gefüllt bis `derived.edgePool`. Zahlenfeld und `/max`
+sind weg — fünf Pips, von denen drei gefüllt sind, sagen bereits „3/5“, und die
+Pille zeichnete dieselbe Zahl dreimal.
+
+Der Vorrat bleibt im Banner und dort in der Zustandszeile: er wird im Spiel
+ausgegeben und entscheidet mitten im Wurf, aber er ist kein Kampfwert und
+gehört nicht neben den Malus. Keine seiner Schwellen und keine seiner Aktionen
+liegen hier — „Idee haben“ ist ein Schalter im Würfeldialog, „Fehler finden“
+und „Fehleranalyse“ sind Knöpfe auf der Wurfkarte eines Fehlschlags. Schwellen
+und die manuelle Korrektur liegen im Popover der Pille. --}}
+<button type='button' class='banner-chip chip-edge'
+        aria-haspopup='dialog' aria-expanded='false'
+        aria-label='{{localize "TNO.Derived.EdgePool"}}: {{system.derived.edgePool}}/{{system.derived.edgePoolMax}}'
+        data-tooltip-html='<dl class="tno-tooltip">
+<div class="tno-tooltip-row"><dt>{{localize "TNO.DerivedShort.EdgePool"}} <span class="tno-tooltip-value">{{system.derived.edgePool}}/{{system.derived.edgePoolMax}}</span></dt><dd>{{localize "TNO.DerivedHint.EdgePool"}}</dd></div>
+</dl>'
+        data-tooltip-direction='DOWN'>
+  <span class='chip-label'>{{localize "TNO.DerivedShort.EdgePool"}}</span>
+  <span class='edge-pips' aria-hidden='true'>
+    {{#each edgePips as |pip|}}
+    <span class='edge-pip{{#if pip.filled}} filled{{/if}}'></span>
+    {{/each}}
+  </span>
+</button>

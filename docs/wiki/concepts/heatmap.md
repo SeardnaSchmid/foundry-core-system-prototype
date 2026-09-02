@@ -48,4 +48,7 @@ sheet button; on change it writes back to settings, which broadcasts to all
 open sheets via Foundry's socket layer. The colour helper chooses whichever of
 the palette's dark and light text colours has the stronger WCAG contrast against
 the computed background; the roll dialog can therefore mute unselected heatmap
-chips without losing the 3:1 text contrast floor.
+chips without losing the 3:1 text contrast floor. Those two tones are exported
+as `INK_DARK` / `INK_LIGHT` so callers that layer further chrome on a graded
+tile can wash it in the tile's own ink — the attribute matrix's value badge and
+tile hairline are derived that way in `TnoActorSheet._prepareCharacterData()`.

@@ -1,8 +1,8 @@
 # Character Sheet - Product Requirements Document
 
-**Version:** 1.2
-**Last Updated:** 2026-08-29
-**Status:** Implementation Complete (v1.2) — open for iteration
+**Version:** 1.3
+**Last Updated:** 2026-09-02
+**Status:** Implementation Complete (v1.2) — open for iteration; the banner is specified separately, see [header-banner-prd.md](header-banner-prd.md)
 
 ---
 
@@ -10,7 +10,7 @@
 
 1. [Overview](#overview)
 2. [Layout](#layout)
-3. [Banner](#banner)
+3. [Banner](#banner) — see [header-banner-prd.md](header-banner-prd.md)
 4. [Basics Tab: Attributes](#basics-tab-attributes)
 5. [Basics Tab: Skills](#basics-tab-skills)
 6. [Biography Tab](#biography-tab)
@@ -37,35 +37,25 @@ The character sheet (`TnoActorSheet`, actor type `character`) is the single-wind
 ## Layout
 
 - **Default window size:** 1270×720 (`TnoActorSheet.DEFAULT_OPTIONS`), resizable. The width gives the Basics rows enough room for their attribute, skill and equipment columns; the entire character sheet shares one `.window-content` scroll surface.
-- **Banner:** `.sheet-banner` is a full-width grid above the tab body with three areas: square portrait, protected identity lane, and wrapping meta-chip block. The portrait remains in normal grid flow and only visually overhangs the band's bottom edge, so extra chip rows can increase banner height without manual clearance calculations. A decorative copy of `actor.img` supplies a cinematic image field beneath the content; the original gradient remains the load-failure fallback.
+- **Banner:** `.sheet-banner` is a full-width grid above the tab body with three areas: square portrait, protected identity lane, and the meta lane. The portrait remains in normal grid flow and only visually overhangs the band's bottom edge. Its layout, contents and responsive behaviour are specified in [header-banner-prd.md](header-banner-prd.md).
 - **Tab rail:** `<nav class="sheet-tabs tabs-right">` is docked as a vertical icon rail along the right edge, each item showing an icon plus a text label that's hidden by default and revealed on hover/focus. It remains inside `.window-content`, where ApplicationV2 resolves the tab actions, while CSS positions it outside the visible sheet edge.
-- **Responsive banner:** `.window-content` is the named `character-sheet` inline-size container. At 980px and below the chips move beneath the identity while the portrait stays left; only below 520px may the protected 280px name lane yield, with both portrait and headline scaling down.
+- **Responsive banner:** `.window-content` is the named `character-sheet` inline-size container. At 980px and below the meta lane moves beneath the identity while the portrait stays left; only below 520px may the protected 280px name lane yield. See [header-banner-prd.md](header-banner-prd.md#responsive-behaviour).
 
 ---
 
 ## Banner
 
-Visible above every tab as a compact character profile.
+The band above the tab body — portrait, identity and the meta read-outs — has its
+own spec of record: **[header-banner-prd.md](header-banner-prd.md)**. It covers
+the portrait and backdrop contract, the identity lane, and every meta feature the
+header holds, keeps or hands off.
 
-- **Portrait:** `actor.img` in a responsive 150–170px square, cropped with `object-fit: cover` and a face-friendly `center 20%` focus. Owners can activate it by pointer or keyboard to use Foundry's native image picker; hover/focus reveals a quiet edit pill. Read-only viewers receive an ordinary image without edit action or false affordance.
-- **Backdrop:** one unmasked `aria-hidden` decorative copy of `actor.img` sits behind the banner, using the upper golden-ratio focal point (`center 38%`). A single warm-charcoal-to-transparent gradient protects the identity and replaces the former parchment wash, alpha mask and vignette. The same gradient is angled slightly as an editorial cut and carries a faint advancement-gold warmth at its trailing edge—this is the banner's one decorative motif, not an additional layer. Name text is off-white and slightly tightened, its subtitle muted beige, and the gold repeats on the accent rule and portrait rim; the image remains recognizable through a restrained darker, desaturated wash without background blur. The chips use a light translucent surface with a small local blur. The backdrop has no interaction or separate actor data.
-- **Identity:** the editable character name is the dominant headline. The free-text profession/role and the computed spent/acquired XP read-out form its subtitle. The name retains a 280px lane at normal sheet widths; chips wrap before they may squeeze it.
-- **Banner chips:**
-  - **Haltung:** a persisted combat-stance picker. Choosing a different stance
-    takes it immediately; the adjacent repeat action takes the current stance
-    again, because that is a meaningful rules action that clears both repeated
-    defence counters. The selected stance gates Dodge below the silhouette and
-    Parry in a weapon popover.
-  - **Initiative:** `1d10 + @derived.initiative`, rolled via the generic `data-roll` formula path. It replaces the former portrait overlay, so the portrait stays unobstructed.
-  - **Sixth Sense (6. Sinn):** a plain standard 3d20 roll against `system.derived.sixthSense`, no modifiers/advantage, no Problem-Solving pre-edge (`edgeExempt: true`) — it's an instinctive reaction, not a deliberate check.
-- **Movement chip:** crawl (`Beweglichkeit/3`, aufgerundet) | walk (`Beweglichkeit`) | sprint (`3×Beweglichkeit`) as one display-only chip, each figure with its own tooltip — no roll, no interaction. A tier the character has lost is **struck through in the warning red**: sprint whenever the load reaches half the carry budget, and walk as well once the load is `crawlOnly`. This is where the slot grid's `Kein Sprint` / `Nur Kriechen` badges went: the consequence belongs on the figure it takes away, since the question being asked is "how far can I move".
-- **Problem-Solving chip:** the reserve pool is directly editable and clamped to 0..max. Its pips and tooltip keep the derived thresholds available at a glance; the actual Problem-Solving actions remain in the roll dialog or chat card — see [problem-solving-prd.md](problem-solving-prd.md).
-- **Damage block:** health sits in the banner rather than in the Basics column, because the figure it produces — the global `−1` per raw point — is announced on every roll, next to the other values that get said out loud. It occupies a second row of the chip lane, below the pills, since it is two rows tall.
-  - **Two counted box rows** against one shared capacity mark: Wuchtschaden above, Scharfer Schaden below, one box per point of capacity (trained Stärke). Boxes, not a proportional bar: at this capacity counting is faster than reading a length, and the mark can stay put while damage grows past it instead of the track rescaling itself.
-  - **What a box says:** on the blunt row, filled = Wucht still on the track and boxes past the mark = Wucht that has spilled off it. On the sharp row, filled = the raw pool followed by exactly that spill, because converted Wucht counts as Scharf — so a box past the sharp row's mark *is* Kampfunfähig, not a second read-out of it.
-  - **Steppers** sit one pair per row, behind the mark; each writes its raw pool, unclamped upward and clamped at zero. The clear-both action appears only while there is damage to clear.
-  - **The malus** is the largest figure in the block, a tall cell binding both rows, and stays in place as a dimmed `0` on an unhurt character. Kampfunfähig recolours the whole block and prefixes the figure with a warning glyph, still without enforcing any state.
-  - **No labels in the lane:** `Scharfer Schaden` and `Wuchtschaden` do not fit beside the boxes at any sheet width, so the row tooltip carries the pool name, its raw value, the free remainder, the capacity and the converted count. Read-only viewers see the same rows without steppers or clear button.
+Read it before touching `.sheet-banner`, [actor-status.hbs](../../templates/actor/parts/actor-status.hbs)
+or [actor-damage.hbs](../../templates/actor/parts/actor-damage.hbs). What used to
+be described here — the chip rows, the damage block, the condition surfaces — is
+specified there, together with the redesign that moves the movement tiers, 6.
+Sinn and Initiative out of the band and into a derived-values strip under the
+attribute matrix.
 
 ---
 
@@ -120,7 +110,7 @@ The maths and the ordering live in [`helpers/item-table.mjs`](../../module/helpe
 
 The visual views used to sit above that flat list and now live in the Basics tab as columns of its own — they answer "what am I wearing / hauling right now?", which is asked mid-roll rather than while bookkeeping. The paper doll and the stacked Kleinkram/Geldbörse column sit in the top row beside the attribute matrix; the slot raster sits in the bottom row beside the skill list, because the raster is a long list and belongs next to the other long list on the sheet. All are character-only. The equipment arrangements are derived on every render from `_prepareEquipment()`; the wallet instead reads its five persisted native-currency balances from `system.money`:
 
-- **Paper doll** (`parts/actor-paperdoll.hbs`) — the Unterkleidung as a separated base-layer row beneath the four hit locations (Kopf, Torso, Arme, Beine), each with its effective RH/RW/RA. Every silhouette zone keeps a full-size base shape, painted from `z.baseState` as `bare` (grey — no Unterkleidung) or `suited` (pale green — covered by Unterkleidung, which closes coverage but grants no hardness). A worn zone addon is a smaller green plate drawn above that base, so its exposed rim still shows whether Unterkleidung is present underneath. **An empty zone is a drop target and nothing else:** a piece is worn by dragging it out of the slot grid onto the zone it was authored for, and while one is in flight that zone lights up. Clicking an empty zone used to offer to author a piece on the spot, which conjured armour out of an empty doll — wearing something is a state change on gear already in hand, so the click path is gone. A filled row is itself draggable, and dropping it back into the slot grid takes the piece off: the row's `x` is the same act. Clicking a filled row opens the piece's own sheet; its duplicate slot-band entry provides the same access from the budget view. The compact **Dodge (Ausweichen)** icon/value button sits directly beneath the silhouette: it rolls Beweglichkeit + Akrobatik when the current Haltung permits it and carries the next-defence malus as a small badge after the first dodge in that stance — a Malusstufe per repeat, summing up, less whatever Deckung nutzen or Haken schlagen buys back in the current Haltung. It is deliberately separate from the four zone interactions beside it, which continue to start Resistance for their specific hit location.
+- **Paper doll** (`parts/actor-paperdoll.hbs`) — the Unterkleidung as a separated base-layer row beneath the four hit locations (Kopf, Torso, Arme, Beine), each with its effective RH/RW/RA. Every silhouette zone keeps a full-size base shape, painted from `z.baseState` as `bare` (grey — no Unterkleidung) or `suited` (pale green — covered by Unterkleidung, which closes coverage but grants no hardness). A worn zone addon is a smaller green plate drawn above that base, so its exposed rim still shows whether Unterkleidung is present underneath. **An empty zone is a drop target and nothing else:** a piece is worn by dragging it out of the slot grid onto the zone it was authored for, and while one is in flight that zone lights up. Clicking an empty zone used to offer to author a piece on the spot, which conjured armour out of an empty doll — wearing something is a state change on gear already in hand, so the click path is gone. A filled row is itself draggable, and dropping it back into the slot grid takes the piece off: the row's `x` is the same act. Clicking a filled row opens the piece's own sheet; its duplicate slot-band entry provides the same access from the budget view. The compact **Dodge (Ausweichen)** icon/value button sits directly beneath the silhouette: it rolls Beweglichkeit + Akrobatik when the current Haltung permits it and carries the next-defence malus as a small badge after the first dodge in that stance — a Malusstufe per repeat, summing up, less whatever Deckung nutzen or Haken schlagen buys back in the current Haltung. When the current Haltung forbids Dodge, the control uses the shared 35% warning-red fill and is struck through; a control disabled only because the sheet is read-only stays neutral. It is deliberately separate from the four zone interactions beside it, which continue to start Resistance for their specific hit location.
 - **Geldbörse** (`parts/actor-money-wallet.hbs`) — a compact, borderless section pinned to the bottom of the Kleinkram column. The empty space between both surfaces is flexible; when the Kleinkram list grows, it extends the complete top row and naturally pushes the wallet downward rather than introducing an inner scrollbar. The sheet never exposes the individual holdings: its two thin summary rows express the complete combined value once in OR and once in Imperial Qian, regardless of which five currencies compose it. The euro total remains secondary in the header. Owners click the section to open a top-layer editor for the actual five balances, with their money forms, individual exchange rates, live euro conversions and a live total. Or Odur and Or Forseti are approximate and prefix every combined summary and total containing them with `≈`. The editor is an `item-popover` variant and reuses that surface's head, fact rows and action bar rather than introducing parallel popup chrome. Read-only viewers get the same compact summaries without a dead edit affordance.
 - **Trageslots** (`parts/actor-slot-grid.hbs`) — worn gear and carried gear share one budget. Worn pieces form the first, cool-tinted band (sorted among themselves), followed by carried pieces in their own `sort` order; both cost their authored footprint. Cells can be opened, re-sorted, or dragged onto the paper doll to wear armour. Without a container only the worn band counts and positive-cost carried gear leaves the raster. The grid contains exactly the character's capacity and renders excess gear as overload rather than refusing it.
 - **Kleinkram** (`parts/actor-trinkets.hbs`) — Papiere und Krimskrams: carried gear the rules price at 0 slots, so it never takes a cell in the raster and sits above the wallet. Same interactions as a cell (open, sort, wear), but **no create control and no drop target**: an item is Kleinkram exactly when its `slots` is 0, which is authored on the item's own sheet, and there is no state here to put a piece into. Currency balances are not Items and appear only in the wallet.
@@ -159,6 +149,7 @@ Key prefixes used throughout the sheet (see `lang/de.json` / `lang/en.json`):
 - `TNO.TabBasics` / `TabDescription` / `TabItems` — tab rail labels (`TabItems` reads "Inventar" / "Inventory": the tab covers the inventory rules as a whole, not just a list of things).
 - `TNO.Inventory.*` — Trageslots view: title, slot-cost hints, the `Keine Tasche` badge, the add-dialog's labels, the cell/free-cell hints, and the Kleinkram column's title, `0 Slots` caption, explanation and empty state (`Trinkets*`). The two load-state hints moved to `TNO.DerivedHint.NoSprint` / `CrawlOnly`, where the movement chip reads them.
 - `TNO.Damage.*` — damage-pool labels, stepper actions, the banner block's row/malus tooltips (free remainder, capacity, conversion, malus breakdown) and the Kampfunfähig warning.
+- `TNO.Status.*` — the six condition names, threshold/state wording, chip summary and raster interaction hint, plus the three derived conditions: their names (`Loaded` / `Overloaded`, `ArmorTooHeavy`, `NoDodge`), one read-out each (`CarryLoad`, `ArmorSvShort`, `StanceBlocksDodge`) and their consequences (`OverloadEffect.*`, `ArmorEffect`, `DodgeEffect.*`).
 - `TNO.Armor.*` — paper doll: its column caption (`WornTitle`), zone labels (`TNO.Armor.Zone.*`), the RH/RW/RA long/short/hint triples, the unequip action, the drop hint on an empty zone, the wrong-zone warning, and the Stärkevorraussetzung warning.
 - `TNO.Weapons.*` — the weapon item sheet's value labels. On the actor sheet only the Inventar table's weapon columns read them; weapons still have no view of their own there.
 - `TNO.ItemTable.*` — the Inventar table's own chrome: search placeholder/hint, the column picker's button, title and hint, the sort hint and its two sorted states, the empty-group and no-match lines, the group badge tooltip, the `n/a — keine Rüstung` reason, and the three column captions no other surface already had (`Cap.State`, `Cap.Incomplete`, `Cap.Hh`). Every *data* label is reused from `TNO.Item.Cap.*`, `TNO.Weapons.*` and `TNO.Armor.*` rather than duplicated.
@@ -183,6 +174,7 @@ Key prefixes used throughout the sheet (see `lang/de.json` / `lang/en.json`):
 
 | Version | Date | Changes | Author |
 |---------|------|---------|--------|
+| 1.3 | 2026-09-02 | Extracted the Banner section into [header-banner-prd.md](header-banner-prd.md) | System |
 | 1.2 | 2026-08-26 | Moved Dodge from the banner to the paper-doll defence surface | System |
 | 1.1 | 2026-08-03 | Replaced stale sidebar description with responsive profile-banner and portrait contract | System |
 | 1.0 | 2026-07-21 | Initial PRD creation, documenting existing implementation | System |

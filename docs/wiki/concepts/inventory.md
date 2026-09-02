@@ -123,12 +123,26 @@ Load states come from `CARRY_THRESHOLDS`: at half capacity or more,
 `noSprint`; once the budget is full, `crawlOnly`. `derived.canSprint`
 is false exactly when the load reaches the `noSprint` or `crawlOnly` state.
 
-**Where the load state is shown is the banner, not the bag.** The movement chip
-strikes through the tier the load takes away (sprint for `noSprint`, walk as
-well for `crawlOnly`), because the question a player is asking is "how far can I
-move" and the answer belongs on the figure that changes. The slot grid's header
-keeps only `noContainer`, which is not a movement state but explains why the
-carried band is outside the calculation.
+**Where the load state is shown is on the tier it takes away.** The derived
+strip under the attribute matrix strikes through that tier (sprint for
+`noSprint`, walk as well for `crawlOnly`), because the question a player is
+asking is "how far can I move" and the answer belongs on the figure that
+changes. The three movement tiers left the banner with the other derived values,
+and the strike-through went with them. The slot grid's header keeps only
+`noContainer`, which is not a movement state but explains why the carried band
+is outside the calculation.
+
+The same state is **also** a condition. `resolveCarryCondition()` in
+[`conditions.mjs`](../../../module/helpers/conditions.mjs) turns `carryState`
+into the single `overloaded` entry of the Zustände collection — mild and named
+*Schwer beladen* at `noSprint`, severe and named *Überlastet* at `crawlOnly` —
+so the collection can be the one place every active condition is listed, and so
+the *loss* stays visible in the banner even though the tiers themselves no
+longer are. That is a read-out of the same number, not a second rule: the
+movement line stays the surface that answers how far the character moves, and
+the condition entry only names the tier it costs. See
+[damage.md](damage.md#the-condition-collection), which holds the same
+arrangement for the armour and Haltung conditions.
 
 > **Open rules question:** the half-capacity rule is the one bit still in
 > question — Ojster said he removed the "halbieren" clause as confusing,
@@ -163,7 +177,10 @@ carried band is outside the calculation.
   (`ARMOR_SV_STEP`) and is snapped onto that step. Falling short sets
   `armorSvPenalty` — **one** Malusstufe on all Beweglichkeitswürfe however far
   short, which is what makes a single body-wide total the right shape. Stärke
-  is a whole number, so a total of 2.25 is met only at Stärke 3.
+  is a whole number, so a total of 2.25 is met only at Stärke 3. The same flag
+  raises the `armorTooHeavy` condition in the Zustände collection
+  ([damage.md](damage.md#the-condition-collection)); the doll keeps the warning
+  line, because that is where the shortfall is read while dressing.
 
   The doll closes its rows with that total (`.armor-total`), in the SV column
   the rows above it fill and pushed onto the block's bottom edge by the spare
@@ -282,14 +299,26 @@ normal run and the rest turn into overload. Once a block straddles, every later
 item follows it into overflow — otherwise a small item would jump ahead of a
 large one it was sorted behind and silently reorder the player's list.
 
+**A multi-slot item is a run of adjacent cells welded by CSS, not one spanning
+element**, so a run may be broken by the raster's right edge and continue on the
+next row. Where that break falls is a measurement, not data: the raster
+auto-fills its columns, so the wrap moves with every drag of the Basics
+splitter. `TnoActorSheet##markSlotWraps` compares the cells' offsets after each
+render and marks the pair either side of a break (`slot-continues` /
+`slot-resumes`), which `_inventory.scss` paints as matching hatched bands. A
+`ResizeObserver` on `.slot-grid` re-measures on every width change.
+
 The paper doll's silhouette renders each zone as two possible layers. The
 full-size base uses the sheet-derived `baseState` (`bare` / `suited`), and a
 worn addon adds a smaller green plate above it. The exposed base rim therefore
 continues to show whether Unterkleidung is present even when that zone also has
 armour on top. The silhouette column closes with the character's compact Dodge
 action; the icon and value sit directly beneath the figure because Dodge belongs
-to no hit location. The silhouette and the resistance icon in each zone row
-remain the location-specific Resistance entry points.
+to no hit location. When the current Haltung makes Dodge unavailable,
+`paperdoll-dodge.is-unavailable` uses the shared warning-red fill and a strike
+across the action; read-only disabling alone keeps its neutral treatment. The
+silhouette and the resistance icon in each zone row remain the location-specific
+Resistance entry points.
 
 ## The ledger
 

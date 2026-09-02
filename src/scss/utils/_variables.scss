@@ -3,3 +3,11 @@ $padding-md: 10px;
 $padding-lg: 20px;
 
 $border-groove: 2px groove #eeede0;
+
+// The height of one carry-raster cell, and the figure the paper doll's worn
+// rows are derived from. A worn row is a single line of read-outs where a slot
+// cell carries a name plus two more lines, so it takes a fraction of this
+// rather than a height of its own — the two blocks stay related when either is
+// retuned.
+$slot-bar-height: 46px;
+$worn-row-ratio: 0.6;

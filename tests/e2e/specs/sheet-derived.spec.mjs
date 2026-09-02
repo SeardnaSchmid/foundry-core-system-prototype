@@ -61,14 +61,18 @@ test('the character sheet renders the derived values', async ({ world }) => {
   const { id } = await createCharacter(world.page, { abilities: ABILITIES });
   const sheet = await openSheet(world.page, id);
 
-  // Initiative is display-only in the upper-right banner chip; the combat
-  // tracker, not the character sheet, owns the actual initiative roll.
-  await expect(sheet.locator('.chip-initiative .chip-value')).toHaveText('7');
+  // All three left the banner for the derived strip under the attribute
+  // matrix, on the Basics tab that opens by default. The combat tracker, not
+  // the character sheet, still owns the actual initiative roll.
+  await expect(sheet.locator('.derived-initiative .derived-cell-value')).toHaveText('7');
   await expect(sheet.locator('.portrait-init')).toHaveCount(0);
-  await expect(sheet.locator('.chip-sense .chip-value')).toHaveText('5');
+  await expect(sheet.locator('.derived-sense .derived-cell-value')).toHaveText('5');
 
-  // Crawl | walk | sprint, in one banner chip.
-  await expect(sheet.locator('.chip-movement .chip-move')).toHaveText(['1', '7', '21']);
+  // Crawl | walk | sprint, on the strip's own read-only line.
+  await expect(sheet.locator('.derived-move b')).toHaveText(['1', '7', '21']);
+
+  // Nothing in the band rolls dice any more.
+  await expect(sheet.locator('.sheet-banner .rollable')).toHaveCount(0);
 
   // Carry capacity is the Trageslots header's read-out, not a chip of its own.
   await expect(sheet.locator('.slot-grid-count')).toHaveText('0/17');

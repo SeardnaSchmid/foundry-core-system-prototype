@@ -482,3 +482,81 @@ describe('envelopeLines', () => {
       .not.toContain('TNO.Combat.Envelope.BypassArmor');
   });
 });
+
+// What a failed roll costs is offered before the dice and earned only by them.
+// The gate lives in `rollTno` because nothing that opens a dialog can know how
+// the roll will land — so this is where the card stops promising damage on a
+// roll the defender actually made.
+describe('rollTno consequence', () => {
+  const consequence = { label: 'Anzuwenden', text: '4 Schaden (S)', note: '' };
+
+  /**
+   * Roll with the dice forced to `values`, against the given threshold, and
+   * report what the card was rendered with and what the message kept.
+   */
+  const rolled = async (values, threshold) => {
+    const prior = { game: globalThis.game, CONFIG: globalThis.CONFIG, foundry: globalThis.foundry, Roll: globalThis.Roll, ChatMessage: globalThis.ChatMessage };
+    let rendered = null;
+    let created = null;
+
+    globalThis.Roll = class {
+      constructor() {
+        this.terms = [{ results: values.map((result) => ({ result })) }];
+      }
+
+      async evaluate() {
+        return this;
+      }
+    };
+    globalThis.ChatMessage = {
+      getSpeaker: () => ({}),
+      create: async (data) => {
+        created = data;
+        return data;
+      },
+    };
+    globalThis.CONFIG = { sounds: { dice: '' } };
+    globalThis.foundry = {
+      applications: {
+        handlebars: {
+          renderTemplate: async (_path, data) => {
+            rendered = data;
+            return '';
+          },
+        },
+      },
+    };
+    globalThis.game = {
+      i18n: { localize: (key) => key, format: (key) => key },
+      settings: { get: () => 'publicroll' },
+    };
+
+    try {
+      const { rollTno } = await import('../../module/helpers/dice.mjs');
+      await rollTno({ threshold, extraFlags: { consequence } });
+      return { rendered, created };
+    } finally {
+      Object.assign(globalThis, prior);
+    }
+  };
+
+  it('states the cost on the card that failed', async () => {
+    const { rendered, created } = await rolled([15, 16, 17], 5);
+    expect(rendered.consequence).toEqual(consequence);
+    expect(created.flags.tno.consequence).toEqual(consequence);
+  });
+
+  it('says nothing at all on the roll that succeeded', async () => {
+    // Both the card and the flag are gated on the same read, so a stored
+    // consequence always means it applies.
+    const { rendered, created } = await rolled([2, 3, 4], 5);
+    expect(rendered.consequence).toBeNull();
+    expect(created.flags.tno.consequence).toBeUndefined();
+  });
+
+  it('states it on a critical failure too, which is a failure with a name', async () => {
+    const { rendered } = await rolled([20, 20, 3], 5);
+    expect(rendered.outcome).toBe('criticalFailure');
+    expect(rendered.consequence).toEqual(consequence);
+  });
+});

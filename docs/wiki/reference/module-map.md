@@ -28,7 +28,7 @@ Entry point, no exports (side-effecting init). See
 
 | File | Exports | Responsibility |
 | --- | --- | --- |
-| `actor-sheet.mjs` | `TnoActorSheet extends ActorSheetV2` | Character/NPC sheet: attribute heatmap and damage track, skill groups with filter/search, inventory, effects, edge pool display |
+| `actor-sheet.mjs` | `TnoActorSheet extends ActorSheetV2` | Character/NPC sheet: attribute heatmap and the derived strip beneath it, the banner's vitals and three state pills, skill groups with filter/search, inventory, effects. Owns six body-level popovers — item, wallet, column picker, Haltung picker, condition panel and Edge — each mounted on the host document and re-homed when the sheet is detached |
 | `item-gear-sheet.mjs` | `TnoGearSheet extends ItemSheetV2` | Overview/Edit sheet for every physical item, including bounded authoring and rule-backed actions — see [item-roles.md](../concepts/item-roles.md) |
 | `item-sheet.mjs` | `TnoItemSheet extends ItemSheet` | What is left of the V1 sheet: `feature` and `spell`, template resolved per type |
 
@@ -42,11 +42,12 @@ Entry point, no exports (side-effecting init). See
 | `dice-odds.mjs` | `successChanceFor`, `formatChance`, `oddsTooltipHtml` | Read side over the generated odds table — see [dice-resolution.md](../concepts/dice-resolution.md) |
 | `dice-odds-table.mjs` | `TNO_ODDS` | **Generated** by `npm run docs:odds` — never hand-edit |
 | `chat.mjs` | `registerChatListeners` | Post-roll edge action UI — see [edge-pool.md](../concepts/edge-pool.md) |
-| `heatmap.mjs` | gradient constants, `HEATMAP_QUICK_PRESETS`, `DEFAULT_HEATMAP_CONFIG`, `setActiveHeatmapConfig`, `getActiveHeatmapConfig`, `colorForValue` | See [heatmap.md](../concepts/heatmap.md) |
+| `heatmap.mjs` | gradient constants, `HEATMAP_QUICK_PRESETS`, `DEFAULT_HEATMAP_CONFIG`, `INK_DARK`, `INK_LIGHT`, `setActiveHeatmapConfig`, `getActiveHeatmapConfig`, `colorForValue` | See [heatmap.md](../concepts/heatmap.md) |
 | `skills.mjs` | `slugifySkillName`, `generateCustomSkillKey`, `getSkillDefinitions`, `getSkillDefinition` | See [skills.md](../concepts/skills.md) |
 | `effects.mjs` | `onManageActiveEffect`, `prepareActiveEffectCategories` | See [active-effects.md](../concepts/active-effects.md) |
 | `inventory.mjs` | `ARMOR_ADDON_ZONES`, `ARMOR_SV_STEP`, `CARRIED_ITEM_TYPES`, `CARRY_THRESHOLDS`, `wornItemIds`, `itemSlotCost`, `computeCarry`, `buildSlotGrid`, `resolveArmor` | Pure carry/armour maths, no Foundry globals — see [inventory.md](../concepts/inventory.md) |
-| `damage.mjs` | `DAMAGE_MALUS_PER_POINT`, `resolveDamage` | Pure two-pool health maths, no Foundry globals — see [damage.md](../concepts/damage.md) |
+| `damage.mjs` | `DAMAGE_MALUS_PER_POINT`, `DAMAGE_TRACK_MAX_BOXES`, `resolveDamage`, `damageTrackRows` | Pure two-pool health maths and track layout, read by both the banner's read-only rows and the condition panel's editable ones, no Foundry globals — see [damage.md](../concepts/damage.md) |
+| `conditions.mjs` | `DAMAGE_CONDITION_DEFINITIONS`, `resolveDamageConditions`, `resolveConditions`, `resolveCarryCondition`, `resolveArmorCondition`, `resolveDefenseCondition` | Pure six-light condition derivation and manual-override resolution over damage and attributes, plus the three derived conditions the collection adds to it — see [damage.md](../concepts/damage.md#the-condition-collection) |
 | `money.mjs` | `MONEY_CURRENCIES`, `normalizeMoneyAmount`, `prepareWallet` | Pure native-currency normalisation and euro-cent conversion for the character wallet — see [inventory.md](../concepts/inventory.md#money) |
 | `items.mjs` | item constants/role helpers, `GEAR_NUMBER_BOUNDS`, `MISSING_FIELD_LABELS`, `clampGearNumber`, `missingRequired` | What an item *is* and bounded authoring rules. Pure, no Foundry globals; imported by `inventory.mjs`, so it may not import back — see [item-roles.md](../concepts/item-roles.md) |
 | `item-presentation.mjs` | `damagePresentation`, `buildRangeProfile`, `buildPenetrationProfile`, `buildSlotPresentation`, `buildStrengthPresentation`, `buildOwnershipPresentation`, `buildGearPresentation`, `buildGearSummary` | Pure overview view models composed from `items.mjs` and `inventory.mjs`; deliberately outcome-neutral where combat rules are unresolved |

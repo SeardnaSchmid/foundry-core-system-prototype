@@ -14,10 +14,15 @@ function num(value) {
 
 /**
  * Resolve the two raw damage counters against the character's trained
- * Strength. Each pool has its own budget of that full capacity — sharp damage
- * never eats into the room blunt damage has, and vice versa. Blunt converts to
- * effective sharp damage only once it has filled its *own* track; the stored
+ * Strength. Each pool has its own budget of that full capacity — Schaden never
+ * eats into the room Wuchtschaden has, and vice versa. Wuchtschaden converts to
+ * effective Schaden only once it has filled its *own* track; the stored
  * counters stay raw.
+ *
+ * The rules call the two kinds **Schaden** and **Wuchtschaden**. The stored
+ * keys are still `sharp` and `blunt`: they predate the rename, and a schema
+ * change would buy nothing a label does not already say. Read `sharp` as
+ * Schaden throughout this module.
  *
  * @param {object} damage  Persisted `{sharp, blunt}` counters.
  * @param {number} capacity  Trained Strength (`abilities.str.base`), the budget
@@ -56,14 +61,14 @@ export const DAMAGE_TRACK_MAX_BOXES = 12;
 
 /**
  * Lay resolved damage out as the banner's two box rows: Wuchtschaden above
- * Scharfer Schaden. Both rulers are the same length, but each row measures its
- * own pool against its own budget — the rows are aligned, not shared.
+ * Schaden. Both rulers are the same length, but each row measures its own pool
+ * against its own budget — the rows are aligned, not shared.
  *
- * Blunt shows what still lies on its own track, and past the capacity mark what
- * has spilled off it. Sharp shows the raw pool followed by exactly that spill,
- * because converted blunt counts as sharp — which makes a box past the sharp
- * row's mark the Kampfunfähig condition itself rather than a second read-out of
- * it.
+ * Wuchtschaden shows what still lies on its own track, and past the capacity
+ * mark what has spilled off it. Schaden shows the raw pool followed by exactly
+ * that spill, because converted Wuchtschaden counts as Schaden — which makes a
+ * box past the Schaden row's mark the Kampfunfähig condition itself rather than
+ * a second read-out of it.
  *
  * Each row carries both its full name and a two-letter tag: the full name is far
  * too long to stand in the banner, but two rows of unnamed boxes are not

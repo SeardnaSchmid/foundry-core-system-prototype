@@ -1,4 +1,5 @@
-import { actorStance, canDefend, defenseMalus, widerstandOptions } from '../helpers/combat-actions.mjs';
+import { actorStance, canDefend, defenseMalus, stanceLabelKey, widerstandOptions } from '../helpers/combat-actions.mjs';
+import { resolveConditions } from '../helpers/conditions.mjs';
 import { resolveDamage } from '../helpers/damage.mjs';
 import { computeCarry, resolveArmor } from '../helpers/inventory.mjs';
 
@@ -83,6 +84,40 @@ export class TnoActor extends Actor {
     const armor = resolveArmor(systemData.equipment, actorData.items);
     const damage = resolveDamage(systemData.damage, base('str'));
 
+    // Falling short of the Stärkevorraussetzung costs one Malusstufe on
+    // every Beweglichkeit roll — a single step however far short it is,
+    // unlike the graded weapon SV rule. The sheet surfaces it as a warning
+    // line. Stärke is a whole number, so a quarter-step SV is met only by
+    // reaching the next whole value: SV 2.25 needs Stärke 3.
+    const armorSvPenalty = armor.sv > 0 && base('str') < armor.sv;
+
+    // What the current Haltung permits, and what the next defence of each
+    // kind costs. Derived rather than asked for: the whole defence side of an
+    // exchange is answerable from this sheet alone.
+    const stance = actorStance(this);
+    const defenses = {
+      parry: { available: canDefend(this, 'parry'), malus: defenseMalus(this, 'parry') },
+      dodge: { available: canDefend(this, 'dodge'), malus: defenseMalus(this, 'dodge') },
+    };
+
+    // The three non-damage conditions read state resolved just above rather
+    // than the actor: the condition layer stays free of Foundry globals, and
+    // each of them is a read-out of a rule that has already been applied.
+    const conditions = resolveConditions(
+      damage,
+      systemData.abilities,
+      systemData.conditionOverrides,
+      {
+        carry,
+        armor: { penalty: armorSvPenalty, sv: armor.sv, strength: base('str') },
+        defense: {
+          dodge: defenses.dodge.available,
+          parry: defenses.parry.available,
+          stanceLabelKey: stanceLabelKey(this),
+        },
+      }
+    );
+
     systemData.derived = {
       initiative: Math.ceil((2 * base('dex') + base('per')) / 3),
       movementWalk: base('dex'),
@@ -99,15 +134,11 @@ export class TnoActor extends Actor {
       carryState: carry.state,
       carryNoContainer: carry.noContainer,
       damage,
+      conditions,
       armor: armor.zones,
       // The summed requirement of everything worn, in quarter steps.
       armorSv: armor.sv,
-      // Falling short of the Stärkevorraussetzung costs one Malusstufe on
-      // every Beweglichkeit roll — a single step however far short it is,
-      // unlike the graded weapon SV rule. The sheet surfaces it as a warning
-      // line. Stärke is a whole number, so a quarter-step SV is met only by
-      // reaching the next whole value: SV 2.25 needs Stärke 3.
-      armorSvPenalty: armor.sv > 0 && base('str') < armor.sv,
+      armorSvPenalty,
       sixthSense: Math.round((base('per') + base('emp') + base('inv')) / 3),
       dodge: base('dex') + (systemData.skills?.acrobatics?.value ?? 0),
       insight: Math.ceil((base('int') + base('wis')) / 2),
@@ -115,14 +146,8 @@ export class TnoActor extends Actor {
       edgePoolMax: edgePoolMax,
       edgePool: Math.max(0, edgePoolMax - edgePoolSpent),
       postMortem: 2 * base('inv'),
-      // What the current Haltung permits, and what the next defence of each
-      // kind costs. Derived rather than asked for: the whole defence side of an
-      // exchange is answerable from this sheet alone.
-      stance: actorStance(this),
-      defenses: {
-        parry: { available: canDefend(this, 'parry'), malus: defenseMalus(this, 'parry') },
-        dodge: { available: canDefend(this, 'dodge'), malus: defenseMalus(this, 'dodge') },
-      },
+      stance,
+      defenses,
     };
   }
 

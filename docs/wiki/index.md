@@ -40,7 +40,7 @@ New to the codebase? Read in this order:
 - [concepts/combat-roll-workflows.md](concepts/combat-roll-workflows.md) — independent weapon Attack/Parry and character Dodge workflows
 - [concepts/edge-pool.md](concepts/edge-pool.md) — problem-solving edge actions (Trial & error / Retry / Post-mortem)
 - [concepts/attributes.md](concepts/attributes.md) — the 12 attributes and their derived values
-- [concepts/damage.md](concepts/damage.md) — sharp/blunt health counters and the global roll malus
+- [concepts/damage.md](concepts/damage.md) — Schaden/Wuchtschaden health counters and the global roll malus
 - [concepts/skills.md](concepts/skills.md) — built-in and custom skills
 - [concepts/advancement.md](concepts/advancement.md) — spending XP to raise a rank
 - [concepts/inventory.md](concepts/inventory.md) — the Trageslots budget and the armour paper doll

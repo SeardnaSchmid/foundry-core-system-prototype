@@ -34,10 +34,33 @@ which localize `CONFIG.TNO.skills[key].label` and
 `CONFIG.TNO.abilities[key]` on lookup rather than storing pre-localized
 text in config.
 
-`TNO.Damage.*` is shared by the character damage widget, the Stelle captions
-and the roll dialog's always-on damage component. Keep those labels aligned in
-both files so the same mechanic is named consistently at entry, preview and
-roll time.
+`TNO.Damage.*` is shared by the banner's tracks and malus, the condition
+panel that edits them (`PanelTitle`, and `Sharp`/`Blunt` as visible labels
+rather than tooltip-only text), the Stelle captions and the roll dialog's
+always-on damage component. Keep those labels aligned in both files so the same
+mechanic is named consistently at entry, preview and roll time.
+
+`TNO.Derived.*` / `DerivedShort.*` / `DerivedHint.*` name the values the banner
+handed to the Basics tab's derived strip, under the `TNO.DerivedTitle` heading.
+`TNO.EdgeAdjustLabel` is the reserve correction in the Edge popover; the
+`TNO.EdgeValueHint` that titled the banner's old number field is gone with the
+field.
+
+`TNO.Status.*` belongs to the character header's condition surfaces: fixed
+condition names and comparison/state text, the Zustände pill's active-only
+collection, and the condition panel's raster affordances — including the
+collection's zero-condition state and `PanelDamageHint`, the panel's one line on
+what a raster light is. The
+`Tag.*` holds the two-letter abbreviation each condition is shown by wherever
+there is room for a mark and not a name — the collection pill, the raster light
+and the panel row; it is localized rather than sliced off the label because the
+German and English names abbreviate differently. The
+three derived conditions add their names (`Loaded` / `Overloaded`,
+`ArmorTooHeavy`, `NoDodge`), one read-out each (`CarryLoad`, `ArmorSvShort`,
+`StanceBlocksDodge`) and their consequences (`OverloadEffect.*` keyed by
+`carryState`, `ArmorEffect`, `DodgeEffect.*` keyed by whether a parry remains).
+The resolver names the key and the sheet only localizes it, which is what keeps
+`game.i18n` out of the condition rules.
 
 ## Adding a new config entry (skill, ability, category)
 

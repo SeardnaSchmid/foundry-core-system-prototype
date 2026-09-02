@@ -1,0 +1,45 @@
+{{!-- Das Edge-Popover. Die Pille selbst ist reine Anzeige; was hier steht, sind
+die drei abgeleiteten Schwellen und die manuelle Korrektur.
+
+Keine der Aktionen des Vorrats lebt hier: „Idee haben“ ist ein Schalter im
+Würfeldialog, „Fehler finden“ und „Fehleranalyse“ sind Knöpfe auf der Wurfkarte
+eines Fehlschlags. Die Korrektur ist eine GM-Berichtigung außerhalb dieser
+Aktionen und braucht kein dauerhaft sichtbares Eingabefeld — sie wird bei einer
+Verringerung im Chat angesagt und bleibt bei einer Erhöhung still. --}}
+<div class='edge-panel'>
+
+  <div class='edge-panel-head'>
+    <span class='edge-panel-title'>{{localize 'TNO.Derived.EdgePool'}}</span>
+    <span class='edge-panel-count'><b>{{pool}}</b>/{{max}}</span>
+  </div>
+
+  <dl class='edge-panel-thresholds'>
+    <div class='edge-panel-threshold'>
+      <dt>{{localize 'TNO.DerivedShort.Insight'}}</dt>
+      <dd>+{{insight}}</dd>
+    </div>
+    <div class='edge-panel-threshold'>
+      <dt>{{localize 'TNO.DerivedShort.PostMortem'}}</dt>
+      <dd>≤{{postMortem}}</dd>
+    </div>
+    <div class='edge-panel-threshold'>
+      <dt>{{localize 'TNO.DerivedShort.TrialError'}}</dt>
+      <dd>{{trialErrorMax}}{{localize 'TNO.UnitRep'}}</dd>
+    </div>
+  </dl>
+
+  {{#if editable}}
+  <div class='edge-panel-adjust'>
+    <span class='edge-panel-adjust-label'>{{localize 'TNO.EdgeAdjustLabel'}}</span>
+    <span class='damage-stepper-group'>
+      <button type='button' class='damage-stepper edge-step' data-action='decrement'
+              data-focus-key='edge-down'
+              aria-label='{{localize "TNO.EdgeAdjustLabel"}} −' {{#unless pool}}disabled{{/unless}}>−</button>
+      <button type='button' class='damage-stepper edge-step' data-action='increment'
+              data-focus-key='edge-up'
+              aria-label='{{localize "TNO.EdgeAdjustLabel"}} +' {{#if atMax}}disabled{{/if}}>+</button>
+    </span>
+  </div>
+  {{/if}}
+
+</div>

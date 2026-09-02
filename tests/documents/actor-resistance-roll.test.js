@@ -240,4 +240,46 @@ describe('resistance roll', () => {
     // Where the numbers come from is stated, not left to the rulebook.
     expect(dialog.requiredValue.hint).toBe('TNO.Combat.DamageValueHint');
   });
+
+  // The card is where the two answers finally add up to something the player
+  // acts on. Before this they were a tile ("hält · Wuchtschaden"), a negated
+  // threshold component and a multiplier printed as a rule with no number.
+  it('states how much of which pool a failed resistance roll costs', () => {
+    const torso = resist('torso');
+    expect(torso._consequence(answered({ requiredValue: 4, contextChoice: 'softer' }))).toMatchObject({
+      label: 'TNO.Combat.Applied',
+      // The Schaden pool, at the announced value: the Torso multiplies nothing.
+      text: 'TNO.Combat.AppliedAmount(4,TNO.Damage.Sharp,TNO.Damage.TagSharp)',
+      note: '',
+    });
+    // Both "hält" outcomes land in the blunt pool, exactly as the field above
+    // them was named.
+    expect(torso._consequence(answered({ requiredValue: 4, contextChoice: 'equal' })).text)
+      .toBe('TNO.Combat.AppliedAmount(4,TNO.Damage.Blunt,TNO.Damage.TagBlunt)');
+    expect(torso._consequence(answered({ requiredValue: 4, contextChoice: 'harder' })).text)
+      .toBe('TNO.Combat.AppliedAmount(4,TNO.Damage.Blunt,TNO.Damage.TagBlunt)');
+  });
+
+  it('cashes in the Stelle multiplier and shows the arithmetic it did', () => {
+    const dialog = resist('head');
+    expect(dialog._consequence(answered({ requiredValue: 4, contextChoice: 'softer' }))).toMatchObject({
+      text: 'TNO.Combat.AppliedAmount(8,TNO.Damage.Sharp,TNO.Damage.TagSharp)',
+      note: 'TNO.Combat.AppliedMultiplier(4,2,TNO.Armor.Zone.Head)',
+    });
+  });
+
+  it('states nothing until both answers that decide the damage are given', () => {
+    const dialog = resist('head');
+    expect(dialog._consequence(answered())).toBeNull();
+    // A value with no comparison names no pool, and a comparison with no value
+    // names no amount — neither half is a sentence on its own.
+    expect(dialog._consequence(answered({ requiredValue: 4 }))).toBeNull();
+    expect(dialog._consequence(answered({ contextChoice: 'softer' }))).toBeNull();
+  });
+
+  it('leaves a roll with no consequence to declare without one', () => {
+    // Every other workflow: the dialog only carries what its builder handed it.
+    expect(resist('head').consequence).toBeInstanceOf(Function);
+    expect(new TnoRollDialog(actor(), {})._consequence(answered())).toBeNull();
+  });
 });

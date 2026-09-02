@@ -23,6 +23,14 @@
         "sharp": 0,
         "blunt": 0
       },
+      "conditionOverrides": {
+        "bluntCore": null,
+        "bluntLegs": null,
+        "bluntArms": null,
+        "sharpCore": null,
+        "sharpLegs": null,
+        "sharpArms": null
+      },
       "money": {
         "templeOr": 0,
         "imperialQian": 0,

@@ -63,8 +63,16 @@ $c-trinket-label: rgba($c-dark, 0.55);
 }
 
 .paperdoll-figure {
-  width: 110px;
-  height: auto;
+  // Fills the block, as `.paperdoll`'s stretch above intends: the silhouette is
+  // as tall as the zone rows, the totals and the SV warning beside it, and
+  // takes its width from its own aspect ratio. A fixed width made it a
+  // thumbnail against any stack that was not the height it was drawn for.
+  //
+  // Capped at the width it used to be pinned to, so growing on height can never
+  // take the zone column below what the warning line needs to stay on one line.
+  width: auto;
+  height: 100%;
+  max-width: 110px;
 
   .zone {
     cursor: pointer;
@@ -539,6 +547,39 @@ $c-trinket-label: rgba($c-dark, 0.55);
   &:disabled .paperdoll-dodge-value {
     background: rgba($c-dark, 0.08);
   }
+
+  // The current Haltung forbids Ausweichen. Match blocked movement and
+  // overloaded cells: shared warning red at 35%, light contents, and one clear
+  // strike across the complete action. A merely read-only button stays in the
+  // neutral `:disabled` treatment above.
+  &.is-unavailable {
+    border-color: $c-warning;
+    background: rgba($c-warning, 0.35);
+    color: $c-white;
+    opacity: 1;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      right: 5px;
+      left: 5px;
+      z-index: 1;
+      border-top: 2px solid rgba($c-white, 0.82);
+      transform: rotate(-4deg);
+      pointer-events: none;
+    }
+
+    > i,
+    .paperdoll-dodge-value,
+    .defense-malus {
+      color: $c-white;
+    }
+
+    .paperdoll-dodge-value {
+      background: rgba($c-white, 0.16);
+    }
+  }
 }
 
 .slot-grid-block {
@@ -599,8 +640,8 @@ $c-trinket-label: rgba($c-dark, 0.55);
   opacity: 0.45;
 }
 
-// Ranked below the used figure by size alone, as the edge chip's
-// `chip-value-max` already does — full-strength $c-tan, because the 22px gold
+// Ranked below the used figure by size alone, as the banner's XP total already
+// does — full-strength $c-tan, because the 22px gold
 // beside it is accent enough to win the eye without the limit being faded to
 // get out of its way. It was $c-beige, which sat at 1.25:1 on the card's own
 // $c-faint: the limit is context, but a budget nobody can read is not context.
@@ -689,7 +730,7 @@ $c-trinket-label: rgba($c-dark, 0.55);
   // across the rest of the run.
   justify-content: flex-start;
   gap: 6px;
-  min-height: 46px;
+  min-height: $slot-bar-height;
   padding: 0 6px;
   border-radius: 8px;
   font-size: var(--font-size-13, 13px);
@@ -758,6 +799,57 @@ $c-trinket-label: rgba($c-dark, 0.55);
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
   border-left: 0;
+}
+
+// Where the raster's right edge cuts a run in two. The weld already dropped the
+// border on that side, so a wrapped item simply stopped: the tail on the next
+// row read as an anonymous box and the head read as a piece that happened to end
+// flush. Hatching says "cut, continues" — diagonal, because nothing else on the
+// card is, and both halves lean the same way so the eye carries the run across
+// the break.
+//
+// Set from `#markSlotWraps` in the sheet, because the wrap position is a
+// measurement: the raster auto-fills its columns, so where a run breaks moves
+// with the splitter and cannot be known when the template is rendered.
+.slot-cell.slot-continues::before,
+.slot-cell.slot-resumes::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 12px;
+  // Over the label, which a wrapping first cell spills across its whole run —
+  // that text is being clipped at this edge anyway, and the band is what says
+  // so. Also over the grip, which shares the resuming cell's left inset.
+  z-index: 2;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba($c-dark, 0.34) 0 2px,
+    transparent 2px 5px
+  );
+}
+
+// Inset by the gutter the weld's negative margin bleeds into: the cell's own
+// right edge is 6px past the last column and `.slot-grid` clips it, so a band
+// at `right: 0` would show only half its width.
+.slot-cell.slot-continues::before {
+  right: var(--slot-gap);
+}
+
+.slot-cell.slot-resumes::before {
+  left: 0;
+}
+
+// Dark hatching disappears into the warning fill, the same reason the caret and
+// the quantity chip switch: borrow the cell's own text colour.
+.slot-cell.over-capacity.slot-continues::before,
+.slot-cell.over-capacity.slot-resumes::before {
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba($c-white, 0.62) 0 2px,
+    transparent 2px 5px
+  );
 }
 
 // Only the first cell of a run carries the icon and name, but the run is what

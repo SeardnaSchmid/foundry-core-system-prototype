@@ -3,7 +3,7 @@ type: architecture
 title: Data schema
 description: How actor/item data is shaped by template.json and computed in prepareDerivedData.
 tags: [schema, template-json, derived-data, actor, item]
-resource: [template.json, module/documents/actor.mjs, module/documents/item.mjs, module/helpers/damage.mjs]
+resource: [template.json, module/documents/actor.mjs, module/documents/item.mjs, module/helpers/damage.mjs, module/helpers/conditions.mjs]
 related: [architecture/datamodel-migration, concepts/attributes, concepts/damage]
 ---
 
@@ -41,9 +41,17 @@ in Foundry v14+.
   - `character.equipment.<zone>` — the worn-gear store: `suit`, `head`,
     `torso`, `arms`, `legs`, each holding an owned item id or `null`. See
     [inventory.md](../concepts/inventory.md).
-  - `character.damage.{sharp,blunt}` — the two raw non-negative damage counters.
-    Their conversion, global malus and incapacitation state are derived; old
-    actors without the block read as undamaged. See [damage.md](../concepts/damage.md).
+  - `character.damage.{sharp,blunt}` — the two raw non-negative damage counters,
+    Schaden and Wuchtschaden; the keys predate that naming. Their conversion,
+    global malus and incapacitation state are derived; old actors without the
+    block read as undamaged. See [damage.md](../concepts/damage.md).
+  - `character.conditionOverrides.<key>` — nullable booleans for the six fixed
+    damage-condition lights. `null` (and a missing key on an older actor) means
+    follow the derived threshold; `true` and `false` force the warning on or
+    off without changing damage or its malus. The three derived conditions
+    have no entry here and cannot get one: they are arithmetic on the slot
+    budget, the summed SV and the Haltung. See
+    [damage.md](../concepts/damage.md#damage-derived-conditions).
   - `character.money.<currency>` — non-negative whole-unit balances for
     OR (`templeOr`), `imperialQian`, `orNior`, `orOdur` and `orForseti`. The
     euro comparison value is calculated for display rather than persisted. See
@@ -95,6 +103,7 @@ computes them in `TnoActor.prepareDerivedData()`, writing to
 | `carryWorn` / `carryCarried` | sum of each slot band | the carried subtotal is 0 without a container |
 | `carryState` / `carryNoContainer` | `ok` \| `noSprint` \| `crawlOnly` / boolean | movement consequence and missing-container fact are independent |
 | `damage` | `resolveDamage(system.damage, base(str))` | raw pools, blunt split/conversion, total, `−1` per-point malus, and strict `effectiveSharp > capacity` incapacitation — see [damage.md](../concepts/damage.md) |
+| `conditions` | `resolveConditions(derived.damage, abilities, conditionOverrides, {carry, armor, defense})` | fixed Wucht/Schaden × core/legs/arms warnings, their negative classification, manual override state, raster rows and active chip order, plus the three derived conditions (load, armour weight, a Haltung without Ausweichen) — which join `items`/`active` but not the raster `rows` and take no override — see [damage.md](../concepts/damage.md#the-condition-collection) |
 | `armor.<zone>` | `{ equipped, rh, rw, ra }` per hit location | RH and RA from the addon alone — a suit is RH 0 with no hit location to cover — while RW is summed with the Unterkleidung |
 | `armorSv` / `armorSvPenalty` | sum of `sv` over all worn pieces, snapped to `ARMOR_SV_STEP` (0.25) / `armorSv > 0 && base(str) < armorSv` | the requirements of all worn clothing and armour add up; falling short is a single Malusstufe however far short, and Stärke being whole means a quarter-step total is only met at the next whole value |
 | `sixthSense` | `round((base(per) + base(emp) + base(inv)) / 3)` | |

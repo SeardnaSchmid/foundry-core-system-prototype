@@ -1,13 +1,23 @@
 {{!-- ApplicationV2 renders this part straight into `.window-content`, which is
 itself the sheet's <form> element — hence no <form> wrapper here. --}}
 
-  {{!-- Banner: the portrait, the character's name and the four at-a-glance
-  chips, in one band above the tab body rather than a left-docked sidebar. The
-  sidebar's tile stacks are gone with it: movement collapses into one chip, the
-  carry read-out is the Trageslots header's job, and the problem-solving
-  thresholds live in the edge chip's tooltip — see the Basics tab below for
-  where the equipment views moved. The portrait deliberately overhangs the
-  band's bottom edge; `.sheet-body` reserves the height it needs. --}}
+  {{!-- Banner: das Band über dem Tab-Körper. Drei Bahnen: das Porträt, die
+  Identität mit den Vitalwerten, und rechts die drei Zustandspillen.
+
+  Der Schnitt ist der zwischen "was ist an dieser Figur wahr" und "was ist
+  gerade wahr" — mit einer bewussten Ausnahme, die der Entwurf trifft: Malus und
+  Schadensleisten stehen in der Identitätsbahn statt in der Metabahn, weil der
+  Malus in derselben Grundlinie wie der Name gelesen wird und die Leisten unter
+  ihm hängen. Die rechte Bahn führt dafür nur noch Bedienelemente: alle drei
+  Pillen öffnen etwas.
+
+  Was nicht mehr hier steht: Bewegung, 6. Sinn und Initiative stehen als
+  abgeleitete Werte unter der Attributsmatrix im Grundlagen-Tab; Raster,
+  Stepper, Löschen-Aktion und das Edge-Zahlenfeld liegen hinter je einem Klick
+  in ihrem Panel. Im Band würfelt nichts mehr.
+
+  Das Porträt hängt bewusst über die Unterkante des Bandes; `.sheet-body`
+  reserviert die Höhe, die es braucht. --}}
   <header class="sheet-banner">
 
     {{!-- One decorative copy forms the banner image and fades into parchment
@@ -17,141 +27,10 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
       <img class="banner-backdrop-image" src="{{actor.img}}" alt="" />
     </div>
 
-    {{!-- Die rechte Bahn des Banners führt drei Zeilen: die beiden Chipreihen
-    und darunter den Schadensblock. Die Chips sind auf zwei eigene
-    `.banner-chips`-Zeilen verteilt statt auf eine umbrechende — die Aufteilung
-    ist inhaltlich (oben, was dauerhaft zur Figur gehört, unten der
-    Kampfzustand) und darf nicht von der Breite abhängen. Jede Zeile bricht bei
-    Bedarf weiterhin für sich um. Der Schadensblock bleibt außerhalb beider
-    Zeilen, weil er zwei Kästchenzeilen hoch ist — in derselben Flex-Zeile würde
-    er über `align-items: stretch` alle Pillen neben sich mitwachsen lassen. --}}
-    <div class="banner-meta">
-
-    <div class="banner-chips">
-
-      {{!-- Bewegungsreichweiten sind reine Anzeigewerte, kein Wurf — drei
-      Zahlen in aufsteigender Reichweite, mit einem gemeinsamen Tooltip wie
-      beim Edge-Chip (statt drei konkurrierenden `title`-Attributen). Eine
-      Stufe, die Last gekostet hat, wird hier durchgestrichen statt über dem
-      Trageslot-Block als Badge geführt: die
-      Frage ist "wie weit komme ich", und die Antwort steht an der Zahl. --}}
-      <div class="banner-chip chip-movement"
-           data-tooltip-html='<dl class="tno-tooltip">
-<div class="tno-tooltip-row"><dt>{{localize "TNO.Derived.MovementCrawl"}} <span class="tno-tooltip-value">{{system.derived.movementCrawl}}</span></dt><dd>{{localize "TNO.DerivedHint.MovementCrawl"}}</dd></div>
-<div class="tno-tooltip-row"><dt>{{localize "TNO.Derived.MovementWalk"}} <span class="tno-tooltip-value">{{system.derived.movementWalk}}</span></dt><dd>{{#if movement.walkBlocked}}{{localize "TNO.DerivedHint.CrawlOnly"}}{{else}}{{localize "TNO.DerivedHint.MovementWalk"}}{{/if}}</dd></div>
-<div class="tno-tooltip-row"><dt>{{localize "TNO.Derived.MovementSprint"}} <span class="tno-tooltip-value">{{system.derived.movementSprint}}</span></dt><dd>{{#if movement.sprintBlocked}}{{localize "TNO.DerivedHint.NoSprint"}}{{else}}{{localize "TNO.DerivedHint.MovementSprint"}}{{/if}}</dd></div>
-</dl>'
-           data-tooltip-direction='DOWN'>
-        <i class="fa-solid fa-shoe-prints chip-icon"></i>
-        <span class="chip-move">{{system.derived.movementCrawl}}</span>
-        <span class="chip-sep">|</span>
-        <span class="chip-move{{#if movement.walkBlocked}} move-blocked{{/if}}">{{system.derived.movementWalk}}</span>
-        <span class="chip-sep">|</span>
-        <span class="chip-move{{#if movement.sprintBlocked}} move-blocked{{/if}}">{{system.derived.movementSprint}}</span>
-      </div>
-
-      {{!-- Problemlösen. Der Vorrat ist die einzige Zahl, die hier gesetzt
-      wird — als Pip-Reihe statt als Zahlenfeld: ein Klick setzt den Vorrat auf
-      diesen Pip, ein Klick auf den letzten gefüllten leert ihn. Die drei
-      abgeleiteten Schwellenwerte (Fehler Analysieren, Ideen Bonus, Trial &
-      error) sind reine Anzeigewerte und stehen im Tooltip, da keiner von ihnen
-      von hier aus ausgelöst wird: "Idee haben" lebt als Toggle im
-      Würfel-Dialog (TnoRollDialog), "Fehler finden" und "Fehler Analysieren"
-      auf der Wurf-Karte eines Fehlschlags im Chat (siehe chat.mjs). --}}
-      <div class="banner-chip chip-edge"
-           data-tooltip-html='<dl class="tno-tooltip tno-tooltip-edge">
-<div class="tno-tooltip-row"><dt>{{localize "TNO.DerivedShort.EdgePool"}}</dt><dd>{{localize "TNO.DerivedHint.EdgePool"}}</dd></div>
-<div class="tno-tooltip-row"><dt>{{localize "TNO.DerivedShort.PostMortem"}} <span class="tno-tooltip-value">≤{{system.derived.postMortem}}</span></dt><dd>{{localize "TNO.DerivedHint.PostMortem"}}</dd></div>
-<div class="tno-tooltip-row"><dt>{{localize "TNO.DerivedShort.Insight"}} <span class="tno-tooltip-value">+{{system.derived.insight}}</span></dt><dd>{{localize "TNO.DerivedHint.Insight"}}</dd></div>
-<div class="tno-tooltip-row"><dt>{{localize "TNO.DerivedShort.TrialError"}} <span class="tno-tooltip-value">{{system.derived.trialErrorMax}}{{localize "TNO.UnitRep"}}</span></dt><dd>{{localize "TNO.DerivedHint.TrialError"}}</dd></div>
-</dl>'
-           data-tooltip-direction='DOWN'>
-        <span class="chip-label">{{localize "TNO.DerivedShort.EdgePool"}}</span>
-        <span class="edge-pips">
-          {{#each edgePips as |pip|}}
-          {{!-- No per-pip tooltip: five identical hints inside one chip fight
-          the chip's own tooltip for the same hover. What the pips mean is the
-          chip's job to explain. --}}
-          <span class="edge-pip{{#if pip.filled}} filled{{/if}}"></span>
-          {{/each}}
-        </span>
-        {{!-- The reserve is editable here, but deliberately carries no `name`:
-        `system.derived.edgePool` is recomputed from `problemSolving.spent` on
-        every prepareDerivedData, so a form-bound write would be discarded. The
-        sheet's change handler inverts it back to `spent` instead. --}}
-        <span class="chip-value">
-          <input class="chip-value-input" type="number" min="0" max="{{system.derived.edgePoolMax}}" step="1"
-                 value="{{system.derived.edgePool}}" title="{{localize 'TNO.EdgeValueHint'}}"
-                 {{#unless editable}}disabled{{/unless}} />
-          <span class="chip-value-max">/{{system.derived.edgePoolMax}}</span>
-        </span>
-        <i class="fa-solid fa-circle-info chip-info"></i>
-      </div>
-
-    </div>
-
-    {{!-- Zweite Chipreihe: der Kampfzustand. Die Haltung führt sie an, weil sie
-    im Kampf am häufigsten geändert wird; Sechster Sinn und Initiative sind die
-    beiden Würfe, die daneben gehören. --}}
-    <div class="banner-chips">
-
-      {{!-- Die Haltung entscheidet allein, ob und womit verteidigt werden darf,
-      und löscht beim Einnehmen den Wiederholungsmalus. Sie steht deshalb direkt
-      im Banner als dauerhafter Kampfzustand. Die von ihr freigeschalteten
-      Handlungen liegen an ihren eigenen Spielflächen: Ausweichen an der
-      Papierpuppe, Parade an der jeweiligen Nahkampfwaffe. --}}
-      {{!-- Not `disabled` when read-only: a disabled button fires no pointer
-      events, and the Haltung's tooltip is exactly what a player reading someone
-      else's sheet is after. The click is gated on `editable` in the sheet. --}}
-      <button type="button" class="banner-chip chip-stance{{#unless editable}} disabled{{/unless}}"
-              aria-haspopup="dialog" aria-expanded="false"
-              {{#unless editable}}aria-disabled="true"{{/unless}}
-              data-tooltip-html='<dl class="tno-tooltip">
-<div class="tno-tooltip-row"><dt>{{localize "TNO.Combat.StanceLabel"}}</dt><dd>{{localize "TNO.Combat.StanceHint"}}</dd></div>
-</dl>'
-              data-tooltip-direction='DOWN'>
-        <span class="chip-stance-text">
-          <span class="chip-label">{{localize "TNO.Combat.StanceLabel"}}</span>
-          <span class="chip-stance-name">
-            <i class="fa-solid {{stance.icon}} chip-icon" aria-hidden="true"></i>
-            <span>{{stance.label}}</span>
-          </span>
-        </span>
-        <i class="fa-solid fa-chevron-down chip-stance-caret" aria-hidden="true"></i>
-      </button>
-
-      {{!-- Sechster Sinn wird mit dem regulären 3d20-Wurf gegen den Wert selbst gewürfelt, ohne Mods/Advantage. --}}
-      <a class="banner-chip chip-sense rollable" data-roll-type="sixthSense" data-label="{{localize 'TNO.Derived.SixthSense'}}"
-         data-tooltip-html='<dl class="tno-tooltip">
-<div class="tno-tooltip-row"><dt>{{localize "TNO.Derived.SixthSense"}} <span class="tno-tooltip-value">{{system.derived.sixthSense}}</span></dt><dd>{{localize "TNO.DerivedHint.SixthSense"}}</dd></div>
-</dl>'
-         data-tooltip-direction='DOWN'>
-        <i class="fa-solid fa-eye chip-icon"></i>
-        <span class="chip-value">{{system.derived.sixthSense}}</span>
-      </a>
-
-      {{!-- Initiative moved from the portrait to the banner, but still rolls
-      the same 1d10 + Initiative formula on click. --}}
-      <a class="banner-chip chip-initiative rollable" data-roll="{{config.initiativeFormula}}" data-label="{{localize 'TNO.Derived.Initiative'}}"
-         data-tooltip-html='<dl class="tno-tooltip">
-<div class="tno-tooltip-row"><dt>{{localize "TNO.Derived.Initiative"}} <span class="tno-tooltip-value">{{system.derived.initiative}}</span></dt><dd>{{localize "TNO.DerivedHint.Initiative"}}</dd></div>
-</dl>'
-         data-tooltip-direction='DOWN'>
-        <i class="fa-solid fa-bolt chip-icon"></i>
-        <span class="chip-label">{{localize "TNO.DerivedShort.Initiative"}}</span>
-        <span class="chip-value">{{system.derived.initiative}}</span>
-        <i class="fa-solid fa-circle-info chip-info"></i>
-      </a>
-
-    </div>
-
-    {{> "systems/tno/templates/actor/parts/actor-damage.hbs"}}
-
-    </div>
-
-    {{!-- The portrait is only the character image. Initiative lives in the
-    rollable chip at the upper right of the banner. Owners get a quiet edit
-    affordance; read-only viewers get an ordinary image with no dead action. --}}
+    {{!-- The portrait is only the character image. Owners get a quiet edit
+    affordance; read-only viewers get an ordinary image with no dead action.
+    With both rollables gone from the band it is the only element left here
+    that `_makeKeyboardAccessible()` has to promote. --}}
     <div class="banner-portrait{{#if editable}} is-editable{{/if}}">
       <img class="profile-img" src="{{actor.img}}" alt="{{actor.name}}" height="170" width="170"
         {{#if editable}}data-edit="img" data-action="editImage" aria-label="{{localize 'TNO.PortraitEdit'}}" title="{{localize 'TNO.PortraitEdit'}}"{{else}}title="{{actor.name}}"{{/if}} />
@@ -163,9 +42,9 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
       {{/if}}
     </div>
 
-    {{!-- Name, then a subtitle line the player owns: a free-text profession or
-    role, with the total XP spent across attributes and skills at the end of
-    that same line.
+    {{!-- Name and malus on one baseline, then the subtitle the player owns: a
+    free-text profession or role with the total XP spent across attributes and
+    skills at the end of that same line, then the two damage tracks.
 
     `system.role` is flavour text and nothing else. The system has no concept of
     a class or profession — no roll, derived value, or gate reads this field, and
@@ -174,22 +53,63 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
 
     The XP beside it is a computed read-out, so it sits outside the input; the
     field hugs its own text (see `field-sizing` in _forms.scss) so the figure
-    trails the role rather than floating at the far side of the lane. --}}
+    trails the role rather than floating at the far side of the lane. XP stays
+    in the band rather than leaving with the other properties because it is part
+    of this sentence and costs no lane of its own. --}}
     <div class="banner-identity">
-      <h1 class="charname"><input name="name" type="text" value="{{actor.name}}" placeholder="Name"/></h1>
+
+      <div class="banner-headline">
+        <h1 class="charname"><input name="name" type="text" value="{{actor.name}}" placeholder="Name"/></h1>
+        {{> "systems/tno/templates/actor/parts/actor-malus.hbs"}}
+      </div>
+
       <div class="banner-subtitle">
         <input class="banner-role" name="system.role" type="text" value="{{system.role}}"
                placeholder="{{localize 'TNO.RolePlaceholder'}}" title="{{localize 'TNO.RoleHint'}}" />
-        {{!-- Spent over acquired, dimming the total the way the edge chip dims
-        its maximum: the left figure is what has been committed to ranks, the
-        right what the character has earned all told. They close the gap only
-        when nothing is left banked. --}}
+        {{!-- Spent over acquired, dimming the total: the left figure is what has
+        been committed to ranks, the right what the character has earned all
+        told. They close the gap only when nothing is left banked. --}}
         <span class="banner-xp tno-tooltip-hint"
               data-tooltip-html='<dl class="tno-tooltip">
 <div class="tno-tooltip-row"><dt>{{localize "TNO.UnitXp"}} <span class="tno-tooltip-value">{{totalXpSpent}}/{{totalXpAcquired}}</span></dt><dd>{{localize "TNO.XpTotalAllHint" spent=totalXpSpent acquired=totalXpAcquired unspent=totalXpUnspent}}</dd></div>
 </dl>'
               data-tooltip-direction='DOWN'>{{totalXpSpent}}<span class="banner-xp-total">/{{totalXpAcquired}}</span> {{localize "TNO.UnitXp"}}</span>
       </div>
+
+      {{> "systems/tno/templates/actor/parts/actor-damage.hbs"}}
+
+    </div>
+
+    {{!-- Die Zustandsbahn: drei Pillen, alle Bedienelemente, alle auf dieselbe
+    Frage — was darf ich gerade. Die Haltung führt sie an, weil sie im Kampf am
+    häufigsten geändert wird und allein entscheidet, ob es überhaupt eine
+    Verteidigung gibt. Die von ihr freigeschalteten Handlungen liegen an ihren
+    eigenen Spielflächen: Ausweichen an der Papierpuppe, Parade an der Waffe.
+
+    Not `disabled` when read-only: a disabled button fires no pointer events,
+    and the Haltung's tooltip is exactly what a player reading someone else's
+    sheet is after. The click is gated on `editable` in the sheet. --}}
+    <div class="banner-state">
+
+      <button type="button" class="banner-chip chip-stance{{#unless editable}} disabled{{/unless}}"
+              aria-haspopup="dialog" aria-expanded="false"
+              {{#unless editable}}aria-disabled="true"{{/unless}}
+              data-tooltip-html='<dl class="tno-tooltip">
+<div class="tno-tooltip-row"><dt>{{localize "TNO.Combat.StanceLabel"}}</dt><dd>{{localize "TNO.Combat.StanceHint"}}</dd></div>
+</dl>'
+              data-tooltip-direction='DOWN'>
+        <span class="chip-label">{{localize "TNO.Combat.StanceLabel"}}</span>
+        <span class="chip-stance-name">
+          <i class="fa-solid {{stance.icon}} chip-icon" aria-hidden="true"></i>
+          <span>{{stance.label}}</span>
+        </span>
+        <i class="fa-solid fa-chevron-down chip-stance-caret" aria-hidden="true"></i>
+      </button>
+
+      {{> "systems/tno/templates/actor/parts/actor-status.hbs"}}
+
+      {{> "systems/tno/templates/actor/parts/actor-edge.hbs"}}
+
     </div>
 
   </header>
@@ -264,6 +184,8 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
           </tbody>
         </table>
         </div>
+
+        {{> "systems/tno/templates/actor/parts/actor-derived.hbs"}}
 
       </section>
 
