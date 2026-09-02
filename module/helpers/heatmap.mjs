@@ -200,6 +200,15 @@ function lerpRgb(a, b, f) {
   };
 }
 
+/**
+ * The two ink tones a graded cell may be painted in. Exported because callers
+ * that put further chrome on a heatmap tile (badge washes, hairlines) need to
+ * know which of the two they are working against — see the attribute matrix in
+ * sheets/actor-sheet.mjs.
+ */
+export const INK_DARK = '#2A2419';
+export const INK_LIGHT = '#F3EFE4';
+
 /** Choose whichever palette text colour has the stronger WCAG contrast. */
 function textColorFor(rgb) {
   const relativeLuminance = ({ r, g, b }) => {
@@ -216,7 +225,7 @@ function textColorFor(rgb) {
   };
   const dark = { r: 42, g: 36, b: 25 };
   const light = { r: 243, g: 239, b: 228 };
-  return contrast(rgb, dark) >= contrast(rgb, light) ? '#2A2419' : '#F3EFE4';
+  return contrast(rgb, dark) >= contrast(rgb, light) ? INK_DARK : INK_LIGHT;
 }
 
 /**

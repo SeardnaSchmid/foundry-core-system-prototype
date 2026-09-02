@@ -158,18 +158,33 @@ button:focus-visible {
       display: block;
     }
 
+    // Tile layout: the attribute name owns the tile as its primary label and
+    // the value sits opposite it as a small badge, with the XP track running
+    // the full inner width along the bottom edge. The four measurements the
+    // container tiers re-scale are custom properties, so the tile's padding
+    // and the absolutely-positioned bar inside it can never drift apart.
     .heatmap-cell {
+      --heat-pad: 6px;
+      --heat-gap: 5px;
+      --heat-bar: 3px;
+      --heat-name-size: var(--font-size-11, 11px);
+      --heat-badge-size: var(--font-size-12, 12px);
+
       position: relative;
-      text-align: center;
+      text-align: left;
       // Keep the vertical rhythm stable at every width. Wider containers add
       // horizontal breathing room and, eventually, axis labels; they do not
       // make the twelve data tiles taller.
       min-height: 42px;
-      padding: 1px 3px 5px;
-      border-radius: 4px;
-      border: 1.5px solid transparent;
-      // The XP bar is pinned to the bottom edge as an absolute strip (below);
-      // clip it to the cell's rounded corners.
+      // The bar is absolute so it stays flush with the tile's bottom whether
+      // the name took one line or two; padding-bottom is what reserves its
+      // strip, hence the calc rather than a literal.
+      padding: var(--heat-pad) var(--heat-pad)
+        calc(var(--heat-pad) + var(--heat-bar) + var(--heat-gap));
+      border-radius: 8px;
+      // Colour comes from the cell data (a wash of the tile's own ink), so
+      // the hairline reads on a pale tile and on a near-black one alike.
+      border: 1px solid transparent;
       overflow: hidden;
 
       &.heatmap-peak {
@@ -179,58 +194,74 @@ button:focus-visible {
       .heatmap-cell-top {
         position: relative;
         display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 9px;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 5px;
       }
 
       .heatmap-cell-name {
-        // The value is the primary signal in a heatmap tile; the attribute
-        // name only identifies it and should not compete with that value.
-        font-weight: 400;
-        // Base (narrowest): let the longest names ("Investigation")
-        // ellipsize rather than spill into the neighbouring cell — the full
-        // name stays available in the cell tooltip. min-width: 401px below
-        // gives back enough room that this no longer needs to truncate.
-        max-width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        font-size: var(--font-size-9, 9px);
-        line-height: 1;
+        // The name is the label the twelve tiles are scanned by, so it gets
+        // the tile's width and wraps onto a second line instead of being
+        // ellipsised — German compounds ("Fingerfertigkeit") need both lines.
+        flex: 1 1 auto;
+        min-width: 0;
+        font-weight: 600;
+        font-size: var(--heat-name-size);
+        line-height: 1.25;
+        // Reserve both lines whether or not this particular name uses them,
+        // so all twelve tiles keep one height.
+        min-height: 2.5em;
+        overflow-wrap: anywhere;
+        hyphens: auto;
       }
 
-      // XP-toward-next-rank bar, pinned as an absolute strip flush with the
-      // cell's bottom edge so it costs zero layout height (the cell clips it
-      // via overflow:hidden above). Doubles as the click target for the
-      // attribute advancement dialog (the numeric xp/cost badge that used to
-      // sit in the cell's top-right corner was removed as visual clutter —
+      .heatmap-value {
+        // Corner badge rather than the tile's headline numeral: a wash of the
+        // cell's own ink (from the cell data) keeps it readable at every point
+        // on the gradient without a second numeral-sized block of colour.
+        flex: 0 0 auto;
+        font-weight: 700;
+        font-size: var(--heat-badge-size);
+        line-height: 1;
+        padding: 0.34em 0.5em;
+        border-radius: 5px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      // XP-toward-next-rank bar: a rounded track inset to the tile's padding
+      // box along its bottom edge, absolute so it costs no layout height and
+      // stays put however many lines the name took. Doubles as the click
+      // target for the attribute advancement dialog (the numeric xp/cost badge
+      // that used to sit in the cell's corner was removed as visual clutter —
       // the bar's fill/color already communicates progress, and the exact
       // numbers are still available via tooltip). The fill turns to the
       // advance accent once the next rank is affordable; track/fill colors
       // come from the cell data so the bar stays legible on every heatmap tone.
       .heatmap-xp-bar {
         position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        height: 6px;
-        overflow: hidden;
+        left: var(--heat-pad);
+        right: var(--heat-pad);
+        bottom: var(--heat-pad);
+        height: var(--heat-bar);
+        border-radius: 2px;
         cursor: pointer;
 
         // Widen the clickable strip well past its visible height so the
         // advance action stays easy to hit without inflating the bar itself.
+        // The fill rounds its own corners (below) rather than being clipped,
+        // so this pad isn't cut off by an overflow:hidden on the track.
         &::before {
           content: '';
           position: absolute;
           left: 0;
           right: 0;
-          bottom: 0;
-          height: 12px;
+          top: 50%;
+          height: 15px;
+          transform: translateY(-50%);
         }
 
         &.ready {
-          height: 8px;
+          height: 4px;
         }
 
         &.ready .heatmap-xp-bar-fill {
@@ -241,18 +272,8 @@ button:focus-visible {
       .heatmap-xp-bar-fill {
         display: block;
         height: 100%;
+        border-radius: inherit;
         transition: width 0.15s ease;
-      }
-
-      .heatmap-cell-values {
-        min-height: 23px;
-        justify-content: center;
-      }
-
-      .heatmap-value {
-        font-weight: 800;
-        font-size: var(--font-size-18, 18px);
-        line-height: 1;
       }
     }
   }
@@ -264,15 +285,14 @@ button:focus-visible {
   // ascending complement here is min-width: (N+1)px — using min-width: Npx
   // would double-fire both rules at the exact boundary pixel.
   //
-  // Once each data column has a little more room, enlarge only the small
-  // name text. The header row remains hidden so crossing this breakpoint
-  // does not suddenly make the component taller.
+  // Once each data column has a little more room, enlarge only the tile's
+  // type. The header row remains hidden so crossing this breakpoint does not
+  // suddenly make the component taller.
   @container (min-width: 401px) {
     &.heatmap {
       .heatmap-cell {
-        .heatmap-cell-name {
-          font-size: var(--font-size-10, 10px);
-        }
+        --heat-name-size: var(--font-size-12, 12px);
+        --heat-badge-size: var(--font-size-13, 13px);
       }
     }
   }
@@ -292,7 +312,10 @@ button:focus-visible {
       }
 
       .heatmap-cell {
-        padding-inline: 6px;
+        --heat-pad: 9px;
+        --heat-gap: 7px;
+        --heat-name-size: var(--font-size-13, 13px);
+        --heat-badge-size: var(--font-size-14, 14px);
       }
     }
   }
@@ -317,17 +340,16 @@ button:focus-visible {
     }
   }
 
-  // Splitters can make the attribute column extremely narrow. Preserve all
-  // the value readable while keeping the same compact cell height and
-  // ellipsising long labels.
+  // Splitters can make the attribute column extremely narrow. Tighten the
+  // padding and step the type down one notch so the name still gets its two
+  // lines and the badge still holds the value, at the same cell height.
   @container (max-width: 300px) {
     &.heatmap {
       .heatmap-cell {
-        padding-inline: 2px;
-
-        .heatmap-value {
-          font-size: var(--font-size-17, 17px);
-        }
+        --heat-pad: 4px;
+        --heat-gap: 4px;
+        --heat-name-size: var(--font-size-10, 10px);
+        --heat-badge-size: var(--font-size-11, 11px);
       }
     }
   }

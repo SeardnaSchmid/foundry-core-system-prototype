@@ -3,7 +3,7 @@ import {
   prepareActiveEffectCategories,
 } from '../helpers/effects.mjs';
 import { ausweichenOptions, canDefend, takeStance } from '../helpers/combat-actions.mjs';
-import { colorForValue } from '../helpers/heatmap.mjs';
+import { colorForValue, INK_DARK } from '../helpers/heatmap.mjs';
 import { damageTrackRows } from '../helpers/damage.mjs';
 import { TnoRollDialog } from '../apps/roll-dialog.mjs';
 import { TnoAdvanceDialog } from '../apps/advance-dialog.mjs';
@@ -336,6 +336,11 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           const value = ability?.base ?? 0;
           const xp = ability?.xp ?? 0;
           const dc = colorForValue(value);
+          // The value badge and the tile hairline are washes of the cell's own
+          // ink, so both hold whether the graded tile came out pale or nearly
+          // black. colorForValue only ever picks one of two ink tones, so a
+          // two-branch wash covers the whole ramp.
+          const onLightInk = dc.textColor !== INK_DARK;
 
           // XP progress toward the next base rank: advancing to rank N costs
           // N*N XP; the bar fills as XP accrues and turns "ready" once enough
@@ -359,6 +364,8 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             xpBarFill: 'rgba(51,45,34,0.45)',
             cellBg: dc.bg,
             textColor: dc.textColor,
+            badgeBg: onLightInk ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.08)',
+            tileBorder: onLightInk ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.09)',
             isPeak: dc.isPeak,
           };
         }),

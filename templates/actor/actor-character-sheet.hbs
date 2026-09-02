@@ -245,12 +245,14 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
                 <span class="heatmap-row-label">{{row.label}}</span>
               </th>
               {{#each row.cells as |cell|}}
-              <td class="heatmap-cell{{#if cell.isPeak}} heatmap-peak{{/if}}" style="background:{{cell.cellBg}}; color:{{cell.textColor}};" title="{{cell.hint}}">
-                <div class="heatmap-cell-values flexrow flex-center">
-                  <strong class="heatmap-value">{{cell.value}}</strong>
-                </div>
+              <td class="heatmap-cell{{#if cell.isPeak}} heatmap-peak{{/if}}" style="background:{{cell.cellBg}}; color:{{cell.textColor}}; border-color:{{cell.tileBorder}};" title="{{cell.hint}}">
+                {{!-- Name first and full-width, value demoted to a chip in the
+                top-right corner: the twelve tiles are scanned by name, and the
+                badge keeps the number legible without a 18px numeral fighting
+                the graded fill for the tile. --}}
                 <div class="heatmap-cell-top">
                   <span class="heatmap-cell-name">{{cell.label}}</span>
+                  <strong class="heatmap-value" style="background:{{cell.badgeBg}};">{{cell.value}}</strong>
                 </div>
                 <a class="heatmap-xp-bar{{#if cell.xpReady}} ready{{/if}}" data-key="{{cell.key}}" style="background:{{cell.xpBarTrack}};" title="{{#if cell.xpAtMax}}{{localize 'TNO.XpMaxBadge'}}{{else}}{{cell.xp}}/{{cell.xpCost}} xp{{/if}} — {{localize 'TNO.AttributeAdvanceHint'}}">
                   <span class="heatmap-xp-bar-fill" style="width:{{cell.xpPercent}}%; background:{{cell.xpBarFill}};"></span>
