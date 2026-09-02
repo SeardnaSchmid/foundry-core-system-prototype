@@ -1,5 +1,15 @@
 # Changelog
 
+# [0.37.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.36.0...v0.37.0) (2026-09-02)
+
+
+### Features
+
+* close the paper doll with the summed Stärkevoraussetzung ([f2ecef2](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/f2ecef27bda4082da4ef9cdfaa4a7ae3ceb67353))
+* **sheet:** overhaul character status workflows ([6bd79d2](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/6bd79d204dc51d842dfb8fbfc1934955bd3bf95a))
+* **sheet:** refine attribute matrix tiles ([a413d18](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/a413d187c87ecf778946dd5935b300c5c8837817))
+* sort the banner chips into two fixed rows ([c71171e](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/c71171ede687462df778d7b5c9d62966d019f2f4))
+
 # [0.36.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.33.0...v0.36.0) (2026-08-31)
 
 
