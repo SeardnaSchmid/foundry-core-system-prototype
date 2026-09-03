@@ -1,5 +1,18 @@
 # Changelog
 
+# [0.39.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.38.0...v0.39.0) (2026-09-03)
+
+
+### Bug Fixes
+
+* **edge:** announce a manual reserve edit in both directions ([96df81a](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/96df81acb08275b942cef15676ec4caa95abce58))
+
+
+### Features
+
+* **chat:** copy a posted item onto a sheet you own ([621a776](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/621a77678048c6e6b5abef2a22cbd01feb893703))
+* **roll:** make the resistance comparison a table ([fd3aec8](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/fd3aec81fa0a2e537532ff8d2a62c28f37cdec79))
+
 # [0.38.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.37.0...v0.38.0) (2026-09-03)
 
 
