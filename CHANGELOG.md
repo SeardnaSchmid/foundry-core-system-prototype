@@ -1,5 +1,13 @@
 # Changelog
 
+# [0.38.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.37.0...v0.38.0) (2026-09-03)
+
+
+### Features
+
+* **sheet:** open the advance dialog from the whole attribute tile ([98a79f6](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/98a79f606bea666d0c2476c26bd5c62cf45eef15))
+* **sheet:** rehome the conditions, the movement line and the state pills ([8488827](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/8488827398a771629b98a49e9d2aa551355f07be))
+
 # [0.37.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.36.0...v0.37.0) (2026-09-02)
 
 
