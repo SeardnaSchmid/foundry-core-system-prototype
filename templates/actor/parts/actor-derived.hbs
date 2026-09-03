@@ -15,6 +15,12 @@ gerechnet.
 In einer halben Spalte teilen sich Name und Wert keine Zeile: der Name steht
 oben aus, Wert und Würfelformel darunter.
 
+Die sichtbare Beschriftung kommt aus `DerivedShort.*`, der Tooltip-Titel und das
+Chat-Label aus `Derived.*` — dieselbe Aufteilung, die die Bewegungszeile schon
+nutzt. „Initiativegrundwert" ist als Kachelbeschriftung zu lang und bricht in der
+halben Spalte ab; im Tooltip, wo danebensteht, wie er gerechnet wird, und auf der
+Würfelkarte ist genau diese Präzision etwas wert.
+
 Beide Würfe behalten ihr Verhalten unverändert: Initiative über den generischen
 `data-roll`-Pfad, der 6. Sinn als schlichter 3d20 gegen `derived.sixthSense`
 ohne Modifikatoren, ohne Vor-/Nachteil und ohne Vor-Edge — eine instinktive
@@ -32,7 +38,7 @@ Reaktion ist keine bewusste Probe. --}}
 <div class="tno-tooltip-row"><dt>{{localize "TNO.Derived.Initiative"}} <span class="tno-tooltip-value">{{system.derived.initiative}}</span></dt><dd>{{localize "TNO.DerivedHint.Initiative"}}</dd></div>
 </dl>'
             data-tooltip-direction='UP'>
-      <span class='derived-cell-label'>{{localize 'TNO.Derived.Initiative'}}</span>
+      <span class='derived-cell-label'>{{localize 'TNO.DerivedShort.Initiative'}}</span>
       <span class='derived-cell-figure'>
         <b class='derived-cell-value'>{{system.derived.initiative}}</b>
         <span class='derived-cell-dice'>

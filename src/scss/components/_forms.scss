@@ -1250,9 +1250,13 @@ button.status-light-button {
   flex-grow: 0.25;
 }
 
-// Unlike the other compact top-row cells, this column uses the row's full
-// height so the wallet can sit on its bottom edge. Kleinkram still owns its
-// natural height and expands the whole row when its list grows.
+// Unlike the other compact top-row cells, these two use the row's full height
+// so their closing block can sit on the bottom edge — the wallet under
+// Kleinkram, the movement line under the paper doll. Both cells' upper blocks
+// still own their natural height and expand the whole row when they grow; it is
+// the `margin-top: auto` on the closing block that collects the slack, so with
+// no spare height either column simply follows its content as before.
+.cell-gear,
 .cell-loose {
   align-self: stretch;
 }

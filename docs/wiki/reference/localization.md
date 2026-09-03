@@ -42,6 +42,11 @@ mechanic is named consistently at entry, preview and roll time.
 
 `TNO.Derived.*` / `DerivedShort.*` / `DerivedHint.*` name the values the banner
 handed to the Basics tab's derived strip, under the `TNO.DerivedTitle` heading.
+The split is by surface, not by mere length: `DerivedShort.*` is what a tile or
+line is *labelled*, `Derived.*` what the value is *called* in a tooltip title or
+on a roll card, where there is room for the precise name. German is where the
+two diverge — "Initiativegrundwert" is the value's name and truncates as a
+label, so the tile reads `DerivedShort.Initiative`.
 `TNO.EdgeAdjustLabel` is the reserve correction in the Edge popover; the
 `TNO.EdgeValueHint` that titled the banner's old number field is gone with the
 field.

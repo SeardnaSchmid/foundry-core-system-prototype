@@ -172,6 +172,9 @@ button:focus-visible {
 
       position: relative;
       text-align: left;
+      // The whole tile opens the advancement dialog (see actor-sheet.mjs), so
+      // the affordance sits on the tile rather than on the bar at its foot.
+      cursor: pointer;
       // Keep the vertical rhythm stable at every width. Wider containers add
       // horizontal breathing room and, eventually, axis labels; they do not
       // make the twelve data tiles taller.
@@ -186,6 +189,19 @@ button:focus-visible {
       // the hairline reads on a pale tile and on a near-black one alike.
       border: 1px solid transparent;
       overflow: hidden;
+
+      // A wash of the tile's own ink rather than a colour of its own: the
+      // twelve tiles are already twelve fills, and a hover tint would read as a
+      // thirteenth value on the gradient.
+      &:hover {
+        border-color: currentColor;
+      }
+
+      &:focus-visible {
+        border-color: currentColor;
+        outline: 2px solid currentColor;
+        outline-offset: 1px;
+      }
 
       &.heatmap-peak {
         animation: heatmap-peak-pulse 2.2s ease-in-out infinite;
@@ -230,35 +246,22 @@ button:focus-visible {
 
       // XP-toward-next-rank bar: a rounded track inset to the tile's padding
       // box along its bottom edge, absolute so it costs no layout height and
-      // stays put however many lines the name took. Doubles as the click
-      // target for the attribute advancement dialog (the numeric xp/cost badge
-      // that used to sit in the cell's corner was removed as visual clutter —
-      // the bar's fill/color already communicates progress, and the exact
-      // numbers are still available via tooltip). The fill turns to the
-      // advance accent once the next rank is affordable; track/fill colors
-      // come from the cell data so the bar stays legible on every heatmap tone.
+      // stays put however many lines the name took. A pure indicator — the
+      // whole tile is the click target, so the bar no longer needs a hit area
+      // of its own and a 3px strip is no longer the thing to aim at. The
+      // numeric xp/cost badge that used to sit in the cell's corner was removed
+      // as visual clutter; the fill communicates progress and the exact figures
+      // are in the tile's tooltip. The fill turns to the advance accent once
+      // the next rank is affordable; track/fill colors come from the cell data
+      // so the bar stays legible on every heatmap tone.
       .heatmap-xp-bar {
+        display: block;
         position: absolute;
         left: var(--heat-pad);
         right: var(--heat-pad);
         bottom: var(--heat-pad);
         height: var(--heat-bar);
         border-radius: 2px;
-        cursor: pointer;
-
-        // Widen the clickable strip well past its visible height so the
-        // advance action stays easy to hit without inflating the bar itself.
-        // The fill rounds its own corners (below) rather than being clipped,
-        // so this pad isn't cut off by an overflow:hidden on the track.
-        &::before {
-          content: '';
-          position: absolute;
-          left: 0;
-          right: 0;
-          top: 50%;
-          height: 15px;
-          transform: translateY(-50%);
-        }
 
         &.ready {
           height: 4px;

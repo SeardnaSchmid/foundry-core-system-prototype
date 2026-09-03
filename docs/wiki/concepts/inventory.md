@@ -128,8 +128,11 @@ is false exactly when the load reaches the `noSprint` or `crawlOnly` state.
 strikes through that tier (sprint for `noSprint`, walk as well for
 `crawlOnly`), because the question a player is asking is "how far can I move"
 and the answer belongs on the figure that changes. That line closes the worn-gear
-column, directly under the summed Stärkevoraussetzung and the `armor-warning`
-that the same load produces — cause and consequence in one column. The tiers
+column, under the summed Stärkevoraussetzung and the `armor-warning` that the
+same load produces — cause and consequence in one column. `.cell-gear` takes
+`align-self: stretch` so the column fills the row's height, and the line's own
+`margin-top: auto` then collects the slack and settles it on the bottom edge —
+the same pairing the wallet uses under Kleinkram in `.cell-loose`. The tiers
 left the banner with the other derived values, and the strike-through went with
 them. The slot grid's header keeps only
 `noContainer`, which is not a movement state but explains why the carried band

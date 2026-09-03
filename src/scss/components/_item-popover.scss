@@ -543,20 +543,34 @@
     text-transform: uppercase;
   }
 
+  // Two columns rather than three. At three, an option had 86px for its label
+  // while the longest English one needs 92 and the longest German one
+  // ("Vorsichtige Bewegung") 112 — every second option wrapped to two lines and
+  // sat crammed against its own edges. Two columns give the label 157px, so all
+  // nine fit on one line in both languages with room to spare, and Kampf falls
+  // into a clean 2×2. `auto-fill` rather than a fixed count so the picker drops
+  // to one column instead of clipping when the viewport forces it narrow — and
+  // `auto-fill` rather than `auto-fit` because a group of one (Grundhaltung,
+  // Erholung) must keep the column width the other groups have: `auto-fit`
+  // collapses the empty track and stretches the lone option to the full row.
   .stance-popover-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 7px;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 8px;
   }
 
   .stance-option {
     display: flex;
     align-items: center;
-    gap: 8px;
+    // Core centres every button's contents. At the old width that barely
+    // showed; at the width these have now it walks each icon to a different x
+    // and the column of nine stops being scannable.
+    justify-content: flex-start;
+    gap: 9px;
     width: auto;
     min-width: 0;
     margin: 0;
-    padding: 7px 9px;
+    padding: 9px 11px;
     border: 1px solid rgba($c-dark, 0.18);
     border-radius: 6px;
     background: rgba($c-white, 0.5);

@@ -337,7 +337,7 @@
       "Retry": "Edge: Neuer Versuch"
     },
     "DerivedShort": {
-      "Initiative": "Init",
+      "Initiative": "Initiative",
       "Dodge": "Ausw.",
       "MovementWalk": "Gehen",
       "MovementSprint": "Sprint",

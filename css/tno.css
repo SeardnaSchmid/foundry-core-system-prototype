@@ -1165,6 +1165,7 @@
 .tno .cell-loose {
   flex-grow: 0.25;
 }
+.tno .cell-gear,
 .tno .cell-loose {
   align-self: stretch;
 }
@@ -1849,11 +1850,20 @@
   --heat-badge-size: var(--font-size-12, 12px);
   position: relative;
   text-align: left;
+  cursor: pointer;
   min-height: 42px;
   padding: var(--heat-pad) var(--heat-pad) calc(var(--heat-pad) + var(--heat-bar) + var(--heat-gap));
   border-radius: 8px;
   border: 1px solid transparent;
   overflow: hidden;
+}
+.tno .attribute-table.heatmap .heatmap-cell:hover {
+  border-color: currentColor;
+}
+.tno .attribute-table.heatmap .heatmap-cell:focus-visible {
+  border-color: currentColor;
+  outline: 2px solid currentColor;
+  outline-offset: 1px;
 }
 .tno .attribute-table.heatmap .heatmap-cell.heatmap-peak {
   animation: heatmap-peak-pulse 2.2s ease-in-out infinite;
@@ -1885,22 +1895,13 @@
   font-variant-numeric: tabular-nums;
 }
 .tno .attribute-table.heatmap .heatmap-cell .heatmap-xp-bar {
+  display: block;
   position: absolute;
   left: var(--heat-pad);
   right: var(--heat-pad);
   bottom: var(--heat-pad);
   height: var(--heat-bar);
   border-radius: 2px;
-  cursor: pointer;
-}
-.tno .attribute-table.heatmap .heatmap-cell .heatmap-xp-bar::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  height: 15px;
-  transform: translateY(-50%);
 }
 .tno .attribute-table.heatmap .heatmap-cell .heatmap-xp-bar.ready {
   height: 4px;
@@ -4738,17 +4739,18 @@
 }
 .tno.item-popover.stance-popover .stance-popover-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 7px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
 }
 .tno.item-popover.stance-popover .stance-option {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: flex-start;
+  gap: 9px;
   width: auto;
   min-width: 0;
   margin: 0;
-  padding: 7px 9px;
+  padding: 9px 11px;
   border: 1px solid rgba(25, 24, 19, 0.18);
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.5);

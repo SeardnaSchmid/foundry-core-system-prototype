@@ -2088,11 +2088,12 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       if (event.newState === 'closed') this._edgePopoverAnchor = null;
     });
 
-    // Custom clickable chips (anchors without `href`, plus `.skill-info` and
-    // the slot grid's cells) are promoted to real keyboard targets in
+    // Custom clickable chips (anchors without `href`, plus `.skill-info`, the
+    // attribute tiles and the slot grid's cells) are promoted to keyboard
+    // targets in
     // _onRender; this forwards their Enter/Space to the same click listeners
     // bound below.
-    this.#delegate('keydown', 'a:not([href]), .skill-info, .slot-cell, .slot-trinket, .armor-row[data-item-id], .money-wallet-block.editable, .banner-portrait .profile-img[data-action="editImage"]', (event, target) => {
+    this.#delegate('keydown', 'a:not([href]), .skill-info, .heatmap-cell, .slot-cell, .slot-trinket, .armor-row[data-item-id], .money-wallet-block.editable, .banner-portrait .profile-img[data-action="editImage"]', (event, target) => {
       if (event.key !== 'Enter' && event.key !== ' ') return;
       event.preventDefault();
       target.click();
@@ -2286,8 +2287,9 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     }, editable);
 
     // Open the skill advancement dialog, either from the dedicated arrow
-    // button or by clicking the skill's XP bar directly (mirroring the
-    // attribute heatmap, where the XP bar itself is the advance click target).
+    // button or by clicking the skill's XP bar directly (the attribute heatmap
+    // goes further and makes the whole tile the target — a skill row has other
+    // things on it to click, a tile does not).
     this.#delegate('click', '.skill-advance-button, .skill-xp-bar', (event, target) => {
       event.preventDefault();
       const key = target.dataset.skill;
@@ -2307,8 +2309,10 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       new TnoCustomSkillDialog(this.actor, { category: target.dataset.category }).render(true);
     }, editable);
 
-    // Open the attribute advancement dialog from the heatmap cell's XP bar.
-    this.#delegate('click', '.heatmap-xp-bar', (event, target) => {
+    // Open the attribute advancement dialog from anywhere on the heatmap cell.
+    // The XP bar used to be the sole target; the tile is one subject end to
+    // end, so the whole of it opens the dialog for that attribute.
+    this.#delegate('click', '.heatmap-cell', (event, target) => {
       event.preventDefault();
       event.stopPropagation();
       const key = target.dataset.key;
@@ -2558,7 +2562,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // four-slot item four times to reach the next one is worse than not
     // reaching its tail at all.
     const targets = this.element.querySelectorAll(
-      'a:not([href]), .skill-info, .slot-cell.slot-first, .slot-trinket, .armor-row[data-item-id], .money-wallet-block.editable, .banner-portrait .profile-img[data-action="editImage"]'
+      'a:not([href]), .skill-info, .heatmap-cell, .slot-cell.slot-first, .slot-trinket, .armor-row[data-item-id], .money-wallet-block.editable, .banner-portrait .profile-img[data-action="editImage"]'
     );
     for (const el of targets) {
       if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');

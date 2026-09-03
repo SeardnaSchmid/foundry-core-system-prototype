@@ -45,9 +45,14 @@ rewrites attributes.
 
 ## Where they're edited
 
-- **Advancement**: click the cell's XP bar to open `TnoAdvanceDialog`; raising
+- **Advancement**: click anywhere on a tile to open `TnoAdvanceDialog`; raising
   `base` costs XP, while its correction block permits an explicit rank repair
-  — see [advancement.md](advancement.md).
+  — see [advancement.md](advancement.md). The tile is one subject end to end, so
+  there was no second meaning a click on it could carry; the XP bar along its
+  foot is a progress indicator only. Each `td.heatmap-cell` carries the
+  attribute's `data-key` and is promoted to a keyboard target by
+  `_makeKeyboardAccessible()`.
 
 The heatmap has no quick rank steppers. Character development remains a
-deliberate dialog action rather than an easy-to-hit sheet control.
+deliberate dialog action rather than an easy-to-hit sheet control — the tile
+opens the dialog, it does not raise the rank.
