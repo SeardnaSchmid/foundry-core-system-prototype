@@ -413,12 +413,12 @@
 .tno .banner-state {
   grid-area: state;
   justify-self: end;
-  align-self: stretch;
+  align-self: start;
   min-width: 0;
   width: clamp(210px, 22cqi, 260px);
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: stretch;
   gap: 6px;
 }
@@ -503,53 +503,67 @@
 .tno button.banner-chip.chip-stance[aria-expanded=true] .chip-stance-caret {
   transform: rotate(180deg);
 }
-.tno .chip-status .chip-label {
-  font-weight: bold;
-}
-.tno .status-chip-dots {
+.tno button.banner-conditions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-start;
+  align-self: flex-start;
+  max-width: 100%;
   gap: 4px;
-  min-width: 0;
-  overflow: hidden;
-}
-.tno .status-chip-none {
-  color: #444;
-  font-size: var(--font-size-12, 12px);
-  line-height: 1;
-}
-.tno .status-dot {
-  position: relative;
-  display: grid;
   width: auto;
-  min-width: 22px;
-  height: 16px;
-  flex: none;
-  place-items: center;
-  padding: 0 3px;
-  border: 1px solid;
-  border-radius: 3px;
-  font-size: 10px;
-  font-weight: bold;
-  letter-spacing: 0.02em;
+  height: auto;
+  min-height: 0;
+  margin: 5px 0 0 -3px;
+  padding: 3px 6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+  font-family: inherit;
   line-height: 1;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
-.tno .status-dot.is-negative.is-severe, .tno .status-dot.is-negative.is-mild {
+.tno button.banner-conditions:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.14);
+}
+.tno button.banner-conditions:focus-visible {
+  border-color: #fff;
+  outline: 2px solid rgba(255, 255, 255, 0.45);
+  outline-offset: 1px;
+}
+.tno .condition-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  padding: 3px 7px;
+  border: 1px solid;
+  border-radius: 4px;
+  font-size: var(--font-size-10, 10px);
+  font-weight: bold;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.tno .condition-chip.is-negative.is-severe, .tno .condition-chip.is-negative.is-mild {
   border-color: #b3212b;
   background: rgba(179, 33, 43, 0.35);
   color: #fff;
 }
-.tno .status-dot.is-positive {
+.tno .condition-chip.is-positive {
   border-color: #1f6b3a;
   background: rgba(31, 107, 58, 0.35);
   color: #fff;
 }
-.tno .status-dot.is-neutral {
+.tno .condition-chip.is-neutral {
   border-color: rgba(25, 24, 19, 0.55);
   background: rgba(47, 107, 255, 0.35);
   color: #fff;
 }
-.tno .status-dot.is-manual::after {
+.tno .condition-chip.is-manual::after {
   content: "";
   position: absolute;
   top: -4px;
@@ -559,6 +573,15 @@
   border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 50%;
   background: #2f6bff;
+}
+.tno .condition-chip-more {
+  flex: none;
+  padding: 3px 5px;
+  color: #b5b3a4;
+  font-size: var(--font-size-10, 10px);
+  font-weight: bold;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
 }
 .tno .edge-pips {
   display: flex;
@@ -1278,10 +1301,11 @@
   color: #191813;
 }
 .tno .derived-movement {
+  margin-top: auto;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  justify-content: flex-start;
+  gap: 14px;
   padding: 7px 11px;
   border: 1px dashed #b5b3a4;
   border-radius: 6px;
@@ -3552,6 +3576,7 @@
   flex-direction: column;
   align-items: stretch;
   gap: 6px;
+  min-height: 0;
 }
 .tno .basics-section-card {
   border: 1px solid rgba(25, 24, 19, 0.14);

@@ -71,6 +71,13 @@ export const BASICS_LAYOUT_DEFAULT = Object.freeze({
 const BASICS_CELL_MIN = 0.12;
 
 /**
+ * How many conditions the band names before it starts counting the rest. Three
+ * fits the identity lane at its protected width even with the longest German
+ * names ("Beine verkrüppelt") and still leaves the role line its own edge.
+ */
+const BANNER_CONDITION_LIMIT = 3;
+
+/**
  * Bring a stored row of shares into a usable state: the right length, nothing
  * below the minimum, summing to 1. A stored row that is the wrong length is a
  * layout from before this row had that many columns, so it is discarded rather
@@ -595,11 +602,20 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       };
     });
     const byKey = new Map(statusItems.map((condition) => [condition.key, condition]));
+    const active = conditions.active.map((condition) => byKey.get(condition.key));
     return {
       ...conditions,
       items: statusItems,
       rows: conditions.rows.map((row) => row.map((condition) => byKey.get(condition.key))),
-      active: conditions.active.map((condition) => byKey.get(condition.key)),
+      active,
+      // The band names the worst few and counts the rest. Nine at once is the
+      // arithmetic maximum, not the case worth designing for: a character
+      // normally carries none or one or two, and spelling those out costs less
+      // width than a code the reader has to learn. The overflow is what keeps
+      // the rare crowded case from taking the lane — the panel behind it lists
+      // every entry in full, which is the point of a summary having a detail.
+      shown: active.slice(0, BANNER_CONDITION_LIMIT),
+      hiddenCount: Math.max(0, active.length - BANNER_CONDITION_LIMIT),
     };
   }
 
@@ -1495,8 +1511,11 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // Which door, not just which element: a stepper press re-renders the sheet
     // and replaces the anchor, and a panel that re-anchored to a different door
     // would jump across the band under the cursor that opened it.
+    // The tracks are the fallback because they are the one door always drawn:
+    // the condition row is absent while nothing is active, and the malus cell
+    // is absent at zero.
     this._conditionPopoverDoor = ['chip-status', 'banner-malus', 'banner-tracks']
-      .find((door) => anchor.classList.contains(door)) ?? 'chip-status';
+      .find((door) => anchor.classList.contains(door)) ?? 'banner-tracks';
     await this.#refreshConditionPopover();
     if (!this._conditionPopover.matches(':popover-open')) this._conditionPopover.showPopover();
     this.#positionConditionPopover();
@@ -1506,7 +1525,11 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   #positionConditionPopover() {
     if (!this._conditionPopover?.matches(':popover-open')) return;
     if (!this._conditionPopoverAnchor?.isConnected) {
-      this._conditionPopoverAnchor = this.element.querySelector(`.${this._conditionPopoverDoor}`);
+      // Clearing both tracks from inside the panel removes the condition row
+      // that opened it, so the door itself can go while the panel stays up.
+      // Re-anchor to the tracks rather than letting the panel lose its place.
+      this._conditionPopoverAnchor = this.element.querySelector(`.${this._conditionPopoverDoor}`)
+        ?? this.element.querySelector('.banner-tracks');
     }
     this.#positionPopover(this._conditionPopover, this._conditionPopoverAnchor);
   }

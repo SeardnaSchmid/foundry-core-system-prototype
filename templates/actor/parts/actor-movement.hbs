@@ -1,0 +1,34 @@
+{{!-- Die drei Bewegungsstufen. Sie stehen unter der getragenen Ausrüstung und
+nicht mehr bei den abgeleiteten Würfen, weil die Last, die eine Stufe wegnimmt,
+genau hier entsteht: die Summe der Stärkevoraussetzung steht eine Zeile darüber.
+Ursache und Folge teilen sich damit eine Spalte statt zweier.
+
+Reine Anzeige — die gestrichelte Linie sagt ohne Wort, dass an ihr nichts zu
+klicken ist.
+
+Eine Stufe, die die Last gekostet hat, wird an der Zahl durchgestrichen, die sie
+wegnimmt — die Folge bleibt an der Figur, die sie kostet. Die Last selbst bleibt
+ein Zustände-Eintrag im Banner, der *Verlust* ist also auch dort sichtbar. --}}
+<div class='derived-movement'
+     data-tooltip-html='<dl class="tno-tooltip">
+<div class="tno-tooltip-row"><dt>{{localize "TNO.Derived.MovementCrawl"}} <span class="tno-tooltip-value">{{system.derived.movementCrawl}}</span></dt><dd>{{localize "TNO.DerivedHint.MovementCrawl"}}</dd></div>
+<div class="tno-tooltip-row"><dt>{{localize "TNO.Derived.MovementWalk"}} <span class="tno-tooltip-value">{{system.derived.movementWalk}}</span></dt><dd>{{#if movement.walkBlocked}}{{localize "TNO.DerivedHint.CrawlOnly"}}{{else}}{{localize "TNO.DerivedHint.MovementWalk"}}{{/if}}</dd></div>
+<div class="tno-tooltip-row"><dt>{{localize "TNO.Derived.MovementSprint"}} <span class="tno-tooltip-value">{{system.derived.movementSprint}}</span></dt><dd>{{#if movement.sprintBlocked}}{{localize "TNO.DerivedHint.NoSprint"}}{{else}}{{localize "TNO.DerivedHint.MovementSprint"}}{{/if}}</dd></div>
+</dl>'
+     data-tooltip-direction='UP'>
+  <span class='derived-cell-label'>{{localize 'TNO.DerivedShort.Movement'}}</span>
+  <span class='derived-move-tiers'>
+    <span class='derived-move'>
+      <b>{{system.derived.movementCrawl}}</b>
+      <span>{{localize 'TNO.DerivedShort.MovementCrawl'}}</span>
+    </span>
+    <span class='derived-move{{#if movement.walkBlocked}} move-blocked{{/if}}'>
+      <b>{{system.derived.movementWalk}}</b>
+      <span>{{localize 'TNO.DerivedShort.MovementWalk'}}</span>
+    </span>
+    <span class='derived-move{{#if movement.sprintBlocked}} move-blocked{{/if}}'>
+      <b>{{system.derived.movementSprint}}</b>
+      <span>{{localize 'TNO.DerivedShort.MovementSprint'}}</span>
+    </span>
+  </span>
+</div>

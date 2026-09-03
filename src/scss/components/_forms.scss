@@ -73,7 +73,7 @@
 }
 
 // Character sheet banner: one horizontal band carrying the portrait, the
-// identity with its vitals, and the three state pills. Grid keeps all three in
+// identity with its vitals and conditions, and the two state pills. Grid keeps all three in
 // normal flow. The name owns a protected middle lane; the state lane yields and
 // then moves below it before the title is squeezed away.
 //
@@ -177,21 +177,23 @@
   z-index: 1;
 }
 
-// The band's third lane: the three state pills, stacked as a list rather than
-// laid out as a row. Every one of them opens something, so the lane reads as a
-// column of controls and the labels line up down its left edge.
+// The band's third lane: the two state pills, stacked as a list rather than
+// laid out as a row. Both open something, so the lane reads as a column of
+// controls and the labels line up down its left edge.
 //
-// Centred against the portrait, which is what sets the band's height (P5): the
-// lane never makes the band taller than the picture beside it.
+// Pinned to the band's top-right corner rather than centred on the portrait:
+// the lane holds the two things the player chooses, and a control is easier to
+// come back to at a fixed corner than at a midpoint that moves whenever the
+// identity lane grows a line. The portrait still sets the band's height (P5).
 .banner-state {
   grid-area: state;
   justify-self: end;
-  align-self: stretch;
+  align-self: start;
   min-width: 0;
   width: clamp(210px, 22cqi, 260px);
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: stretch;
   gap: 6px;
 }
@@ -199,7 +201,7 @@
 // Pill-shaped state controls with light glass chrome. One local blur and one
 // soft highlight are enough to separate them from the image.
 //
-// All three are real `<button>`s, so Foundry's own button chrome has to be
+// Both are real `<button>`s, so Foundry's own button chrome has to be
 // undone before the shared glass shows through. Nothing in the band depends on
 // `_makeKeyboardAccessible()` any more except the portrait.
 button.banner-chip {
@@ -307,50 +309,66 @@ button.banner-chip.chip-stance {
   }
 }
 
-// The Zustände pill: one glyph per active condition, severity-sorted. It keeps
-// the band's neutral glass at all times — only the boxes inside the panel take
-// the classification fill, because a pill that changed colour with the worst
-// condition would be a second, coarser reading of the same list.
-.chip-status {
-  .chip-label {
-    font-weight: bold;
+// The Zustände row, under the two damage tracks it follows from. Same shape as
+// `.banner-tracks`: a borderless button that starts at the name's left edge and
+// is only as wide as what it draws, so the lane reads as one column of vitals
+// rather than a track strip with a control bolted under it.
+//
+// Absent entirely when nothing is active, which is the normal case — the panel
+// stays reachable through the tracks and the malus cell, both already doors to
+// it, so an empty placeholder would hold a line for nothing.
+button.banner-conditions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  align-self: flex-start;
+  max-width: 100%;
+  gap: 4px;
+  width: auto;
+  height: auto;
+  min-height: 0;
+  // The same -3px pull the tracks use, so the first chip's border lines up with
+  // the tag column above it rather than with the tag's text.
+  margin: 5px 0 0 -3px;
+  padding: 3px 6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+  font-family: inherit;
+  line-height: 1;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    border-color: rgba($c-white, 0.4);
+    background: rgba($c-white, 0.14);
+  }
+
+  &:focus-visible {
+    border-color: $c-white;
+    outline: 2px solid rgba($c-white, 0.45);
+    outline-offset: 1px;
   }
 }
 
-.status-chip-dots {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  min-width: 0;
-  overflow: hidden;
-}
-
-// Nothing wrong with the character, said as a mark rather than as an empty
-// pill: the lane must not change shape between a healthy and a hurt figure.
-.status-chip-none {
-  color: $c-tan;
-  font-size: var(--font-size-12, 12px);
-  line-height: 1;
-}
-
-// One per active condition: the first two letters of its name, sized as a tag
-// rather than a square so the box follows the abbreviation instead of clipping
-// it. Same shape as the WS/S tags on the damage rows two lines above.
-.status-dot {
+// One condition, named. The band spells it out because the row is normally
+// empty or short; a code would only pay off in the crowded case, which the
+// `+n` counter handles instead.
+.condition-chip {
   position: relative;
-  display: grid;
-  width: auto;
-  min-width: 22px;
-  height: 16px;
+  display: inline-flex;
+  align-items: center;
   flex: none;
-  place-items: center;
-  padding: 0 3px;
+  padding: 3px 7px;
   border: 1px solid;
-  border-radius: 3px;
-  font-size: 10px;
+  border-radius: 4px;
+  font-size: var(--font-size-10, 10px);
   font-weight: bold;
-  letter-spacing: 0.02em;
-  line-height: 1;
+  line-height: 1.1;
+  white-space: nowrap;
 
   &.is-negative.is-severe,
   &.is-negative.is-mild {
@@ -371,8 +389,8 @@ button.banner-chip.chip-stance {
     color: $c-white;
   }
 
-  // At this size a hand glyph is noise. Item-action blue marks the manual
-  // choice instead, as a point on the tag's corner.
+  // A hand glyph is noise at this size. Item-action blue marks the manual
+  // choice as a point on the chip's corner, as it did on the old tag.
   &.is-manual::after {
     content: '';
     position: absolute;
@@ -384,6 +402,18 @@ button.banner-chip.chip-stance {
     border-radius: 50%;
     background: $c-primary;
   }
+}
+
+// What the band did not name. Quieter than a condition because it is a count,
+// not a state: the panel behind the row lists every entry in full.
+.condition-chip-more {
+  flex: none;
+  padding: 3px 5px;
+  color: $c-beige;
+  font-size: var(--font-size-10, 10px);
+  font-weight: bold;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
 }
 
 .edge-pips {
@@ -1305,6 +1335,7 @@ button.status-light-button {
   margin-top: 10px;
 }
 
+// Only the two rolls remain here; the movement line moved to the gear column.
 .derived-strip {
   display: flex;
   flex-direction: column;
@@ -1410,13 +1441,22 @@ button.derived-cell {
   }
 }
 
-// Read-only, and dashed so it says so. The movement tiers are the one derived
-// value here that nothing rolls.
+// Read-only, and dashed so it says so — the movement tiers are the one derived
+// value on the sheet that nothing rolls.
+//
+// It closes the worn-gear column rather than the derived strip: the load that
+// strikes a tier through is summed one line above it, so cause and consequence
+// finally share a column. `margin-top: auto` pins it to the column's bottom
+// edge when the silhouette leaves spare height, the way `.armor-total` does.
 .derived-movement {
+  margin-top: auto;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  // Label and tiers stay together on the left. `space-between` was right in the
+  // half-width derived strip; across the gear column's full width it would park
+  // the two halves 300px apart with nothing between them.
+  justify-content: flex-start;
+  gap: 14px;
   padding: 7px 11px;
   border: 1px dashed $c-beige;
   border-radius: 6px;

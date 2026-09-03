@@ -123,12 +123,15 @@ Load states come from `CARRY_THRESHOLDS`: at half capacity or more,
 `noSprint`; once the budget is full, `crawlOnly`. `derived.canSprint`
 is false exactly when the load reaches the `noSprint` or `crawlOnly` state.
 
-**Where the load state is shown is on the tier it takes away.** The derived
-strip under the attribute matrix strikes through that tier (sprint for
-`noSprint`, walk as well for `crawlOnly`), because the question a player is
-asking is "how far can I move" and the answer belongs on the figure that
-changes. The three movement tiers left the banner with the other derived values,
-and the strike-through went with them. The slot grid's header keeps only
+**Where the load state is shown is on the tier it takes away.**
+[`actor-movement.hbs`](../../../templates/actor/parts/actor-movement.hbs)
+strikes through that tier (sprint for `noSprint`, walk as well for
+`crawlOnly`), because the question a player is asking is "how far can I move"
+and the answer belongs on the figure that changes. That line closes the worn-gear
+column, directly under the summed Stärkevoraussetzung and the `armor-warning`
+that the same load produces — cause and consequence in one column. The tiers
+left the banner with the other derived values, and the strike-through went with
+them. The slot grid's header keeps only
 `noContainer`, which is not a movement state but explains why the carried band
 is outside the calculation.
 
@@ -314,7 +317,10 @@ worn addon adds a smaller green plate above it. The exposed base rim therefore
 continues to show whether Unterkleidung is present even when that zone also has
 armour on top. The silhouette column closes with the character's compact Dodge
 action; the icon and value sit directly beneath the figure because Dodge belongs
-to no hit location. When the current Haltung makes Dodge unavailable,
+to no hit location. That column carries `min-height: 0`: the silhouette is sized
+`height: 100%`, and as a stretched grid item it otherwise feeds its resolved
+height back into the row that sized it, leaving the grid row taller than the
+block containing it and both columns spilling past the doll's bottom edge. When the current Haltung makes Dodge unavailable,
 `paperdoll-dodge.is-unavailable` uses the shared warning-red fill and a strike
 across the action; read-only disabling alone keeps its neutral treatment. The
 silhouette and the resistance icon in each zone row remain the location-specific

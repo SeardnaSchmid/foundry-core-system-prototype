@@ -147,10 +147,15 @@ state pills, and the vitals it used to hold join the identity lane.
 ```
 
 - **Identity lane** — the name with the malus on its baseline, the role and XP
-  subtitle, and the two damage tracks beneath. The malus and the tracks are
-  read-only doors onto the condition panel.
-- **State lane** — three pills stacked as a list: Haltung, Zustände, Edge. Each
-  is a control, and their labels align down the lane's left edge.
+  subtitle, the two damage tracks beneath, and the Zustände row under those. The
+  malus, the tracks and that row are all read-only doors onto the condition
+  panel. The conditions sit here rather than in the meta lane because they are
+  derived from the tracks directly above them: the track is the cause, the
+  condition the consequence, and a lane that separated them would make the
+  reader carry the connection across the band.
+- **State lane** — two pills stacked as a list: Haltung and Edge. Both are
+  things the player *chooses*, not things that happened, and their labels align
+  down the lane's left edge.
 
 Nothing else is in the band. The malus is typographically dominant, the tracks
 and the state pills are secondary, and the subtitle is quietest — three levels
@@ -265,13 +270,23 @@ warnings and the three the rules apply on their own — a Haltung without
 Ausweichen, the carry load at its two severities, and armour whose summed
 Stärkevoraussetzung is not met.
 
-The pill shows one two-letter tag per active condition, severity-sorted, severe
-before mild — the opening letters of the condition's own name, localized with
-it, the way the damage rows above already carry WS and S. Nine pictograms would
-be a second vocabulary to learn, and the shapes could not tell a zone's mild
-warning from its severe one without the raster row to read them against; an
-abbreviation of the name is read rather than decoded. A manually forced damage
-condition carries a small blue corner point. The pill keeps the band's neutral glass treatment at all times — only the
+The row names each active condition in full, severity-sorted, severe before
+mild. Nine at once is the arithmetic maximum, not the case worth designing for:
+a character normally carries none, one or two, so the row is usually empty and
+occasionally short. A code — pictogram or abbreviation — only pays off when the
+strip is habitually crowded, and buying the rare case costs the common one its
+legibility. The crowded case is handled by truncation instead: the worst three
+are named and the remainder becomes a `+n` counter, with the panel behind the
+row carrying the complete list. That is also what finally makes the row a
+summary of the panel rather than its peer, which is the defect this document
+opened with.
+
+With nothing active the row is not drawn at all. An empty placeholder would hold
+a line to say nothing, and the panel stays reachable through the tracks and the
+malus cell, which are already doors to it.
+
+A manually forced damage condition carries a small blue corner point. The row
+keeps the band's neutral glass treatment at all times — only the
 boxes inside the panel take the classification fill (negative warning red,
 positive ready green, neutral item-action blue). Activating it opens
 [the panel](#the-condition-panel).
@@ -306,7 +321,7 @@ a GM/admin correction and does not need a permanently visible input.
 
 ## The condition panel
 
-One panel, opened from the Zustände pill or from the vitals row. It is the single
+One panel, opened from the Zustände row or from the vitals row. It is the single
 surface on which the character's condition is edited, and it holds in one place
 everything the band used to spread across a raster, four steppers and a clear
 button.
@@ -400,7 +415,8 @@ has a column).
 `.window-content` remains the named `character-sheet` inline-size container; the
 breakpoints follow the resizable sheet, not the viewport.
 
-- **≥ 980px** — the three lanes side by side as drawn above. The band's height is
+- **≥ 980px** — the three lanes side by side as drawn above; the Zustände row
+  wraps inside the identity lane rather than widening it. The band's height is
   the portrait's, per **P5**.
 - **< 980px** — the meta lane moves beneath the identity while the portrait stays
   left, as today. The vitals row stays above the state row.
@@ -427,10 +443,10 @@ The panels are dialogs: `aria-haspopup="dialog"` and `aria-expanded` on the pill
 that opens them, focus moved into the panel on open and returned to the pill on
 close, Escape to close.
 
-The Zustände pill's tag strip is `aria-hidden`; the pill's accessible name
-carries the count, and the panel's rows carry the wording. Colour is never the
-only carrier of a condition's severity — the tag names which condition it is
-when the fill is dim, and the state is written out in each row.
+The Zustände row's accessible name carries the count, and the panel's rows carry
+the wording. Colour is never the only carrier of a condition's severity — each
+chip is the condition's own name, so a dim fill costs nothing, and the state is
+written out in each panel row.
 
 ---
 
@@ -442,11 +458,15 @@ when the fill is dim, and the state is written out in each row.
   [actor-malus.hbs](../../templates/actor/parts/actor-malus.hbs),
   [actor-damage.hbs](../../templates/actor/parts/actor-damage.hbs) (the tracks,
   now read-only), [actor-status.hbs](../../templates/actor/parts/actor-status.hbs)
-  (a `<button>` instead of a `<details>`) and
+  (a `<button>` instead of a `<details>`, in the identity lane) and
   [actor-edge.hbs](../../templates/actor/parts/actor-edge.hbs). The two panels are
   [condition-panel.hbs](../../templates/actor/parts/condition-panel.hbs) and
-  [edge-popover.hbs](../../templates/actor/parts/edge-popover.hbs); the strip that
-  leaves is [actor-derived.hbs](../../templates/actor/parts/actor-derived.hbs).
+  [edge-popover.hbs](../../templates/actor/parts/edge-popover.hbs); what leaves
+  the band is [actor-derived.hbs](../../templates/actor/parts/actor-derived.hbs)
+  (Initiative and 6. Sinn, under the attribute matrix) and
+  [actor-movement.hbs](../../templates/actor/parts/actor-movement.hbs) (the
+  tiers, closing the worn-gear column under the SV total that strikes one
+  through).
 - Both panels are body-level `popover="auto"` elements built in `_onFirstRender`
   beside the four the sheet already owns, and their controls are bound on the
   popover rather than through the sheet's delegation: a popover is a child of the
@@ -533,7 +553,7 @@ unproven until a test names them.
    the band's copy is pure read-out. The alternative is the Basics tab beside the
    skills, which would leave the state row with two pills.
 3. **One panel or two?** This document opens the condition panel from either the
-   Zustände pill or the vitals row, which is one surface with two doors. If that
+   Zustände row or the vitals row, which is one surface with two doors. If that
    reads as ambiguous, the split is Schaden from the vitals row and Zustände from
    the pill — at the cost of separating a stepper from the light it lights again.
 4. **NPCs.** `actor-npc-sheet.hbs` has none of this. Whether NPCs ever want a

@@ -627,15 +627,15 @@
         "Recovery": "Erholung"
       },
       "StanceEffect": {
-        "Open": "Keine Modifikatoren",
-        "SimpleMove": "Normale Bewegung",
-        "CarefulMove": "Halbe Bewegung, gedeckt",
-        "FastMove": "Doppelte Bewegung",
-        "InCover": "Deckung halten",
-        "EnGarde": "Bereit zum Konter",
-        "SuppressiveFire": "Fläche unter Feuer",
-        "Grappling": "Gegner festhalten",
-        "CatchBreath": "Edge zurückgewinnen"
+        "Open": "Keine Bewegung, keine Verteidigung — die Haltung für alles, was außerhalb des Kampfes passiert.",
+        "SimpleMove": "Gehen. Kompromiss aus Vorankommen und nicht dabei draufgehen.",
+        "CarefulMove": "Gehen bei gelungener Probe auf „Bewegung+Athletik“, sonst Kriechen. Deckungsboni bleiben auch unterwegs außer Deckung, der Charakter kann versteckt bleiben.",
+        "FastMove": "Sprinten, ohne Rücksicht auf Deckung.",
+        "InCover": "Kriechen. Deckungsboni bleiben erhalten, der Charakter kann versteckt bleiben.",
+        "EnGarde": "Keine Bewegung. Verzichtet auf Deckung, um auf Angriffe von allen Seiten und mit allen Mitteln reagieren zu können.",
+        "SuppressiveFire": "Keine Bewegung. Jeder Gegner im Gebiet wird sofort angegriffen, jeder Angriff nach dem ersten eine konsekutive Malusstufe teurer; nur Standardangriffe und „Spray and Pray“. Das erste Ausweichen wandelt die Haltung in „In Deckung“.",
+        "Grappling": "Keine Bewegung, keine Verteidigung. Nur Ringenproben sind erlaubt.",
+        "CatchBreath": "Keine Bewegung, keine Verteidigung. Kommt bis zum Ende der Haltung kein neuer Wuchtschaden dazu, ist der Charakter wieder im Gleichgewicht."
       },
       "ContextPlaceholder": "Distanz wählen",
       "ResistanceRwHint": "Der addierte RW der Rüstung an der Stelle {zone} erhöht diesen Widerstandswurf.",

@@ -1,33 +1,35 @@
-{{!-- Die Zustände-Pille ist die eine Sammlung aller aktiven Zustände: die sechs
-Schadenswarnungen und die drei, die die Regeln von sich aus anwenden — eine
-Haltung ohne Ausweichen, die Last in ihren beiden Schweregraden und Rüstung,
-deren summierte Stärkevoraussetzung nicht erfüllt ist.
+{{!-- Die Zustandszeile: alle aktiven Zustände — die sechs Schadenswarnungen und
+die drei, die die Regeln von sich aus anwenden (eine Haltung ohne Ausweichen,
+die Last in ihren beiden Schweregraden, Rüstung, deren summierte
+Stärkevoraussetzung nicht erfüllt ist).
 
-Die Pille zeigt je ein zweibuchstabiges Kürzel pro aktivem Zustand, schwer vor
-mild sortiert — die Anfangsbuchstaben des Zustandsnamens, wie schon bei den
-Schadensleisten darüber: neun Piktogramme wären eine zweite Sprache, das Kürzel
-liest man. Ein manuell erzwungener Schadenszustand trägt den kleinen blauen
-Eckpunkt. Sie behält immer das neutrale Glas des Banners — die Einfärbung nach
-Klassifikation tragen erst die Kästen im Panel.
+Sie steht unter den Schadensleisten und nicht mehr in der Metabahn rechts, weil
+sie von ihnen abgeleitet ist: die Leiste ist die Ursache, der Zustand die Folge,
+und beide gehören in dieselbe Bahn.
 
-Vollständigkeit ist das, was eine "in welcher Verfassung bin ich"-Fläche
-schuldet, und nur diese Sammlung führt alle neun. Das Raster ist ein
-schadensspezifischer Editor mit fester anatomischer Geometrie und steht deshalb
-im Panel neben den Leisten, die es bearbeitet. --}}
-<button type='button' class='banner-chip chip-status'
+Zustände stehen ausgeschrieben da, nicht als Kürzel. Ein Kürzel lohnt sich nur,
+wenn die Zeile üblicherweise voll ist — sie ist aber üblicherweise leer, und ein
+Code für den seltenen Fall macht den häufigen unlesbar. Der seltene Fall wird
+stattdessen abgeschnitten: die schwersten drei stehen da, der Rest wird gezählt.
+
+Ohne aktiven Zustand entfällt die Zeile ganz. Das Panel bleibt über die
+Schadensleisten und die Maluszelle erreichbar, die beide dieselbe Tür sind.
+
+Die Zeile behält das neutrale Glas des Bandes — die Einfärbung nach
+Klassifikation tragen erst die Kästen im Panel. --}}
+{{#if conditions.hasActive}}
+<button type='button' class='banner-conditions chip-status'
         aria-haspopup='dialog' aria-expanded='false'
         aria-label='{{localize "TNO.Status.Summary" count=conditions.active.length}}'
         data-tooltip-html='<dl class="tno-tooltip">
 <div class="tno-tooltip-row"><dt>{{localize "TNO.Status.Title"}}</dt><dd>{{localize "TNO.Status.Summary" count=conditions.active.length}}</dd></div>
 </dl>'
         data-tooltip-direction='DOWN'>
-  <span class='chip-label'>{{localize 'TNO.Status.Title'}}</span>
-  <span class='status-chip-dots' aria-hidden='true'>
-    {{#each conditions.active as |condition|}}
-    <span class='status-dot is-{{condition.classification}} is-{{condition.tone}}{{#if condition.manual}} is-manual{{/if}}'>{{condition.tag}}</span>
-    {{/each}}
-    {{#unless conditions.hasActive}}
-    <span class='status-chip-none'>—</span>
-    {{/unless}}
-  </span>
+  {{#each conditions.shown as |condition|}}
+  <span class='condition-chip is-{{condition.classification}} is-{{condition.tone}}{{#if condition.manual}} is-manual{{/if}}'>{{condition.label}}</span>
+  {{/each}}
+  {{#if conditions.hiddenCount}}
+  <span class='condition-chip-more'>+{{conditions.hiddenCount}}</span>
+  {{/if}}
 </button>
+{{/if}}

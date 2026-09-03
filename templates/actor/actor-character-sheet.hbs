@@ -2,17 +2,18 @@
 itself the sheet's <form> element — hence no <form> wrapper here. --}}
 
   {{!-- Banner: das Band über dem Tab-Körper. Drei Bahnen: das Porträt, die
-  Identität mit den Vitalwerten, und rechts die drei Zustandspillen.
+  Identität mit den Vitalwerten, und rechts die zwei Steuerpillen.
 
   Der Schnitt ist der zwischen "was ist an dieser Figur wahr" und "was ist
-  gerade wahr" — mit einer bewussten Ausnahme, die der Entwurf trifft: Malus und
-  Schadensleisten stehen in der Identitätsbahn statt in der Metabahn, weil der
-  Malus in derselben Grundlinie wie der Name gelesen wird und die Leisten unter
-  ihm hängen. Die rechte Bahn führt dafür nur noch Bedienelemente: alle drei
-  Pillen öffnen etwas.
+  gerade wahr" — mit einer bewussten Ausnahme, die der Entwurf trifft: Malus,
+  Schadensleisten und die Zustandszeile stehen in der Identitätsbahn statt in
+  der Metabahn, weil der Malus in derselben Grundlinie wie der Name gelesen
+  wird, die Leisten unter ihm hängen und die Zustände aus ihnen folgen. Die
+  rechte Bahn führt dafür nur noch, was gewählt wird: Haltung und Edge.
 
-  Was nicht mehr hier steht: Bewegung, 6. Sinn und Initiative stehen als
-  abgeleitete Werte unter der Attributsmatrix im Grundlagen-Tab; Raster,
+  Was nicht mehr hier steht: 6. Sinn und Initiative stehen als abgeleitete Werte
+  unter der Attributsmatrix im Grundlagen-Tab, die Bewegung unter der getragenen
+  Ausrüstung; Raster,
   Stepper, Löschen-Aktion und das Edge-Zahlenfeld liegen hinter je einem Klick
   in ihrem Panel. Im Band würfelt nichts mehr.
 
@@ -78,10 +79,12 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
 
       {{> "systems/tno/templates/actor/parts/actor-damage.hbs"}}
 
+      {{> "systems/tno/templates/actor/parts/actor-status.hbs"}}
+
     </div>
 
-    {{!-- Die Zustandsbahn: drei Pillen, alle Bedienelemente, alle auf dieselbe
-    Frage — was darf ich gerade. Die Haltung führt sie an, weil sie im Kampf am
+    {{!-- Die Metabahn: zwei Pillen, beide Bedienelemente, beide auf dieselbe
+    Frage — was wähle ich gerade. Die Haltung führt sie an, weil sie im Kampf am
     häufigsten geändert wird und allein entscheidet, ob es überhaupt eine
     Verteidigung gibt. Die von ihr freigeschalteten Handlungen liegen an ihren
     eigenen Spielflächen: Ausweichen an der Papierpuppe, Parade an der Waffe.
@@ -105,8 +108,6 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
         </span>
         <i class="fa-solid fa-chevron-down chip-stance-caret" aria-hidden="true"></i>
       </button>
-
-      {{> "systems/tno/templates/actor/parts/actor-status.hbs"}}
 
       {{> "systems/tno/templates/actor/parts/actor-edge.hbs"}}
 
@@ -202,6 +203,10 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
           <h3 class="basics-section-title cell-title">{{localize "TNO.Armor.WornTitle"}}</h3>
         </div>
         {{> "systems/tno/templates/actor/parts/actor-paperdoll.hbs"}}
+        {{!-- Die Bewegung schließt diese Spalte ab: die Stufe, die die Last
+        wegnimmt, steht damit unter der Summe der Stärkevoraussetzung, die sie
+        wegnimmt. --}}
+        {{> "systems/tno/templates/actor/parts/actor-movement.hbs"}}
       </section>
 
       <div class="basics-splitter" role="separator" aria-orientation="vertical" tabindex="0"

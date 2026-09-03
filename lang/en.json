@@ -627,15 +627,15 @@
         "Recovery": "Recovery"
       },
       "StanceEffect": {
-        "Open": "No modifiers",
-        "SimpleMove": "Normal movement",
-        "CarefulMove": "Half movement, under cover",
-        "FastMove": "Double movement",
-        "InCover": "Hold cover",
-        "EnGarde": "Ready to riposte",
-        "SuppressiveFire": "Area under fire",
-        "Grappling": "Hold the opponent",
-        "CatchBreath": "Regain edge"
+        "Open": "No movement, no defence — the stance for everything that happens outside the fight.",
+        "SimpleMove": "Walk. A compromise between getting somewhere and not dying on the way.",
+        "CarefulMove": "Walk on a successful “Bewegung+Athletik” roll, otherwise crawl. Cover bonuses hold even while out of cover, and the character can stay hidden.",
+        "FastMove": "Sprint, with no regard for cover.",
+        "InCover": "Crawl. Cover bonuses hold, and the character can stay hidden.",
+        "EnGarde": "No movement. Gives up cover to answer attacks from every side and by every means.",
+        "SuppressiveFire": "No movement. Every enemy in the area is attacked at once, every attack after the first one Malusstufe dearer; standard attacks and “Spray and Pray” only. The first dodge turns the stance into “In Deckung”.",
+        "Grappling": "No movement, no defence. Only grappling rolls may be made.",
+        "CatchBreath": "No movement, no defence. If no new Wuchtschaden arrives before the stance ends, the character is back in balance."
       },
       "ContextPlaceholder": "Choose distance",
       "ResistanceRwHint": "The combined RW of the armour at the {zone} location raises this resistance roll.",

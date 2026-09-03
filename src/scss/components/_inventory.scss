@@ -50,6 +50,12 @@ $c-trinket-label: rgba($c-dark, 0.55);
   flex-direction: column;
   align-items: stretch;
   gap: 6px;
+  // The silhouette below is sized `height: 100%`, which as a stretched grid
+  // item feeds its own resolved height back into the row that sized it. Without
+  // this the row settles ~34px taller than the block that contains it, and both
+  // columns spill past the doll's bottom edge — invisible while nothing sat
+  // under the doll, an overlap the moment the movement line moved in beneath it.
+  min-height: 0;
 }
 
 // One shared quiet surface below the common Basics heading. Armour, loose

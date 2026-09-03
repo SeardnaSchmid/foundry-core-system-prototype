@@ -47,14 +47,15 @@ handed to the Basics tab's derived strip, under the `TNO.DerivedTitle` heading.
 field.
 
 `TNO.Status.*` belongs to the character header's condition surfaces: fixed
-condition names and comparison/state text, the Zustände pill's active-only
+condition names and comparison/state text, the Zustände row's active-only
 collection, and the condition panel's raster affordances — including the
 collection's zero-condition state and `PanelDamageHint`, the panel's one line on
 what a raster light is. The
-`Tag.*` holds the two-letter abbreviation each condition is shown by wherever
-there is room for a mark and not a name — the collection pill, the raster light
-and the panel row; it is localized rather than sliced off the label because the
-German and English names abbreviate differently. The
+`Tag.*` holds the two-letter abbreviation each condition is shown by inside the
+panel, where the raster light and the panel row want a fixed mark column beside
+the spelled-out name; it is localized rather than sliced off the label because
+the German and English names abbreviate differently. The band itself names
+conditions in full. The
 three derived conditions add their names (`Loaded` / `Overloaded`,
 `ArmorTooHeavy`, `NoDodge`), one read-out each (`CarryLoad`, `ArmorSvShort`,
 `StanceBlocksDodge`) and their consequences (`OverloadEffect.*` keyed by

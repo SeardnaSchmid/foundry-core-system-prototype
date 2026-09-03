@@ -149,7 +149,7 @@ and wants the reader's own decimal separator.
   the per-row tooltips; the German labels are too long to stand in the lane.
 - [`condition-panel.hbs`](../../../templates/actor/parts/condition-panel.hbs) is
   the one surface on which the character's condition is edited, opened from the
-  Zustände pill or from either half of the vitals row. Section 1 repeats the two
+  Zustände row or from either half of the vitals row. Section 1 repeats the two
   tracks with their stepper pair, the clear action while there is damage, and
   the figures the band can only fit in a tooltip. Section 2 is the 3×2 raster
   directly beneath them, so a stepper and the light it lit are adjacent; owners
@@ -162,13 +162,14 @@ and wants the reader's own decimal separator.
   and from what*. Damage is read far more often than it is entered — once per
   resistance roll — so the editor is the half that earns a click.
 - [`actor-status.hbs`](../../../templates/actor/parts/actor-status.hbs) is the
-  Zustände pill: one two-letter tag per active entry (`tagKey`, localized under
-  `TNO.Status.Tag.*`), severity-sorted, replacing the raster's hand glyph with a
-  plain item-action-blue corner point. The pill
-  keeps the band's neutral glass at all times — only the boxes inside the panel
-  take the classification fill. Inactive and manually negated entries appear
-  exclusively in the panel's raster. Styling for the pill sits with the banner
-  in `src/scss/components/_forms.scss`; the panel's own frame is a variant in
+  Zustände row, in the identity lane under the damage tracks: one named chip per
+  active entry, severity-sorted, replacing the raster's hand glyph with a plain
+  item-action-blue corner point. Only the first `BANNER_CONDITION_LIMIT` (3) are
+  named; the rest become a `+n` counter, and with nothing active the row is not
+  drawn at all — the panel stays reachable through the tracks and the malus
+  cell. Inactive and manually negated entries appear exclusively in the panel's
+  raster. Styling for the row sits with the banner in
+  `src/scss/components/_forms.scss`; the panel's own frame is a variant in
   `_item-popover.scss`.
 
 Damage application after a resistance roll remains manual. No combat workflow
