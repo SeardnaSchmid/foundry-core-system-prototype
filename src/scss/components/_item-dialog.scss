@@ -1079,3 +1079,54 @@ $gear-radius: 4px;
     text-align: center;
   }
 }
+
+/* ================================================ Take from chat
+   The counterpart to the add dialog, and deliberately the plainer of the two:
+   the add dialog asks what kind of thing is being made, which is a choice worth
+   four cards, while this one asks only where a finished thing goes. The list is
+   every actor the reader owns — for a GM that is the whole cast — so it stays a
+   native select, which keeps type-ahead and does not grow with the world. */
+
+&.take-item-dialog {
+  .window-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .take-item-prompt {
+    margin: 0;
+    color: rgba($c-dark, 0.7);
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .take-item-target {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 11px;
+
+    span {
+      color: $c-tan;
+      font-weight: bold;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    select {
+      width: 100%;
+      height: 28px;
+      border: 1px solid $c-beige;
+      border-radius: $gear-radius;
+      background: transparent;
+      font-family: $font-primary;
+      font-size: 13px;
+
+      &:focus-visible {
+        outline: 2px solid $c-primary;
+        outline-offset: 1px;
+      }
+    }
+  }
+}

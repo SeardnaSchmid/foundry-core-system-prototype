@@ -42,6 +42,7 @@ export const preloadHandlebarsTemplates = async function () {
     'systems/tno/templates/apps/base-roll-dialog.hbs',
     'systems/tno/templates/apps/heatmap-lab.hbs',
     'systems/tno/templates/apps/create-item-dialog.hbs',
+    'systems/tno/templates/apps/take-item-dialog.hbs',
     'systems/tno/templates/apps/custom-skill-dialog.hbs',
     'systems/tno/templates/apps/custom-skills-overview.hbs',
     // Chat

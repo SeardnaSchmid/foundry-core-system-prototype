@@ -1,4 +1,5 @@
 import { startTrialError, rerollTrialError, retry, postMortem, claimXp } from './dice.mjs';
+import { renderItemTakeAction } from './item-transfer.mjs';
 
 /**
  * Wire up the post-edge ("Troubleshoot") actions on a failed roll's chat
@@ -11,10 +12,18 @@ import { startTrialError, rerollTrialError, retry, postMortem, claimXp } from '.
  * to spawn), including a non-owner's read-only view of an in-progress or
  * concluded Trial & error tracker; the interactive controls (reroll, XP
  * claim, Troubleshoot menu) are owner/GM-only.
+ *
+ * The same hook also hangs the "take this" action on a posted gear card
+ * ([`item-transfer.mjs`](item-transfer.mjs)), for the same per-viewer reason:
+ * whether there is a sheet to copy the piece onto is a fact about the reader.
  */
 export function registerChatListeners() {
   Hooks.on('renderChatMessageHTML', (message, html) => {
     renderEdgeSection(message, html);
+    // A posted gear card is the other thing `flags.tno` can carry. The two
+    // never meet on one message — a roll card has no item, an item card has no
+    // roll — and each renderer leaves the other's messages alone.
+    renderItemTakeAction(message, html);
   });
 
   // A card's edge section is gated on the actor's edge pool at render time.

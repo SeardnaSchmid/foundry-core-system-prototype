@@ -3564,6 +3564,50 @@
   font-size: 9px;
   text-align: center;
 }
+.tno {
+  /* ================================================ Take from chat
+     The counterpart to the add dialog, and deliberately the plainer of the two:
+     the add dialog asks what kind of thing is being made, which is a choice worth
+     four cards, while this one asks only where a finished thing goes. The list is
+     every actor the reader owns — for a GM that is the whole cast — so it stays a
+     native select, which keeps type-ahead and does not grow with the world. */
+}
+.tno.take-item-dialog .window-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.tno.take-item-dialog .take-item-prompt {
+  margin: 0;
+  color: rgba(25, 24, 19, 0.7);
+  font-size: 12px;
+  line-height: 1.35;
+}
+.tno.take-item-dialog .take-item-target {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+}
+.tno.take-item-dialog .take-item-target span {
+  color: #444;
+  font-weight: bold;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.tno.take-item-dialog .take-item-target select {
+  width: 100%;
+  height: 28px;
+  border: 1px solid #b5b3a4;
+  border-radius: 4px;
+  background: transparent;
+  font-family: "Roboto", sans-serif;
+  font-size: 13px;
+}
+.tno.take-item-dialog .take-item-target select:focus-visible {
+  outline: 2px solid #2f6bff;
+  outline-offset: 1px;
+}
 .tno .paperdoll {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -4342,6 +4386,9 @@
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.38);
 }
+.tno.item-chat-summary:has(.item-chat-actions) {
+  padding-bottom: 0;
+}
 .tno.item-popover, .tno.item-chat-summary {
   color: #191813;
   font-family: "Roboto", sans-serif;
@@ -4711,6 +4758,9 @@
 }
 .tno.item-popover .item-popover-actions button.danger:hover:not(:disabled), .tno.item-chat-summary .item-popover-actions button.danger:hover:not(:disabled) {
   border-color: rgba(179, 33, 43, 0.55);
+}
+.tno.item-popover .item-chat-actions button, .tno.item-chat-summary .item-chat-actions button {
+  width: 100%;
 }
 .tno.item-popover.stance-popover {
   width: min(640px, 100vw - 16px);

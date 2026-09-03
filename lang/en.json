@@ -462,6 +462,15 @@
         "StockDecrease": "Decrease stock",
         "StockIncrease": "Increase stock"
       },
+      "Chat": {
+        "Take": "Take a copy",
+        "TakeHint": "Copy “{item}” onto one of your characters. The poster keeps theirs.",
+        "TakeTitle": "Take item",
+        "TakePrompt": "“{item}” is added as a copy — the original stays with whoever posted it.",
+        "TakeTarget": "Onto which character?",
+        "Taken": "“{item}” was added to {actor}.",
+        "NoActor": "You don't own a character to add anything to."
+      },
       "Summary": {
         "Stock": "Stock",
         "Dk": "DK",

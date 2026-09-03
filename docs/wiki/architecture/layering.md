@@ -20,13 +20,15 @@ module/tno.mjs                          (entry point, imports everything below)
 │                 → both import helpers/combat-actions.mjs for the combat
 │                   workflows they open; the dialog itself is reached through
 │                   game.tno.TnoRollDialog, never imported from apps/
+│                 → item.mjs imports helpers/item-transfer.mjs for the data its
+│                   posted chat card carries
 ├── sheets/     actor-sheet.mjs, item-sheet.mjs, item-gear-sheet.mjs
 │                 → helpers/{effects,heatmap,dice,skills,inventory,items,
 │                   combat-actions}.mjs
 │                 → apps/{roll-dialog,advance-dialog,heatmap-lab,custom-skill-dialog}.mjs
 ├── helpers/    config, dice, dice-odds, dice-odds-table, chat, heatmap, skills,
-│               effects, inventory, damage, items, item-presentation, combat-actions,
-│               maneuvers, migrations, templates
+│               effects, inventory, damage, items, item-presentation, item-transfer,
+│               combat-actions, maneuvers, migrations, templates
 │                 → items.mjs is the base of the helper graph: it imports
 │                   nothing, and inventory.mjs and config.mjs import it
 │                 → maneuvers.mjs is the second global-free base: it imports
@@ -38,7 +40,8 @@ module/tno.mjs                          (entry point, imports everything below)
 │                   config.mjs → {inventory,items}.mjs,
 │                   migrations.mjs → items.mjs,
 │                   combat-actions.mjs → {inventory,items,maneuvers,skills}.mjs,
-│                   chat.mjs → {dice,combat-actions}.mjs,
+│                   chat.mjs → {dice,combat-actions,item-transfer}.mjs,
+│                   item-transfer.mjs → items.mjs,
 │                   dice.mjs → dice-odds.mjs → dice-odds-table.mjs
 │                   (one-way: the odds side never imports dice.mjs back, so
 │                    dice.mjs stays the base of the roll graph)

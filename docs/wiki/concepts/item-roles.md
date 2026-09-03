@@ -3,7 +3,7 @@ type: concept
 title: Item roles and the gear dialog
 description: Why a physical item has roles instead of a Foundry item type, and how the row-editor sheet is built from them.
 tags: [items, roles, weapons, armor, sheets, schema]
-resource: [module/apps/roll-dialog.mjs, module/documents/item.mjs, module/helpers/items.mjs, module/helpers/item-presentation.mjs, module/helpers/item-summary.mjs, module/sheets/actor-sheet.mjs, module/sheets/item-gear-sheet.mjs, templates/actor/parts/item-popover.hbs, templates/apps/create-item-dialog.hbs, templates/apps/roll-dialog.hbs, templates/item/item-gear-sheet.hbs, templates/item/parts/item-gear-summary.hbs, templates/item/parts/item-role-weapon.hbs]
+resource: [module/apps/roll-dialog.mjs, module/documents/item.mjs, module/helpers/items.mjs, module/helpers/item-presentation.mjs, module/helpers/item-summary.mjs, module/helpers/item-transfer.mjs, module/sheets/actor-sheet.mjs, module/sheets/item-gear-sheet.mjs, templates/actor/parts/item-popover.hbs, templates/apps/create-item-dialog.hbs, templates/apps/take-item-dialog.hbs, templates/apps/roll-dialog.hbs, templates/chat/item-summary.hbs, templates/item/item-gear-sheet.hbs, templates/item/parts/item-gear-summary.hbs, templates/item/parts/item-role-weapon.hbs]
 spec: docs/design/character-sheet-prd.md
 related: [concepts/combat-roll-workflows, concepts/inventory, concepts/migrations, reference/ui-surfaces, architecture/data-schema]
 ---
@@ -201,7 +201,7 @@ to chat, change a consumable's remaining stock with the `−` / `+` controls in
 its primary tile, and delete the item through the same confirmation used by the
 inventory list. Stock never drops below zero. Worn armour must be taken off
 before deletion. The chat card renders the same partial without any of these
-live controls.
+live controls, and adds the one action of its own described below.
 An owned weapon with a valid profile exposes its independent Attack workflow as
 the full-width primary action. A melee profile also exposes Parry in the
 secondary row. The actor sheet owns the separate Dodge action. Their entry
@@ -232,6 +232,38 @@ The keyboard model is part of the design, not an accessibility afterthought:
 `↑`/`↓` walk the rows, `←`/`→` change the value in the focused scale, and a
 digit sets it directly (`0` means 10 on a ten-step scale). Arrows are only
 intercepted where a native control does not already own them.
+
+## Taking a posted item
+
+A posted gear card can be copied onto a sheet the reader owns
+([`item-transfer.mjs`](../../../module/helpers/item-transfer.mjs)). Four
+properties of that path are decisions, not incidentals:
+
+**The card carries the item, not a pointer to it.** `TnoItem#roll()` writes the
+item's own data into `flags.tno.item`, minus the fields that describe the
+original rather than the thing — `_id`, `_stats`, `folder`, `sort`, `ownership`.
+So the copy still works after the original has been sold, edited or deleted, and
+the chat log stays a truthful record of what was posted rather than a link that
+re-reads whatever the item has since become.
+
+**It is a copy, never a hand-over.** The poster keeps their piece and two
+readers clicking the same card both get one. Moving an object between characters
+is a table decision, and the poster's own sheet is where they take theirs out.
+
+**The whole stack travels.** `quantity` is an authored property of the posted
+thing — twenty Bolzen are one item — not a separate statement about how many are
+being offered.
+
+**The receiving actor is always asked for.** Never the selected token, never the
+assigned character silently: a GM with a shelf of NPCs would otherwise have to
+remember what was selected before clicking. Ownership is the only filter on the
+list, since an NPC holds gear exactly as a character does. The action is
+rendered per viewer, so a reader who owns no actor sees the card without a
+button rather than one that can only fail.
+
+Feature and spell get no button. They are not objects — they cost no slots and
+are created from their own lists — so their chat card stays the plain
+description it has always been.
 
 ## Deliberately not implemented
 

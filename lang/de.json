@@ -462,6 +462,15 @@
         "StockDecrease": "Bestand verringern",
         "StockIncrease": "Bestand erhöhen"
       },
+      "Chat": {
+        "Take": "Übernehmen",
+        "TakeHint": "„{item}“ als Kopie auf einen deiner Charaktere legen. Der Poster behält sein Exemplar.",
+        "TakeTitle": "Gegenstand übernehmen",
+        "TakePrompt": "„{item}“ wird als Kopie angelegt — das Original bleibt beim Poster.",
+        "TakeTarget": "Auf welchen Charakter?",
+        "Taken": "„{item}“ wurde {actor} hinzugefügt.",
+        "NoActor": "Du besitzt keinen Charakter, dem du etwas hinzufügen könntest."
+      },
       "Summary": {
         "Stock": "Bestand",
         "Dk": "DK",

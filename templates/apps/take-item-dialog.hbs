@@ -1,0 +1,21 @@
+{{!-- Where a posted item is copied to.
+
+The target is always asked for, never inferred from the selected token or the
+assigned character — a player answers one line, and a GM with a shelf of NPCs
+does not have to remember what was selected before clicking. The own character
+is offered first and preselected, so the common case is still one keystroke.
+
+A plain select rather than the create dialog's portrait cards: this list is
+every actor the reader owns, which for a GM is the whole cast, and a native
+select is the control that stays usable at that length. --}}
+
+<p class='take-item-prompt'>{{prompt}}</p>
+
+<label class='take-item-target'>
+  <span>{{localize 'TNO.Item.Chat.TakeTarget'}}</span>
+  <select name='actor' autofocus>
+    {{#each actors}}
+      <option value='{{this.id}}' {{#if this.selected}}selected{{/if}}>{{this.name}}</option>
+    {{/each}}
+  </select>
+</label>

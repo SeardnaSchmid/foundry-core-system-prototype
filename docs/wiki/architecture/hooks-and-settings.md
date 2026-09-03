@@ -3,7 +3,7 @@ type: architecture
 title: Hooks, settings, and menus registry
 description: Every Foundry hook, game.settings entry, settings menu, and Handlebars helper this system registers.
 tags: [hooks, settings, registry, foundry-api]
-resource: [module/tno.mjs, module/helpers/chat.mjs, module/helpers/migrations.mjs]
+resource: [module/tno.mjs, module/helpers/chat.mjs, module/helpers/item-transfer.mjs, module/helpers/migrations.mjs]
 related: [architecture/bootstrap]
 ---
 
@@ -19,8 +19,8 @@ related: [architecture/bootstrap]
 | `Hooks.on('renderChatInput')` | [`tno.mjs:129`](../../../module/tno.mjs) | Inject "Basiswürfel" button (Foundry v14+ chat layout) |
 | `Hooks.on('renderChatLog')` | [`tno.mjs:130`](../../../module/tno.mjs) | Same, for v12–v13's `#chat-controls` layout |
 | `Hooks.on('hotbarDrop')` | [`tno.mjs:182`](../../../module/tno.mjs) | Create/reuse an item macro on hotbar drop |
-| `Hooks.on('renderChatMessageHTML')` | [`chat.mjs:16`](../../../module/helpers/chat.mjs) | Rebuild the edge action UI on a roll card from `flags.tno` |
-| `Hooks.on('updateActor')` | [`chat.mjs:22`](../../../module/helpers/chat.mjs) | Re-render every visible roll card for an actor whose edge pool changed |
+| `Hooks.on('renderChatMessageHTML')` | [`chat.mjs:21`](../../../module/helpers/chat.mjs) | Rebuild the per-viewer UI a card carries in `flags.tno`: the edge actions on a roll card, the take action on a posted item card |
+| `Hooks.on('updateActor')` | [`chat.mjs:33`](../../../module/helpers/chat.mjs) | Re-render every visible roll card for an actor whose edge pool changed |
 
 ## Settings
 

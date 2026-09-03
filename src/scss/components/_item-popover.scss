@@ -44,6 +44,13 @@
   border: 1px solid rgba($c-dark, 0.14);
   border-radius: 8px;
   background: rgba($c-white, 0.38);
+
+  // The take action is a footer bar flush with the card's bottom edge, the way
+  // the popover's own action bar is; the card's reading padding would leave it
+  // floating above a strip of parchment.
+  &:has(.item-chat-actions) {
+    padding-bottom: 0;
+  }
 }
 
 &.item-popover,
@@ -505,6 +512,14 @@
         border-color: rgba($c-warning, 0.55);
       }
     }
+  }
+
+  // A chat card offers exactly one action, so `primary` here means the width of
+  // the bar rather than emphasis among neighbours. Still not the roll blue:
+  // _colors.scss keeps that for committing to a roll, and this commits to
+  // nothing but a copy.
+  .item-chat-actions button {
+    width: 100%;
   }
 
 }

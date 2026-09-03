@@ -1,5 +1,6 @@
 import { angriffOptions, paradeOptions } from '../helpers/combat-actions.mjs';
 import { wornItemIds } from '../helpers/inventory.mjs';
+import { postedItemFlag } from '../helpers/item-transfer.mjs';
 import { prepareGearSummaryContext } from '../helpers/item-summary.mjs';
 import { clampGearNumber, hasRole, isGear } from '../helpers/items.mjs';
 
@@ -77,6 +78,11 @@ export class TnoItem extends Item {
    *
    * So the item says what it is and the player picks the Probe. When the
    * Kampfregeln are implemented this is where their entry point goes.
+   *
+   * Gear additionally travels with its own data in `flags.tno.item`, which is
+   * what lets a reader copy the piece onto a sheet they own — see
+   * [`helpers/item-transfer.mjs`](../helpers/item-transfer.mjs) for why the
+   * card carries a snapshot rather than a link back to this document.
    */
   async roll() {
     const content = isGear(this)
@@ -85,11 +91,13 @@ export class TnoItem extends Item {
           prepareGearSummaryContext(this)
         )
       : this.system.description ?? '';
+    const flag = postedItemFlag(this);
     return ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this.actor }),
       rollMode: game.settings.get('core', 'rollMode'),
       flavor: this.name,
       content,
+      ...(flag ? { flags: { tno: flag } } : {}),
     });
   }
 
