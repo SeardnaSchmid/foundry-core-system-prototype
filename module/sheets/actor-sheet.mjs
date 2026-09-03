@@ -1831,11 +1831,13 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    * (max minus the wanted value) since the pool itself is derived, recomputed
    * from `problemSolving.spent`.
    *
-   * A correction downward happens outside the dedicated actions (Insight,
-   * Post-mortem) and is announced in chat, because the table has to know a
-   * point left the reserve. Topping the reserve back up is a GM correction of
-   * that same bookkeeping and stays silent: announcing it would report a spend
-   * that never happened.
+   * Every correction is announced in chat, in both directions. A step down
+   * happens outside the dedicated actions (Insight, Post-mortem), so the table
+   * has to know a point left the reserve; a step up is bookkeeping the table
+   * has just as much reason to see, because the reserve it was told about a
+   * moment ago no longer holds. The message names the edit as manual and shows
+   * both ends of it, so neither direction reads as a spend or a refund the
+   * mechanics granted.
    * @param {number} value  The reserve the character should be left with
    * @private
    */
@@ -1846,10 +1848,9 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (next === current) return;
 
     this.actor.update({ 'system.problemSolving.spent': max - next });
-    if (next > current) return;
     ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-      content: game.i18n.format('TNO.Chat.EdgeSpent', {
+      content: game.i18n.format('TNO.Chat.EdgeAdjusted', {
         name: this.actor.name,
         from: current,
         to: next,

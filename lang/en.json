@@ -398,7 +398,7 @@
       "PostMortemContent": "<p>You try to analyze what went wrong. Succeed, and your edge reserve refills by <strong>1 point</strong>.</p><p><strong>Either way, this failure's XP is forfeited</strong> — the moment you attempt the analysis, that XP is gone, whether you succeed or fail.</p><p><strong>The mechanic is meant only for failures with a real, noticeable consequence.</strong> Check with your GM first that this fits — not every botched roll in the middle of the fray.</p>"
     },
     "Chat": {
-      "EdgeSpent": "{name} manually edited the edge reserve: {from}/{max} → {to}/{max}."
+      "EdgeAdjusted": "{name} manually edited the edge reserve: {from}/{max} → {to}/{max}."
     },
     "SheetLabels": {
       "Actor": "Character Sheet",

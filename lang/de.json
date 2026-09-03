@@ -398,7 +398,7 @@
       "PostMortemContent": "<p>Du versuchst zu analysieren, was schiefgelaufen ist. Gelingt der Wurf, füllt sich dein Edge-Vorrat um <strong>1 Punkt</strong> auf.</p><p><strong>So oder so verwirkst du die XP</strong> dieses Fehlschlags — sobald du die Analyse versuchst, ist die XP weg, egal ob du erfolgreich bist oder nicht.</p><p><strong>Die Mechanik ist nur für Fehlschläge mit echten, spürbaren Konsequenzen gedacht.</strong> Kläre vorher mit deinem Spielleiter ab, ob die Situation passt — nicht für jeden verpatzten Wurf mitten im Getümmel.</p>"
     },
     "Chat": {
-      "EdgeSpent": "{name} hat den Edge-Vorrat manuell bearbeitet: {from}/{max} → {to}/{max}."
+      "EdgeAdjusted": "{name} hat den Edge-Vorrat manuell bearbeitet: {from}/{max} → {to}/{max}."
     },
     "SheetLabels": {
       "Actor": "Charakterbogen",
