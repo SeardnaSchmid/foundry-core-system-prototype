@@ -5,6 +5,9 @@ $c-roll-negative: #c62828;
 
 .tno-roll-dialog {
   padding: $padding-md;
+  // The dialog is resizable, so the one layout inside it that needs three
+  // columns has to ask the *form* how wide it is rather than the viewport.
+  container: roll-dialog / inline-size;
 
   .form-group {
     margin-bottom: $padding-md;
@@ -95,15 +98,202 @@ $c-roll-negative: #c62828;
     }
   }
 
-  // Where the number is to be read off. Quiet, and directly under the field it
-  // belongs to: a player who already knows this should be able to skip it, a
-  // player who does not should not have to leave the dialog to find out.
-  .tno-required-value-hint {
-    margin: -#{$padding-sm} 0 $padding-sm;
-    font-size: var(--font-size-10, 10px);
-    line-height: 1.3;
+  // Correcting the announced number by one, without selecting a two-digit
+  // field to retype it. The two buttons live *inside* the field's own border
+  // rather than stacked on top of it: three separate slabs read as three
+  // controls, one bordered block reads as the spinner it is.
+  .tno-required-value-control {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid $c-beige;
+    border-radius: 3px;
+    background: $c-white;
+
+    &:focus-within {
+      border-color: $c-tan;
+    }
+
+    // Foundry gives every dialog input its own frame and grey fill. Inside this
+    // block that frame is the block's, so the field keeps only its text.
+    input {
+      flex: 1;
+      width: 100%;
+      min-height: 26px;
+      margin: 0;
+      padding: 0 6px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      font-variant-numeric: tabular-nums;
+      text-align: center;
+      box-shadow: none;
+
+      &:focus {
+        outline: none;
+        box-shadow: none;
+      }
+
+      &::placeholder {
+        font-size: var(--font-size-10, 10px);
+        opacity: 0.55;
+      }
+    }
+  }
+
+  // Quiet strips, separated from the field by a hairline rather than a border
+  // of their own — they correct a number somebody read out, they are not one of
+  // the roll's own decisions.
+  .tno-required-value-stepper {
+    flex: none;
+    width: 100%;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: $c-faint;
     color: $c-tan;
-    opacity: 0.8;
+    font: inherit;
+    font-size: var(--font-size-12, 12px);
+    font-weight: bold;
+    line-height: 16px;
+    cursor: pointer;
+    box-shadow: none;
+    transition: background 0.12s ease, color 0.12s ease;
+
+    &:first-of-type {
+      border-bottom: 1px solid $c-beige;
+    }
+
+    &:last-of-type {
+      border-top: 1px solid $c-beige;
+    }
+
+    &:hover:not(:disabled) {
+      background: $c-beige;
+      color: $c-dark;
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+  }
+
+  // ── The comparison row ────────────────────────────────────────────────────
+  //
+  // Three columns because the question is genuinely three-part: what the other
+  // side had, what you have, and the number they read out. As prose in one
+  // legend ("Deine RH ist 8 — wie hoch war die Durchdringung?") the reader had
+  // to hold their own value in their head while choosing against it, and the
+  // number they then typed sat a paragraph below the pick that decides which
+  // number it even is.
+  //
+  // Read as a table, which means the three names have to sit on one line and
+  // the three cells have to start on the next. So the columns are aligned to
+  // the top and the three headers share one treatment — the radiogroup's
+  // legend, the readout's caption and the number field's label all become the
+  // same column head. Centring them against each other instead put three
+  // different names at three different heights, which is what made the first
+  // attempt read as debris rather than as a row.
+  .tno-roll-situation.tno-comparison {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) auto minmax(0, 0.85fr);
+    // Stretched, not top-aligned: the three cells are one row of a table and a
+    // row whose cells stop at three different heights is three boxes standing
+    // next to each other. The ladder is the tallest of them and therefore sets
+    // the height; the other two fill it and centre what they hold.
+    align-items: stretch;
+    column-gap: 11px;
+    row-gap: 5px;
+
+    // Spacing between the parts is the grid's job here, so the margins the
+    // three carry for the stacked layout are handed back: the caption's bottom
+    // margin and the hint's negative top pull.
+    > .tno-roll-section-caption,
+    > .tno-required-value-hint {
+      grid-column: 1 / -1;
+      margin: 0;
+    }
+
+    > .tno-required-value-field {
+      margin-bottom: 0;
+    }
+
+    // The one header treatment. The anchor's caption carries the same one from
+    // its own rule below, so it stays a column head even in a layout that only
+    // asks for the readout.
+    > .tno-context-tile-field > legend,
+    > .tno-required-value-field > label {
+      margin: 0 0 4px;
+      font-size: var(--font-size-11, 11px);
+      font-weight: bold;
+      line-height: 1.25;
+      white-space: nowrap;
+    }
+
+    // Each head sits over its own cell: the ladder reads from the left, the two
+    // number cells are centred, so their names are too.
+    > .tno-required-value-field > label {
+      text-align: center;
+    }
+
+    // The given number and the typed one are the same kind of thing and are
+    // written at the same size, which is most of what makes the row read as one
+    // comparison rather than as a readout next to a form field.
+    .tno-required-value-control input {
+      font-size: var(--font-size-18, 18px);
+    }
+  }
+
+  // The reader's own number, as the dialog already writes a value it is telling
+  // you rather than asking you for: the same chip the base attribute wears one
+  // section up. Explicitly not a tile — no pointer, no hover, no selected state
+  // — because the three things beside it are clickable and this one is a fact.
+  .tno-comparison-anchor {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    min-width: 0;
+  }
+
+  .tno-comparison-anchor-caption {
+    margin: 0 0 4px;
+    font-size: var(--font-size-11, 11px);
+    font-weight: bold;
+    line-height: 1.25;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .tno-comparison-anchor-value {
+    display: grid;
+    flex: 1;
+    place-items: center;
+    min-width: 34px;
+    padding: 3px 9px;
+    border-radius: 3px;
+    background: $c-faint;
+    color: $c-dark;
+    font-size: var(--font-size-18, 18px);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  // Below roughly a phone's width the three columns stop being a table and
+  // start being three slivers. The ladder keeps the full width and the two
+  // fields share the row beneath it, which is the same reading order.
+  @container roll-dialog (max-width: 320px) {
+    .tno-roll-situation.tno-comparison {
+      grid-template-columns: auto minmax(0, 1fr);
+
+      > .tno-context-tile-field {
+        grid-column: 1 / -1;
+      }
+    }
   }
 
   // A rule the other side announced. A checkbox rather than a number, because
@@ -189,6 +379,40 @@ $c-roll-negative: #c62828;
 
   .tno-context-tile-grid-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  // One column is not a grid of one — it is a ladder, and a ladder's rungs read
+  // across rather than down. The comparison ("> 8") leads and the consequence
+  // follows it on the same line, so the three answers stack into something the
+  // eye scans as a table column instead of three stacked cards.
+  .tno-context-tile-grid-1 {
+    grid-template-columns: minmax(0, 1fr);
+    // Equal rungs. The three answers are one ladder, and a rung whose
+    // consequence needs a second line is not a bigger answer than the others.
+    grid-auto-rows: 1fr;
+
+    .tno-context-tile {
+      display: flex;
+      align-items: baseline;
+      justify-content: flex-start;
+      gap: 7px;
+      min-height: 0;
+      padding: 6px 9px;
+      text-align: left;
+    }
+
+    .tno-context-tile.has-caption {
+      min-height: 0;
+      padding-top: 6px;
+    }
+
+    .tno-context-tile-caption {
+      flex: 1;
+      min-width: 0;
+      padding-inline: 0;
+      text-align: left;
+      text-wrap: pretty;
+    }
   }
 
   // A binary shared observation is a compact segmented switch, not a second

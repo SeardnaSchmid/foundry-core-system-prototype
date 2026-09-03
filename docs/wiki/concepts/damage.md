@@ -127,7 +127,10 @@ and wants the reader's own decimal separator.
 - [`TnoRollDialog._actorModifiers()`](../../../module/apps/roll-dialog.mjs)
   reads the derived malus as its own always-on modifier bucket. It is merged
   first by `_fixedModifierComponents()`, the shared source for the threshold,
-  breakdown, roll components and message flags.
+  breakdown, roll components and message flags. It carries the banner's own
+  `TNO.Damage.Malus` label — the dialog used to call the same number "Schaden",
+  which in the resistance roll sat three rows above the *attacker's*
+  Schadenswert and meant something else entirely.
 - [`TnoActorSheet`](../../../module/sheets/actor-sheet.mjs) publishes the
   derived result plus its `rows` to the sheet context and to the condition
   panel's own context, and handles the two manual steppers plus the clear-all

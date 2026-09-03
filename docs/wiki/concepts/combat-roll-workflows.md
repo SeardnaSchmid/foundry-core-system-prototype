@@ -71,21 +71,38 @@ another user's permissions.
   that the threshold, the live breakdown, the chat card and the message flags
   are all derived from:
   - `preRollContext` — one required pick: a two-option `toggle` for binary
-    observations such as the reach advantage, a compact radio-tile grid (2, 3,
-    5 or 7 columns) for real ladders, or a select. The field label asks the
+    observations such as the reach advantage, a compact radio-tile grid (1, 2,
+    3, 5 or 7 columns) for real ladders, or a select. The field label asks the
     question; each choice's `componentLabel` remains the noun recorded in the
-    threshold breakdown and chat card.
+    threshold breakdown and chat card. One column is a *ladder* rather than a
+    grid of one: each rung reads across, comparison first and consequence
+    beside it. It may additionally carry an `anchor` — `{label, value}` — the
+    reader's own half of a comparison, rendered as a readout beside the
+    choices and never as one of them
+    (`tests/documents/roll-dialog.test.js › carries a readout the choices are measured against`).
+    A zero anchor is a real answer and is stated, not dropped
+    (`tests/documents/roll-dialog.test.js › keeps a zero`).
   - `requiredValue` — one required typed number, e.g. the announced Schadenswert.
     Optionally `labels` (one per `preRollContext` choice key) and `hint`. The
     resistance roll uses both: the attacker's card prints a Schaden *and* a
     Wucht value, and the penetration comparison is precisely what decides which
-    of them landed — so the field renames itself to `Schadenswert (S)` or
-    `Wucht-Schadenswert (WS)` as the tile above is picked, the breakdown carries
-    that same name, and the hint says the numbers are on the attacker's card.
+    of them landed — so the field renames itself to `Schaden (S)` or
+    `Wucht (WS)` as the tile above is picked, the breakdown carries the neutral
+    `Schadenswert`, and the hint below the row says both numbers are on the
+    attacker's card. The labels stay short because they are column heads in a
+    three-column row: whose numbers these are is said once by the row's own
+    middle column (`Deine RH`) and once by that hint.
     Without it the player had to hold that mapping in their head
     (`tests/documents/actor-resistance-roll.test.js › names the damage field after the comparison that was picked`).
-    `_refresh` repaints the label, matched on `label[for="tno-roll-required-value"]`
-    — the field's own class is shared with the opposing-Ansage row.
+    `_refresh` repaints the label through the field's own `input[name]` and its
+    `labels` collection, so it is independent of where the field sits — the
+    field's own class is shared with the opposing-Ansage row. A vertical `+`/`−`
+    stepper frames the input, clamped by `_stepRequiredValue` to the same
+    `min`/`max` the field carries, with the reached bound shown as a disabled
+    button rather than enforced silently
+    (`tests/documents/actor-resistance-roll.test.js › steps the announced damage inside the bounds the workflow set`).
+    A blank field counts as zero for an explicit click, and still counts as
+    "nothing announced yet" everywhere else.
   - `ansage` — one optional integer that worsens this roll by what it declares,
     unpriced and ungated. `_ansageValue` reads it, `_ansageComponent` signs it,
     and nothing else touches it.
@@ -158,7 +175,7 @@ answer**, and two labelled dividers make that split visible rather than implied.
 | --- | --- | --- | --- |
 | 1 | Womit würfelst du? | attribute · skill rank · `damageMalus` · `fixedModifiers` · `armorMalus` | always |
 | — | *was dir gegeben wird* | divider | anything in 2–3 does |
-| 2 | Wie steht ihr zueinander? | `preRollContext` · `requiredValue` | `hasSituationSection` |
+| 2 | Wie steht ihr zueinander? | `preRollContext` · its `anchor` · `requiredValue` | `hasSituationSection` |
 | 3 | Was wurde gegen dich angesagt? | `opposingAnsage` · `toggleModifier` | `hasAgainstSection` — defences only |
 | — | *was du entscheidest* | divider | anything in 4–6 does |
 | 4 | Sagst du etwas an oder passt du etwas an? / Passt du etwas an? | `zonePicker` · `ansage` · the `±3` stepper | `hasAttemptSection`; the shorter question is used when only the stepper renders |
@@ -172,6 +189,30 @@ Four properties of that layout are deliberate:
 question 2 or 3, and `hasChosenDivider` is exactly question 4, 5 or 6. A plain
 skill roll therefore has only the second divider; a fixed roll with no later
 question has neither.
+
+**Question 2 becomes a table when a comparison is being made.** `anchor` plus
+`requiredValue` turns the situation section into three columns — the choices as
+a one-column ladder, the reader's own number as a readout beside it, and the
+number they were told last. It reads as a table, which is a claim about
+alignment and has to be paid for in three places: the radiogroup's legend, the
+readout's caption and the number field's label all wear one header treatment,
+so the three names sit on one line; the cells are stretched to a single row
+height rather than each ending where its own content does; and the ladder's
+rungs are `1fr` rows, so a consequence needing a second line does not make one
+answer taller than the other two. The given number and the typed one are set at
+the same size — they are the same kind of thing, and that is most of what makes
+the row read as a comparison instead of a readout beside a form field.
+
+The resistance roll is the only workflow that asks for all three, and the only
+one that asks for a `width` — 400 rather than the class default of 340, which
+was picked for a column of questions and leaves a three-column row clipping its
+own placeholder. It used to be prose ("Deine RH ist 8 — wie hoch war die
+Durchdringung?") with the damage field a paragraph below, which asked the
+reader to hold their own RH in their head while choosing against it and then
+separated the pick from the number that pick names. Below 320px the ladder
+takes the full row and the two fields share the one beneath it — the same
+reading order, and the reason the form declares a `roll-dialog` size container
+at all.
 
 **The question that can block the roll leads.** Only `preRollContext` and
 `requiredValue` gate submit, so they come first among the inputs. They used to

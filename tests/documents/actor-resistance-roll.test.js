@@ -13,8 +13,12 @@ globalThis.foundry = {
   appv1: {
     api: {
       FormApplication: class {
-        constructor(object) {
+        // Foundry merges the second argument over `defaultOptions`; the shell
+        // only has to keep it, so a workflow asking for its own width can be
+        // read back off the instance.
+        constructor(object, options = {}) {
           this.object = object;
+          this.options = { ...options };
         }
       },
     },
@@ -140,7 +144,7 @@ describe('resistance roll', () => {
   it('includes the always-on damage malus on the resistance roll', () => {
     const dialog = resist('head', { damageMalus: -3 });
     expect(dialog._computeThreshold(answered({ requiredValue: 7, contextChoice: 'harder' }))).toBe(2);
-    expect(dialog._actorModifiers()).toEqual([{ label: 'TNO.Damage.RollMalus', value: -3 }]);
+    expect(dialog._actorModifiers()).toEqual([{ label: 'TNO.Damage.Malus', value: -3 }]);
   });
 
   // "Erschwere deinen Angriff um die Rüstungsabdeckung der jeweiligen Stelle und
@@ -193,13 +197,56 @@ describe('resistance roll', () => {
     expect(dialog._canSubmit(answered({ requiredValue: 7, contextChoice: 'equal' }))).toBe(true);
 
     // Three outcomes, only the hardest worth a Bonusstufe, as three captioned
-    // tiles — the damage table's rows and nothing else.
+    // tiles — the damage table's rows and nothing else. One column, because the
+    // three are a ladder read against the anchor beside them rather than three
+    // options weighed against each other.
     expect(dialog.preRollContext.choices.map((choice) => [choice.key, choice.value])).toEqual([
       ['softer', 0],
       ['equal', 0],
       ['harder', 3],
     ]);
-    expect(dialog.preRollContext).toMatchObject({ control: 'tiles', tileColumns: 3, tileLabels: true });
+    expect(dialog.preRollContext).toMatchObject({ control: 'tiles', tileColumns: 1, tileLabels: true });
+  });
+
+  // The situation section is a three-column table here and nowhere else, and
+  // the width every other roll uses has no room for it.
+  it('asks for the width its comparison table needs', () => {
+    expect(resist('head').options.width).toBe(400);
+  });
+
+  // The defender's own RH is the column the three choices are measured against,
+  // so it is a readout beside them and never a fourth choice. Leaving it in the
+  // question's prose made the reader hold it in their head while picking.
+  it('shows this location\'s own RH as the comparison anchor', () => {
+    expect(resist('head').preRollContext.anchor).toEqual({
+      label: 'TNO.Combat.Penetration.Anchor',
+      value: '3',
+    });
+  });
+
+  // The announced number is typed off the attacker's card and then corrected by
+  // one as the exchange is talked through, which is what the stepper is for.
+  // Its floor is the field's own `min`, so it can never write a value the input
+  // itself would reject.
+  it('steps the announced damage inside the bounds the workflow set', () => {
+    const dialog = resist('head');
+    const input = { value: '' };
+    const form = { querySelector: () => input };
+    dialog._refresh = () => {};
+
+    // Blank counts as zero for an explicit click; reading a blank field as
+    // "nothing announced" is a separate question and stays that way.
+    dialog._stepRequiredValue(form, 1);
+    expect(input.value).toBe('1');
+    dialog._stepRequiredValue(form, 1);
+    expect(input.value).toBe('2');
+    dialog._stepRequiredValue(form, -1);
+    expect(input.value).toBe('1');
+
+    // An announced Schadenswert has a floor of 0 and no ceiling.
+    dialog._stepRequiredValue(form, -1);
+    dialog._stepRequiredValue(form, -1);
+    expect(input.value).toBe('0');
   });
 
   // The regression this guards: the normalizer whitelists what a choice may

@@ -7,8 +7,12 @@ globalThis.foundry = {
   appv1: {
     api: {
       FormApplication: class {
-        constructor(object) {
+        // Foundry merges the second argument over `defaultOptions`; the shell
+        // only has to keep it, so a workflow asking for its own width can be
+        // read back off the instance.
+        constructor(object, options = {}) {
           this.object = object;
+          this.options = { ...options };
         }
       },
     },
@@ -201,12 +205,12 @@ describe('TnoRollDialog armour SV step', () => {
 describe('TnoRollDialog global damage malus', () => {
   it('keeps actor state separate from form-dependent modifiers', () => {
     const dialog = new TnoRollDialog(armoured(true, -4), { attributeA: 'dex' });
-    expect(dialog._actorModifiers()).toEqual([{ label: 'TNO.Damage.RollMalus', value: -4 }]);
+    expect(dialog._actorModifiers()).toEqual([{ label: 'TNO.Damage.Malus', value: -4 }]);
     expect(dialog._conditionalModifiers(form({ attributeA: 'dex' }))).toEqual([
       { label: 'TNO.Combat.ArmorSvMalus', value: -3 },
     ]);
     expect(dialog._fixedModifierComponents(form({ attributeA: 'dex' })).map((part) => part.label)).toEqual([
-      'TNO.Damage.RollMalus',
+      'TNO.Damage.Malus',
       'TNO.Combat.ArmorSvMalus',
     ]);
   });
@@ -218,7 +222,7 @@ describe('TnoRollDialog global damage malus', () => {
     });
     const data = form({ attributeA: 'str' });
     expect(dialog._computeThreshold(data)).toBe(2);
-    expect(dialog._breakdownText(data)).toContain('TNO.Damage.RollMalus −3');
+    expect(dialog._breakdownText(data)).toContain('TNO.Damage.Malus −3');
 
     await dialog._updateObject(null, data);
     expect(rolled.payload.threshold).toBe(2);
@@ -227,7 +231,7 @@ describe('TnoRollDialog global damage malus', () => {
       value: 5,
     });
     expect(rolled.payload.components[1]).toEqual({
-      label: 'TNO.Damage.RollMalus',
+      label: 'TNO.Damage.Malus',
       value: -3,
       display: '−3',
     });
@@ -639,10 +643,56 @@ describe('TnoRollDialog tile columns', () => {
     const tiles = (tileColumns) => new TnoRollDialog(armoured(false), {
       preRollContext: { label: 'Reach', control: 'tiles', tileColumns, choices: [{ key: '0', label: '0', value: 0 }] },
     }).preRollContext.tileColumns;
+    expect(tiles(1)).toBe(1);
     expect(tiles(2)).toBe(2);
     expect(tiles(3)).toBe(3);
     expect(tiles(5)).toBe(5);
     // Anything the stylesheet has no grid for still falls back to the widest.
     expect(tiles(4)).toBe(7);
+  });
+});
+
+describe('TnoRollDialog width', () => {
+  const width = (value) => new TnoRollDialog(armoured(false), { width: value }).options.width;
+
+  it('takes the width a workflow asks for', () => {
+    expect(width(400)).toBe(400);
+  });
+
+  // Anything unusable leaves `defaultOptions` alone rather than overriding it
+  // with a width no window can be drawn at.
+  it('falls back to the class default for anything else', () => {
+    expect(width(null)).toBeUndefined();
+    expect(width(0)).toBeUndefined();
+    expect(width(-100)).toBeUndefined();
+    expect(width('wide')).toBeUndefined();
+  });
+});
+
+describe('TnoRollDialog comparison anchor', () => {
+  const withAnchor = (anchor) => new TnoRollDialog(armoured(false), {
+    preRollContext: {
+      label: 'Penetration',
+      control: 'tiles',
+      tileColumns: 1,
+      anchor,
+      choices: [{ key: '0', label: '0', value: 0 }],
+    },
+  }).preRollContext.anchor;
+
+  it('carries a readout the choices are measured against', () => {
+    expect(withAnchor({ label: 'Your RH', value: 8 })).toEqual({ label: 'Your RH', value: '8' });
+  });
+
+  // A zero RH is a real answer — unarmoured — and the layout has to state it
+  // rather than fall back to no anchor at all.
+  it('keeps a zero', () => {
+    expect(withAnchor({ label: 'Your RH', value: 0 })).toEqual({ label: 'Your RH', value: '0' });
+  });
+
+  it('ignores a half-specified anchor', () => {
+    expect(withAnchor({ value: 8 })).toBeNull();
+    expect(withAnchor({ label: 'Your RH' })).toBeNull();
+    expect(withAnchor(undefined)).toBeNull();
   });
 });

@@ -54,7 +54,7 @@ export class TnoRollDialog extends FormApplication {
    * @param {{label: string, value: number, hint?: string}[]} [options.fixedModifiers]
    *   Immutable rule modifiers added to the threshold and shown separately
    *   from the editable situational bonus.
-   * @param {{label: string, placeholder: string, control?: 'select'|'tiles'|'toggle', tileLabels?: boolean, tileColumns?: 2|3|5|7, choices: Array<{key: string, label: string, value: number, componentLabel?: string}>}} [options.preRollContext]
+   * @param {{label: string, placeholder: string, control?: 'select'|'tiles'|'toggle', tileLabels?: boolean, tileColumns?: 1|2|3|5|7, anchor?: {label: string, value: number|string}, choices: Array<{key: string, label: string, value: number, componentLabel?: string}>}} [options.preRollContext]
    *   One optional required choice that must be made before rolling. Its
    *   selected value becomes an immutable threshold component.
    * @param {{label: string, placeholder?: string, componentLabel?: string, sign?: 1|-1, min?: number, max?: number}} [options.requiredValue]
@@ -100,10 +100,16 @@ export class TnoRollDialog extends FormApplication {
    *   cancelled. For state a workflow owes its own sheet — the repeated-defence
    *   counter is the first — which must count rolls and not intentions.
    */
-  constructor(actor, { attributeA = '', lockAttribute = false, skill = null, freeSkill = false, fixedValue = null, fixedModifiers = [], preRollContext = null, requiredValue = null, ansage = null, zonePicker = null, maneuverMalus = null, envelope = null, opposingAnsage = false, toggleModifier = null, consequence = null, afterRoll = null, flavor = '' } = {}) {
+  constructor(actor, { attributeA = '', lockAttribute = false, skill = null, freeSkill = false, fixedValue = null, fixedModifiers = [], preRollContext = null, requiredValue = null, ansage = null, zonePicker = null, maneuverMalus = null, envelope = null, opposingAnsage = false, toggleModifier = null, consequence = null, afterRoll = null, flavor = '', width = null } = {}) {
     // `requiredValue` starts empty rather than at 0: an untouched field and a
     // typed zero are different answers, and only one of them may roll.
-    super({ attributeA, attributeB: '', skillValue: 0, bonus: 0, advantage: TNO_ADVANTAGE.none, useIdea: false, contextChoice: '', requiredValue: '', ansage: '', zoneChoice: DEFAULT_ZONE, opposingAnsage: '', toggleModifier: false });
+    // The default width fits every roll that is a column of questions. A
+    // workflow whose section is laid out as a table says so here rather than
+    // being squeezed into a width picked for a different shape.
+    super(
+      { attributeA, attributeB: '', skillValue: 0, bonus: 0, advantage: TNO_ADVANTAGE.none, useIdea: false, contextChoice: '', requiredValue: '', ansage: '', zoneChoice: DEFAULT_ZONE, opposingAnsage: '', toggleModifier: false },
+      Number.isFinite(Number(width)) && Number(width) > 0 ? { width: Number(width) } : {}
+    );
     this.actor = actor;
     this.lockAttribute = !!(lockAttribute && attributeA);
     this.skill = skill;
@@ -153,7 +159,7 @@ export class TnoRollDialog extends FormApplication {
    * Keep the optional context interface safe for all existing roll callers:
    * malformed or empty contexts simply behave as though no context was given.
    * @param {*} context
-   * @returns {{label: string, placeholder: string, control: 'select'|'tiles'|'toggle', tileLabels: boolean, tileColumns: 2|3|5|7, choices: Array<{key: string, label: string, value: number, componentLabel?: string}>}|null}
+   * @returns {{label: string, placeholder: string, control: 'select'|'tiles'|'toggle', tileLabels: boolean, tileColumns: 1|2|3|5|7, anchor: ?{label: string, value: string}, choices: Array<{key: string, label: string, value: number, componentLabel?: string}>}|null}
    */
   _normalizePreRollContext(context) {
     if (!context?.label || !Array.isArray(context.choices)) return null;
@@ -180,7 +186,14 @@ export class TnoRollDialog extends FormApplication {
       placeholder: String(context.placeholder || game.i18n.localize('TNO.Roll.ContextPlaceholder')),
       control,
       tileLabels: context.tileLabels === true,
-      tileColumns: [2, 3, 5, 7].includes(Number(context.tileColumns)) ? Number(context.tileColumns) : 7,
+      tileColumns: [1, 2, 3, 5, 7].includes(Number(context.tileColumns)) ? Number(context.tileColumns) : 7,
+      // The reader's own half of a comparison: a number their sheet already
+      // knows, shown beside the choices rather than folded into the question.
+      // It is a readout and never a choice, which is the whole reason it is a
+      // separate field instead of a fourth tile.
+      anchor: context.anchor?.label && context.anchor?.value !== undefined
+        ? { label: String(context.anchor.label), value: String(context.anchor.value) }
+        : null,
       choices,
     };
   }
@@ -226,6 +239,29 @@ export class TnoRollDialog extends FormApplication {
     if (!this.requiredValue) return '';
     const key = this._contextChoice(data)?.key;
     return this.requiredValue.labels?.[key] || this.requiredValue.label;
+  }
+
+  /**
+   * Nudge the announced number by one, inside whatever bounds the workflow set.
+   *
+   * A blank field counts as zero here rather than staying blank: the stepper is
+   * an explicit click, and refusing to act on it would look broken. Everything
+   * else about blank-is-not-zero still holds — {@link _requiredValue} keeps
+   * reading an untouched field as "nothing announced yet".
+   * @param {HTMLFormElement} form
+   * @param {number} delta
+   * @private
+   */
+  _stepRequiredValue(form, delta) {
+    const input = form.querySelector('input[name="requiredValue"]');
+    if (!input) return;
+    const min = this.requiredValue?.min;
+    const max = this.requiredValue?.max;
+    let next = (Number(input.value) || 0) + delta;
+    if (min !== null && min !== undefined) next = Math.max(min, next);
+    if (max !== null && max !== undefined) next = Math.min(max, next);
+    input.value = String(next);
+    this._refresh(form);
   }
 
   /**
@@ -397,6 +433,11 @@ export class TnoRollDialog extends FormApplication {
         active: this._conditionalModifiers(this.object).includes(this.maneuverMalus),
       },
       hasPreRollContext: !!this.preRollContext,
+      // The three-column comparison: choices, the reader's own number, and the
+      // one they were told. Only laid out as a table when all three exist —
+      // with no anchor there is nothing to compare against, and with no typed
+      // number the row would be two columns of which one is a readout.
+      hasComparisonRow: !!this.preRollContext?.anchor && !!this.requiredValue,
       hasRequiredValue: !!this.requiredValue,
       ...sectionFlags,
       requiredValue: this.requiredValue && {
@@ -649,12 +690,17 @@ export class TnoRollDialog extends FormApplication {
   /**
    * Immutable modifiers from the actor's own current state. Unlike conditional
    * modifiers, these do not depend on any workflow or form choice.
+   *
+   * Labelled with the banner's own `Damage.Malus` — the same words the sheet
+   * puts on the same number one surface away. It used to say "Schaden" here,
+   * which in the resistance roll sat three rows above the *attacker's*
+   * Schadenswert and meant something else entirely.
    * @returns {Array<{label: string, value: number}>}
    */
   _actorModifiers() {
     const value = Number(this.actor.system.derived?.damage?.malus) || 0;
     return value
-      ? [{ label: game.i18n.localize('TNO.Damage.RollMalus'), value }]
+      ? [{ label: game.i18n.localize('TNO.Damage.Malus'), value }]
       : [];
   }
 
@@ -1107,8 +1153,22 @@ export class TnoRollDialog extends FormApplication {
     // The required-value field renames itself when the context choice above it
     // decides which number is being asked for. Scoped through the field's own
     // input name so the opposing-Ansage row beside it is never renamed.
-    const requiredLabel = form.querySelector('input[name="requiredValue"]')?.labels?.[0];
+    const requiredInput = form.querySelector('input[name="requiredValue"]');
+    const requiredLabel = requiredInput?.labels?.[0];
     if (requiredLabel && this.requiredValue) requiredLabel.textContent = this._requiredValueLabel(data);
+    // A stepper that can be clicked past its own floor would write a value the
+    // field's own `min` rejects, so the caps are shown rather than enforced
+    // silently. A blank field is at no bound yet — it holds no number to be at
+    // one — so both buttons stay live until something has been typed.
+    if (requiredInput) {
+      const current = requiredInput.value === '' ? null : Number(requiredInput.value);
+      for (const button of form.querySelectorAll('.tno-required-value-stepper')) {
+        const step = Number(button.dataset.requiredStep);
+        const bound = step > 0 ? this.requiredValue?.max : this.requiredValue?.min;
+        button.disabled = current !== null && bound !== null && bound !== undefined
+          && (step > 0 ? current >= bound : current <= bound);
+      }
+    }
     const submit = form.querySelector('button[type="submit"]');
     if (submit) submit.disabled = !readout.ready;
     const box = form.querySelector('.tno-threshold-box');
@@ -1181,6 +1241,14 @@ export class TnoRollDialog extends FormApplication {
       const current = Number(form.querySelector('input[name="bonus"]').value) || 0;
       const delta = ev.currentTarget.dataset.action === 'increment' ? BONUS_STEP : -BONUS_STEP;
       this._setBonus(form, current + delta);
+    });
+
+    // The announced number's own stepper. Same gesture as the bonus one, but
+    // in single steps and around the field rather than beside it.
+    html.on('click', '.tno-required-value-stepper', (ev) => {
+      ev.preventDefault();
+      if (ev.currentTarget.disabled) return;
+      this._stepRequiredValue(ev.currentTarget.closest('form'), Number(ev.currentTarget.dataset.requiredStep));
     });
 
     // The bonus value doubles as a control: click resets it to zero, arrow

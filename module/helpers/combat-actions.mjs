@@ -556,6 +556,9 @@ export function widerstandOptions(actor, zone) {
   return {
     attributeA: 'str',
     lockAttribute: true,
+    // The only workflow whose situation section is a three-column table rather
+    // than a column of questions, and the default width has no room for it.
+    width: 400,
     // Already summed over the Unterkleidung and this zone's addon by
     // `resolveArmor`, which is the value the paper doll shows.
     fixedModifiers: [
@@ -586,15 +589,30 @@ export function widerstandOptions(actor, zone) {
     // The one comparison the defender's sheet cannot make on its own, asked in
     // the only terms it *can* state: it knows this location's RH and says so, so
     // the player answers about the single unknown — where the weapon's
-    // Rüstungsdurchdringung sat against that number. Each tile then spells out
-    // what its answer does, because "weicher · S" said neither whose armour was
-    // meant nor what followed from it, and the +3 on the third looked arbitrary.
+    // Rüstungsbrechung or -durchdringung sat against that number. Each tile then
+    // spells out what its answer does, because "weicher · S" said neither whose
+    // armour was meant nor what followed from it, and the +3 on the third looked
+    // arbitrary.
+    //
+    // Laid out as a table: the three answers as a ladder, the defender's own RH
+    // beside them as a readout, and the number they were told last. The RH is
+    // the `anchor` rather than part of the question, because a value the reader
+    // has to hold in their head while choosing against it is a value they will
+    // choose against wrong.
+    //
+    // Both abbreviations are named. The rules table writes RB/RD throughout —
+    // Rüstungsbrechung in melee, -durchdringung at range — and the defender is
+    // told a number without being told which weapon produced it.
     preRollContext: {
-      label: game.i18n.format('TNO.Combat.Penetration.Label', { rh: armor.rh }),
+      label: game.i18n.localize('TNO.Combat.Penetration.Label'),
       placeholder: game.i18n.localize('TNO.Combat.Penetration.Placeholder'),
       control: 'tiles',
       tileLabels: true,
-      tileColumns: 3,
+      tileColumns: 1,
+      anchor: {
+        label: game.i18n.localize('TNO.Combat.Penetration.Anchor'),
+        value: armor.rh,
+      },
       choices: armorPenetrationChoices().map((choice) => {
         const suffix = `${choice.key.charAt(0).toUpperCase()}${choice.key.slice(1)}`;
         return {

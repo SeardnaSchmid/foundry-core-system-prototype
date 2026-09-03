@@ -137,7 +137,7 @@ by name, so a control may be moved but never renamed. --}}
         announced Schadenswert. It leads because a threshold without it would be
         a lie, and because everything below it is optional. --}}
   {{#if hasSituationSection}}
-  <section class="tno-roll-section tno-roll-situation" aria-labelledby="{{dialogId}}-situation-title">
+  <section class="tno-roll-section tno-roll-situation{{#if hasComparisonRow}} tno-comparison{{/if}}" aria-labelledby="{{dialogId}}-situation-title">
     <h3 id="{{dialogId}}-situation-title" class="tno-roll-section-caption">{{localize "TNO.Roll.Question.Situation"}}</h3>
 
     {{#if hasPreRollContext}}
@@ -188,6 +188,17 @@ by name, so a control may be moved but never renamed. --}}
     {{/if}}
     {{/if}}
 
+    {{!-- The reader's own half of the comparison: a readout, never a choice.
+          Deliberately not a fourth tile and deliberately not folded into the
+          question above — it is the column the three choices are measured
+          against, so it stands between them and the number they decide. --}}
+    {{#if preRollContext.anchor}}
+    <div class="tno-comparison-anchor">
+      <span class="tno-comparison-anchor-caption">{{preRollContext.anchor.label}}</span>
+      <strong class="tno-comparison-anchor-value">{{preRollContext.anchor.value}}</strong>
+    </div>
+    {{/if}}
+
     {{!-- The label is repainted by `_refresh`: where a workflow supplies one
           per context choice, the pick above decides which number this field is
           asking for, and saying so here is the only place that connection is
@@ -195,11 +206,21 @@ by name, so a control may be moved but never renamed. --}}
     {{#if hasRequiredValue}}
     <div class="form-group tno-required-value-field">
       <label for="{{dialogId}}-required-value">{{requiredValue.label}}</label>
-      <input id="{{dialogId}}-required-value" type="number" name="requiredValue" step="1"
-             value="{{requiredValue.value}}" placeholder="{{requiredValue.placeholder}}"
-             {{#if requiredValue.hasMin}}min="{{requiredValue.min}}"{{/if}}
-             {{#if requiredValue.hasMax}}max="{{requiredValue.max}}"{{/if}}
-             autocomplete="off" required/>
+      {{!-- One control, not three: the number is typed off a card first and
+            only then nudged, so the field keeps the whole width and the two
+            corrections frame it inside the same border. Increment on top, the
+            way every spinner reads. --}}
+      <div class="tno-required-value-control">
+        <button type="button" class="tno-required-value-stepper" data-required-step="1"
+                aria-label="{{localize 'TNO.Roll.RequiredValueIncrease'}}">+</button>
+        <input id="{{dialogId}}-required-value" type="number" name="requiredValue" step="1"
+               value="{{requiredValue.value}}" placeholder="{{requiredValue.placeholder}}"
+               {{#if requiredValue.hasMin}}min="{{requiredValue.min}}"{{/if}}
+               {{#if requiredValue.hasMax}}max="{{requiredValue.max}}"{{/if}}
+               autocomplete="off" required/>
+        <button type="button" class="tno-required-value-stepper" data-required-step="-1"
+                aria-label="{{localize 'TNO.Roll.RequiredValueDecrease'}}">&minus;</button>
+      </div>
     </div>
     {{#if requiredValue.hint}}
     <p class="tno-required-value-hint">{{requiredValue.hint}}</p>
