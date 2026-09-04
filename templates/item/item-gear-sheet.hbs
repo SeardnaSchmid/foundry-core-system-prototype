@@ -1,176 +1,222 @@
 {{!-- The gear dialog: one row editor for every physical item.
 
 Read the row grammar once and the rest follows: every row is a fixed-width
-label and a control area, in the same order whatever the item is. Rows never
-appear or disappear as values change — a field the current role or use does not
-use renders as a disabled `n/a` cell, so nothing below it moves. Only whole
+label and a control area, in the same order whatever the item is, all of them in
+one column so every label starts at the same x. Rows never appear or disappear
+as values change — a field the current role or use does not use renders as a
+disabled `n/a` cell, so nothing below it moves. Only whole
 role blocks come and go, because a role that is switched off is a section the
 item does not have rather than a field it cannot fill.
 
 See `module/sheets/item-gear-sheet.mjs` for why there are no tabs and no save
 button. --}}
 
-<header class='gear-head'>
-  <img class='profile-img' src='{{item.img}}' {{#if canEdit}}data-edit='img'{{/if}} title='{{item.name}}' />
-  {{#if canEdit}}
-    <input
-      class='gear-name {{#if missing.name}}is-missing{{/if}}'
-      name='name'
-      type='text'
-      value='{{item.name}}'
-      placeholder='{{localize "Name"}}'
-    />
-  {{else}}
-    <h1 class='gear-title'>{{item.name}}</h1>
-  {{/if}}
-  {{#if canEdit}}<span class='gear-keyhint'>{{localize 'TNO.Item.KeyHint'}}</span>{{/if}}
-</header>
+{{!-- A rail and a column. The rail carries what is about the item as an object
+rather than a field of it: its picture, and the two acts that take the whole
+thing somewhere — to chat, or away. Everything that *is* a field lives in the one
+column beside it, so no row shares its width with the picture and every label on
+the sheet starts at the same x. --}}
+<div class='gear-body'>
 
-<div class='gear-rows'>
-
-  {{!-- What the piece is. Exclusive, and clearable by clicking the chip that is
-  already on: a new item starts as a plain object with no role at all, so "none"
-  is a real answer and has to stay reachable. A radiogroup rather than three
-  toggles, because that is what the choice is — and unlike a Foundry item type,
-  it can be corrected after the fact. --}}
-  <div class='gear-row' data-row='roles'>
-    <span class='gear-label'>{{localize 'TNO.Item.Roles'}}</span>
-    <div class='gear-ctl chips' role='radiogroup' aria-label='{{localize "TNO.Item.Roles"}}'>
-      {{#each roleChips}}
-        <button
-          type='button'
-          class='chip role-chip'
-          role='radio'
-          data-role='{{this.key}}'
-          aria-checked='{{this.on}}'
-          tabindex='0'
-        >
-          {{localize this.label}}
-        </button>
-      {{/each}}
-    </div>
-  </div>
-
-  {{!-- Compact general requirements. SV belongs only to weapons and armour;
-  weapon-specific FV and WA live in the weapon-values block below. --}}
-  <div class='gear-row' data-row='general'>
-    <span class='gear-label'>{{localize 'TNO.Item.General'}}</span>
-    <div class='gear-ctl general-fields'>
-      {{#if roles.weapon}}
-      <label class='field' title='{{localize "TNO.Item.SvHintWeapon"}}'>
-        <span class='cap'>{{localize 'TNO.Item.Cap.Sv'}}</span>
-        <input type='number' name='system.sv' value='{{system.sv}}' min='0' step='1' />
-      </label>
-      {{else if roles.armor}}
-      {{!-- Armour SV runs in quarter steps: the Rüstungen table writes the
-      Unterkleidung rows as whole values and every addon as a +0,25/+0,5/+1/+1,5
-      increment, and all of them add up. The weapon field above stays whole —
-      that requirement is a different, graded rule. --}}
-      <label class='field' title='{{localize "TNO.Armor.SvHint"}}'>
-        <span class='cap'>{{localize 'TNO.Item.Cap.Sv'}}</span>
-        <input type='number' name='system.sv' value='{{system.sv}}' min='0' step='0.25' />
-      </label>
-      {{else}}
-      <span class='field na'><span class='cap'>{{localize 'TNO.Item.Cap.Sv'}}</span><span class='val'>n/a</span></span>
-      {{/if}}
-    </div>
-  </div>
-
-  <div class='gear-row {{#if missing.slots}}is-missing{{/if}}' data-row='slots'>
-    <span class='gear-label gear-label-help'>
-      <span>{{localize 'TNO.Inventory.Slots'}}</span>
-      <span
-        class='gear-info'
-        tabindex='0'
-        role='img'
-        aria-label='{{localize "TNO.Inventory.SlotsInfoLabel"}}'
-        data-tooltip-html='{{localize "TNO.Inventory.SlotsInfo"}}'
-        data-tooltip-direction='RIGHT'
-      ><i class='fa-solid fa-circle-info' aria-hidden='true'></i></span>
-    </span>
-    {{> 'systems/tno/templates/item/parts/item-scale.hbs' cells=scales.slots key='slots'}}
-  </div>
-
-  <section class='gear-property-group' aria-labelledby='gear-trade-{{item.id}}'>
-    <div class='gear-section-divider' id='gear-trade-{{item.id}}'>
-      <span>{{localize 'TNO.Item.Trade'}}</span>
+  <aside class='gear-rail'>
+    <div class='gear-art'>
+      {{!-- `data-edit` is the persistence half and `data-action` the gesture:
+            `FormDataExtended` reads this element's `src` back as the `img` field
+            because of the former, and `DocumentSheetV2`'s built-in `editImage`
+            action opens the picker because of the latter. An `img` takes no
+            focus of its own, hence the explicit `tabindex`/`role`. --}}
+      <img class='profile-img' src='{{item.img}}' alt=''
+        {{#if canEdit}}
+          data-edit='img' data-action='editImage' tabindex='0' role='button'
+          aria-label='{{localize "TNO.Item.ImageEdit"}}' title='{{localize "TNO.Item.ImageEdit"}}'
+        {{else}}
+          title='{{item.name}}'
+        {{/if}} />
     </div>
 
-    {{!-- Quantity controls the stack and therefore its total slot footprint. --}}
-    <div class='gear-row' data-row='quantity'>
-      <span class='gear-label' title='{{localize "TNO.Item.QuantityHint"}}'>{{localize 'TNO.Inventory.Quantity'}}</span>
-      <div class='gear-ctl'>
-        <span class='stepper' title='{{localize "TNO.Item.QuantityHint"}}'>
-          <button type='button' class='stepper-button' data-field='system.quantity' data-by='-1'>&minus;</button>
-          <input type='number' name='system.quantity' value='{{system.quantity}}' min='0' step='1' />
-          <button type='button' class='stepper-button' data-field='system.quantity' data-by='1'>+</button>
-        </span>
-        {{!-- Slots times quantity, which is the number the slot grid budgets.
-        The tier is explanatory text and therefore remains a tooltip. --}}
-        <span
-          class='field na slot-readout'
-          title='{{#if slotTier}}{{localize slotTier}}{{else}}{{localize "TNO.Inventory.SlotsHint"}}{{/if}}'
-        >
-          <span class='cap'>{{localize 'TNO.Item.Cap.Footprint'}}</span>
-          <span class='val'>{{slotCost}}</span>
-        </span>
+    {{!-- Both acts are about the whole item rather than any field of it, which
+    is why they sit under its picture rather than below the last row. Neither is
+    gated on `canEdit` here — each partial decides that for itself. --}}
+    <div class='gear-rail-actions'>
+      {{> 'systems/tno/templates/item/parts/item-post.hbs'}}
+      {{> 'systems/tno/templates/item/parts/item-delete.hbs'}}
+    </div>
+  </aside>
+
+  <div class='gear-main'>
+    <header class='gear-head'>
+    {{#if canEdit}}
+      <input
+        class='gear-name {{#if missing.name}}is-missing{{/if}}'
+        name='name'
+        type='text'
+        value='{{item.name}}'
+        placeholder='{{localize "Name"}}'
+      />
+    {{else}}
+      <h1 class='gear-title'>{{item.name}}</h1>
+    {{/if}}
+    {{#if canEdit}}<span class='gear-keyhint'>{{localize 'TNO.Item.KeyHint'}}</span>{{/if}}
+  </header>
+
+  <div class='gear-rows'>
+
+    {{!-- What the piece is. Exclusive, and clearable by clicking the chip that is
+    already on: a new item starts as a plain object with no role at all, so "none"
+    is a real answer and has to stay reachable. A radiogroup rather than three
+    toggles, because that is what the choice is — and unlike a Foundry item type,
+    it can be corrected after the fact. --}}
+    <div class='gear-row' data-row='roles'>
+      <span class='gear-label'>{{localize 'TNO.Item.Roles'}}</span>
+      <div class='gear-ctl chips' role='radiogroup' aria-label='{{localize "TNO.Item.Roles"}}'>
+        {{#each roleChips}}
+          <button
+            type='button'
+            class='chip role-chip'
+            role='radio'
+            data-role='{{this.key}}'
+            aria-checked='{{this.on}}'
+            tabindex='0'
+          >
+            {{localize this.label}}
+          </button>
+        {{/each}}
       </div>
     </div>
 
-    <div class='gear-row' data-row='price'>
-      <span class='gear-label' title='{{localize "TNO.Item.PriceHint"}}'>{{localize 'TNO.Item.Price'}}</span>
-      <div class='gear-ctl'>
-        <label class='field field-price' title='{{localize "TNO.Item.PriceHint"}}'>
-          <input type='number' name='system.price' value='{{system.price}}' min='0' step='1' />
-          <span class='unit'>€</span>
+    {{!-- Compact general requirements. SV belongs only to weapons and armour;
+    weapon-specific FV and WA live in the weapon-values block below. --}}
+    <div class='gear-row' data-row='general'>
+      <span class='gear-label'>{{localize 'TNO.Item.General'}}</span>
+      <div class='gear-ctl general-fields'>
+        {{#if roles.weapon}}
+        <label class='field' title='{{localize "TNO.Item.SvHintWeapon"}}'>
+          <span class='cap'>{{localize 'TNO.Item.Cap.Sv'}}</span>
+          <input type='number' name='system.sv' value='{{system.sv}}' min='0' step='1' />
         </label>
+        {{else if roles.armor}}
+        {{!-- Armour SV runs in quarter steps: the Rüstungen table writes the
+        Unterkleidung rows as whole values and every addon as a +0,25/+0,5/+1/+1,5
+        increment, and all of them add up. The weapon field above stays whole —
+        that requirement is a different, graded rule. --}}
+        <label class='field' title='{{localize "TNO.Armor.SvHint"}}'>
+          <span class='cap'>{{localize 'TNO.Item.Cap.Sv'}}</span>
+          <input type='number' name='system.sv' value='{{system.sv}}' min='0' step='0.25' />
+        </label>
+        {{else}}
+        <span class='field na'><span class='cap'>{{localize 'TNO.Item.Cap.Sv'}}</span><span class='val'>n/a</span></span>
+        {{/if}}
       </div>
     </div>
 
-    <div class='gear-row' data-row='availability'>
-      <span class='gear-label' title='{{localize "TNO.Item.AvailabilityHint"}}'>{{localize 'TNO.Item.Availability'}}</span>
-      {{> 'systems/tno/templates/item/parts/item-scale.hbs' cells=scales.availability key='availability'}}
+    <div class='gear-row {{#if missing.slots}}is-missing{{/if}}' data-row='slots'>
+      <span class='gear-label gear-label-help'>
+        <span>{{localize 'TNO.Inventory.Slots'}}</span>
+        <span
+          class='gear-info'
+          tabindex='0'
+          role='img'
+          aria-label='{{localize "TNO.Inventory.SlotsInfoLabel"}}'
+          data-tooltip-html='{{localize "TNO.Inventory.SlotsInfo"}}'
+          data-tooltip-direction='RIGHT'
+        ><i class='fa-solid fa-circle-info' aria-hidden='true'></i></span>
+      </span>
+      {{> 'systems/tno/templates/item/parts/item-scale.hbs' cells=scales.slots key='slots'}}
     </div>
-  </section>
 
-  {{#if roles.weapon}}
-    <div class='gear-section-divider'><span>{{localize 'TNO.Weapons.Values'}}</span></div>
-    {{> 'systems/tno/templates/item/parts/item-role-weapon.hbs'}}
-  {{/if}}
+    <section class='gear-property-group' aria-labelledby='gear-trade-{{item.id}}'>
+      <div class='gear-section-divider' id='gear-trade-{{item.id}}'>
+        <span>{{localize 'TNO.Item.Trade'}}</span>
+      </div>
 
-  {{#if roles.armor}}
-    <div class='gear-section-divider'><span>{{localize 'TNO.Armor.Values'}}</span></div>
-    {{> 'systems/tno/templates/item/parts/item-role-armor.hbs'}}
-  {{/if}}
+      {{!-- Quantity controls the stack and therefore its total slot footprint. --}}
+      <div class='gear-row' data-row='quantity'>
+        <span class='gear-label' title='{{localize "TNO.Item.QuantityHint"}}'>{{localize 'TNO.Inventory.Quantity'}}</span>
+        <div class='gear-ctl'>
+          <span class='stepper' title='{{localize "TNO.Item.QuantityHint"}}'>
+            <button type='button' class='stepper-button' data-field='system.quantity' data-by='-1'>&minus;</button>
+            <input type='number' name='system.quantity' value='{{system.quantity}}' min='0' step='1' />
+            <button type='button' class='stepper-button' data-field='system.quantity' data-by='1'>+</button>
+          </span>
+          {{!-- Slots times quantity, which is the number the slot grid budgets.
+          The tier is explanatory text and therefore remains a tooltip. --}}
+          <span
+            class='field na slot-readout'
+            title='{{#if slotTier}}{{localize slotTier}}{{else}}{{localize "TNO.Inventory.SlotsHint"}}{{/if}}'
+          >
+            <span class='cap'>{{localize 'TNO.Item.Cap.Footprint'}}</span>
+            <span class='val'>{{slotCost}}</span>
+          </span>
+        </div>
+      </div>
 
-  {{#if roles.consumable}}
-    <div class='gear-section-divider'><span>{{localize 'TNO.Item.Effects.Label'}}</span></div>
-    {{> 'systems/tno/templates/item/parts/item-role-consumable.hbs'}}
-  {{/if}}
+      <div class='gear-row' data-row='price'>
+        <span class='gear-label' title='{{localize "TNO.Item.PriceHint"}}'>{{localize 'TNO.Item.Price'}}</span>
+        <div class='gear-ctl'>
+          <label class='field field-price' title='{{localize "TNO.Item.PriceHint"}}'>
+            <input type='number' name='system.price' value='{{system.price}}' min='0' step='1' />
+            <span class='unit'>€</span>
+          </label>
+        </div>
+      </div>
 
-  {{!-- Always-on editor rather than ProseMirror's click-to-edit toggle: the
-  dialog is a form, and a box you have to click a pencil on before typing is
-  the one control here that would not behave like the rest. --}}
-  <div class='gear-row gear-row-top' data-row='description'>
-    <label class='gear-label' for='gear-description-{{item.id}}'>{{localize 'TNO.TabDescription'}}</label>
-    <div class='gear-ctl'>
-      <div class='memo-wrap'>
-        <prose-mirror
-          class='memo'
-          id='gear-description-{{item.id}}'
-          name='system.description'
-          value='{{system.description}}'
-          aria-describedby='gear-description-help-{{item.id}}'
-        ></prose-mirror>
-        <p class='memo-help' id='gear-description-help-{{item.id}}'>
-          <i class='fa-solid fa-pen' aria-hidden='true'></i>
-          {{localize 'TNO.Item.DescriptionHint'}}
-        </p>
+      <div class='gear-row' data-row='availability'>
+        <span class='gear-label' title='{{localize "TNO.Item.AvailabilityHint"}}'>{{localize 'TNO.Item.Availability'}}</span>
+        {{> 'systems/tno/templates/item/parts/item-scale.hbs' cells=scales.availability key='availability'}}
+      </div>
+    </section>
+
+  </div>{{!-- .gear-rows --}}
+  </div>{{!-- .gear-main --}}
+</div>{{!-- .gear-body --}}
+
+{{!-- Past the rail, the page is one full-width column again. Description is a
+field every item has, so by meaning it belongs with the rows above — but an
+editor and a ten-cell scale are the two things on this sheet that actually want
+width, and there is no reason for either to be shortened by a picture they are
+nowhere near. The rail governs the rows beside it and nothing further. --}}
+<div class='gear-wide'>
+  <div class='gear-rows'>
+
+    {{!-- Always-on editor rather than ProseMirror's click-to-edit toggle: the
+    dialog is a form, and a box you have to click a pencil on before typing is
+    the one control here that would not behave like the rest. --}}
+    <div class='gear-row gear-row-top' data-row='description'>
+      <label class='gear-label' for='gear-description-{{item.id}}'>{{localize 'TNO.TabDescription'}}</label>
+      <div class='gear-ctl'>
+        <div class='memo-wrap'>
+          <prose-mirror
+            class='memo'
+            id='gear-description-{{item.id}}'
+            name='system.description'
+            value='{{system.description}}'
+            aria-describedby='gear-description-help-{{item.id}}'
+          ></prose-mirror>
+          <p class='memo-help' id='gear-description-help-{{item.id}}'>
+            <i class='fa-solid fa-pen' aria-hidden='true'></i>
+            {{localize 'TNO.Item.DescriptionHint'}}
+          </p>
+        </div>
       </div>
     </div>
-  </div>
 
-</div>
+    {{#if roles.weapon}}
+      <div class='gear-section-divider'><span>{{localize 'TNO.Weapons.Values'}}</span></div>
+      {{> 'systems/tno/templates/item/parts/item-role-weapon.hbs'}}
+    {{/if}}
+
+    {{#if roles.armor}}
+      <div class='gear-section-divider'><span>{{localize 'TNO.Armor.Values'}}</span></div>
+      {{> 'systems/tno/templates/item/parts/item-role-armor.hbs'}}
+    {{/if}}
+
+    {{#if roles.consumable}}
+      <div class='gear-section-divider'><span>{{localize 'TNO.Item.Effects.Label'}}</span></div>
+      {{> 'systems/tno/templates/item/parts/item-role-consumable.hbs'}}
+    {{/if}}
+
+  </div>{{!-- .gear-rows --}}
+</div>{{!-- .gear-wide --}}
 
 <footer class='gear-foot'>
   <details class='gear-validation'>
@@ -190,6 +236,4 @@ button. --}}
       </div>
     {{/if}}
   </details>
-  {{> 'systems/tno/templates/item/parts/item-post.hbs'}}
-  {{> 'systems/tno/templates/item/parts/item-delete.hbs'}}
 </footer>

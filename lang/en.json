@@ -440,6 +440,8 @@
         "Armor": "Armour",
         "Consumable": "Consumable"
       },
+      "TypeLine": "{role} · {detail}",
+      "ImageEdit": "Change image",
       "Overview": {
         "RangeProfile": "Range profile",
         "Penetration": "Penetration",

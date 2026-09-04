@@ -10,13 +10,18 @@ on it.
 
 Provisional lines — a bypass not yet ticked, an unspent Idee — show their
 amount in parentheses and are not counted until armed. A line whose answer is
-still missing shows `?` in blue and blocks the roll.
+still missing shows `?` in blue, blocks the roll, and wears that same blue as a
+dashed outline on the control the answer goes into. Red is not used for it:
+here red means a Δ that costs you, and it is kept for the refusal a pressed
+button earns. The button is `aria-disabled` rather than `disabled` so that
+press can happen, and the form is `novalidate` so the browser's own bubble
+cannot pre-empt the message this dialog already writes.
 
 Every `name=` here is load-bearing: `_updateObject` reads the form by name, and
 `_refresh` repaints each Δ cell by its `data-role`. A control may move but not
 be renamed. --}}
 
-<form class="tno-roll-dialog flexcol">
+<form class="tno-roll-dialog flexcol" novalidate>
   <div class="tno-ledger">
     <div class="tno-ledger-head" aria-hidden="true">
       <span>{{localize "TNO.Roll.Ledger.Posten"}}</span>
@@ -170,7 +175,7 @@ be renamed. --}}
             picked. An `anchor` — the reader's own number — joins it as a second
             column where a workflow supplies one. --}}
       {{#if hasPreRollContext}}
-      <div class="tno-ledger-row tno-ledger-row--picker" data-row="context">
+      <div class="tno-ledger-row tno-ledger-row--picker {{#unless contextSelected}}is-unanswered{{/unless}}" data-row="context">
         <div class="tno-picker">
           {{#if preRollContext.isTilePicker}}
           <fieldset class="tno-context-tile-field">
@@ -425,7 +430,7 @@ be renamed. --}}
       <span class="tno-odds-meter" aria-hidden="true"><span class="tno-odds-fill" style="width: {{oddsPercent}}%"></span></span>
     </div>
 
-    <button type="submit" class="tno-roll-submit" {{#unless ready}}disabled{{/unless}}>
+    <button type="submit" class="tno-roll-submit {{#unless ready}}is-blocked{{/unless}}" {{#unless ready}}aria-disabled="true"{{/unless}}>
       <span class="tno-roll-submit-main"><i class="fas fa-dice-d20"></i> {{localize "TNO.Roll.Submit"}}</span>
       <span class="tno-roll-submit-echo">{{missingMessage}}</span>
     </button>

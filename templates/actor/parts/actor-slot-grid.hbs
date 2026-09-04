@@ -71,7 +71,7 @@ the same grid, marked over capacity. --}}
             opens — the skill list carries its own title for the same reason. --}}
             <span class='slot-name' title='{{cell.item.name}}'>{{cell.item.name}}</span>
             {{#if cell.worn}}<span class='slot-worn-caption'>{{localize 'TNO.Inventory.WornSlot'}}</span>{{/if}}
-            {{#if cell.subcategory}}<span class='slot-subcategory'>{{cell.subcategory}}</span>{{/if}}
+            {{#if cell.typeLine}}<span class='slot-subcategory'>{{cell.typeLine}}</span>{{/if}}
           </span>
           {{#if cell.showQty}}<span class='slot-qty'>×{{cell.quantity}}</span>{{/if}}
         {{/if}}

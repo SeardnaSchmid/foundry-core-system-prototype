@@ -713,13 +713,16 @@ $c-trinket-label: rgba($c-dark, 0.55);
 // rather than being fixed: the raster used to read `var(--slot-columns, 5)`,
 // and nothing ever set that variable, so widening the Inventar column only ever
 // stretched the same five cells. `auto-fill` keeps the track floor — below
-// about 130px a cell has no room for an icon, a name and a subcategory — and
-// lets the row take as many as fit.
+// about 130px a cell had no room for an icon, a name and a subcategory — and
+// lets the row take as many as fit. That floor is measured against the icon
+// track, so widening the icon moves it by the same 12px: the name keeps exactly
+// the room it had, and the only change is that a cell now needs 142px before
+// the row fits another column.
 .slot-grid {
   --slot-gap: 6px;
 
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(142px, 1fr));
   gap: var(--slot-gap);
   // Bounds both things a run is allowed to push past its own cell: the welded
   // edge of a run that wraps, and a label spilling across the cells behind it.
@@ -980,10 +983,29 @@ $c-trinket-label: rgba($c-dark, 0.55);
   color: $c-white;
 }
 
+// The carry grid's own icon track. Wider than the 24px `.slot-art` default
+// because this is the one surface with the height to spend it: a slot cell is
+// $slot-bar-height tall and a 24px picture used 41% of it, floating in a band
+// of its own whitespace. The trinket rows and the item table are thin rows and
+// keep the default — the size lives here rather than on `.slot-art`, which all
+// three share.
+$slot-icon-size: 36px;
+
 .slot-icon {
-  flex: 0 0 24px;
+  flex: 0 0 $slot-icon-size;
   text-align: center;
+  // The fallback glyph shares this track with the art and has to hold it: at
+  // the cell's inherited 13px it read as a mark beside a picture rather than
+  // the same thing in the same box.
+  font-size: var(--font-size-20, 20px);
   color: $c-tan;
+}
+
+// Only the grid's own art grows. Two classes, so it outweighs the shared
+// `.slot-art` sizing below without that rule having to know about this one.
+.slot-icon.slot-art {
+  width: $slot-icon-size;
+  height: $slot-icon-size;
 }
 
 // An item's own art, wherever a role icon would otherwise stand. It is sized to
@@ -1011,8 +1033,10 @@ $c-trinket-label: rgba($c-dark, 0.55);
   // corners come out softest, since both gradients thin them, which is the
   // squircle this wants and not the disc a vignette gives.
   //
-  // The falloff is the outer 12% of each side, about 3px at this size. The
-  // subject is most of the picture at 24px and there is nothing to spare.
+  // The falloff is the outer 12% of each side — about 3px at the 24px default,
+  // and ~4px where the carry grid renders it at $slot-icon-size. A proportion
+  // rather than a length precisely so it holds at both: the subject is most of
+  // the picture at either size and there is nothing to spare.
   mask-image:
     linear-gradient(to right, transparent 0, #000 12%, #000 88%, transparent 100%),
     linear-gradient(to bottom, transparent 0, #000 12%, #000 88%, transparent 100%);
@@ -1041,7 +1065,10 @@ $c-trinket-label: rgba($c-dark, 0.55);
   // Matches the cell's own left padding, so the grip lands on the icon.
   left: 6px;
   top: 50%;
-  width: 16px;
+  // The icon's full track, not the glyph's own width: this swaps places with
+  // the art on hover, and a narrower box would centre the grip left of the
+  // picture it replaces.
+  width: $slot-icon-size;
   transform: translateY(-50%);
   text-align: center;
   font-size: var(--font-size-11, 11px);
@@ -1082,7 +1109,14 @@ $c-trinket-label: rgba($c-dark, 0.55);
   line-height: 1;
 }
 
+// The line under the name, now saying what kind of item this is rather than one
+// bare qualifier — "Rüstung · Unterkleidung" where it used to read "Kopf". It
+// clips like the name above it because those compounds are long enough to reach
+// the end of a single-cell run, which the old one-word labels never did.
 .slot-subcategory {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
   color: $c-tan;
   font-size: var(--font-size-10, 10px);
   font-weight: normal;

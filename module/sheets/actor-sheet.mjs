@@ -1135,7 +1135,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         // Only the first cell renders the label, so it has to know how many
         // cells it may run across before it is clipped.
         span: block.span,
-        subcategory: this.#slotSubcategory(block.item),
+        typeLine: this.#slotTypeLine(block.item),
         quantity: block.quantity,
         showQty: block.quantity > 1,
         worn: block.worn,
@@ -1143,15 +1143,42 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     });
   }
 
-  /** The one role-specific detail that belongs directly below an item name. */
-  #slotSubcategory(item) {
+  /**
+   * What kind of thing this is, on the line under an item's name.
+   *
+   * It leads with the role and qualifies it after — `Waffe · Nah`, not `Nah` —
+   * because the qualifier alone never said what it was qualifying: a cell
+   * reading only `Kopf` or `Nah` names a detail of a category it leaves the
+   * reader to infer. Every item gets a line now, including the ones with no
+   * role at all, so the column reads as one kind of statement rather than a
+   * label that appears on some cells and not others.
+   *
+   * Role first is also the only order that survives translation. German cannot
+   * put it the other way — `Nah Waffe` and `Kopf Rüstung` are not phrases — and
+   * the join lives in `TNO.Item.TypeLine` so a language that wants a different
+   * word order or separator can have one without touching this.
+   *
+   * The role precedence matches the rest of the sheet: `setItemRole` writes one
+   * role at a time, so an item carrying two is a hand-edited document rather
+   * than something the UI can produce, and armour wins as it does elsewhere.
+   * @param {Item} item
+   * @returns {string}
+   */
+  #slotTypeLine(item) {
     const roles = itemRoles(item);
+    const line = (role, detail) => {
+      const name = game.i18n.localize(`TNO.Item.Role.${role}`);
+      return detail
+        ? game.i18n.format('TNO.Item.TypeLine', { role: name, detail: game.i18n.localize(detail) })
+        : name;
+    };
     if (roles.armor) {
       const [zone] = armorZones(item);
-      return zone ? game.i18n.localize(CONFIG.TNO.armorZones[zone]) : null;
+      return line('Armor', zone ? CONFIG.TNO.armorZones[zone] : null);
     }
-    if (roles.weapon) return game.i18n.localize(CONFIG.TNO.weaponUses[weaponUse(item.system)]);
-    return null;
+    if (roles.weapon) return line('Weapon', CONFIG.TNO.weaponUses[weaponUse(item.system)]);
+    if (roles.consumable) return line('Consumable', null);
+    return line('Plain', null);
   }
 
   /** Format integer cents as the sheet user's localized euro amount. */

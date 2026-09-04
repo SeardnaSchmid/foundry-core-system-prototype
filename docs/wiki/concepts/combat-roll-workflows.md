@@ -344,8 +344,33 @@ the 3×4 heatmap grid is too tall to sit in a row's left cell.
 
 **The one blocking line leads its group.** Only `preRollContext` gates submit
 (`_canSubmit`), and it sits at the top of group ②. Until it is answered the
-total shows `—`, the odds are empty, the Würfeln button is disabled and names
-the missing field, and its Δ cell shows the blue `?`.
+total shows `—`, the odds are empty, its Δ cell shows the blue `?`, the Würfeln
+button names the missing field, and the picker itself wears that same blue as a
+dashed outline with its legend recoloured (`.is-unanswered`, set by `_refresh`
+and by the template's `contextSelected`).
+
+**The mark is blue and the refusal is red, and they are different moments.**
+Red in this dialog means a Δ that costs you, and three of those sit two rows
+above the picker; a red control at rest would be a second meaning for the colour
+in the one place the player reads numbers for meaning, and it would scold them
+for a question the dialog has only just asked. So the resting mark takes the
+`?`'s own blue, which cannot collide with the chosen-tile blue below it — the
+unanswered state exists only while nothing is checked and the chosen state only
+once something is, so the two are never on screen together.
+
+Red is kept for the one moment it is honest: a roll that was asked for and
+refused. That required giving up `disabled` on the button — a disabled button
+swallows its own click, so the sentence naming the missing field was a dead
+end. It now carries `aria-disabled` and `.is-blocked` instead, stays pressable,
+and the gate moved to an `_onSubmit` override so the click and the implicit
+Enter reach the same refusal. `_rejectSubmit` scrolls the picker into view,
+focuses it and flashes its outline red (`.tno-picker-reject`, cleared on
+`animationend` and again by `_refresh` once answered, since the animation never
+fires under `prefers-reduced-motion`). The form is `novalidate` for the same
+reason the button is not disabled: the radios keep their `required` for
+assistive tech, but the browser's own validation bubble would pre-empt the
+message this dialog already writes
+(`tests/documents/roll-dialog.test.js › refuses an unanswered roll instead of making it, and marks the control`).
 
 `requiredValue` used to gate alongside it, on the rule that an untouched field
 and a typed zero were different answers. That was dropped deliberately: the

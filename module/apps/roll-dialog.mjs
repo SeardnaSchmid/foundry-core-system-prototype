@@ -1285,8 +1285,29 @@ export class TnoRollDialog extends FormApplication {
           && (step > 0 ? current >= bound : current <= bound);
       }
     }
+    // The question that blocks the roll is marked where the answer goes, not
+    // only by the `?` in its Δ column and the sentence on the button. Blue
+    // rather than red: nothing is wrong yet, and red already means "this Δ
+    // costs you" three rows above. The two blues never coexist — this state
+    // exists only while nothing is checked, the chosen-tile blue only after.
+    const pickerRow = form.querySelector('.tno-ledger-row--picker[data-row="context"]');
+    if (pickerRow) {
+      const unanswered = !this._contextChoice(data);
+      pickerRow.classList.toggle('is-unanswered', unanswered);
+      // Answering clears a refusal outright. `animationend` does that too, but
+      // it never fires under `prefers-reduced-motion`, where the flash is a
+      // static red the pick has to be able to switch off.
+      if (!unanswered) pickerRow.classList.remove('tno-picker-reject');
+    }
+    // Not `disabled`: a disabled button swallows its own click, so the sentence
+    // naming the missing field would be a dead end. It stays clickable and
+    // refuses out loud — see {@link _rejectSubmit}.
     const submit = form.querySelector('button[type="submit"]');
-    if (submit) submit.disabled = !readout.ready;
+    if (submit) {
+      submit.classList.toggle('is-blocked', !readout.ready);
+      if (readout.ready) submit.removeAttribute('aria-disabled');
+      else submit.setAttribute('aria-disabled', 'true');
+    }
     const box = form.querySelector('.tno-threshold-box');
     if (box) {
       box.classList.toggle('is-pending', !readout.ready);
@@ -1315,6 +1336,45 @@ export class TnoRollDialog extends FormApplication {
     form.querySelector('.tno-bonus-stepper[data-action="decrement"]').disabled = value <= BONUS_MIN;
     form.querySelector('.tno-bonus-stepper[data-action="increment"]').disabled = value >= BONUS_MAX;
     this._refresh(form);
+  }
+
+  /**
+   * Refuse a roll that is still missing its required pick, and say so at the
+   * control rather than only at the button.
+   *
+   * This is the one moment red is honest here: it answers an action instead of
+   * describing an opening state, so it cannot be read as one more malus in a
+   * ledger whose maluses are also red. It is momentary, and the resting mark
+   * stays blue.
+   * @param {HTMLFormElement} form
+   */
+  _rejectSubmit(form) {
+    const row = form.querySelector('.tno-ledger-row--picker[data-row="context"]');
+    if (!row) return;
+    row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    row.classList.remove('tno-picker-reject');
+    void row.offsetWidth; // reflow, so a second refused click replays the flash
+    row.classList.add('tno-picker-reject');
+    row.addEventListener('animationend', () => row.classList.remove('tno-picker-reject'), { once: true });
+    form.querySelector('[name="contextChoice"]')?.focus();
+  }
+
+  /**
+   * @override
+   * The gate is here rather than on the button's `disabled` attribute so that
+   * both ways of committing — the click and the implicit Enter — land on the
+   * same refusal. The form is `novalidate` for the same reason: the radios keep
+   * their `required` for assistive tech, but the browser's own bubble would
+   * pre-empt the message this dialog already writes.
+   */
+  async _onSubmit(event, options = {}) {
+    const form = this.form ?? event?.currentTarget;
+    if (form && !this._canSubmit(new FormDataExtended(form).object)) {
+      event?.preventDefault();
+      this._rejectSubmit(form);
+      return null;
+    }
+    return super._onSubmit(event, options);
   }
 
   /** @override */

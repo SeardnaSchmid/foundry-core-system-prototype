@@ -242,6 +242,66 @@ $c-roll-negative: #c62828;
     }
   }
 
+  // ── The unanswered question ───────────────────────────────────────────────
+  //
+  // The one line that blocks the roll, marked where its answer goes. It was
+  // already said twice — the blue `?` in this row's own Δ column, and the
+  // sentence on the button — but never at the control the player has to reach.
+  //
+  // Blue, not red. Red is spoken for here: it is a Δ that costs you, and the
+  // rows directly above this one are full of it. Nothing is wrong yet either —
+  // the dialog has just opened, and painting a form red for a question nobody
+  // has had time to read scolds the reader for arriving. So this borrows the
+  // `?`'s own colour and carries one meaning, *the roll is waiting on this*,
+  // from the prompt through to the answer.
+  //
+  // It cannot collide with the chosen-tile blue further down: this state exists
+  // only while nothing is checked and that one only once something is, so the
+  // two are never on screen together. Dashed against solid, and a container
+  // against a tile, keeps them apart in shape as well as in time.
+  .tno-ledger-row--picker.is-unanswered {
+    .tno-context-toggle-group,
+    .tno-context-tile-grid,
+    .tno-picker-select select {
+      border-radius: 4px;
+      outline: 1px dashed rgba($c-primary, 0.85);
+      outline-offset: 2px;
+      background-color: rgba($c-primary, 0.05);
+    }
+
+    .tno-context-tile-field > legend,
+    .tno-context-toggle-field > legend,
+    .tno-picker-select > label {
+      color: $c-primary;
+    }
+  }
+
+  // The refusal, when the button was pressed anyway. This is the one moment red
+  // is honest in this dialog: it answers an action rather than describing an
+  // opening state, and it is gone in a second — so it cannot be read as one
+  // more standing malus in a ledger whose maluses are also red. The outline is
+  // already there from the resting state above; this only recolours it.
+  @keyframes tno-picker-reject {
+    0%,
+    100% {
+      outline-color: rgba($c-primary, 0.85);
+    }
+
+    20%,
+    60% {
+      outline-color: rgba($c-roll-negative, 0.95);
+    }
+  }
+
+  .tno-ledger-row--picker.tno-picker-reject {
+    .tno-context-toggle-group,
+    .tno-context-tile-grid,
+    .tno-picker-select select {
+      outline-style: solid;
+      animation: tno-picker-reject 0.42s ease-out 2;
+    }
+  }
+
   // A select-based context still fills its half of the row.
   .tno-picker-select {
     min-width: 0;
@@ -1182,6 +1242,19 @@ $c-roll-negative: #c62828;
       opacity: 0.45;
     }
 
+    // Reads as unavailable but stays pressable: `disabled` would swallow the
+    // click, and this button's second line names the field that is missing.
+    // Pressing it is how the player gets taken there — see `_rejectSubmit`.
+    &.is-blocked {
+      opacity: 0.45;
+
+      &:hover,
+      &:active {
+        background: $c-primary;
+        border-color: $c-primary;
+      }
+    }
+
     // Foundry glows buttons with a warm-gold box-shadow on :focus, which fires
     // as soon as the dialog auto-focuses this CTA on open — showing an unwanted
     // gold ring before the user has done anything. Kill that shadow so the
@@ -1249,6 +1322,17 @@ $c-roll-negative: #c62828;
   @media (prefers-reduced-motion: reduce) {
     .tno-threshold-flash {
       animation: none;
+    }
+
+    // The refusal still has to land, so the outline goes red and stays red for
+    // as long as the class is on — it just does not pulse.
+    .tno-ledger-row--picker.tno-picker-reject {
+      .tno-context-toggle-group,
+      .tno-context-tile-grid,
+      .tno-picker-select select {
+        animation: none;
+        outline-color: rgba($c-roll-negative, 0.95);
+      }
     }
 
     .tno-attribute-chip {

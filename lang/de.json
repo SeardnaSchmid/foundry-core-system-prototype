@@ -440,6 +440,8 @@
         "Armor": "Rüstung",
         "Consumable": "Verbrauch"
       },
+      "TypeLine": "{role} · {detail}",
+      "ImageEdit": "Bild ändern",
       "Overview": {
         "RangeProfile": "Reichweitenprofil",
         "Penetration": "Durchschlag",

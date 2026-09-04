@@ -16,6 +16,18 @@ $gear-control-height: 24px;
 $gear-row-gap: 10px;
 $gear-radius: 4px;
 
+// The rail's width. A figure rather than a fraction, so widening the dialog
+// gives the room to the fields rather than to the picture — the ten-cell scales
+// are what the dialog's width is for.
+$gear-rail-width: 180px;
+
+// One step of a click-scale, and the ceiling on a box holding a short number.
+// Both are figures rather than fractions for the same reason: a control sized
+// by the space left over is a different size on every row, and this sheet's
+// whole claim is that a value means the same thing wherever it appears.
+$gear-scale-cell: 40px;
+$gear-value-max: 200px;
+
 // Foundry gives native inputs their own inset background and shadow. That is
 // useful for a standalone form field, but inside this dialog's compound boxes
 // it produces a second, rounded "field inside the field" (and number spinners
@@ -69,6 +81,101 @@ $gear-radius: 4px;
     overflow-y: auto;
   }
 
+  /* ---------------------------------------------- Rail and column */
+
+  // The rail and the rows it actually sits beside. It used to run the height of
+  // the whole sheet, which left several hundred pixels of empty column under the
+  // delete link while the description and the role blocks were shortened by a
+  // picture they were nowhere near. It now governs the universal rows and stops;
+  // everything past it is `.gear-wide`.
+  //
+  // `align-items: start` — the rail is as tall as its own contents, the rows
+  // beside it are normally a little taller, and the picture stays square either
+  // way because nothing stretches it.
+  .gear-body {
+    display: grid;
+    grid-template-columns: $gear-rail-width minmax(0, 1fr);
+    gap: $gear-row-gap;
+    align-items: start;
+  }
+
+  // Past the rail: description, then whatever blocks the item's roles bring.
+  // These are the two things on the sheet that genuinely want width — an editor,
+  // and scales of up to eleven cells — so they get all of it.
+  .gear-wide {
+    margin-top: $gear-row-gap;
+  }
+
+  .gear-rail {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  // The two whole-item acts, stacked under the picture. They were a footer row
+  // where they had the sheet's width to spread across; in a 180px rail they read
+  // as a short list instead, which is also what makes the delete hint legible
+  // when a worn piece has no button to show.
+  .gear-rail-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 2px;
+    border-top: 1px solid rgba($c-beige, 0.6);
+
+    .item-post-row,
+    .item-delete-row {
+      margin: 0;
+    }
+
+    .item-post-chat,
+    .item-self-delete {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 2px;
+      font-size: 11px;
+    }
+
+    .item-delete-hint {
+      margin: 2px 0 0;
+      font-size: 10px;
+      line-height: 1.35;
+      text-wrap: pretty;
+    }
+  }
+
+  // The pointer is promised only where the click is answered — not on a locked
+  // compendium item.
+  .gear-art .profile-img[data-action='editImage'] {
+    cursor: pointer;
+
+    &:hover {
+      border-color: $c-dark;
+    }
+
+    &:focus-visible {
+      outline: 2px solid $c-primary;
+      outline-offset: 1px;
+    }
+  }
+
+  // Square, because nothing sits beside it that could stretch the frame out of
+  // shape. That is what closes out the crop-or-letterbox trade the band version
+  // could not win: a square frame around square art fits exactly, so `contain`
+  // costs nothing here and still protects a homebrew item pointing at a file
+  // that is not square.
+  .gear-art .profile-img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: contain;
+    background: rgba($c-beige, 0.18);
+    border: 1px solid $c-beige;
+    border-radius: $gear-radius;
+  }
+
   /* ---------------------------------------------- Head */
 
   .gear-head {
@@ -78,15 +185,6 @@ $gear-radius: 4px;
     padding-bottom: 8px;
     border-bottom: 2px solid $c-dark;
 
-    .profile-img {
-      flex: 0 0 40px;
-      width: 40px;
-      height: 40px;
-      object-fit: cover;
-      border: 1px solid $c-beige;
-      border-radius: $gear-radius;
-      cursor: pointer;
-    }
 
     // The name reads as the dialog's title rather than as the first field, so
     // it carries no box until it is hovered or focused — the same treatment
@@ -229,6 +327,11 @@ $gear-radius: 4px;
   // fields stays one row tall.
   .field {
     flex: 1;
+    // A box holding one short number stops here rather than running to the end
+    // of the row. Rows that carry several fields are unaffected — they were
+    // already sharing the width — and the two that name their own width,
+    // `.field-fv` and `.field-wide`, lift it again below.
+    max-width: $gear-value-max;
     display: flex;
     align-items: center;
     gap: 4px;
@@ -321,6 +424,7 @@ $gear-radius: 4px;
     // instead of lining up its last character with the numbers above it.
     &.field-wide {
       flex: 2;
+      max-width: none;
 
       input {
         text-align: left;
@@ -331,6 +435,9 @@ $gear-radius: 4px;
     // two parts, so it shares a box rather than splitting into two fields.
     &.field-fv {
       flex: 2.8;
+      // A skill name, not a short number: "Combat · Heavy Melee Weapons" needs
+      // every pixel it can get and truncates the moment it is capped.
+      max-width: none;
 
       select {
         flex: 1;
@@ -378,6 +485,7 @@ $gear-radius: 4px;
   // HH values use two equal `.split` boxes beside each other.
   .split {
     flex: 1;
+    max-width: $gear-value-max;
     display: flex;
     align-items: center;
     min-width: 0;
@@ -551,6 +659,9 @@ $gear-radius: 4px;
   // options are one answer, and a gap between them would invite two.
   .segments {
     display: flex;
+    // Two words wide, not the row: at full width the pair read as a banner
+    // across the sheet rather than as one answer among the rows above it.
+    max-width: 260px;
     border: 1px solid $c-dark;
     border-radius: 5px;
     overflow: hidden;
@@ -582,11 +693,20 @@ $gear-radius: 4px;
 
   // The click-scales. Equal-width cells so the band a value sits in can be
   // read off its position without counting.
+  // Every step is one cell wide, whatever the table's length. They used to take
+  // an equal *share* of the row instead, which made the size of a cell a
+  // function of how many the rules happened to enumerate: Slots at five steps
+  // drew 110px buttons, RB at eleven drew 52px ones, and the same gesture was
+  // two different targets one row apart. Wrapping rather than shrinking below
+  // the figure, because a scale that no longer fits should run onto a second
+  // line, not quietly become unreadable.
   .scale {
+    flex-wrap: wrap;
+    justify-content: flex-start;
     gap: 3px;
 
     .scale-cell {
-      flex: 1;
+      flex: 0 0 $gear-scale-cell;
       min-width: 0;
       height: $gear-control-height;
       display: flex;
@@ -949,28 +1069,9 @@ $gear-radius: 4px;
       }
     }
 
-    // Both controls lose their own row here — the footer is the row. Post sits
-    // left of delete: the safe action first, and the destructive one last,
-    // against the window edge where the cursor is least likely to rest.
-    .item-post-row,
-    .item-delete-row {
-      flex: none;
-      margin: 0;
-    }
-
-    .item-post-chat {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      white-space: nowrap;
-      font-size: 10px;
-    }
-
-    .item-delete-hint {
-      flex: none;
-      margin: 0;
-      font-size: 10px;
-    }
+    // Post and delete used to sit here. They belong to the whole item rather
+    // than to the fields, so they moved under the picture in the rail; the
+    // footer is now the validation readout and nothing else.
   }
 }
 

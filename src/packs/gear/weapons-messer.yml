@@ -2,7 +2,7 @@ _id: yih1DkkAr9cU7eUd
 _key: '!items!yih1DkkAr9cU7eUd'
 name: Messer
 type: item
-img: icons/tools/hand/knife-paring.webp
+img: icons/weapons/daggers/knife-simple.webp
 system:
   quantity: 1
   slots: 1

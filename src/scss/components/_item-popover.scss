@@ -72,20 +72,49 @@
   }
 
   .item-popover-head {
+    // Named so the art below can cancel them exactly. A hardcoded negative
+    // margin would drift the first time this padding is retuned — and the money
+    // popover already overrides it.
+    --head-pad-y: 9px;
+    --head-pad-x: 10px;
+
     display: flex;
     align-items: flex-start;
     gap: 9px;
-    padding: 9px 10px;
+    padding: var(--head-pad-y) var(--head-pad-x);
     border-bottom: 1px solid rgba($c-dark, 0.14);
   }
 
+  // The item's own art as the header's leading block, bled to three edges
+  // instead of floating as a thumbnail inside the padding. It stops being a
+  // picture *in* the header and becomes the header's left half.
+  //
+  // `align-self: stretch` with `height: auto` is what makes it take the full
+  // height: the art no longer sets that height, the title stack does, so the
+  // block is exactly as tall as the name and badges beside it however many rows
+  // they run to. The negative margins cancel the header's own padding on the
+  // three outer sides; the fourth keeps the `gap` between art and title.
+  //
+  // No border or radius of its own — the container clips to its own 8px corner
+  // (both `.item-popover` and `.item-chat-summary` set `overflow`), which is
+  // also the only thing that stays correct when a tall popover scrolls. What
+  // separates art from text is the one hairline on its inner edge.
   .item-popover-head img {
-    flex: 0 0 38px;
-    width: 38px;
-    height: 38px;
-    border: 1px solid rgba($c-dark, 0.14);
-    border-radius: 6px;
+    align-self: stretch;
+    flex: 0 0 64px;
+    width: 64px;
+    height: auto;
+    // Below this the block reads as a stripe rather than a picture. It only
+    // binds on an item whose badges fit one row and whose name does not wrap.
+    min-height: 58px;
+    margin: calc(-1 * var(--head-pad-y)) 0 calc(-1 * var(--head-pad-y)) calc(-1 * var(--head-pad-x));
+    border: 0;
+    border-right: 1px solid rgba($c-dark, 0.14);
+    border-radius: 0;
     background: rgba($c-white, 0.5);
+    // `cover` now that the box is no longer square: the block is filled edge to
+    // edge, and core art is square enough that the crop is a few percent off
+    // the top and bottom.
     object-fit: cover;
   }
 
@@ -1003,8 +1032,10 @@
   }
 
   .item-popover-head {
+    --head-pad-y: 11px;
+    --head-pad-x: 12px;
+
     gap: 9px;
-    padding: 11px 12px;
   }
 
   .item-popover-title strong {

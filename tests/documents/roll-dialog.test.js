@@ -14,9 +14,25 @@ globalThis.foundry = {
           this.object = object;
           this.options = { ...options };
         }
+
+        // What core's `_onSubmit` does, reduced to the part the override cares
+        // about: read the form and hand it to `_updateObject`. The override's
+        // job is to not get here while a required answer is missing.
+        async _onSubmit(event) {
+          const data = new FormDataExtended(this.form ?? event?.currentTarget).object;
+          await this._updateObject(event, data);
+          return data;
+        }
       },
     },
   },
+};
+// Core reads a live form; the suite has no DOM, so a stub form carries the
+// same shape — the values keyed by input name.
+globalThis.FormDataExtended = class {
+  constructor(form) {
+    this.object = form?.values ?? {};
+  }
 };
 globalThis.game = {
   i18n: {
@@ -620,6 +636,62 @@ describe('TnoRollDialog required value', () => {
     expect(ready).toMatchObject({ ready: true, threshold: 4, thresholdDisplay: '4', missingLabel: '' });
     expect(ready.oddsLabel).not.toBe('');
     expect(ready.oddsPercent).toBeGreaterThan(0);
+  });
+});
+
+describe('TnoRollDialog blocked submit', () => {
+  /** A roll that cannot resolve until its comparison is picked. */
+  const gated = () => new TnoRollDialog(armoured(false), {
+    attributeA: 'str',
+    lockAttribute: true,
+    preRollContext: {
+      label: 'Durchdringung?',
+      control: 'tiles',
+      choices: [
+        { key: 'equal', label: 'Gleich', value: 0 },
+        { key: 'harder', label: 'Härter', value: 3 },
+      ],
+    },
+  });
+
+  // The commit button is no longer `disabled` — a disabled button swallows its
+  // own click, and this one's second line names the field that is missing, so
+  // pressing it has to lead somewhere. That moves the gate off the attribute
+  // and onto `_onSubmit`, which makes this the only thing standing between an
+  // unanswered comparison and a roll that quietly invents one.
+  it('refuses an unanswered roll instead of making it, and marks the control', async () => {
+    const dialog = gated();
+    const refused = [];
+    dialog._rejectSubmit = (form) => refused.push(form);
+
+    const prevented = [];
+    const blocked = { values: { attributeA: 'str' } };
+    const outcome = await dialog._onSubmit({
+      currentTarget: blocked,
+      preventDefault: () => prevented.push(true),
+    });
+
+    expect(outcome).toBeNull();
+    expect(rolled.payload).toBeNull();
+    expect(prevented).toEqual([true]);
+    // The refusal is shown at the control the answer goes into, not only on the
+    // button that was pressed.
+    expect(refused).toEqual([blocked]);
+  });
+
+  it('makes the roll once the pick is answered', async () => {
+    const dialog = gated();
+    const refused = [];
+    dialog._rejectSubmit = (form) => refused.push(form);
+
+    await dialog._onSubmit({
+      currentTarget: { values: { attributeA: 'str', contextChoice: 'harder' } },
+      preventDefault: () => {},
+    });
+
+    expect(refused).toEqual([]);
+    expect(rolled.payload).not.toBeNull();
+    expect(warnings).toEqual([]);
   });
 });
 

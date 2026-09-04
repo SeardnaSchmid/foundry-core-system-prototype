@@ -156,10 +156,40 @@ keep slot footprint, FV, armour values and carried/worn state out of templates.
 
 Three properties of the layout are deliberate and easy to undo by accident:
 
-**No tabs inside editing.** The editor remains one scrolling column of
-`label | control` rows. The compact play summary is a separate surface rather
-than a second editor view, so related authoring fields are never divided across
-hidden pages.
+**No tabs inside editing.** Every field an item has is on one scrolling page.
+The compact play summary is a separate surface rather than a second editor view,
+so related authoring fields are never divided across hidden pages.
+
+**The page is a rail beside a band, then one full-width column.** The rail holds
+what is about the item as an object rather than a field of it — its picture, and
+the two acts that take the whole thing somewhere, posting it to chat and deleting
+it. Beside it sit the rows every item has: roles, SV, slots, and Trade. Past the
+rail's own height the page is `.gear-wide`, a single full-width column carrying
+description and whatever blocks the item's roles bring.
+
+The rail deliberately stops rather than running the sheet's height. Run full
+height it left several hundred pixels of empty column under the delete link,
+while the two things that actually want width — a rich-text editor, and scales of
+up to eleven cells — were being shortened by a picture they were nowhere near.
+
+The picture is square, and nothing beside it can stretch its frame, which settles
+the crop-or-letterbox problem a stretched band could not: a square frame around
+square art fits exactly.
+
+**Description belongs to the defaults by meaning but sits in the wide half.** It
+is a field every item has, so it leads that half rather than trailing the role
+blocks — but it is laid out with them because an editor wants width more than it
+wants to be next to Trade.
+
+Both halves keep `label | control` at the fixed 96px, so within each the values
+start at the same x. They do not share one x with each other: the wide half's
+labels begin at the sheet's edge and the band's begin past the rail. That is the
+cost of the split and is accepted.
+
+`position.width` follows from the cells rather than from taste: beside the rail,
+Availability's ten cells plus the label column plus the rail come to 723; below
+it, RB's eleven cells plus the label column come to 576. 760 clears both, and
+under it a ten-cell scale wraps rather than shrinking.
 
 **Nothing is hidden, only disabled.** A field the current role or use does not
 apply to — the Distanzklasse of a rifle, the Fertigkeitswert of a breastplate —

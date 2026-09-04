@@ -31,10 +31,13 @@ const { ItemSheetV2 } = foundry.applications.sheets;
  *
  * Two things about it are deliberate and easy to undo by accident.
  *
- * **No tabs.** Everything is one scrolling column of `label | control` rows,
- * because the dialog is a data-entry form and tabbing hides exactly the fields
- * a player is comparing. The rows are always in the same order and always the
- * same height, so muscle memory survives a change of role.
+ * **No tabs.** Everything is on one scrolling page, because the dialog is a
+ * data-entry form and tabbing hides exactly the fields a player is comparing.
+ * The page is a rail beside a band, then one full-width column: the picture and
+ * the two whole-item acts down the left, the rows every item has beside them,
+ * and past the rail's height the description and the role blocks with the whole
+ * sheet to spend. The rows keep the `label | control` grammar, stay in the same
+ * order and stay the same height, so muscle memory survives a change of role.
  *
  * **Nothing is hidden, only disabled.** A field that does not apply to the
  * current role or use — the Distanzklasse of a rifle, the Fertigkeitswert of a
@@ -50,10 +53,16 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   /** @override */
   static DEFAULT_OPTIONS = {
     classes: ['tno', 'sheet', 'item', 'gear-dialog'],
-    // Wide enough for the ten-cell RD/RH scales to stay legible at the label
-    // column's fixed 96px; height follows the roles that are switched on,
-    // which is anywhere between four rows and twenty.
-    position: { width: 620, height: 'auto' },
+    // An addition rather than a judgement, and it is the *narrower* half that
+    // sets it now. Beside the rail sits Availability's ten cells at
+    // $gear-scale-cell — 427 — plus the label column's 106 and the rail's 190,
+    // which is 723. Below the rail the widest row is RB's eleven cells, 470,
+    // plus the same 106: only 576, because that half spends nothing on a
+    // picture. Under about 760 the ten-cell scale wraps to a second line rather
+    // than shrinking, which is the one thing the cells were made a fixed size to
+    // avoid. Height still follows the roles that are switched on, which is
+    // anywhere between four rows and twenty.
+    position: { width: 760, height: 'auto' },
     window: { resizable: true },
     // The sheet edits a live document that the paper doll and the slot grid
     // render at the same time, and Foundry has no rollback to hang a Cancel
@@ -270,6 +279,19 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
       input.value = clamped;
       this.item.update({ [input.name]: clamped });
     }, { capture: true, signal: this._listenerAbort.signal });
+
+    // The picture is a button that ApplicationV2 opens on click through its own
+    // `editImage` action. An <img> takes no focus and answers no key, so
+    // Enter/Space are forwarded to that same click — the actor sheet promotes
+    // its portrait the same way. Bound directly rather than through `#delegate`,
+    // which preventDefaults every event it matches and would swallow Tab.
+    this.element.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      const picture = event.target.closest?.('.profile-img[data-action="editImage"]');
+      if (!picture) return;
+      event.preventDefault();
+      picture.click();
+    }, { signal: this._listenerAbort.signal });
 
     this.element.addEventListener('keydown', (event) => this.#onKeyDown(event), {
       signal: this._listenerAbort.signal,

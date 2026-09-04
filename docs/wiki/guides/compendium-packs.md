@@ -86,8 +86,8 @@ read as a grid of thumbnails:
 
 | Group | Drawn from |
 | --- | --- |
-| Werkzeuge als Waffen | `icons/tools/hand/**` — the table calls them tools, so they look like tools |
-| Hartgummipanzerung | the `riot-*` set across `icons/equipment/**` |
+| Werkzeuge als Waffen | `icons/tools/hand/**` where core has the tool — the table calls them tools, so they look like tools. Entries core has no tool for (Axt, Hippe, Lasso, Messer) fall back to the nearest painted `icons/weapons/**` or `icons/sundries/**` art |
+| Hartgummipanzerung | the `riot-*` set across `icons/equipment/**`, which has no head or hand piece — helmet and combined gloves borrow the `helmet-motorcycle-*` / `gloves-motorcycle-*` art instead |
 | Stahlpanzerung | the plate set — `breastplate-*`, `gauntlet-armored-*`, `boots-armored-*` |
 | Unterkleidung | `icons/equipment/body/**`, which is where all four suits live |
 
