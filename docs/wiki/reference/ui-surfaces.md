@@ -49,6 +49,7 @@ related: [reference/module-map]
 | `item/parts/item-scale.hbs` | The click-scale control (DK, RD, RH, RW). Called with `{{> item-scale cells=scales.dk key='dk'}}` |
 | `item/item-sheet.hbs`, `item-feature-sheet.hbs`, `item-spell-sheet.hbs` | `TnoItemSheet`, resolved per item type — only `feature` and `spell` reach it now |
 | `item/parts/item-delete.hbs` | Delete action included by all item sheet templates; item sheets intentionally expose no Foundry Active Effect UI |
+| `item/parts/item-post.hbs` | "Show in chat" action in the gear dialog's footer, beside delete. The V1 feature/spell sheets get the same action from `TnoItemSheet#_getHeaderButtons` instead, since their footer is inside a tab |
 
 All of the above are preloaded by
 [`helpers/templates.mjs`](../../../module/helpers/templates.mjs) — if you

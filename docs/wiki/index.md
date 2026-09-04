@@ -59,6 +59,7 @@ New to the codebase? Read in this order:
 
 - [guides/build-test-release.md](guides/build-test-release.md) — build, test, and release commands
 - [guides/e2e-testing.md](guides/e2e-testing.md) — the Playwright suite that runs the system in a real Foundry
+- [guides/compendium-packs.md](guides/compendium-packs.md) — the shipped gear compendium: YAML source in `src/packs`, built into `packs/`
 
 ## Known tripwires
 

@@ -15,7 +15,9 @@ Command reference, CI wiring, and the full release procedure.
 | --- | --- |
 | `npm run build` | Compiles `src/scss/tno.scss` → `css/tno.css` (Sass, expanded, no source map) |
 | `npm run watch` | Same, with source maps and `--watch` |
-| `npm test` | Runs the Vitest suite (`tests/{helpers,documents}/**/*.test.js`) |
+| `npm run build:packs` | Compiles `src/packs/**` YAML → the LevelDB compendia in `packs/` — see [compendium-packs.md](compendium-packs.md) |
+| `npm run packs:extract` | The reverse: writes an edited compendium back over its YAML source |
+| `npm test` | Runs the Vitest suite (`tests/{helpers,documents,packs}/**/*.test.js`) |
 | `npm run test:coverage` | Same, with v8 coverage (text + HTML + JSON summary) |
 | `npm run test:e2e` | Runs the Playwright suite against a disposable Foundry in Docker — see [e2e-testing.md](e2e-testing.md) |
 | `npm run docs:check` | Validates `docs/wiki/**` and the Proof citations in `docs/design/**` — see below |
@@ -44,15 +46,17 @@ When instructed to perform or prepare a release:
 Three GitHub Actions workflows:
 
 - **`.github/workflows/release.yml`** — triggers only on `v*.*.*` tags. Its
-  `release` job runs the Vitest suite, generates coverage, packages
-  `system.zip` from an explicit file list, and publishes the GitHub release.
-  It does not run Playwright e2e tests.
+  `release` job runs the Vitest suite, generates coverage, builds the
+  compendium packs, packages `system.zip` from an explicit file list, and
+  publishes the GitHub release. It does not run Playwright e2e tests.
 - **`.github/workflows/docs.yml`** — triggers on push/PR touching
   `docs/wiki/**`, `docs/design/**`, `module/**`, `template.json`, or either
   validator. Runs `npm run docs:check`.
 - **`.github/workflows/e2e.yml`** — triggers on push to `main` and on pull
   requests from branches in this repository, for fast feedback while
-  developing. Runs the same Playwright suite against Foundry in Docker.
+  developing. Runs the same Playwright suite against Foundry in Docker, after
+  building the compendium packs — Foundry logs an error for a registered pack
+  whose directory does not exist.
 
 `npm run docs:check` is also wired into `.release-it.json`'s `before:init`
 hook alongside `npm test`, so a release cannot ship with a stale wiki

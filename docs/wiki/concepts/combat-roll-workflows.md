@@ -187,6 +187,19 @@ another user's permissions.
   `envelopeLines` in [`helpers/dice.mjs`](../../../module/helpers/dice.mjs)
   builds those lines: one Ansage figure rather than a penalty per defence,
   because which roll it was aimed at is what the two players said out loud.
+- **The card shows what the roll was made with.** `angriffOptions` and
+  `paradeOptions` put the weapon's own `img` in the roll options;
+  `widerstandOptions` puts the armour's, through `wornArmorArt` — the piece at
+  the struck location first, the Unterkleidung second, nothing third. That is
+  the order `resolveArmor` sums the RW in, so the picture and the RW line are
+  never about different pieces, and it is a chain of *icons*: a helmet with no
+  art of its own falls through to the suit, which is padding that location too.
+  The dialog hands whichever it got to `rollTno`, which renders it beside the
+  flavor heading and keeps it in `flags.tno`. It is decoration and nothing else — no workflow reads it,
+  and a roll with no object behind it (a bare attribute, an Ausweichen) renders
+  no picture rather than a placeholder that would mean nothing. Rerolls do not
+  disturb it: the edge actions patch sub-containers of a persisted card, never
+  its heading.
 - The item popover keeps Attack primary and places Parry alongside it in the
   combat row.
   [`actor-paperdoll.hbs`](../../../templates/actor/parts/actor-paperdoll.hbs)

@@ -3,7 +3,7 @@ type: concept
 title: Item roles and the gear dialog
 description: Why a physical item has roles instead of a Foundry item type, and how the row-editor sheet is built from them.
 tags: [items, roles, weapons, armor, sheets, schema]
-resource: [module/apps/roll-dialog.mjs, module/documents/item.mjs, module/helpers/items.mjs, module/helpers/item-presentation.mjs, module/helpers/item-summary.mjs, module/helpers/item-transfer.mjs, module/sheets/actor-sheet.mjs, module/sheets/item-gear-sheet.mjs, templates/actor/parts/item-popover.hbs, templates/apps/create-item-dialog.hbs, templates/apps/take-item-dialog.hbs, templates/apps/roll-dialog.hbs, templates/chat/item-summary.hbs, templates/item/item-gear-sheet.hbs, templates/item/parts/item-gear-summary.hbs, templates/item/parts/item-role-weapon.hbs]
+resource: [module/apps/roll-dialog.mjs, module/documents/item.mjs, module/helpers/items.mjs, module/helpers/item-presentation.mjs, module/helpers/item-summary.mjs, module/helpers/item-transfer.mjs, module/sheets/actor-sheet.mjs, module/sheets/item-gear-sheet.mjs, templates/actor/parts/item-popover.hbs, templates/apps/create-item-dialog.hbs, templates/apps/take-item-dialog.hbs, templates/apps/roll-dialog.hbs, templates/chat/item-summary.hbs, templates/item/item-gear-sheet.hbs, templates/item/parts/item-gear-summary.hbs, templates/item/parts/item-role-weapon.hbs, templates/item/parts/item-post.hbs]
 spec: docs/design/character-sheet-prd.md
 related: [concepts/combat-roll-workflows, concepts/inventory, concepts/migrations, reference/ui-surfaces, architecture/data-schema]
 ---
@@ -44,10 +44,23 @@ before clearing the other.
 migration writes, and the shape that survives if a piece ever does need two —
 whereas a string would have to be migrated twice to find out.
 
-The inventory views use `inventoryIcon(item)` from the same helper, so the
-slot grid, Kleinkram list and the Inventar tab's ledger all show the same quick
-read: ranged weapon, melee weapon, armour, consumable or a generic object.
-The item image remains available on the item's own sheet.
+The inventory views ask the same helper what to draw, through
+`inventoryArt(item)`: **the piece's own picture when it has one, the role icon
+when it has not**. So the slot grid, Kleinkram list and the Inventar tab's
+ledger agree on what an item looks like, and an item with no art still reads as
+ranged weapon, melee weapon, armour, consumable or generic object.
+
+Which of the two applies is decided by `isPlaceholderArt`, and the rule is one
+line: everything under `icons/svg/` is Foundry's own silhouette set — art a
+document is *given* on creation, not art anybody chose — so it counts as
+absent. Real art, core or system, lives anywhere else.
+
+The role icon was unconditional until the shipped gear compendium gave every
+entry a distinct picture (see
+[guides/compendium-packs.md](../guides/compendium-packs.md)). A repeated
+silhouette is the faster scan only while items have no art of their own: four
+identical `fa-shield-halved` cells say "armour" four times, where the art says
+helmet, boots, gauntlets, vest.
 
 The ledger goes one step further and **groups by role** — which is only sound
 because a piece carries at most one. See
@@ -154,6 +167,13 @@ stays in place as a hatched `n/a` cell. Collapsing the row would move every row
 below it, so switching a weapon from melee to ranged would make the dialog jump
 under the cursor. Whole role blocks are the exception: a role that is off is a
 section the item does not have, not a field it cannot fill.
+
+**The footer carries one action besides delete.** "Im Chat zeigen" posts the
+piece through the same `TnoItem#roll()` the inventory popover uses, and it is
+the one control on the sheet that is *not* gated on editability — an item opened
+out of the locked gear compendium is read-only, and showing the table what a
+piece is should not require unlocking a pack. Feature and spell sheets offer the
+same action from their window title bar, because their footer sits inside a tab.
 
 **No save button.** The sheet edits a live document that the paper doll and the
 slot grid render at the same time; a local draft would desync them, and
