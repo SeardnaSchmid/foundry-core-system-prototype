@@ -1,0 +1,48 @@
+_id: 8Xb05WrRTSqA5LiB
+_key: '!items!8Xb05WrRTSqA5LiB'
+name: Kettensäge
+type: item
+img: icons/tools/hand/chainsaw-steel-purple.webp
+system:
+  quantity: 1
+  slots: 3
+  sv: 6
+  price: null
+  availability: null
+  description: <p>Zweihändig</p>
+  fv:
+    skill: heavyMelee
+    rank: 1
+  roles:
+    weapon: true
+    armor: false
+    consumable: false
+  use: melee
+  wa: str
+  dk: 4
+  range:
+    sn: null
+    near: null
+    mid: null
+    far: null
+    sf: null
+  rd: null
+  ss:
+    count: 5
+  ws:
+    count: 1
+  hh:
+    active: -1
+    passive: -2
+  rb: 3
+  zone: null
+  rh: null
+  rw: null
+  ra: null
+  consumableEffects: []
+effects: []
+folder: 9f6yj4AbuF9Xqase
+sort: 1400000
+ownership:
+  default: 0
+flags: {}

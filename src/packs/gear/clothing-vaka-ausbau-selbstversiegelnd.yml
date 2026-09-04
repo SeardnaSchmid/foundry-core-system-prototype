@@ -1,0 +1,51 @@
+_id: xkHu6W2PeZ2fLsQB
+_key: '!items!xkHu6W2PeZ2fLsQB'
+name: 'VakA-Ausbau: Selbstversiegelnd'
+type: item
+img: icons/commodities/tech/cable-armored-reticulated.webp
+system:
+  quantity: 1
+  slots: 0
+  sv: 0
+  price: null
+  availability: null
+  description: >-
+    <p>Verbesserung für VakAs. Jetzt mit Micromeshing für Kampfeinsätze oder
+    gefährliche Arbeiten.</p><p>Versiegelt den Anzug innerhalb von Millisekunden
+    wieder nach einer Beschädigung.</p><p>Preis: +2000</p><p>Verbreitung: +1</p>
+  fv:
+    skill: ''
+    rank: 0
+  roles:
+    weapon: false
+    armor: false
+    consumable: false
+  use: melee
+  wa: str
+  dk: null
+  range:
+    sn: null
+    near: null
+    mid: null
+    far: null
+    sf: null
+  rd: null
+  ss:
+    count: 0
+  ws:
+    count: 0
+  hh:
+    active: 0
+    passive: 0
+  rb: null
+  zone: null
+  rh: null
+  rw: null
+  ra: null
+  consumableEffects: []
+effects: []
+folder: hGDlQtRl45O2B61h
+sort: 4000000
+ownership:
+  default: 0
+flags: {}

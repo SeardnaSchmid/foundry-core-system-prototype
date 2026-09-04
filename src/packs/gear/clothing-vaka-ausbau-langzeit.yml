@@ -1,0 +1,52 @@
+_id: 6DdkwyGwfK1sldKd
+_key: '!items!6DdkwyGwfK1sldKd'
+name: 'VakA-Ausbau: Langzeit'
+type: item
+img: icons/commodities/tech/battery-fuel-cell-teal.webp
+system:
+  quantity: 1
+  slots: 1
+  sv: 0
+  price: null
+  availability: null
+  description: >-
+    <p>Verbesserung für VakAs. Gibt Möglichkeiten sich Wasser und Nährpaste
+    zuzufügen und auch wieder loszuwerden und auch CO2/O2
+    Tauscher.</p><p>Vakuumsustained für solange die Batterie reicht
+    (20h)</p><p>Preis: +500</p><p>Verbreitung: +1</p>
+  fv:
+    skill: ''
+    rank: 0
+  roles:
+    weapon: false
+    armor: false
+    consumable: false
+  use: melee
+  wa: str
+  dk: null
+  range:
+    sn: null
+    near: null
+    mid: null
+    far: null
+    sf: null
+  rd: null
+  ss:
+    count: 0
+  ws:
+    count: 0
+  hh:
+    active: 0
+    passive: 0
+  rb: null
+  zone: null
+  rh: null
+  rw: null
+  ra: null
+  consumableEffects: []
+effects: []
+folder: hGDlQtRl45O2B61h
+sort: 3900000
+ownership:
+  default: 0
+flags: {}

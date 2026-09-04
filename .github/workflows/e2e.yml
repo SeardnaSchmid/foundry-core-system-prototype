@@ -45,6 +45,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Build compendium packs
+        run: npm run build:packs
+
       - name: Cache Foundry release
         # Caching the release zip avoids re-downloading ~250MB from Foundry's
         # servers on every run.

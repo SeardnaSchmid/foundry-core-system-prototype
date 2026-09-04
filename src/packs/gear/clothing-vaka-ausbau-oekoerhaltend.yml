@@ -1,0 +1,52 @@
+_id: nJUTbANpgBzAxxHk
+_key: '!items!nJUTbANpgBzAxxHk'
+name: 'VakA-Ausbau: Ökoerhaltend'
+type: item
+img: icons/commodities/tech/creature-tank-green.webp
+system:
+  quantity: 1
+  slots: 1
+  sv: 0
+  price: null
+  availability: null
+  description: >-
+    <p>Verbesserung für VakAs. Integrierte Biovats recyclen Wasser, Nahrung und
+    Sauerstoff und können mit Nanotholin betrieben werden.</p><p>Vakuumsustained
+    auf unbegrenzt, solange Erwachtes Tholin aufgenommen wird.</p><p>Preis:
+    +2000</p><p>Verbreitung: +2</p>
+  fv:
+    skill: ''
+    rank: 0
+  roles:
+    weapon: false
+    armor: false
+    consumable: false
+  use: melee
+  wa: str
+  dk: null
+  range:
+    sn: null
+    near: null
+    mid: null
+    far: null
+    sf: null
+  rd: null
+  ss:
+    count: 0
+  ws:
+    count: 0
+  hh:
+    active: 0
+    passive: 0
+  rb: null
+  zone: null
+  rh: null
+  rw: null
+  ra: null
+  consumableEffects: []
+effects: []
+folder: hGDlQtRl45O2B61h
+sort: 4100000
+ownership:
+  default: 0
+flags: {}

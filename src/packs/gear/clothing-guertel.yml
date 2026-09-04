@@ -1,0 +1,53 @@
+_id: ZwWXTInAvBQlflf0
+_key: '!items!ZwWXTInAvBQlflf0'
+name: Gürtel
+type: item
+img: icons/equipment/waist/belt-utility-black.webp
+system:
+  quantity: 1
+  slots: 0
+  sv: 0
+  price: 50
+  availability: 1
+  description: >-
+    <p>Ein Gürtel voller nützlicher Taschen und Clips, um Kram aller Arat bis
+    hin zu Waffen oder Werkzeugen zu führen. Im Kaiserreich quasi
+    obligatorisches Kleidungsstück, von Kuipern oft durch Wickel
+    ersetzt.</p><p>Du kannst kleine Gegenstände mit dir führen, ohne sie ständig
+    in der Hand zu halten.</p>
+  fv:
+    skill: ''
+    rank: 0
+  roles:
+    weapon: false
+    armor: false
+    consumable: false
+  use: melee
+  wa: str
+  dk: null
+  range:
+    sn: null
+    near: null
+    mid: null
+    far: null
+    sf: null
+  rd: null
+  ss:
+    count: 0
+  ws:
+    count: 0
+  hh:
+    active: 0
+    passive: 0
+  rb: null
+  zone: null
+  rh: null
+  rw: null
+  ra: null
+  consumableEffects: []
+effects: []
+folder: hGDlQtRl45O2B61h
+sort: 4400000
+ownership:
+  default: 0
+flags: {}

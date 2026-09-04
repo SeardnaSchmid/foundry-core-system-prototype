@@ -1,0 +1,48 @@
+_id: gDEe1pKaJIres8AK
+_key: '!items!gDEe1pKaJIres8AK'
+name: Gummischutzstiefel + Knieschoner
+type: item
+img: icons/equipment/leg/riot-legs-padded.webp
+system:
+  quantity: 1
+  slots: 1
+  sv: 0.5
+  price: null
+  availability: null
+  description: <p>kombiniert</p>
+  fv:
+    skill: ''
+    rank: 0
+  roles:
+    weapon: false
+    armor: true
+    consumable: false
+  use: melee
+  wa: str
+  dk: null
+  range:
+    sn: null
+    near: null
+    mid: null
+    far: null
+    sf: null
+  rd: null
+  ss:
+    count: 0
+  ws:
+    count: 0
+  hh:
+    active: 0
+    passive: 0
+  rb: null
+  zone: legs
+  rh: 1
+  rw: 2
+  ra: 4
+  consumableEffects: []
+effects: []
+folder: RejKI36DiOc0ss5V
+sort: 2600000
+ownership:
+  default: 0
+flags: {}

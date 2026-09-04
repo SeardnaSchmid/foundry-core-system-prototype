@@ -56,6 +56,9 @@ jobs:
              system.json > system.json.tmp
           mv system.json.tmp system.json
 
+      - name: Build compendium packs
+        run: npm run build:packs
+
       - name: Package release zip
         run: |
           zip -r system.zip \

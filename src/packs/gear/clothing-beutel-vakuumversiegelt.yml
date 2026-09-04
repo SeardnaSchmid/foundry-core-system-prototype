@@ -1,0 +1,53 @@
+_id: rp8BhLSdldhEfaHE
+_key: '!items!rp8BhLSdldhEfaHE'
+name: Beutel, vakuumversiegelt
+type: item
+img: icons/containers/bags/satchel-leather-grey.webp
+system:
+  quantity: 1
+  slots: 0
+  sv: 0
+  price: 500
+  availability: 2
+  description: >-
+    <p>Umhängebeutel, der seinen Inhalt vor dem Vakuum des Alls schützt, nach
+    Kuipermode.</p><p>Du kannst große Gegenstände mit dir führen, ohne sie
+    ständig in der Hand zu halten. Dinge, für die das Vakuum gefährlich wäre,
+    nehmen hier keinen Schaden, aber du kannst ihn im Vakuum natürlich nicht
+    öffnen.</p>
+  fv:
+    skill: ''
+    rank: 0
+  roles:
+    weapon: false
+    armor: false
+    consumable: false
+  use: melee
+  wa: str
+  dk: null
+  range:
+    sn: null
+    near: null
+    mid: null
+    far: null
+    sf: null
+  rd: null
+  ss:
+    count: 0
+  ws:
+    count: 0
+  hh:
+    active: 0
+    passive: 0
+  rb: null
+  zone: null
+  rh: null
+  rw: null
+  ra: null
+  consumableEffects: []
+effects: []
+folder: hGDlQtRl45O2B61h
+sort: 4700000
+ownership:
+  default: 0
+flags: {}

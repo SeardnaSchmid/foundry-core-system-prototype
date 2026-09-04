@@ -1,0 +1,48 @@
+_id: qISeVFSd98f7Lg4c
+_key: '!items!qISeVFSd98f7Lg4c'
+name: Unbewaffnet
+type: item
+img: icons/skills/melee/unarmed-punch-fist.webp
+system:
+  quantity: 1
+  slots: 0
+  sv: 2
+  price: null
+  availability: null
+  description: ''
+  fv:
+    skill: brawling
+    rank: 1
+  roles:
+    weapon: true
+    armor: false
+    consumable: false
+  use: melee
+  wa: str
+  dk: 0
+  range:
+    sn: null
+    near: null
+    mid: null
+    far: null
+    sf: null
+  rd: null
+  ss:
+    count: 0
+  ws:
+    count: 1
+  hh:
+    active: 1
+    passive: 1
+  rb: 0
+  zone: null
+  rh: null
+  rw: null
+  ra: null
+  consumableEffects: []
+effects: []
+folder: 9f6yj4AbuF9Xqase
+sort: 100000
+ownership:
+  default: 0
+flags: {}

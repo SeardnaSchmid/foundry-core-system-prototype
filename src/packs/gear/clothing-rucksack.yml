@@ -1,0 +1,51 @@
+_id: 4L61m7W5bnYQ5vBi
+_key: '!items!4L61m7W5bnYQ5vBi'
+name: Rucksack
+type: item
+img: icons/containers/bags/pack-leather-brown.webp
+system:
+  quantity: 1
+  slots: 0
+  sv: 0
+  price: 100
+  availability: 1
+  description: >-
+    <p>Rucksack aus Stoff nach kaiserlicher Mode. Das oder Beutel hat quasi
+    jeder dabei.</p><p>Du kannst große Gegenstände mit dir führen, ohne sie
+    ständig in der Hand zu halten.</p>
+  fv:
+    skill: ''
+    rank: 0
+  roles:
+    weapon: false
+    armor: false
+    consumable: false
+  use: melee
+  wa: str
+  dk: null
+  range:
+    sn: null
+    near: null
+    mid: null
+    far: null
+    sf: null
+  rd: null
+  ss:
+    count: 0
+  ws:
+    count: 0
+  hh:
+    active: 0
+    passive: 0
+  rb: null
+  zone: null
+  rh: null
+  rw: null
+  ra: null
+  consumableEffects: []
+effects: []
+folder: hGDlQtRl45O2B61h
+sort: 4600000
+ownership:
+  default: 0
+flags: {}

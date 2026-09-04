@@ -47,6 +47,20 @@
       "flags": {}
     }
   ],
+  "packs": [
+    {
+      "name": "gear",
+      "label": "TNO – Ausrüstung",
+      "path": "packs/gear",
+      "type": "Item",
+      "system": "tno",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {}
+    }
+  ],
   "manifest": "https://github.com/SeardnaSchmid/foundry-core-system-prototype/releases/latest/download/system.json",
   "download": "https://github.com/SeardnaSchmid/foundry-core-system-prototype/releases/download/v0.40.1/system.zip",
   "background": "systems/tno/assets/anvil-impact.png",

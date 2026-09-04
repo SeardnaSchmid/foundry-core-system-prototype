@@ -1,0 +1,52 @@
+_id: rXmrfq0pTv2JNKfk
+_key: '!items!rXmrfq0pTv2JNKfk'
+name: Umarmung
+type: item
+img: icons/equipment/body/suit-medical-biohazard-protection.webp
+system:
+  quantity: 1
+  slots: 3
+  sv: 0
+  price: 10000
+  availability: 3
+  description: >-
+    <p>Symbiontenanzug der Kuiper. Perfekte Vakuumsustainability und die
+    Trennlinie zwischen den unteren und oberen
+    Gesellschaftssegmenten.</p><p>Vakuumsustained auf unbegrenzt, solange
+    Erwachtes Tholin aufgenommen wird und mit integrierten MUKSs.</p>
+  fv:
+    skill: ''
+    rank: 0
+  roles:
+    weapon: false
+    armor: false
+    consumable: false
+  use: melee
+  wa: str
+  dk: null
+  range:
+    sn: null
+    near: null
+    mid: null
+    far: null
+    sf: null
+  rd: null
+  ss:
+    count: 0
+  ws:
+    count: 0
+  hh:
+    active: 0
+    passive: 0
+  rb: null
+  zone: null
+  rh: null
+  rw: null
+  ra: null
+  consumableEffects: []
+effects: []
+folder: hGDlQtRl45O2B61h
+sort: 4300000
+ownership:
+  default: 0
+flags: {}

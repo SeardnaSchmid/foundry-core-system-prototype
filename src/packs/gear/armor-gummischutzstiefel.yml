@@ -1,0 +1,48 @@
+_id: Ca2eZxfmjAeUKYP2
+_key: '!items!Ca2eZxfmjAeUKYP2'
+name: Gummischutzstiefel
+type: item
+img: icons/equipment/feet/riot-boot.webp
+system:
+  quantity: 1
+  slots: 1
+  sv: 0.25
+  price: null
+  availability: null
+  description: ''
+  fv:
+    skill: ''
+    rank: 0
+  roles:
+    weapon: false
+    armor: true
+    consumable: false
+  use: melee
+  wa: str
+  dk: null
+  range:
+    sn: null
+    near: null
+    mid: null
+    far: null
+    sf: null
+  rd: null
+  ss:
+    count: 0
+  ws:
+    count: 0
+  hh:
+    active: 0
+    passive: 0
+  rb: null
+  zone: legs
+  rh: 1
+  rw: 2
+  ra: 2
+  consumableEffects: []
+effects: []
+folder: RejKI36DiOc0ss5V
+sort: 2400000
+ownership:
+  default: 0
+flags: {}

@@ -1,0 +1,48 @@
+_id: 789Rc1rLTxreEFB8
+_key: '!items!789Rc1rLTxreEFB8'
+name: Umhang
+type: item
+img: icons/equipment/back/cloak-plain-blue.webp
+system:
+  quantity: 1
+  slots: 1
+  sv: 0
+  price: null
+  availability: null
+  description: <p>Wird über Rüstung etc. getragen.</p>
+  fv:
+    skill: ''
+    rank: 0
+  roles:
+    weapon: false
+    armor: false
+    consumable: false
+  use: melee
+  wa: str
+  dk: null
+  range:
+    sn: null
+    near: null
+    mid: null
+    far: null
+    sf: null
+  rd: null
+  ss:
+    count: 0
+  ws:
+    count: 0
+  hh:
+    active: 0
+    passive: 0
+  rb: null
+  zone: null
+  rh: null
+  rw: null
+  ra: null
+  consumableEffects: []
+effects: []
+folder: hGDlQtRl45O2B61h
+sort: 5000000
+ownership:
+  default: 0
+flags: {}

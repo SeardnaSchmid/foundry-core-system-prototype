@@ -1,0 +1,50 @@
+_id: QYM9Yp4XDYx29pKc
+_key: '!items!QYM9Yp4XDYx29pKc'
+name: MUKSs
+type: item
+img: icons/equipment/feet/tech-boot.webp
+system:
+  quantity: 1
+  slots: 0
+  sv: 0
+  price: 200
+  availability: 1
+  description: >-
+    <p>Magnetisch-Unterdruck-Kontakt-Sohlen.</p><p>Lassen dich quasi auf jeder
+    Oberfläche laufen.</p>
+  fv:
+    skill: ''
+    rank: 0
+  roles:
+    weapon: false
+    armor: false
+    consumable: false
+  use: melee
+  wa: str
+  dk: null
+  range:
+    sn: null
+    near: null
+    mid: null
+    far: null
+    sf: null
+  rd: null
+  ss:
+    count: 0
+  ws:
+    count: 0
+  hh:
+    active: 0
+    passive: 0
+  rb: null
+  zone: null
+  rh: null
+  rw: null
+  ra: null
+  consumableEffects: []
+effects: []
+folder: hGDlQtRl45O2B61h
+sort: 4900000
+ownership:
+  default: 0
+flags: {}

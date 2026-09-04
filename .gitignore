@@ -25,3 +25,6 @@ Thumbs.db
 
 # Core rules
 rules/
+# Compiled compendium packs. A Foundry pack is a LevelDB directory rebuilt in
+# full on every `npm run build:packs`; the reviewable source is src/packs/.
+packs/*/

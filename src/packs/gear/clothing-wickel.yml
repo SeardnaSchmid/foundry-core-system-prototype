@@ -1,0 +1,52 @@
+_id: X9VlJzjHc6mSpwvh
+_key: '!items!X9VlJzjHc6mSpwvh'
+name: Wickel
+type: item
+img: icons/equipment/wrist/wrap-cloth-brown.webp
+system:
+  quantity: 1
+  slots: 1
+  sv: 0
+  price: null
+  availability: 1
+  description: >-
+    <p>Standardkleidung der einfachen Kuiper. Einfache Stoffstreifen aus Fasern,
+    oft bestickt, welche als Lendenschurz, Gesichtsmaske, Hand- oder Fußwickel
+    getragen werden um ein Minimum an Schutz zu gewährleisten, Nackheit stört
+    Kuiper nicht.</p><p>Preis: 1-5 je nach Anpassung</p>
+  fv:
+    skill: ''
+    rank: 0
+  roles:
+    weapon: false
+    armor: false
+    consumable: false
+  use: melee
+  wa: str
+  dk: null
+  range:
+    sn: null
+    near: null
+    mid: null
+    far: null
+    sf: null
+  rd: null
+  ss:
+    count: 0
+  ws:
+    count: 0
+  hh:
+    active: 0
+    passive: 0
+  rb: null
+  zone: null
+  rh: null
+  rw: null
+  ra: null
+  consumableEffects: []
+effects: []
+folder: hGDlQtRl45O2B61h
+sort: 3800000
+ownership:
+  default: 0
+flags: {}

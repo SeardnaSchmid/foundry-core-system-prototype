@@ -1,0 +1,51 @@
+_id: vKOiWPyOY92aP2Py
+_key: '!items!vKOiWPyOY92aP2Py'
+name: 'VakA-Ausbau: Gepanzert'
+type: item
+img: icons/commodities/tech/frame-armor-steel.webp
+system:
+  quantity: 1
+  slots: 1
+  sv: 0
+  price: null
+  availability: null
+  description: >-
+    <p>Verbesserung für VakAs, Robust für den Einsatz im Umfeld von gefährlichen
+    Umwelteinflüssen oder im Kampf.</p><p>Siehe Rüstung.</p><p>Preis:
+    +1000</p><p>Verbreitung: +1</p>
+  fv:
+    skill: ''
+    rank: 0
+  roles:
+    weapon: false
+    armor: false
+    consumable: false
+  use: melee
+  wa: str
+  dk: null
+  range:
+    sn: null
+    near: null
+    mid: null
+    far: null
+    sf: null
+  rd: null
+  ss:
+    count: 0
+  ws:
+    count: 0
+  hh:
+    active: 0
+    passive: 0
+  rb: null
+  zone: null
+  rh: null
+  rw: null
+  ra: null
+  consumableEffects: []
+effects: []
+folder: hGDlQtRl45O2B61h
+sort: 4200000
+ownership:
+  default: 0
+flags: {}

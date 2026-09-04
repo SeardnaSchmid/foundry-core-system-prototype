@@ -1,0 +1,48 @@
+_id: 14aLfWcXVdQTSoNM
+_key: '!items!14aLfWcXVdQTSoNM'
+name: Beil
+type: item
+img: icons/tools/hand/hatchet-steel-grey.webp
+system:
+  quantity: 1
+  slots: 1
+  sv: 3
+  price: null
+  availability: null
+  description: ''
+  fv:
+    skill: brawling
+    rank: 1
+  roles:
+    weapon: true
+    armor: false
+    consumable: false
+  use: melee
+  wa: str
+  dk: 2
+  range:
+    sn: null
+    near: null
+    mid: null
+    far: null
+    sf: null
+  rd: null
+  ss:
+    count: 3
+  ws:
+    count: 1
+  hh:
+    active: 0
+    passive: -1
+  rb: 1
+  zone: null
+  rh: null
+  rw: null
+  ra: null
+  consumableEffects: []
+effects: []
+folder: 9f6yj4AbuF9Xqase
+sort: 400000
+ownership:
+  default: 0
+flags: {}

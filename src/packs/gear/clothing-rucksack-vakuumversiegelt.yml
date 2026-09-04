@@ -1,0 +1,53 @@
+_id: kLYcsh75awP7mgP6
+_key: '!items!kLYcsh75awP7mgP6'
+name: Rucksack, vakuumversiegelt
+type: item
+img: icons/containers/bags/pack-canvas-white-brown.webp
+system:
+  quantity: 1
+  slots: 0
+  sv: 0
+  price: 1000
+  availability: 3
+  description: >-
+    <p>Rucksack, der seinen Inhalt vor dem Vakuum des Alls schützt, nach
+    kaiserlicher Mode.</p><p>Du kannst große Gegenstände mit dir führen, ohne
+    sie ständig in der Hand zu halten. Dinge, für die das Vakuum gefährlich
+    wäre, nehmen hier keinen Schaden, aber du kannst ihn im Vakuum natürlich
+    nicht öffnen.</p>
+  fv:
+    skill: ''
+    rank: 0
+  roles:
+    weapon: false
+    armor: false
+    consumable: false
+  use: melee
+  wa: str
+  dk: null
+  range:
+    sn: null
+    near: null
+    mid: null
+    far: null
+    sf: null
+  rd: null
+  ss:
+    count: 0
+  ws:
+    count: 0
+  hh:
+    active: 0
+    passive: 0
+  rb: null
+  zone: null
+  rh: null
+  rw: null
+  ra: null
+  consumableEffects: []
+effects: []
+folder: hGDlQtRl45O2B61h
+sort: 4800000
+ownership:
+  default: 0
+flags: {}

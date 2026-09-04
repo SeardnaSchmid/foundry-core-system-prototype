@@ -1,0 +1,52 @@
+_id: 72LZiTuGF4t2kZy9
+_key: '!items!72LZiTuGF4t2kZy9'
+name: VakA
+type: item
+img: icons/equipment/body/suit-biohazard-protection.webp
+system:
+  quantity: 1
+  slots: 2
+  sv: 2
+  price: 1000
+  availability: 2
+  description: >-
+    <p>siehe Kleidung</p><p>Einfacher Vakuumanzug. Batteriebetrieben, mit
+    Sauerstoffflasche und CO2-Filter. Für kurze EVAs, für Notfälle oder kurze
+    Wegstrecken.</p><p>Vakuumsustained für 1h, länger bei Flaschen- und
+    Batterie- wechsel, dann aber mit Malusstufe für >1h, t, >2t dann Sense</p>
+  fv:
+    skill: ''
+    rank: 0
+  roles:
+    weapon: false
+    armor: true
+    consumable: false
+  use: melee
+  wa: str
+  dk: null
+  range:
+    sn: null
+    near: null
+    mid: null
+    far: null
+    sf: null
+  rd: null
+  ss:
+    count: 0
+  ws:
+    count: 0
+  hh:
+    active: 0
+    passive: 0
+  rb: null
+  zone: suit
+  rh: 0
+  rw: 2
+  ra: null
+  consumableEffects: []
+effects: []
+folder: RejKI36DiOc0ss5V
+sort: 1800000
+ownership:
+  default: 0
+flags: {}

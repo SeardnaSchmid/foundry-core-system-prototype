@@ -1,0 +1,48 @@
+_id: 3H7PW6XppXsIUyVO
+_key: '!items!3H7PW6XppXsIUyVO'
+name: Axt
+type: item
+img: icons/weapons/axes/axe-simple-grey.webp
+system:
+  quantity: 1
+  slots: 2
+  sv: 4
+  price: null
+  availability: null
+  description: <p>Zweihändig</p>
+  fv:
+    skill: brawling
+    rank: 1
+  roles:
+    weapon: true
+    armor: false
+    consumable: false
+  use: melee
+  wa: str
+  dk: 3
+  range:
+    sn: null
+    near: null
+    mid: null
+    far: null
+    sf: null
+  rd: null
+  ss:
+    count: 4
+  ws:
+    count: 2
+  hh:
+    active: 0
+    passive: -1
+  rb: 1
+  zone: null
+  rh: null
+  rw: null
+  ra: null
+  consumableEffects: []
+effects: []
+folder: 9f6yj4AbuF9Xqase
+sort: 700000
+ownership:
+  default: 0
+flags: {}

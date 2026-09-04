@@ -1,0 +1,51 @@
+_id: U0NYU70BsrDRfJb5
+_key: '!items!U0NYU70BsrDRfJb5'
+name: Jumpsuit
+type: item
+img: icons/equipment/body/armor-coveralls.webp
+system:
+  quantity: 1
+  slots: 1
+  sv: 0
+  price: null
+  availability: 1
+  description: >-
+    <p>siehe Kleidung</p><p>Standardkleidung des Imperiums, funktional und
+    robust. Zahllose Designs für Uniformen, Rangabzeichen und
+    Optik.</p><p>Preis: 50-100 je nach Anpassungen</p>
+  fv:
+    skill: ''
+    rank: 0
+  roles:
+    weapon: false
+    armor: true
+    consumable: false
+  use: melee
+  wa: str
+  dk: null
+  range:
+    sn: null
+    near: null
+    mid: null
+    far: null
+    sf: null
+  rd: null
+  ss:
+    count: 0
+  ws:
+    count: 0
+  hh:
+    active: 0
+    passive: 0
+  rb: null
+  zone: suit
+  rh: 0
+  rw: 1
+  ra: null
+  consumableEffects: []
+effects: []
+folder: RejKI36DiOc0ss5V
+sort: 1700000
+ownership:
+  default: 0
+flags: {}
