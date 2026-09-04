@@ -84,6 +84,34 @@ export class TnoItemSheet extends ItemSheet {
 
   /* -------------------------------------------- */
 
+  /**
+   * Add "Show in chat" to the window's own title bar.
+   *
+   * The gear dialog carries the same action in its footer, beside delete. It
+   * cannot go there on these two sheets: their footer lives inside the
+   * Attributes tab, and an action hidden behind a tab is one a GM will not
+   * find mid-session. The title bar is the only surface a feature or spell
+   * sheet has that is visible whichever tab is open.
+   *
+   * Unlike delete, it is offered on a sheet the viewer cannot edit — posting
+   * reads the document and writes a chat message, and a locked compendium is
+   * the case the button is for.
+   * @override
+   */
+  _getHeaderButtons() {
+    return [
+      {
+        label: game.i18n.localize('TNO.Item.Overview.Post'),
+        class: 'item-post-chat',
+        icon: 'fa-solid fa-message',
+        onclick: () => this.item.roll(),
+      },
+      ...super._getHeaderButtons(),
+    ];
+  }
+
+  /* -------------------------------------------- */
+
   /** @override */
   activateListeners(html) {
     super.activateListeners(html);

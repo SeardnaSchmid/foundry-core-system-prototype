@@ -1,0 +1,13 @@
+{{!-- Posting the item to chat from its own sheet.
+
+The same act the inventory popover offers, in the one place a sheet that is
+already open can reach it. It is deliberately not gated on `canEdit`: an item
+opened out of the locked gear compendium is read-only, and that is exactly the
+case this button exists for — the GM shows the party what a piece is without
+first unlocking the pack or copying the item anywhere. --}}
+<div class='item-post-row'>
+  <a class='item-post-chat' title='{{localize "TNO.Item.Overview.Post"}}' tabindex='0'>
+    <i class='fa-solid fa-message'></i>
+    <span>{{localize 'TNO.Item.Overview.Post'}}</span>
+  </a>
+</div>

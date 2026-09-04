@@ -949,9 +949,21 @@ $gear-radius: 4px;
       }
     }
 
-    // The delete control loses its own row here — the footer is the row.
+    // Both controls lose their own row here — the footer is the row. Post sits
+    // left of delete: the safe action first, and the destructive one last,
+    // against the window edge where the cursor is least likely to rest.
+    .item-post-row,
     .item-delete-row {
+      flex: none;
       margin: 0;
+    }
+
+    .item-post-chat {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      font-size: 10px;
     }
 
     .item-delete-hint {

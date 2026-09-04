@@ -188,6 +188,13 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     this._listenerAbort?.abort();
     this._listenerAbort = new AbortController();
 
+    // Posting to chat is registered before the read-only gate, because it is
+    // the one action a sheet the viewer cannot edit still has: an item opened
+    // out of the locked gear compendium is exactly what a GM wants to show the
+    // table. It reads the document and writes a chat message; it never touches
+    // the item.
+    this.#delegate('click', '.item-post-chat', () => this.item.roll());
+
     if (!this.isEditable) {
       for (const control of this.element.querySelectorAll('input, select, textarea, button, prose-mirror')) {
         control.setAttribute('disabled', '');

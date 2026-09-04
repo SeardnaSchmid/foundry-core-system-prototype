@@ -30,6 +30,7 @@ export const preloadHandlebarsTemplates = async function () {
     'systems/tno/templates/actor/parts/edge-popover.hbs',
     // Item partials
     'systems/tno/templates/item/parts/item-delete.hbs',
+    'systems/tno/templates/item/parts/item-post.hbs',
     'systems/tno/templates/item/parts/item-scale.hbs',
     'systems/tno/templates/item/parts/item-role-weapon.hbs',
     'systems/tno/templates/item/parts/item-role-armor.hbs',
