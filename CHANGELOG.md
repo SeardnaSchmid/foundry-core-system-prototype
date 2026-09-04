@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.40.1](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.40.0...v0.40.1) (2026-09-04)
+
+
+### Bug Fixes
+
+* **sheet:** give every item popover footer one pair of button sizes ([6819059](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/68190593adb99e9b1c82403868efd0dea516ebe1))
+
 # [0.40.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.39.0...v0.40.0) (2026-09-04)
 
 
