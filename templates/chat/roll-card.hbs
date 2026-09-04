@@ -1,6 +1,13 @@
 <div class="tno-roll-card dice-roll" data-action="expandRoll">
   <div class="tno-roll-summary">
     <div class="tno-roll-title">
+      {{!-- The object the roll was made with, when there is one. A weapon's own
+            art is the fastest read of "which one did they swing" in a scrolling
+            log; a roll with nothing behind it renders no box at all rather than
+            a placeholder that would say nothing. --}}
+      {{#if img}}
+      <img class="tno-roll-icon" src="{{img}}" alt="" />
+      {{/if}}
       {{#if flavor}}
       <h3 class="tno-roll-flavor">{{flavor}}</h3>
       {{/if}}

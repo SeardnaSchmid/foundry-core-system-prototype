@@ -152,6 +152,9 @@ export function criticalResultFor(values, advantage) {
  *   see rollTnoBase.
  * @param {number} [options.advantage]         One of the TNO_ADVANTAGE values.
  * @param {string} [options.flavor]            Label shown above the roll (e.g. the ability name).
+ * @param {string} [options.img]               Picture shown beside that label, e.g. the weapon a
+ *   combat roll was made with. Purely a read aid: nothing evaluates it, and a roll with no object
+ *   behind it leaves it empty rather than falling back to an icon that would mean nothing.
  * @param {Actor} [options.actor]              The rolling actor, used for the chat speaker.
  * @param {string} [options.rollMode]          Chat roll mode; defaults to the current core setting.
  * @param {{label: string, value: number}[]} [options.components]  Threshold components
@@ -167,6 +170,7 @@ export async function rollTno({
   threshold = null,
   advantage = TNO_ADVANTAGE.none,
   flavor = '',
+  img = '',
   actor = null,
   rollMode = null,
   components = [],
@@ -205,6 +209,7 @@ export async function rollTno({
 
   const content = await foundry.applications.handlebars.renderTemplate('systems/tno/templates/chat/roll-card.hbs', {
     flavor,
+    img,
     hasThreshold,
     threshold,
     // Only meaningful against a threshold; a base roll has nothing to be
@@ -247,6 +252,7 @@ export async function rollTno({
         threshold,
         advantage,
         flavor,
+        img,
         components,
         bonus,
         outcome,

@@ -1,9 +1,11 @@
 import { ARMOR_ADDON_ZONES } from './inventory.mjs';
 import {
+  ARMOR_SUIT_ZONE,
   armorPenetrationChoices,
   canWeaponAttack,
   canWeaponParry,
   hasRole,
+  inventoryArt,
   isAuthoredNumber,
   usesMelee,
   weaponAttribute,
@@ -408,6 +410,10 @@ export function angriffOptions(actor, weapon) {
     ansage: ansageField(),
     maneuverMalus: maneuverFvMalus(actor, weapon.system),
     envelope: attackEnvelope(actor, weapon),
+    // The card says which weapon swung; the picture is the fastest read of that
+    // in a scrolling log. Nothing downstream resolves it — it is the item's own
+    // `img` string, passed through.
+    img: weapon.img,
     flavor: game.i18n.format('TNO.Combat.AttackFlavor', { weapon: weapon.name }),
   };
 }
@@ -451,6 +457,7 @@ export function paradeOptions(actor, weapon) {
     afterRoll: async () => {
       await countDefense(actor, 'parry');
     },
+    img: weapon.img,
     flavor: game.i18n.format('TNO.Combat.ParryFlavor', { weapon: weapon.name }),
   };
 }
@@ -532,6 +539,36 @@ export async function takeStance(actor, stance) {
     'system.combat.stance': stance,
     'system.combat.defenses': { parry: 0, dodge: 0 },
   });
+}
+
+/**
+ * The picture a resistance roll carries: what is actually taking the hit.
+ *
+ * The armour worn at the struck location first, the Unterkleidung second, and
+ * no picture at all third. That order is the same one `resolveArmor` sums the
+ * RW in, so the icon and the modifier line agree about which piece the roll is
+ * about.
+ *
+ * It is a chain of *icons*, not of pieces: a helmet that was never given art
+ * falls through to the suit's, because the suit is padding that location too.
+ * Only when neither has a picture does the card go bare — a placeholder here
+ * would claim armour where the sheet may be showing none.
+ *
+ * `resolveArmor` deliberately keeps live documents out of `system.derived`, so
+ * the pieces are looked up from `system.equipment` here, as its own doc block
+ * says callers must.
+ * @param {Actor} actor
+ * @param {string} zone  One of the four addon zones.
+ * @returns {string} An image path, or '' for no picture.
+ */
+function wornArmorArt(actor, zone) {
+  const equipment = actor?.system?.equipment ?? {};
+  for (const key of [zone, ARMOR_SUIT_ZONE]) {
+    const piece = actor?.items?.get?.(equipment[key]);
+    const img = piece ? inventoryArt(piece).img : null;
+    if (img) return img;
+  }
+  return '';
 }
 
 /**
@@ -660,6 +697,7 @@ export function widerstandOptions(actor, zone) {
     consequence: ({ contextKey, value }) => resistanceConsequence(zone, contextKey, value),
     // The Stelle keeps only its multiplier. The penetration comparison names
     // whether the announced value enters Schaden or Wuchtschaden.
+    img: wornArmorArt(actor, zone),
     flavor: game.i18n.format('TNO.Combat.ResistanceFlavor', {
       zone: zoneLabel,
       damage: damageTargetLabel(zone),

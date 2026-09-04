@@ -82,6 +82,7 @@ describe('combat action builders', () => {
   /** A melee weapon that clears every gate on `canWeaponAttack`. */
   const weapon = (overrides = {}) => ({
     name: 'Langschwert',
+    img: 'icons/weapons/swords/machete.webp',
     system: {
       roles: { weapon: true },
       use: 'melee',
@@ -103,6 +104,9 @@ describe('combat action builders', () => {
       lockAttribute: true,
       skill: { key: 'swords', value: 5 },
       flavor: 'TNO.Combat.AttackFlavor(Langschwert)',
+      // Carried through to the chat card, so a log of rolls can be read by the
+      // weapon rather than by re-reading every flavor line.
+      img: 'icons/weapons/swords/machete.webp',
     });
     expect(options.preRollContext).toMatchObject({ label: 'TNO.Combat.DkQuestion', control: 'toggle' });
     expect(options.preRollContext.choices.map((choice) => choice.value)).toEqual([0, 3]);
@@ -135,6 +139,7 @@ describe('combat action builders', () => {
     }]);
     expect(options.preRollContext).toMatchObject({ label: 'TNO.Combat.DkQuestion', control: 'toggle' });
     expect(options.preRollContext.choices.map((choice) => choice.value)).toEqual([0, 3]);
+    expect(options.img).toBe('icons/weapons/swords/machete.webp');
   });
 
   it('builds a dodge from Beweglichkeit and Akrobatik alone', () => {
@@ -169,6 +174,40 @@ describe('combat action builders', () => {
     expect(widerstandOptions(actor(), 'suit')).toBeNull();
     expect(widerstandOptions(actor(), 'torso')).not.toBeNull();
     expect(widerstandOptions(actor({ isOwner: false }), 'torso')).toBeNull();
+  });
+
+  // The card should show what is taking the hit. The chain is zone piece, then
+  // Unterkleidung, then nothing — the same order `resolveArmor` sums the RW in,
+  // so the picture and the RW line are never about different pieces.
+  it('shows the armour worn at the struck location, falling back to the suit', () => {
+    const armored = (equipment, arts) => ({
+      ...actor(),
+      items: { get: (id) => (id && arts[id] ? { name: id, img: arts[id], system: { roles: { armor: true } } } : null) },
+      system: { ...actor().system, equipment },
+    });
+
+    expect(widerstandOptions(
+      armored({ torso: 'vest', suit: 'jumpsuit' },
+        { vest: 'icons/equipment/chest/riot.webp', jumpsuit: 'icons/equipment/body/armor-coveralls.webp' }),
+      'torso'
+    ).img).toBe('icons/equipment/chest/riot.webp');
+
+    // Nothing worn at the location: the base layer is padding it, so it is what
+    // the roll is about.
+    expect(widerstandOptions(
+      armored({ suit: 'jumpsuit' }, { jumpsuit: 'icons/equipment/body/armor-coveralls.webp' }),
+      'torso'
+    ).img).toBe('icons/equipment/body/armor-coveralls.webp');
+
+    // A piece that was never given art falls through rather than claiming a
+    // placeholder, and a bare location shows nothing at all.
+    expect(widerstandOptions(
+      armored({ torso: 'vest', suit: 'jumpsuit' },
+        { vest: 'icons/svg/item-bag.svg', jumpsuit: 'icons/equipment/body/armor-coveralls.webp' }),
+      'torso'
+    ).img).toBe('icons/equipment/body/armor-coveralls.webp');
+
+    expect(widerstandOptions(actor(), 'torso').img).toBe('');
   });
 
   // The Ansage is one free magnitude and nothing else. It carries no rank, no

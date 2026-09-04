@@ -62,6 +62,7 @@ export class TnoRollDialog extends FormApplication {
    *   table knows, such as the Schadenswert an attacker announced. Orthogonal
    *   to `preRollContext`, which is structurally "pick one of an authored list".
    * @param {string} [options.flavor]      Label shown as the roll's subject heading and chat flavor.
+   * @param {string} [options.img]         Picture shown beside that heading on the chat card, e.g. the weapon's own art.
    * @param {{label: string, hint?: string}} [options.ansage]
    *   Offer the Ansage field: one optional, free magnitude that worsens this roll
    *   by what it declares. Deliberately unpriced and ungated — the player and the
@@ -100,7 +101,7 @@ export class TnoRollDialog extends FormApplication {
    *   cancelled. For state a workflow owes its own sheet — the repeated-defence
    *   counter is the first — which must count rolls and not intentions.
    */
-  constructor(actor, { attributeA = '', lockAttribute = false, skill = null, freeSkill = false, fixedValue = null, fixedModifiers = [], preRollContext = null, requiredValue = null, ansage = null, zonePicker = null, maneuverMalus = null, envelope = null, opposingAnsage = false, toggleModifier = null, consequence = null, afterRoll = null, flavor = '', width = null } = {}) {
+  constructor(actor, { attributeA = '', lockAttribute = false, skill = null, freeSkill = false, fixedValue = null, fixedModifiers = [], preRollContext = null, requiredValue = null, ansage = null, zonePicker = null, maneuverMalus = null, envelope = null, opposingAnsage = false, toggleModifier = null, consequence = null, afterRoll = null, flavor = '', img = '', width = null } = {}) {
     // `requiredValue` starts at 0. It used to start empty so that an untouched
     // field and a typed zero could be told apart and only the latter could roll;
     // that gate was dropped deliberately — the field opens on the value most
@@ -161,6 +162,11 @@ export class TnoRollDialog extends FormApplication {
     this.consequence = typeof consequence === 'function' ? consequence : null;
     this.afterRoll = typeof afterRoll === 'function' ? afterRoll : null;
     this.flavor = flavor || game.i18n.localize('TNO.Roll.DialogTitle');
+    // Decoration for the chat card only: which weapon this roll was made with,
+    // read at a glance in a scrolling log. Nothing computes with it, and a roll
+    // that has no object behind it — a bare attribute, a Ausweichen — leaves it
+    // empty rather than reaching for a placeholder.
+    this.img = img;
   }
 
   /**
@@ -1463,6 +1469,7 @@ export class TnoRollDialog extends FormApplication {
       threshold,
       advantage: Number(formData.advantage),
       flavor: this.flavor,
+      img: this.img,
       actor: this.actor,
       components,
       bonus: Number(formData.bonus) || 0,

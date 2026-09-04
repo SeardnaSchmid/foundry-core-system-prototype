@@ -26,6 +26,18 @@
     border-bottom: none;
   }
 
+  // Aligned to the flavor's baseline like every other chip in this row, so a
+  // card with a weapon and one without sit at the same height.
+  .tno-roll-icon {
+    align-self: center;
+    flex: none;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 3px;
+    object-fit: contain;
+  }
+
   .tno-roll-advantage-badge {
     font-size: var(--font-size-10, 10px);
     font-weight: bold;
