@@ -416,14 +416,31 @@
     background: rgba($c-dark, 0.04);
   }
 
+  // `stretch`, not `center`: every button in a row stands the same height as
+  // its tallest neighbour rather than each sizing to its own label, which is
+  // what let one long word set three different heights across this footer.
+  //
+  // The footer runs **two sizes and no more**, and which one applies is a
+  // property of the *row* rather than of the buttons in it — a utility row is
+  // 26px, the row carrying the card's principal action is 30px. Stated as three
+  // custom properties so every surface reusing this bar (the item card, the
+  // wallet editor, the chat card's take action) inherits the pair rather than
+  // restating padding and font-size for itself, which is how the bar had grown
+  // a third size per variant.
   .item-popover-actions-row {
-    display: flex;
-    align-items: center;
-    gap: 5px;
+    --popover-action-height: 26px;
+    --popover-action-font: var(--font-size-11, 11px);
+    --popover-action-icon: 12px;
 
-    .spacer {
-      flex: 1;
-    }
+    display: flex;
+    align-items: stretch;
+    gap: 5px;
+  }
+
+  .item-popover-actions-row--lead {
+    --popover-action-height: 30px;
+    --popover-action-font: var(--font-size-13, 13px);
+    --popover-action-icon: 14px;
   }
 
   // Attack remains the primary combat action, while the melee-only parry is
@@ -440,17 +457,33 @@
     }
   }
 
+  // One skin for every button in every one of these footers; the row it sits in
+  // decides its size. A labelled action takes an equal share of its row and
+  // never wraps — buttons used to size to their own labels, so a footer read as
+  // three different controls and its longest word set the row's height.
   .item-popover-actions button {
     display: inline-flex;
+    flex: 1 1 0;
     align-items: center;
     justify-content: center;
     gap: 5px;
-    padding: 4px 9px;
+    min-width: 0;
+    min-height: var(--popover-action-height);
+    padding: 4px 10px;
     border: 1px solid rgba($c-dark, 0.2);
     border-radius: 6px;
     background: rgba($c-white, 0.55);
     color: $c-dark;
-    font-size: var(--font-size-11, 11px);
+    font-size: var(--popover-action-font);
+    line-height: 1.2;
+    white-space: nowrap;
+
+    // Stated rather than inherited: Font Awesome glyphs set at the label's own
+    // size render at visibly different optical weights beside it.
+    > i {
+      font-size: var(--popover-action-icon);
+      line-height: 1;
+    }
 
     .defense-malus {
       padding: 1px 4px;
@@ -476,17 +509,28 @@
       font-weight: bold;
     }
 
+    // The destructive action, reduced to its glyph: a fixed square that takes
+    // no share of the row, pushed off the labelled pair by its own margin so
+    // the gap says "not one of these two" without a spacer element.
+    &.icon-only {
+      flex: none;
+      width: var(--popover-action-height);
+      margin-left: auto;
+      padding: 0;
+    }
+
     // The one real CTA, styled as the roll dialog's `.tno-roll-submit` is:
     // _colors.scss reserves this blue for committing to a roll, and this button
     // opens that very dialog. Foundry's warm-gold :focus glow is killed for the
     // same reason it is there — the blue identity has to carry into focus.
+    // Colour only — the size comes from the lead row it sits in, the same size
+    // the wallet's Save and the chat card's take action get without the blue.
     &.wide {
       width: 100%;
-      padding: 6px 9px;
+      padding: 6px 10px;
       border-color: $c-primary;
       background: $c-primary;
       color: $c-white;
-      font-size: var(--font-size-12, 12px);
       font-weight: bold;
       transition: background 0.12s ease;
 
@@ -826,21 +870,28 @@
 
   // Only offered while there is damage to clear: without it the control would
   // be an action with no effect.
+  // Not in an action bar, but the same control, so it carries the same numbers
+  // the bar's secondary size uses rather than the near-miss set it had drifted
+  // to (no height floor, a 13px glyph beside an 11px label).
   .condition-panel-clear {
     display: inline-flex;
     align-self: flex-start;
     align-items: center;
-    gap: 6px;
-    padding: 4px 9px;
+    gap: 5px;
+    min-height: 26px;
+    padding: 4px 10px;
     border: 1px solid rgba($c-dark, 0.2);
     border-radius: 6px;
     background: rgba($c-white, 0.55);
     color: $c-dark;
     font-size: var(--font-size-11, 11px);
+    line-height: 1.2;
+    white-space: nowrap;
     cursor: pointer;
 
     i {
-      font-size: var(--font-size-13, 13px);
+      font-size: 12px;
+      line-height: 1;
     }
 
     &:hover {
@@ -1093,12 +1144,9 @@
     white-space: nowrap;
   }
 
+  // Only the bar's own padding is the wallet's to set; its buttons take the
+  // lead row's size like every other footer's do.
   .item-popover-actions {
     padding: 9px 12px;
-  }
-
-  .item-popover-actions button {
-    padding: 5px 10px;
-    font-size: var(--font-size-12, 12px);
   }
 }

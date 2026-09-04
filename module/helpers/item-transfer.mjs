@@ -171,7 +171,7 @@ export function renderItemTakeAction(message, html) {
   const footer = document.createElement('footer');
   footer.className = 'item-popover-actions item-chat-actions';
   footer.innerHTML = `
-    <div class="item-popover-actions-row">
+    <div class="item-popover-actions-row item-popover-actions-row--lead">
       <button type="button" class="primary">
         <i class="fa-solid fa-hand-holding" aria-hidden="true"></i>${game.i18n.localize('TNO.Item.Chat.Take')}
       </button>

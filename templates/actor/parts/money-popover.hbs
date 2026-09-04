@@ -40,9 +40,11 @@
   </div>
 
   <footer class='item-popover-actions'>
-    <div class='item-popover-actions-row'>
+    {{!-- Cancel and Save share the row equally, the way every labelled button
+          in this footer does. They used to be pushed to opposite ends by a
+          spacer element, which was the only thing that element existed for. --}}
+    <div class='item-popover-actions-row item-popover-actions-row--lead'>
       <button type='button' data-money-action='cancel'>{{localize 'TNO.Money.Cancel'}}</button>
-      <span class='spacer'></span>
       <button type='submit' class='primary'>{{localize 'TNO.Money.Save'}}</button>
     </div>
   </footer>

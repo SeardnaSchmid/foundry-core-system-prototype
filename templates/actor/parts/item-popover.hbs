@@ -4,7 +4,7 @@
       primary row; every other item makes editing the primary action instead. --}}
 <footer class='item-popover-actions' aria-label='{{localize "TNO.Item.Overview.Actions"}}'>
   {{#if canWeaponCheck}}
-    <div class='item-popover-actions-row item-popover-combat-actions'>
+    <div class='item-popover-actions-row item-popover-actions-row--lead item-popover-combat-actions'>
       <button type='button' class='primary wide' data-popover-action='weapon-check'
               title='{{localize "TNO.Item.Overview.WeaponCheckHint"}}'>
         <i class='fa-solid fa-dice-d20' aria-hidden='true'></i>{{localize 'TNO.Item.Overview.WeaponCheck'}}
@@ -19,7 +19,7 @@
     </div>
   {{else}}
     {{#if canWeaponParry}}
-      <div class='item-popover-actions-row item-popover-combat-actions'>
+      <div class='item-popover-actions-row item-popover-actions-row--lead item-popover-combat-actions'>
         <button type='button' data-popover-action='weapon-parry'
                 title='{{parryHint}}'>
           <i class='fa-solid fa-shield-halved' aria-hidden='true'></i>{{localize 'TNO.Combat.Parry'}}
@@ -36,9 +36,17 @@
       <button type='button' class='{{#unless canWeaponCheck}}primary{{/unless}}' data-popover-action='edit'>
         <i class='fa-solid fa-pen' aria-hidden='true'></i>{{localize 'TNO.Item.Popover.Edit'}}
       </button>
-      <span class='spacer'></span>
-      <button type='button' class='danger' data-popover-action='delete' {{#unless canDelete}}disabled title='{{localize "TNO.Item.DeleteWornHint"}}'{{/unless}}>
-        <i class='fa-solid fa-trash' aria-hidden='true'></i>{{localize 'TNO.Item.Delete'}}
+      {{!-- Destructive, so it is the one action in this footer carrying no
+            label: a square icon pushed off the labelled pair by its own auto
+            margin. "Gegenstand löschen" is the longest string in the footer and
+            wrapped to two lines, which made the row's height — and the loudest
+            thing in it — the action nobody came here for. Every other delete
+            affordance in the system is already this: an icon whose name lives
+            in its tooltip. --}}
+      <button type='button' class='danger icon-only' data-popover-action='delete'
+              aria-label='{{localize "TNO.Item.Delete"}}'
+              {{#if canDelete}}title='{{localize "TNO.Item.Delete"}}'{{else}}disabled title='{{localize "TNO.Item.DeleteWornHint"}}'{{/if}}>
+        <i class='fa-solid fa-trash' aria-hidden='true'></i>
       </button>
     {{/if}}
   </div>

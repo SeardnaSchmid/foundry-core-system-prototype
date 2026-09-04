@@ -4688,12 +4688,17 @@
   background: rgba(25, 24, 19, 0.04);
 }
 .tno.item-popover .item-popover-actions-row, .tno.item-chat-summary .item-popover-actions-row {
+  --popover-action-height: 26px;
+  --popover-action-font: var(--font-size-11, 11px);
+  --popover-action-icon: 12px;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 5px;
 }
-.tno.item-popover .item-popover-actions-row .spacer, .tno.item-chat-summary .item-popover-actions-row .spacer {
-  flex: 1;
+.tno.item-popover .item-popover-actions-row--lead, .tno.item-chat-summary .item-popover-actions-row--lead {
+  --popover-action-height: 30px;
+  --popover-action-font: var(--font-size-13, 13px);
+  --popover-action-icon: 14px;
 }
 .tno.item-popover .item-popover-combat-actions > button, .tno.item-chat-summary .item-popover-combat-actions > button {
   flex: 1 1 0;
@@ -4705,15 +4710,24 @@
 }
 .tno.item-popover .item-popover-actions button, .tno.item-chat-summary .item-popover-actions button {
   display: inline-flex;
+  flex: 1 1 0;
   align-items: center;
   justify-content: center;
   gap: 5px;
-  padding: 4px 9px;
+  min-width: 0;
+  min-height: var(--popover-action-height);
+  padding: 4px 10px;
   border: 1px solid rgba(25, 24, 19, 0.2);
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.55);
   color: #191813;
-  font-size: var(--font-size-11, 11px);
+  font-size: var(--popover-action-font);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.tno.item-popover .item-popover-actions button > i, .tno.item-chat-summary .item-popover-actions button > i {
+  font-size: var(--popover-action-icon);
+  line-height: 1;
 }
 .tno.item-popover .item-popover-actions button .defense-malus, .tno.item-chat-summary .item-popover-actions button .defense-malus {
   padding: 1px 4px;
@@ -4734,13 +4748,18 @@
   background: rgba(255, 255, 255, 0.9);
   font-weight: bold;
 }
+.tno.item-popover .item-popover-actions button.icon-only, .tno.item-chat-summary .item-popover-actions button.icon-only {
+  flex: none;
+  width: var(--popover-action-height);
+  margin-left: auto;
+  padding: 0;
+}
 .tno.item-popover .item-popover-actions button.wide, .tno.item-chat-summary .item-popover-actions button.wide {
   width: 100%;
-  padding: 6px 9px;
+  padding: 6px 10px;
   border-color: #2f6bff;
   background: #2f6bff;
   color: #fff;
-  font-size: var(--font-size-12, 12px);
   font-weight: bold;
   transition: background 0.12s ease;
 }
@@ -4988,17 +5007,21 @@
   display: inline-flex;
   align-self: flex-start;
   align-items: center;
-  gap: 6px;
-  padding: 4px 9px;
+  gap: 5px;
+  min-height: 26px;
+  padding: 4px 10px;
   border: 1px solid rgba(25, 24, 19, 0.2);
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.55);
   color: #191813;
   font-size: var(--font-size-11, 11px);
+  line-height: 1.2;
+  white-space: nowrap;
   cursor: pointer;
 }
 .tno.item-popover.condition-popover .condition-panel-clear i {
-  font-size: var(--font-size-13, 13px);
+  font-size: 12px;
+  line-height: 1;
 }
 .tno.item-popover.condition-popover .condition-panel-clear:hover {
   border-color: rgba(25, 24, 19, 0.4);
@@ -5209,10 +5232,6 @@
 }
 .tno.item-popover.money-popover .item-popover-actions {
   padding: 9px 12px;
-}
-.tno.item-popover.money-popover .item-popover-actions button {
-  padding: 5px 10px;
-  font-size: var(--font-size-12, 12px);
 }
 .tno .effects .item .effect-source,
 .tno .effects .item .effect-duration,
