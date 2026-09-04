@@ -1,5 +1,17 @@
 # Changelog
 
+# [0.40.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.39.0...v0.40.0) (2026-09-04)
+
+
+### Bug Fixes
+
+* **sheet:** let the skill flow use every column it can fit ([8a4d3da](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/8a4d3daed0e12f51178f35f7ed53ff2d5c1c67fa))
+
+
+### Features
+
+* **roll:** rebuild the roll dialog as a ledger ([7e803fe](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/7e803fea2b10fdb923be280813c0c6c181330597))
+
 # [0.39.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.38.0...v0.39.0) (2026-09-03)
 
 
