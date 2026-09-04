@@ -1,5 +1,15 @@
 # Changelog
 
+# [0.41.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.40.1...v0.41.0) (2026-09-04)
+
+
+### Features
+
+* **inventory:** draw carried items with their own art ([2fe5ff2](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/2fe5ff2830a7852a120c65f26eaadd3e0f20d07f))
+* **item:** post any open item sheet to chat ([5400593](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/5400593267aeaec737804b790c29ca9ba24a5779))
+* **packs:** ship a gear compendium built from YAML source ([4750207](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/47502075fc6a9a8ddb482899da2b852cdc994fdb))
+* **roll:** show what the roll was made with on the chat card ([5e2af8a](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/5e2af8ac8ca63f24489299efd25d133c128abed6))
+
 ## [0.40.1](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.40.0...v0.40.1) (2026-09-04)
 
 
