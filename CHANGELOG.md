@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.42.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.41.0...v0.42.0) (2026-09-04)
+
+
+### Features
+
+* **item:** rail-and-column gear sheet, editable art, and item type lines ([8aa7a09](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/8aa7a09ad9740bfc9b105edcc1cc07ea64101757))
+
 # [0.41.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.40.1...v0.41.0) (2026-09-04)
 
 
