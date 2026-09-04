@@ -80,25 +80,25 @@ test('an Ansage turns an attack into a Manöver and brings the FV malus with it'
 
   // 1. Nothing declared: Handhabung alone among the gear rows, and no FV step —
   //    this is a Standardangriff and a Standardangriff is not a Manöver. The
-  //    declaration block is shut, which is what "nothing declared" looks like.
-  await expect(dialog.locator('.tno-roll-gear-modifiers .tno-roll-detail:visible')).toHaveCount(1);
+  //    Stelle line reads ±0, the Torso being where an unannounced blow lands.
+  await expect(dialog.locator('.tno-roll-gear-modifiers .tno-ledger-row:visible')).toHaveCount(1);
   await expect(dialog.locator('.tno-threshold-value')).toHaveText(String(MANEUVER.standardThreshold));
-  const attempt = dialog.locator('.tno-roll-attempt');
-  await expect(attempt).not.toHaveAttribute('open', /.*/);
-  await expect(attempt.locator('.tno-attempt-badge')).toHaveText('—');
+  await expect(dialog.locator('.tno-maneuver-malus')).toBeHidden();
+  await expect(dialog.locator('.tno-ledger-delta[data-role="zone-delta"]')).toHaveText('±0');
 
   // 2. Naming a Stelle other than the Torso *is* a declaration — "Ansagen auf
   //    Trefferzonen im Nahkampf, normale Ansageregeln gelten hier auf alles" —
   //    so the head costs its own −6 and pulls the FV shortfall in with it.
-  await attempt.locator('summary').click();
   await dialog.locator('input[name="zoneChoice"][value="head"]').evaluate((input) => input.click());
   await expect(dialog.locator('.tno-threshold-value')).toHaveText(String(MANEUVER.aimedThreshold));
-  await expect(attempt.locator('.tno-attempt-badge')).toContainText('−6');
+  await expect(dialog.locator('.tno-ledger-delta[data-role="zone-delta"]')).toHaveText('−6');
+  await expect(dialog.locator('.tno-maneuver-malus')).toBeVisible();
 
   // Back to the Torso: the standard attack is where an unannounced blow lands,
   // so it costs nothing and takes the FV step back off again.
   await dialog.locator('input[name="zoneChoice"][value="torso"]').evaluate((input) => input.click());
   await expect(dialog.locator('.tno-threshold-value')).toHaveText(String(MANEUVER.standardThreshold));
+  await expect(dialog.locator('.tno-maneuver-malus')).toBeHidden();
 
   // 3. Declaring an amount does the same thing by the other route, and the two
   //    stay separate components rather than one summed figure.
@@ -106,7 +106,7 @@ test('an Ansage turns an attack into a Manöver and brings the FV malus with it'
   await expect(ansage).toBeVisible();
   await ansage.fill(String(MANEUVER.ansage));
   await ansage.dispatchEvent('change');
-  await expect(dialog.locator('.tno-ansage-readout')).toHaveText('−3');
+  await expect(dialog.locator('.tno-ledger-delta[data-role="ansage-delta"]')).toHaveText('−3');
   await expect(dialog.locator('.tno-threshold-value')).toHaveText(String(MANEUVER.maneuverThreshold));
 
   // The reach comparison is still required before the roll may be made.

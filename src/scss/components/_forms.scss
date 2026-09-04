@@ -86,13 +86,28 @@
 // the rest of the sheet keeps that gutter. Its own padding is what holds the
 // chips off the frame, and the top corners are square because the window header
 // now sits directly on them.
+// The sheet stands on Foundry's `/ui/parchment.jpg`; this is that texture's
+// average tone. The band needs it as an opaque base now that it is sticky —
+// see the `background` note below.
+$c-sheet-ground: #dbd8cd;
+
 .sheet-banner {
   --portrait-size: clamp(150px, 16cqi, 170px);
   // `.window-content` reserves a stable thin scrollbar gutter. Bleed beneath
   // it so the full-width artwork reaches the actual window edge instead of
   // ending one pale strip early.
   --scrollbar-bleed: 16px;
-  position: relative;
+  // Pinned to the top of the sheet's scroll. The band is what stays true about
+  // this character while the tab body under it changes, so it should not be the
+  // first thing scrolled away.
+  //
+  // `top` is negative by exactly the bleed above: the band pulls itself 16px up
+  // under `.window-content`'s padding to meet the window frame, and a sticky
+  // inset measures from the scrollport's *padding* edge — so sticking at 0
+  // would park it 16px lower than where it rests.
+  position: sticky;
+  top: -16px;
+  z-index: 2;
   isolation: isolate;
   display: grid;
   grid-template-columns: var(--portrait-size) minmax(280px, 1fr) minmax(0, auto);
@@ -114,7 +129,14 @@
   border-radius: 0;
   // Neutral fallback when the portrait cannot load. The charcoal readability
   // gradient below still gives the identity a deliberate dark field.
-  background: linear-gradient(180deg, rgba($c-dark, 0.14) 0%, rgba($c-dark, 0.04) 100%);
+  //
+  // The flat ground under it is what sticky costs: the band is see-through by
+  // design — a 58% portrait beneath a gradient that is fully transparent past
+  // 72% — and sheet content now passes underneath. It borrows the page's own
+  // parchment tone so the band keeps the ground it used to see through to.
+  background:
+    linear-gradient(180deg, rgba($c-dark, 0.14) 0%, rgba($c-dark, 0.04) 100%),
+    $c-sheet-ground;
 
   // A fine rule spans the banner behind the raised portrait. The portrait's
   // higher stacking layer masks its part of the rule naturally, so no

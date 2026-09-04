@@ -140,7 +140,7 @@ describe('weapon roll requirement components', () => {
   it('labels both reach-toggle answers rather than showing bare numbers', () => {
     opened = null;
     weapon(actor()).openWeaponCheck();
-    expect(opened.preRollContext.tileLabels).toBe(true);
+
     expect(opened.preRollContext.tileColumns).toBe(2);
     expect(opened.preRollContext.choices.map((choice) => choice.label)).toEqual([
       'TNO.Combat.Reach.NotLonger',

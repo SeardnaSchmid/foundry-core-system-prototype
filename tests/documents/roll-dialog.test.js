@@ -92,12 +92,31 @@ describe('TnoRollDialog pre-roll context', () => {
       preRollContext: {
         label: 'Range',
         control: 'tiles',
-        tileLabels: true,
         tileColumns: 5,
         choices: [{ key: 'near', label: 'Near', value: -3 }],
       },
     });
-    expect(rangeDialog.preRollContext).toMatchObject({ control: 'tiles', tileLabels: true, tileColumns: 5 });
+    expect(rangeDialog.preRollContext).toMatchObject({ control: 'tiles', tileColumns: 5 });
+  });
+
+  // Every tile reads in the same three slots — what you are picking, what it is
+  // worth, what it does — and which of them a choice fills is derived, not
+  // declared. A choice naming itself (`headline`) is one whose `label` is an
+  // effect, so that label drops to the caption; a choice without one is named
+  // by its label and has no caption at all. The range picker used to lead with
+  // the modifier and caption it with the band, which answered "at what
+  // distance?" with "−3".
+  it('names a tile by its answer and captions it only where there is an effect to state', () => {
+    const tiles = (choices) => new TnoRollDialog(actor, {
+      fixedValue: { label: 'Base', value: 8 },
+      preRollContext: { label: 'Range', control: 'tiles', tileColumns: 5, choices },
+    }).getData().preRollContext.choices;
+
+    const [band] = tiles([{ key: 'near', label: 'Near', value: -3 }]);
+    expect(band).toMatchObject({ name: 'Near', display: '−3', caption: '', state: 'negative' });
+
+    const [rung] = tiles([{ key: 'holds', label: 'holds · blunt damage', headline: '= 8', value: 0 }]);
+    expect(rung).toMatchObject({ name: '= 8', display: '±0', caption: 'holds · blunt damage', state: 'neutral' });
   });
 
   it('accepts a binary toggle only for exactly two choices', () => {
@@ -367,29 +386,29 @@ describe('TnoRollDialog Ansagen', () => {
     expect(dialog._conditionalModifiers({ ...base, zoneChoice: 'torso' })).toEqual([]);
   });
 
-  it('reports what a collapsed declaration block is carrying', () => {
-    const dialog = attack({ zonePicker });
-    const base = form({ attributeA: 'str', contextChoice: '0' });
-    // Closed over nothing is an em dash, not "±0": the block is shut because
-    // there is nothing in it, not because something was set to zero.
-    expect(dialog._attemptBadge({ ...base, zoneChoice: 'torso' })).toBe('—');
-    expect(dialog._attemptBadge({ ...base, zoneChoice: 'head', ansage: 4 })).toBe('Kopf −6 · Ansage −4');
-  });
-
-  // The GM's free ±3 moved into that block, so a shut block would otherwise be
-  // able to hide it — the one thing the badge exists to prevent.
-  it('names the scene modification in the badge without charging it twice', () => {
+  // The Stelle, a declared Ansage and the GM's ±3 each become their own ledger
+  // line rather than being folded away behind a disclosure — and each reaches
+  // the breakdown as one signed component, once.
+  it('gives the Stelle, the Ansage and the scene ±3 one ledger line each', () => {
     const dialog = attack({ zonePicker });
     const base = form({ attributeA: 'str', contextChoice: '0', zoneChoice: 'torso' });
 
-    expect(dialog._attemptBadge({ ...base, bonus: -3 })).toBe('TNO.Roll.Bonus −3');
-    expect(dialog._attemptBadge({ ...base, zoneChoice: 'head', ansage: 4, bonus: 3 }))
-      .toBe('Kopf −6 · Ansage −4 · TNO.Roll.Bonus +3');
+    // The Torso costs nothing and yields no component; the ledger states its ±0.
+    expect(dialog._zoneComponent(base)).toBeNull();
+    expect(dialog._deltaCell(dialog._zoneComponent(base)?.value ?? 0))
+      .toEqual({ display: '±0', cls: 'is-neutral' });
 
-    // The badge only reports; the threshold reads the bonus from the form data
-    // itself, so listing it here adds nothing to the roll.
-    expect(dialog._computeThreshold({ ...base, bonus: 3 }))
-      .toBe(dialog._computeThreshold({ ...base, bonus: 0 }) + 3);
+    const set = { ...base, zoneChoice: 'head', ansage: 4, bonus: 3 };
+    const text = dialog._breakdownText(set);
+    expect(text).toContain('Kopf −6');
+    expect(text).toContain('Ansage −4');
+    expect(text).toContain('TNO.Roll.Bonus +3');
+
+    // Each is read from the form data once: dropping the ±3 moves the Schwelle
+    // by exactly 3, and the Stelle price stays out of the Ansage figure.
+    expect(dialog._computeThreshold(set) - dialog._computeThreshold({ ...set, bonus: 0 })).toBe(3);
+    expect(dialog._zoneComponent(set)).toEqual({ label: 'Kopf', value: -6, display: '−6' });
+    expect(dialog._ansageComponent(set)).toEqual({ label: 'Ansage', value: -4, display: '−4' });
   });
 
   it('falls back to Torso for an unpicked or unknown Stelle', () => {
@@ -478,17 +497,21 @@ describe('TnoRollDialog opposing Ansage', () => {
     }).opposingAnsage).toBe(false);
   });
 
-  it('offers it empty when nothing was announced, and pre-filled when something was', () => {
+  it('offers it at zero when nothing was announced, and pre-filled when something was', () => {
     const dialog = new TnoRollDialog(armoured(false), { attributeA: 'dex', opposingAnsage: true });
     expect(dialog.opposingAnsage).toBe(true);
-    expect(dialog.object.opposingAnsage).toBe('');
+    // The field opens on a figure rather than a grey placeholder, and 0 is what
+    // "nothing was announced against you" is worth on the threshold anyway.
+    expect(dialog.object.opposingAnsage).toBe(0);
 
     const announced = new TnoRollDialog(armoured(false), { attributeA: 'dex', opposingAnsage: 3 });
     expect(announced.opposingAnsage).toBe(true);
     expect(announced.object.opposingAnsage).toBe(3);
-    // A zero is an attack that declared nothing, so the field stays blank rather
-    // than pre-filled with a meaningless 0.
-    expect(new TnoRollDialog(armoured(false), { attributeA: 'dex', opposingAnsage: 0 }).object.opposingAnsage).toBe('');
+    // A zero is an attack that declared nothing, so it pre-fills nothing and the
+    // field is left sitting on its own default.
+    expect(new TnoRollDialog(armoured(false), { attributeA: 'dex', opposingAnsage: 0 }).object.opposingAnsage).toBe(0);
+    // Either way it contributes nothing: a 0 is not an Ansage.
+    expect(dialog._opposingAnsageComponent(form({ opposingAnsage: 0 }))).toBeNull();
   });
 
   it('subtracts an announced Ansage from a defence without ever gating it', () => {
@@ -520,17 +543,23 @@ describe('TnoRollDialog required value', () => {
     requiredValue: { label: 'Schadenswert', sign: -1, min: 0 },
   });
 
-  it('refuses to roll until the announced value is entered', async () => {
+  it('opens the announced value at zero and never blocks the roll on it', async () => {
     const dialog = resistance();
-    expect(dialog._canSubmit(form({ attributeA: 'str' }))).toBe(false);
-    await dialog._updateObject(null, form({ attributeA: 'str' }));
-    expect(rolled.payload).toBeNull();
-    expect(warnings).toEqual(['TNO.Roll.ValueRequired']);
+    // The field opens on a value rather than empty, and a roll carrying only
+    // that default is a roll the dialog will make.
+    expect(dialog.object.requiredValue).toBe(0);
+    expect(dialog._canSubmit(form({ attributeA: 'str' }))).toBe(true);
 
-    // A blank field is not a typed zero: `FormDataExtended` yields null for an
-    // empty number input, and an announced 0 is a real answer that rolls.
-    expect(dialog._canSubmit(form({ attributeA: 'str', requiredValue: null }))).toBe(false);
-    expect(dialog._canSubmit(form({ attributeA: 'str', requiredValue: 0 }))).toBe(true);
+    // Blank and zero are the same answer now: clearing the box empties it, it
+    // does not withdraw the answer.
+    expect(dialog._requiredValueEntry(form({ attributeA: 'str', requiredValue: null }))).toBe(0);
+    expect(dialog._requiredValueEntry(form({ attributeA: 'str', requiredValue: 0 }))).toBe(0);
+    expect(dialog._canSubmit(form({ attributeA: 'str', requiredValue: null }))).toBe(true);
+
+    await dialog._updateObject(null, form({ attributeA: 'str' }));
+    expect(warnings).toEqual([]);
+    expect(rolled.payload).not.toBeNull();
+    expect(rolled.payload.threshold).toBe(dialog._computeThreshold(form({ attributeA: 'str' })));
   });
 
   it('subtracts the announced value from the threshold', () => {
@@ -567,6 +596,8 @@ describe('TnoRollDialog required value', () => {
       },
     });
 
+    // The pick is the only answer that can hold the roll back, so it is the only
+    // one the footer can be waiting on — with or without a typed number.
     expect(dialog._thresholdReadout(form({ attributeA: 'str' }))).toEqual({
       ready: false,
       threshold: null,
@@ -574,12 +605,12 @@ describe('TnoRollDialog required value', () => {
       oddsLabel: '',
       oddsPercent: 0,
       oddsTooltip: '',
-      missingLabel: 'Schadenswert',
+      missingLabel: 'Durchdringung?',
     });
     expect(dialog._thresholdReadout(form({ attributeA: 'str', requiredValue: 7 })))
       .toMatchObject({ ready: false, thresholdDisplay: '—', missingLabel: 'Durchdringung?' });
     expect(dialog._thresholdReadout(form({ attributeA: 'str', contextChoice: 'harder' })))
-      .toMatchObject({ ready: false, thresholdDisplay: '—', missingLabel: 'Wucht-Schadenswert' });
+      .toMatchObject({ ready: true, missingLabel: '' });
 
     const ready = dialog._thresholdReadout(form({
       attributeA: 'str',
@@ -607,7 +638,7 @@ describe('TnoRollDialog presentation helpers', () => {
     expect(dialog._breakdownText(data)).toBe(parts.map((part) => `${part.label} ${part.display}`).join(' + '));
   });
 
-  it('derives dividers only from sections on their far side', () => {
+  it('derives a group from the sections inside it and nothing else', () => {
     const combat = new TnoRollDialog(armoured(false), {
       attributeA: 'str',
       preRollContext: {
@@ -622,19 +653,18 @@ describe('TnoRollDialog presentation helpers', () => {
     });
     const fixed = new TnoRollDialog(armoured(false), { fixedValue: { label: 'Fest', value: 8 } });
 
-    expect(combat._sectionFlags()).toMatchObject({ hasGivenDivider: true, hasChosenDivider: true });
-    expect(skill._sectionFlags()).toMatchObject({ hasGivenDivider: false, hasChosenDivider: true });
-    expect(fixed._sectionFlags()).toMatchObject({ hasGivenDivider: false, hasChosenDivider: false });
+    expect(combat._sectionFlags()).toMatchObject({ hasGivenGroup: true, hasChosenGroup: true });
+    expect(skill._sectionFlags()).toMatchObject({ hasGivenGroup: false, hasChosenGroup: true });
+    expect(fixed._sectionFlags()).toMatchObject({ hasGivenGroup: false, hasChosenGroup: false });
   });
 
-  it('uses the adjustment question when the section only contains the stepper', () => {
-    const simple = new TnoRollDialog(armoured(false), { attributeA: 'str' });
-    const declared = new TnoRollDialog(armoured(false), {
-      attributeA: 'str',
-      ansage: { label: 'Ansage' },
-    });
-    expect(simple._attemptQuestionKey()).toBe('TNO.Roll.Question.Adjust');
-    expect(declared._attemptQuestionKey()).toBe('TNO.Roll.Question.Attempt');
+  it('reads a line still awaiting its answer as pending, and an unarmed one as provisional', () => {
+    const dialog = new TnoRollDialog(armoured(false), { attributeA: 'str' });
+    expect(dialog._deltaCell(0, { pending: true })).toEqual({ display: '?', cls: 'is-pending' });
+    expect(dialog._deltaCell(-3, { provisional: true })).toEqual({ display: '(−3)', cls: 'is-provisional' });
+    expect(dialog._deltaCell(-3)).toEqual({ display: '−3', cls: 'is-negative' });
+    expect(dialog._deltaCell(2)).toEqual({ display: '+2', cls: 'is-positive' });
+    expect(dialog._deltaCell(0)).toEqual({ display: '±0', cls: 'is-neutral' });
   });
 });
 

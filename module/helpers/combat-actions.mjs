@@ -123,7 +123,7 @@ export function defenseMalus(actor, defense) {
  * A melee attack or parry needs the reach comparison; a ranged attack needs the
  * band it is fired at.
  * @param {Object} system  A weapon item's `system` data.
- * @returns {{label: string, placeholder: string, control: 'toggle'|'tiles', tileLabels: boolean, tileColumns: 2|5, choices: Array<Object>}}
+ * @returns {{label: string, placeholder: string, control: 'toggle'|'tiles', tileColumns: 2|5, choices: Array<Object>}}
  */
 function weaponContext(system) {
   const melee = usesMelee(system);
@@ -131,7 +131,6 @@ function weaponContext(system) {
     label: game.i18n.localize(melee ? 'TNO.Combat.DkQuestion' : 'TNO.Combat.RangeQuestion'),
     placeholder: game.i18n.localize('TNO.Combat.ContextPlaceholder'),
     control: melee ? 'toggle' : 'tiles',
-    tileLabels: true,
     tileColumns: melee ? 2 : 5,
     choices: melee ? dkChoices() : rangeBandChoices(system),
   };
@@ -398,6 +397,10 @@ export function angriffOptions(actor, weapon) {
   return {
     attributeA: weaponAttribute(weapon.system),
     lockAttribute: true,
+    // The same width the resistance roll asks for: a picker now sits inside a
+    // ledger row beside its Δ column, and the class default of 340 was picked
+    // for a dialog whose pickers still had the full width to themselves.
+    width: 400,
     skill: { key, label: definition.label, value: weaponSkillRank(actor, weapon.system) },
     fixedModifiers: weaponFixedModifiers(actor, weapon.system, 'active'),
     preRollContext: weaponContext(weapon.system),
@@ -426,14 +429,17 @@ export function paradeOptions(actor, weapon) {
   return {
     attributeA: weaponAttribute(weapon.system),
     lockAttribute: true,
+    // The same width the resistance roll asks for: a picker now sits inside a
+    // ledger row beside its Δ column, and the class default of 340 was picked
+    // for a dialog whose pickers still had the full width to themselves.
+    width: 400,
     skill: { key, label: definition.label, value: weaponSkillRank(actor, weapon.system) },
     fixedModifiers: [...weaponFixedModifiers(actor, weapon.system, 'passive'), ...repeatedDefense(actor, 'parry')],
     preRollContext: {
       label: game.i18n.localize('TNO.Combat.DkQuestion'),
       placeholder: game.i18n.localize('TNO.Combat.ContextPlaceholder'),
       control: 'toggle',
-      tileLabels: true,
-      tileColumns: 2,
+        tileColumns: 2,
       choices: dkChoices(),
     },
     // A parry declares an amount but never a Stelle: the location is the
@@ -556,8 +562,8 @@ export function widerstandOptions(actor, zone) {
   return {
     attributeA: 'str',
     lockAttribute: true,
-    // The only workflow whose situation section is a three-column table rather
-    // than a column of questions, and the default width has no room for it.
+    // As on the attack and parry: a picker sitting in a ledger row next to the
+    // Δ column needs more than the class default of 340.
     width: 400,
     // Already summed over the Unterkleidung and this zone's addon by
     // `resolveArmor`, which is the value the paper doll shows.
@@ -572,8 +578,15 @@ export function widerstandOptions(actor, zone) {
     // and the comparison above decides which landed. So this field is named by
     // that pick rather than left as a bare "Schadenswert" the player has to map
     // back to the right column of the card themselves.
+    //
+    // Every one of those names leads with the Angreifer, the way the comparison
+    // line above it does ("Angreifer RB/RD"): this is the one row in the ledger
+    // asking for a figure that is not the defender's own, and a bare
+    // "Wucht (WS)" sitting between their RW and their Modifikation did not say
+    // so. `componentLabel` stays the neutral noun — the breakdown and the chat
+    // card are already the attacker's half by the time they print it.
     requiredValue: {
-      label: game.i18n.localize('TNO.Combat.DamageValue'),
+      label: game.i18n.localize('TNO.Combat.DamageValueField'),
       componentLabel: game.i18n.localize('TNO.Combat.DamageValue'),
       labels: Object.fromEntries(
         armorPenetrationChoices().map((choice) => [
@@ -581,8 +594,9 @@ export function widerstandOptions(actor, zone) {
           game.i18n.localize(choice.damage === 'ss' ? 'TNO.Combat.DamageSharp' : 'TNO.Combat.DamageBlunt'),
         ])
       ),
+      // No placeholder: the hint directly under this row already says where the
+      // number is read off, in full, and a 3rem field only ever clipped it.
       hint: game.i18n.localize('TNO.Combat.DamageValueHint'),
-      placeholder: game.i18n.localize('TNO.Combat.DamageValuePlaceholder'),
       sign: -1,
       min: 0,
     },
@@ -607,8 +621,7 @@ export function widerstandOptions(actor, zone) {
       label: game.i18n.localize('TNO.Combat.Penetration.Label'),
       placeholder: game.i18n.localize('TNO.Combat.Penetration.Placeholder'),
       control: 'tiles',
-      tileLabels: true,
-      tileColumns: 1,
+        tileColumns: 1,
       anchor: {
         label: game.i18n.localize('TNO.Combat.Penetration.Anchor'),
         value: armor.rh,

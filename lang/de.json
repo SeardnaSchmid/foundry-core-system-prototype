@@ -531,24 +531,15 @@
       "Blocked": {
         "Missing": "Fehlt noch: {label}"
       },
-      "Question": {
-        "Base": "Womit würfelst du?",
-        "Situation": "Wie steht ihr zueinander?",
-        "Against": "Was wurde gegen dich angesagt?",
-        "Attempt": "Sagst du etwas an oder passt du etwas an?",
-        "Adjust": "Passt du etwas an?",
-        "Spend": "Setzt du etwas ein?",
-        "RollType": "Wie würfelst du?"
-      },
-      "Divider": {
-        "Given": "was dir gegeben wird",
-        "Chosen": "was du entscheidest"
+      "Ledger": {
+        "Posten": "Posten",
+        "Delta": "Δ Schwelle",
+        "InfoLabel": "Hinweis anzeigen"
       },
       "ContextPlaceholder": "Kontext wählen",
-      "RequiredValueIncrease": "Wert erhöhen",
-      "RequiredValueDecrease": "Wert verringern",
+      "ValueIncrease": "Wert erhöhen",
+      "ValueDecrease": "Wert verringern",
       "ContextRequired": "Vor dem Würfeln einen Kampfkontext wählen.",
-      "ValueRequired": "Vor dem Würfeln den angesagten Wert eintragen.",
       "ChooseAttribute": "Attribut",
       "FreeTitle": "Freier Wurf",
       "FreeHint": "Ein wählbares Attribut plus einen freien Fähigkeitswert würfeln",
@@ -578,10 +569,10 @@
       "ResistanceFlavor": "Widerstand: {zone} → {damage}",
       "ResistanceRw": "RW ({zone})",
       "DamageValue": "Schadenswert",
-      "DamageSharp": "Schaden (S)",
-      "DamageBlunt": "Wucht (WS)",
+      "DamageValueField": "Angreifer Schadenswert",
+      "DamageSharp": "Angreifer Schaden (S)",
+      "DamageBlunt": "Angreifer Wucht (WS)",
       "DamageValueHint": "Beide Werte stehen auf der Angriffskarte des Gegners.",
-      "DamageValuePlaceholder": "von der Karte",
       "Applied": "Anzuwenden",
       "AppliedAmount": "{amount} {pool} ({tag})",
       "AppliedMultiplier": "{base} × {multiplier} für {zone}",

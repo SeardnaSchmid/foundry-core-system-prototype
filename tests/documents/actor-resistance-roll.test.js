@@ -189,11 +189,15 @@ describe('resistance roll', () => {
     expect(resist('nowhere')).toBeNull();
   });
 
-  it('requires both the announced damage and the penetration comparison', () => {
+  it('requires the penetration comparison, and defaults the announced damage', () => {
     const dialog = resist('head');
+    // The comparison decides which of the attacker's two damage values applies
+    // and whether the roll gets its +3, so no default could stand in for it.
     expect(dialog._canSubmit(answered())).toBe(false);
     expect(dialog._canSubmit(answered({ requiredValue: 7 }))).toBe(false);
-    expect(dialog._canSubmit(answered({ contextChoice: 'equal' }))).toBe(false);
+    // The announced number opens at 0 and never holds the roll back.
+    expect(dialog.object.requiredValue).toBe(0);
+    expect(dialog._canSubmit(answered({ contextChoice: 'equal' }))).toBe(true);
     expect(dialog._canSubmit(answered({ requiredValue: 7, contextChoice: 'equal' }))).toBe(true);
 
     // Three outcomes, only the hardest worth a Bonusstufe, as three captioned
@@ -205,7 +209,7 @@ describe('resistance roll', () => {
       ['equal', 0],
       ['harder', 3],
     ]);
-    expect(dialog.preRollContext).toMatchObject({ control: 'tiles', tileColumns: 1, tileLabels: true });
+    expect(dialog.preRollContext).toMatchObject({ control: 'tiles', tileColumns: 1 });
   });
 
   // The situation section is a three-column table here and nowhere else, and
@@ -230,22 +234,24 @@ describe('resistance roll', () => {
   // itself would reject.
   it('steps the announced damage inside the bounds the workflow set', () => {
     const dialog = resist('head');
-    const input = { value: '' };
-    const form = { querySelector: () => input };
+    // The bounds are read off the field itself, the way the rendered input
+    // carries them — so one stepper serves every stepped field in the ledger.
+    const input = { value: '', min: '0', max: '' };
+    const form = {};
     dialog._refresh = () => {};
 
     // Blank counts as zero for an explicit click; reading a blank field as
     // "nothing announced" is a separate question and stays that way.
-    dialog._stepRequiredValue(form, 1);
+    dialog._stepValue(form, input, 1);
     expect(input.value).toBe('1');
-    dialog._stepRequiredValue(form, 1);
+    dialog._stepValue(form, input, 1);
     expect(input.value).toBe('2');
-    dialog._stepRequiredValue(form, -1);
+    dialog._stepValue(form, input, -1);
     expect(input.value).toBe('1');
 
     // An announced Schadenswert has a floor of 0 and no ceiling.
-    dialog._stepRequiredValue(form, -1);
-    dialog._stepRequiredValue(form, -1);
+    dialog._stepValue(form, input, -1);
+    dialog._stepValue(form, input, -1);
     expect(input.value).toBe('0');
   });
 
@@ -271,8 +277,9 @@ describe('resistance roll', () => {
   // before, and the player had to carry it in their head every time.
   it('names the damage field after the comparison that was picked', () => {
     const dialog = resist('head');
-    // Nothing picked yet: the neutral name, because neither value applies yet.
-    expect(dialog._requiredValueLabel(answered())).toBe('TNO.Combat.DamageValue');
+    // Nothing picked yet: the un-narrowed name, which still says whose number
+    // this is — it is the one figure in the ledger the defender does not own.
+    expect(dialog._requiredValueLabel(answered())).toBe('TNO.Combat.DamageValueField');
     expect(dialog._requiredValueLabel(answered({ contextChoice: 'softer' })))
       .toBe('TNO.Combat.DamageSharp');
     // Both "hält" outcomes take the blunt value; only the Bonusstufe differs.
@@ -315,13 +322,19 @@ describe('resistance roll', () => {
     });
   });
 
-  it('states nothing until both answers that decide the damage are given', () => {
+  it('states nothing until the comparison names a pool', () => {
     const dialog = resist('head');
+    // The comparison is the half that cannot be defaulted: without it there is
+    // no pool to name, so there is no sentence to write.
     expect(dialog._consequence(answered())).toBeNull();
-    // A value with no comparison names no pool, and a comparison with no value
-    // names no amount — neither half is a sentence on its own.
     expect(dialog._consequence(answered({ requiredValue: 4 }))).toBeNull();
-    expect(dialog._consequence(answered({ contextChoice: 'softer' }))).toBeNull();
+
+    // The amount can be defaulted, and is. A comparison picked over an untouched
+    // field states a real cost of zero rather than staying silent — which is how
+    // a card says out loud that nobody entered the damage.
+    expect(dialog._consequence(answered({ contextChoice: 'softer' }))).toMatchObject({
+      text: 'TNO.Combat.AppliedAmount(0,TNO.Damage.Sharp,TNO.Damage.TagSharp)',
+    });
   });
 
   it('leaves a roll with no consequence to declare without one', () => {

@@ -280,7 +280,7 @@ component decided by form state.
 | **Attack** | WA + the actor's current FV-skill rank · HH active · SV malus | melee: DK modifier `+3 / 0` · ranged: one authored range band (each authored `−3 … +3`) · the Stelle, priced per [Gezielte Angriffe](#the-stelle) and free only at the Torso | `tests/documents/item-weapon-roll.test.js › offers a melee attack the two reach outcomes as its required context`<br>`tests/documents/item-weapon-roll.test.js › labels both reach-toggle answers rather than showing bare numbers`<br>`tests/helpers/items.test.js › offers only authored ranged bands and preserves their modifiers` |
 | **Parry** (melee) | WA + the actor's current FV-skill rank · HH passive · SV malus | DK modifier `+3 / 0`; no Stelle | `tests/documents/item-weapon-roll.test.js › gives a parry passive handling, the same SV malus, and a reach choice` |
 | **Dodge** | Beweglichkeit + Akrobatik · armour SV malus | — | `tests/e2e/specs/combat-dodge.spec.mjs › a dodge is Beweglichkeit plus Akrobatik, less the armour step` |
-| **Resistance** | Stärke (locked) · RW(Stelle) | the penetration comparison `softer / equal / harder` **and** the announced Schadenswert, typed | `tests/documents/actor-resistance-roll.test.js › requires both the announced damage and the penetration comparison`<br>`tests/documents/roll-dialog.test.js › refuses to roll until the announced value is entered` |
+| **Resistance** | Stärke (locked) · RW(Stelle) | the penetration comparison `softer / equal / harder`; the announced Schadenswert opens at 0 and is edited, not required | `tests/documents/actor-resistance-roll.test.js › requires the penetration comparison, and defaults the announced damage`<br>`tests/documents/roll-dialog.test.js › opens the announced value at zero and never blocks the roll on it` |
 | **Haltung** | — | which defence is possible at all, and what the next one costs | `tests/helpers/combat-actions.test.js › lets the Haltung decide which defence is possible at all`<br>`tests/helpers/combat-actions.test.js › leaves the first defence unmodified and sums a step onto every one after` |
 
 **Manöver are not a workflow.** A Manöver is not a roll of its own — "alles das
@@ -483,7 +483,7 @@ pre-filled, and it is gone — a second path to the same field bought a stored
 sheets?"), and a consumed-on-first-use lifetime, all to save typing one integer
 that is printed on screen. The typed field was always the guaranteed path and is
 now the only one. Nothing is ever gated on it: every defence offers the field,
-blank, whether or not a card was involved
+carrying no announced number — it opens at 0 — whether or not a card was involved
 (`tests/helpers/combat-actions.test.js › offers the typed announcement field on every defence, with no card involved`,
 `tests/helpers/combat-actions.test.js › offers the announcement field blank, on every defence, always`).
 The card also carries the attacker's **DK** as information — reach stays a

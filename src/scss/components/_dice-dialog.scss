@@ -19,239 +19,279 @@ $c-roll-negative: #c62828;
     }
   }
 
-  // Grouped sections (base / modifiers) — a light frame plus a small caption
-  // so the parts that feed the threshold read as one block each.
-  .tno-roll-section {
-    margin-bottom: $padding-md;
-    padding: $padding-sm;
-    border: 1px solid $c-beige;
-    border-radius: 4px;
+  // ── The ledger ────────────────────────────────────────────────────────────
+  //
+  // Every value that moves the Schwelle is one row: its name on the left, its
+  // signed contribution in the Δ column on the right. The Δ column is a rigid
+  // width so the signs line up into a column you read down like an invoice —
+  // green helps the roller, red hurts, and the total closing the page is their
+  // sum. A line still awaiting its answer shows `?` in blue and blocks
+  // the roll; a line set up but not armed (an unticked bypass, an unspent
+  // Idee) shows its amount in parentheses and is not counted until armed.
+  $ledger-delta: 3.4rem;
 
-    > .form-group:last-child,
-    > .tno-roll-detail:last-child {
-      margin-bottom: 0;
+  .tno-ledger {
+    display: flex;
+    flex-direction: column;
+  }
+
+  // The only rule inside the ledger, and it earns it: it names the two columns
+  // every row below aligns to. A rule that separates lines the eye can already
+  // separate is furniture, so the rows carry none — see `.tno-ledger-row`.
+  .tno-ledger-head {
+    display: grid;
+    // `auto` rather than the Δ column's own width: the heading is longer than
+    // the figures it names, and only its right edge has to line up with theirs.
+    // Constrained to the column it wrapped onto two lines and stood taller than
+    // every row beneath it.
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 10px;
+    white-space: nowrap;
+    padding: 0 2px 3px;
+    border-bottom: 1px solid $c-tan;
+    font-size: var(--font-size-9, 9px);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: $c-tan;
+    opacity: 0.75;
+
+    > span:last-child {
+      text-align: right;
     }
   }
 
-  .tno-roll-section-caption {
-    display: block;
-    margin: 0 0 $padding-sm;
-    padding: 0;
-    border: 0;
-    font-size: var(--font-size-10, 10px);
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: $c-tan;
-    opacity: 0.7;
+  // The three groups — what you bring, what you are handed, what you decide —
+  // are marked by the space between them and nothing else. They used to be
+  // introduced by a labelled hairline each, which named the ownership split the
+  // template is organised by; a true split, but one the player does not need
+  // spelled out, since a readout they cannot touch, a field they type into and
+  // a box they tick already say which is which. The rules went with the
+  // captions: in a 340px column they were two more horizontals in a stack that
+  // already had ten.
+  .tno-ledger-group {
+    display: flex;
+    flex-direction: column;
+
+    + .tno-ledger-group {
+      margin-top: 9px;
+    }
   }
 
-  .tno-roll-detail {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 2px 0;
+  .tno-ledger-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) $ledger-delta;
+    align-items: center;
+    column-gap: 10px;
+    // No rule under a row. A ledger line is tracked across by the tabular,
+    // right-aligned Δ it ends in, and at this width the name and the figure are
+    // close enough that nothing has to carry the eye between them — which is
+    // the only job the hairline was doing. Eight of them stacked into a column
+    // of stripes that read louder than the numbers they separated.
+    padding: 4px 2px;
+    // One size for everything a row says. Each control used to bring its own —
+    // a bold <label> here, an 11px toggle there — so the same kind of thing
+    // (this line's name) was set three ways down one column.
+    font-size: var(--font-size-13, 13px);
 
-    // A conditional row — the armour step — is rendered up front and toggled
-    // with `hidden`. The `display` above is an author rule and would otherwise
-    // outrank the browser's own `[hidden] { display: none }`.
+    // Rendered up front, toggled with `hidden`. The grid `display` is an author
+    // rule and would otherwise outrank the browser's own `[hidden]`.
     &[hidden] {
       display: none;
     }
+  }
 
-    .tno-roll-detail-value {
-      font-weight: bold;
+  .tno-ledger-label {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    min-width: 0;
+
+    // A row's name is a name whether the row carries a control or not, so the
+    // <label> reads exactly like the plain rows around it.
+    > label {
+      margin: 0;
+      font-weight: normal;
     }
   }
 
-  // Combat workflows supply one required, authored context (range, direct DK
-  // difference, penetration comparison, the weapon a Manöver is declared with).
-  // The weapon contexts use radio tiles, with the authored range-band caption
-  // beneath its signed modifier; a weapon list uses the plain select.
-  .tno-context-field {
-    margin-bottom: 0;
+  // The heatmap-graded value chip carried by a locked attribute or a skill
+  // rank, the same treatment those wear on the character sheet.
+  // Sized to sit inside the line box rather than stretch it: at 1.35 it made
+  // the one row carrying a badge 2px taller than its neighbours.
+  .tno-ledger-badge {
+    min-width: 22px;
+    padding: 0 5px;
+    border-radius: 3px;
+    text-align: center;
+    font-weight: bold;
+    font-size: var(--font-size-11, 11px);
+    line-height: 15px;
+  }
+
+  .tno-ledger-delta {
+    justify-self: end;
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    color: rgba($c-tan, 0.75);
+
+    &.is-positive {
+      color: $c-roll-positive;
+    }
+
+    &.is-negative {
+      color: $c-roll-negative;
+    }
+
+    &.is-provisional {
+      color: rgba($c-tan, 0.55);
+      font-weight: normal;
+    }
+
+    &.is-pending {
+      color: $c-primary;
+    }
+  }
+
+  // A full-width picker that feeds a row rather than being one — the attribute
+  // grid, the free-skill field, the second-attribute select, a reach toggle,
+  // the Stelle tiles. Its own summary line sits directly below it with the Δ.
+  .tno-ledger-control {
+    padding: 4px 2px 6px;
+
+    > label,
+    > .tno-ledger-control-label {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: bold;
+      font-size: var(--font-size-11, 11px);
+    }
+
+    > select,
+    > input[type='number'] {
+      width: 100%;
+    }
+
+    fieldset {
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+  }
+
+  // Rows whose left cell carries a typed field: the name on the left, a compact
+  // control pushed to the right, both on one line. Stacking the label over the
+  // control made the announced-value line ~3.5x the height of a plain one —
+  // in a column meant to be scanned top to bottom, that one row broke the scan.
+  .tno-ledger-row--input {
+    .tno-ledger-label {
+      flex-wrap: nowrap;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    input[type='number'] {
+      flex: none;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  // A hint that is needed once, parked on a marker instead of a line of prose.
+  // Same 14px circle-info affordance the gear sheet uses, so "there is more to
+  // read here" looks the same everywhere. `margin-right: auto` keeps it beside
+  // its label rather than letting the row's `space-between` strand it midway.
+  .tno-ledger-info {
+    display: inline-grid;
+    flex: 0 0 14px;
+    place-items: center;
+    width: 14px;
+    height: 14px;
+    margin-right: auto;
+    font-size: 13px;
+    line-height: 1;
+    color: rgba($c-tan, 0.7);
+    cursor: default;
+
+    &:hover,
+    &:focus-visible {
+      color: $c-dark;
+    }
+
+    &:focus-visible {
+      outline: 2px solid $c-tan;
+      outline-offset: 2px;
+      border-radius: 50%;
+    }
+  }
+
+  // Any picker: a tall row with the question and its answers on the left — plus
+  // the reader's own number beside them where a workflow supplies an anchor —
+  // and one resolved Δ on the right, in the ledger's own column.
+  .tno-ledger-row--picker {
+    align-items: stretch;
+
+    // Vertically centred against the tall block, but at the column's own size:
+    // a Δ set larger than the Δs above and below it is not in their column.
+    .tno-ledger-delta {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+  }
+
+  // A select-based context still fills its half of the row.
+  .tno-picker-select {
+    min-width: 0;
+
+    > label {
+      display: block;
+    }
 
     select {
       width: 100%;
     }
   }
 
-  // A number only the table knows — the Schadenswert an attacker announced.
-  // It follows the context picker whose choice renames this field; that order
-  // makes the selected damage kind and the number it asks for read together.
-  // Core's `.form-group` lays label and control out as a row with a narrow
-  // label column, which folded "Wucht-Schadenswert (WS)" over three lines
-  // next to a half-width box. The name of the value being asked for is the
-  // whole point of this field, so it gets its own line above a full-width one.
-  .tno-required-value-field {
-    flex-direction: column;
-    align-items: stretch;
-    margin-bottom: $padding-sm;
-
-    > label {
-      flex: none;
-      margin-bottom: 2px;
-    }
-
-    input {
-      width: 100%;
-    }
-  }
-
-  // Correcting the announced number by one, without selecting a two-digit
-  // field to retype it. The two buttons live *inside* the field's own border
-  // rather than stacked on top of it: three separate slabs read as three
-  // controls, one bordered block reads as the spinner it is.
-  .tno-required-value-control {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    overflow: hidden;
-    border: 1px solid $c-beige;
-    border-radius: 3px;
-    background: $c-white;
-
-    &:focus-within {
-      border-color: $c-tan;
-    }
-
-    // Foundry gives every dialog input its own frame and grey fill. Inside this
-    // block that frame is the block's, so the field keeps only its text.
-    input {
-      flex: 1;
-      width: 100%;
-      min-height: 26px;
-      margin: 0;
-      padding: 0 6px;
-      border: 0;
-      border-radius: 0;
-      background: transparent;
-      font-variant-numeric: tabular-nums;
-      text-align: center;
-      box-shadow: none;
-
-      &:focus {
-        outline: none;
-        box-shadow: none;
-      }
-
-      &::placeholder {
-        font-size: var(--font-size-10, 10px);
-        opacity: 0.55;
-      }
-    }
-  }
-
-  // Quiet strips, separated from the field by a hairline rather than a border
-  // of their own — they correct a number somebody read out, they are not one of
-  // the roll's own decisions.
-  .tno-required-value-stepper {
-    flex: none;
-    width: 100%;
-    min-height: 0;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    background: $c-faint;
-    color: $c-tan;
-    font: inherit;
-    font-size: var(--font-size-12, 12px);
-    font-weight: bold;
-    line-height: 16px;
-    cursor: pointer;
-    box-shadow: none;
-    transition: background 0.12s ease, color 0.12s ease;
-
-    &:first-of-type {
-      border-bottom: 1px solid $c-beige;
-    }
-
-    &:last-of-type {
-      border-top: 1px solid $c-beige;
-    }
-
-    &:hover:not(:disabled) {
-      background: $c-beige;
-      color: $c-dark;
-    }
-
-    &:disabled {
-      opacity: 0.4;
-      cursor: default;
-    }
-  }
-
-  // ── The comparison row ────────────────────────────────────────────────────
-  //
-  // Three columns because the question is genuinely three-part: what the other
-  // side had, what you have, and the number they read out. As prose in one
-  // legend ("Deine RH ist 8 — wie hoch war die Durchdringung?") the reader had
-  // to hold their own value in their head while choosing against it, and the
-  // number they then typed sat a paragraph below the pick that decides which
-  // number it even is.
-  //
-  // Read as a table, which means the three names have to sit on one line and
-  // the three cells have to start on the next. So the columns are aligned to
-  // the top and the three headers share one treatment — the radiogroup's
-  // legend, the readout's caption and the number field's label all become the
-  // same column head. Centring them against each other instead put three
-  // different names at three different heights, which is what made the first
-  // attempt read as debris rather than as a row.
-  .tno-roll-situation.tno-comparison {
+  .tno-picker {
     display: grid;
-    grid-template-columns: minmax(0, 1.25fr) auto minmax(0, 0.85fr);
-    // Stretched, not top-aligned: the three cells are one row of a table and a
-    // row whose cells stop at three different heights is three boxes standing
-    // next to each other. The ladder is the tallest of them and therefore sets
-    // the height; the other two fill it and centre what they hold.
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: stretch;
-    column-gap: 11px;
-    row-gap: 5px;
-
-    // Spacing between the parts is the grid's job here, so the margins the
-    // three carry for the stacked layout are handed back: the caption's bottom
-    // margin and the hint's negative top pull.
-    > .tno-roll-section-caption,
-    > .tno-required-value-hint {
-      grid-column: 1 / -1;
-      margin: 0;
-    }
-
-    > .tno-required-value-field {
-      margin-bottom: 0;
-    }
-
-    // The one header treatment. The anchor's caption carries the same one from
-    // its own rule below, so it stays a column head even in a layout that only
-    // asks for the readout.
-    > .tno-context-tile-field > legend,
-    > .tno-required-value-field > label {
-      margin: 0 0 4px;
-      font-size: var(--font-size-11, 11px);
-      font-weight: bold;
-      line-height: 1.25;
-      white-space: nowrap;
-    }
-
-    // Each head sits over its own cell: the ladder reads from the left, the two
-    // number cells are centred, so their names are too.
-    > .tno-required-value-field > label {
-      text-align: center;
-    }
-
-    // The given number and the typed one are the same kind of thing and are
-    // written at the same size, which is most of what makes the row read as one
-    // comparison rather than as a readout next to a form field.
-    .tno-required-value-control input {
-      font-size: var(--font-size-18, 18px);
-    }
+    column-gap: 10px;
+    min-width: 0;
   }
 
-  // The reader's own number, as the dialog already writes a value it is telling
-  // you rather than asking you for: the same chip the base attribute wears one
-  // section up. Explicitly not a tile — no pointer, no hover, no selected state
-  // — because the three things beside it are clickable and this one is a fact.
+  // Idee: let its row fill the label cell so the reserve pips reach the Δ edge.
+  .tno-ledger-label.tno-idea-field,
+  .tno-ledger-label.tno-idea-field .tno-idea-toggle {
+    flex: 1;
+  }
+
+
+  // ── The comparison line ──────────────────────────────────────────────────
+  //
+  // Two parts on the left of its ledger row: the ladder — what the attacker's
+  // RB/RD was against the reader's RH — and the reader's own RH beside it as a
+  // readout, so a value they choose against is never one they have to hold in
+  // their head. The resolved Δ sits in the row's own Δ column, so the number
+  // this pick produces reads down the same column as every other line.
+  //
+  // The ladder's own legend (the question) is the line's label; the anchor
+  // carries a short caption of its own.
+  .tno-ledger-row--picker .tno-context-tile-field > legend,
+  .tno-ledger-row--picker .tno-context-toggle-field > legend,
+  .tno-ledger-row--picker .tno-picker-select > label {
+    margin: 0 0 5px;
+    font-size: var(--font-size-11, 11px);
+    font-weight: bold;
+    line-height: 1.25;
+  }
+
+  // The reader's own number: the same faint chip the base attribute wears, and
+  // explicitly not a tile — no pointer, no hover, no selected state — because
+  // the rungs beside it are clickable and this one is a fact.
   .tno-comparison-anchor {
     display: flex;
     flex-direction: column;
@@ -283,16 +323,11 @@ $c-roll-negative: #c62828;
     text-align: center;
   }
 
-  // Below roughly a phone's width the three columns stop being a table and
-  // start being three slivers. The ladder keeps the full width and the two
-  // fields share the row beneath it, which is the same reading order.
+  // Below roughly a phone's width the ladder and the anchor stop sharing a
+  // line and stack, the ladder full width on top.
   @container roll-dialog (max-width: 320px) {
-    .tno-roll-situation.tno-comparison {
-      grid-template-columns: auto minmax(0, 1fr);
-
-      > .tno-context-tile-field {
-        grid-column: 1 / -1;
-      }
+    .tno-picker {
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 
@@ -300,8 +335,6 @@ $c-roll-negative: #c62828;
   // the player is confirming something they were told rather than choosing a
   // size — the size was set by their own armour.
   .tno-toggle-modifier {
-    margin-bottom: $padding-sm;
-
     > label {
       display: flex;
       align-items: center;
@@ -309,41 +342,6 @@ $c-roll-negative: #c62828;
       font-size: var(--font-size-13, 13px);
       cursor: pointer;
     }
-  }
-
-  .tno-toggle-modifier-value {
-    margin-left: auto;
-    font-weight: bold;
-    font-variant-numeric: tabular-nums;
-  }
-
-  // Die Ansage: ein Feld, offen sichtbar. Sie war einmal eine Liste aus neun
-  // Zeilen mit eigener Preisrechnung; jetzt einigen sich Spieler und SL vorher
-  // auf die Zahl, und übrig bleibt die Zahl. Rechts davon steht, was sie diesem
-  // Wurf kostet — dieselbe Höhe, die der Gegner abbekommt.
-  .tno-ansage-row {
-    display: grid;
-    grid-template-columns: 1fr 3.5rem 3rem;
-    align-items: center;
-    gap: $padding-sm;
-  }
-
-  .tno-ansage-name {
-    font-size: var(--font-size-13, 13px);
-    font-weight: bold;
-  }
-
-  .tno-roll-ansage input[type='number'] {
-    width: 100%;
-    text-align: center;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .tno-ansage-readout {
-    text-align: right;
-    font-weight: bold;
-    font-variant-numeric: tabular-nums;
-    color: $c-roll-negative;
   }
 
   .tno-context-tile-field {
@@ -401,9 +399,12 @@ $c-roll-negative: #c62828;
       text-align: left;
     }
 
-    .tno-context-tile.has-caption {
-      min-height: 0;
-      padding-top: 6px;
+    // The Δ keeps its slot between the comparison and its consequence, so a
+    // rung reads "> 8 · ±0 · hält, Wuchtschaden" in the same order the grids
+    // above stack it. It used to be absent here: the ladder named the outcome
+    // but never said what the outcome was worth.
+    .tno-context-tile-value {
+      flex: none;
     }
 
     .tno-context-tile-caption {
@@ -487,13 +488,18 @@ $c-roll-negative: #c62828;
     clip-path: inset(50%);
   }
 
+  // One tile, three slots: the answer's name, its Δ, and what it does to you.
+  // The third is present only where the choice has something to say beyond its
+  // own number, and the tile is sized by whichever slots it actually has —
+  // there is no height floor. There used to be one, 46px and 58px with a
+  // caption, chosen for the three-slot Stelle tiles; a range band wears two
+  // slots and stood in 20px of its own air because of it.
   .tno-context-tile {
     min-width: 0;
-    min-height: 46px;
     display: grid;
     place-items: center;
-    gap: 2px;
-    padding: 4px 2px;
+    gap: 1px;
+    padding: 5px 3px;
     border: 1px solid rgba(25, 24, 19, 0.3);
     border-radius: 4px;
     background: rgba(255, 255, 255, 0.58);
@@ -502,15 +508,7 @@ $c-roll-negative: #c62828;
 
     strong {
       font-size: var(--font-size-12, 12px);
-      line-height: 1;
-    }
-
-    &.negative {
-      color: $c-roll-negative;
-    }
-
-    &.positive {
-      color: $c-roll-positive;
+      line-height: 1.15;
     }
 
     // A caption that has to say what the choice *does*, rather than just name
@@ -518,9 +516,7 @@ $c-roll-negative: #c62828;
     // keeps the tiles' headlines on one line with each other however unevenly
     // their captions wrap.
     &.has-caption {
-      min-height: 58px;
       align-content: start;
-      padding-top: 6px;
     }
   }
 
@@ -528,8 +524,36 @@ $c-roll-negative: #c62828;
   // eine Kontext-Kachel sonst über ihrer Zahl zeigt. Der Name steht oben, die
   // Schadensregel darunter — "Kopf" und "Stärke ×2" sind dieselbe Entscheidung
   // von ihren beiden Enden aus gesehen.
+  // Inside its own ledger row now; the row owns the spacing.
   .tno-zone-field {
-    margin-bottom: $padding-sm;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  // The middle slot: what this answer is worth, in the ledger's own two
+  // colours. It is the only part of the tile that carries the sign's colour —
+  // the name above it stays ink, so a grid of tiles reads as a row of answers
+  // with prices rather than a row of coloured words. A ±0 is stated rather than
+  // left blank ("this one is free" is worth showing beside three that are not)
+  // and recedes instead: `is-free` is the Stelle's way of saying it, `neutral`
+  // every other picker's.
+  .tno-context-tile-value {
+    font-size: var(--font-size-11, 11px);
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+    color: $c-roll-negative;
+  }
+
+  .tno-context-tile.positive .tno-context-tile-value {
+    color: $c-roll-positive;
+  }
+
+  .tno-context-tile.neutral .tno-context-tile-value,
+  .tno-context-tile-value.is-free {
+    font-weight: normal;
+    color: rgba(25, 24, 19, 0.45);
   }
 
   .tno-context-tile-caption {
@@ -539,39 +563,6 @@ $c-roll-negative: #c62828;
     text-align: center;
     text-wrap: balance;
     color: rgba(25, 24, 19, 0.65);
-  }
-
-  .tno-context-tile-visual {
-    position: relative;
-    width: 70%;
-    height: 12px;
-
-    &::before,
-    i {
-      position: absolute;
-      left: 0;
-      right: 0;
-      content: '';
-    }
-
-    &::before {
-      top: 50%;
-      border-top: 1px solid rgba(25, 24, 19, 0.25);
-    }
-
-    i {
-      top: 50%;
-      border-top: 2px solid currentcolor;
-      transform: translateY(-50%);
-    }
-  }
-
-  .tno-context-tile.negative .tno-context-tile-visual i {
-    top: 82%;
-  }
-
-  .tno-context-tile.positive .tno-context-tile-visual i {
-    top: 18%;
   }
 
   .tno-context-tile-input:checked + .tno-context-tile {
@@ -674,94 +665,127 @@ $c-roll-negative: #c62828;
     min-height: 1.2em;
   }
 
-  // The skill is a fixed part of the base (rank never changes here), so it's
-  // presented as a labelled row with its rank in a heatmap-graded badge that
-  // matches the attribute chips — reading as "attribute + skill = base".
-  .tno-base-row {
-    display: flex;
-    align-items: center;
+  // The situational ±3 sits in its ledger row's left cell, name then stepper.
+  .tno-bonus-field {
     justify-content: space-between;
-    gap: $padding-sm;
-    margin-top: $padding-sm;
-    padding: 4px 6px;
-    border-radius: 3px;
-    background: rgba($c-tan, 0.05);
+    width: 100%;
+  }
 
-    .tno-base-name {
-      font-weight: bold;
-      font-size: var(--font-size-13, 13px);
+  // ── The stepper ───────────────────────────────────────────────────────────
+  //
+  // One look for every ± control in the dialog: three separate slabs with air
+  // between them, rather than a bordered block with a field sunk into it. The
+  // Modifikation moves in Malusstufen and its middle is a button that resets on
+  // a click; the ledger's value fields move by one and their middle is the box
+  // you type the announced number into. Same grammar, different payload — so
+  // the two share these rules outright instead of being kept in step by hand.
+  .tno-bonus-stepper-group,
+  .tno-ledger-stepper {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    gap: $padding-sm;
+  }
+
+  .tno-bonus-stepper,
+  .tno-ledger-step {
+    flex: none;
+    width: 34px;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border: 1px solid $c-beige;
+    border-radius: 3px;
+    background: $c-white;
+    color: inherit;
+    font: inherit;
+    font-size: var(--font-size-13, 13px);
+    font-weight: bold;
+    line-height: 26px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: none;
+    transition: background 0.12s ease, border-color 0.12s ease;
+
+    &:hover:not(:disabled) {
+      background: $c-faint;
+      border-color: $c-tan;
     }
 
-    .tno-base-value {
-      min-width: 26px;
-      padding: 2px 6px;
-      border-radius: 3px;
-      text-align: center;
-      font-weight: bold;
-      font-size: var(--font-size-13, 13px);
-      line-height: 1.2;
+    &:disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+
+    &:focus-visible {
+      outline: 2px solid $c-tan;
+      outline-offset: 1px;
     }
   }
 
-  .tno-bonus-stepper-group {
-    gap: $padding-md;
-    justify-content: center;
+  // The middle slab, in both: the figure itself, large and bold, carrying no
+  // frame of its own — the two buttons beside it are the frame.
+  .tno-bonus-value,
+  .tno-ledger-stepper input {
+    flex: none;
+    min-width: 44px;
+    width: 44px;
+    min-height: 26px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 3px;
+    background: transparent;
+    box-shadow: none;
+    // Stated, not inherited: a <button> takes the UA's pure black while an
+    // <input> takes the sheet's ink, and the two middles sat at different
+    // darknesses beside each other.
+    color: $c-dark;
+    font: inherit;
+    font-size: var(--font-size-16, 16px);
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
 
-    .tno-bonus-stepper {
-      width: 34px;
-      line-height: 26px;
-      padding: 0;
-      margin: 0;
-      font: inherit;
-      font-weight: bold;
-      text-align: center;
-      cursor: pointer;
-      background: $c-white;
-      border: 1px solid $c-beige;
-      border-radius: 3px;
-      transition: background 0.12s ease, border-color 0.12s ease;
+    &:focus-visible {
+      outline: 2px solid $c-tan;
+      outline-offset: 1px;
+    }
+  }
 
-      &:hover:not(:disabled) {
-        background: $c-faint;
-        border-color: $c-tan;
-      }
+  .tno-bonus-value {
+    cursor: pointer;
 
-      &:disabled {
-        opacity: 0.35;
-        cursor: default;
-      }
-
-      &:focus-visible {
-        outline: 2px solid $c-tan;
-        outline-offset: 1px;
-      }
+    &.tno-bonus-positive {
+      color: $c-roll-positive;
     }
 
-    .tno-bonus-value {
-      min-width: 44px;
-      margin: 0;
-      padding: 0;
-      border: 0;
-      background: transparent;
-      text-align: center;
-      font: inherit;
-      font-weight: bold;
-      font-size: var(--font-size-16, 16px);
-      cursor: pointer;
-      border-radius: 3px;
+    &.tno-bonus-negative {
+      color: $c-roll-negative;
+    }
+  }
 
-      &.tno-bonus-positive {
-        color: $c-roll-positive;
-      }
+  // The one difference that has to show: this middle is typed into, not clicked.
+  // Transparent at rest so the two steppers read alike, with a faint well on
+  // hover and focus so the field still says it takes a number.
+  .tno-ledger-stepper input {
+    cursor: text;
 
-      &.tno-bonus-negative {
-        color: $c-roll-negative;
-      }
+    &:hover,
+    &:focus {
+      background: rgba($c-tan, 0.09);
+    }
 
-      &:focus-visible {
-        outline: 2px solid $c-tan;
-        outline-offset: 1px;
-      }
+    &:focus {
+      outline: none;
+      box-shadow: none;
+    }
+
+    &::placeholder {
+      font-size: var(--font-size-10, 10px);
+      font-weight: normal;
+      opacity: 0.55;
     }
   }
 
@@ -784,56 +808,26 @@ $c-roll-negative: #c62828;
     align-items: center;
     gap: 6px;
     padding: 3px 5px;
+    // Pulled back by exactly its own inset — 5px/3px padding plus a 1px border
+    // — so the checkbox starts on the same x as the plain one in the row above
+    // and the row stands the same height as it. The inset itself stays: it is
+    // what gives the armed row a tinted chip to sit in rather than a colour
+    // poured over bare text.
+    margin: -4px 0 -4px -6px;
     cursor: pointer;
     font-weight: normal;
-    font-size: var(--font-size-11, 11px);
     border: 1px solid transparent;
     border-radius: 4px;
     background: transparent;
     transition: background 0.12s ease, border-color 0.12s ease;
 
-    // The native checkbox drives real form/focus state but is visually
-    // replaced by .tno-idea-checkbox below.
-    input[type='checkbox'] {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      margin: -1px;
-      padding: 0;
-      border: 0;
-      clip: rect(0 0 0 0);
-      overflow: hidden;
-    }
-
-    .tno-idea-checkbox {
-      flex: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 12px;
-      height: 12px;
-      border: 1px solid $c-beige;
-      border-radius: 3px;
-      background: $c-white;
-      transition: background 0.12s ease, border-color 0.12s ease;
-
-      i {
-        font-size: 8px;
-        color: $c-white;
-        opacity: 0;
-        transition: opacity 0.12s ease;
-      }
-    }
-
+    // The plain browser checkbox, the same control the bypass row above it
+    // wears. It used to be visually replaced by a 12px square of our own — a
+    // louder on/off cue, but one that put two different checkboxes at two
+    // different sizes in one column, which is the louder problem.
     .tno-idea-icon {
-      font-size: var(--font-size-11, 11px);
       color: $c-beige;
       transition: color 0.12s ease;
-    }
-
-    .tno-idea-value {
-      color: $c-tan;
-      opacity: 0.85;
     }
 
     .tno-idea-reserve {
@@ -873,35 +867,14 @@ $c-roll-negative: #c62828;
       background: rgba($c-tan, 0.06);
     }
 
-    input:focus-visible ~ .tno-idea-checkbox {
-      outline: 2px solid $c-tan;
-      outline-offset: 2px;
-    }
-
-    // Armed: checkbox fills solid gold with a checkmark, the bulb and value
-    // pick up the gold accent, and a faint tint marks the row — noticeable
-    // without the full bordered-chip treatment used on/off. Gold (not blue)
-    // so this optional resource doesn't compete with the Roll CTA.
+    // Armed: the bulb picks up the gold accent and a faint tint marks the row.
+    // Gold (not blue) so this optional resource doesn't compete with the Roll
+    // CTA. The checkbox itself is the browser's and shows its own checked state.
     &.active {
       background: rgba($c-idea-hover, 0.15);
 
-      .tno-idea-checkbox {
-        background: $c-idea-hover;
-        border-color: $c-idea-hover;
-
-        i {
-          opacity: 1;
-          color: $c-idea-text;
-        }
-      }
-
       .tno-idea-icon {
         color: $c-idea-hover;
-      }
-
-      .tno-idea-value {
-        color: $c-idea-text;
-        opacity: 1;
       }
     }
   }
@@ -915,8 +888,11 @@ $c-roll-negative: #c62828;
     }
   }
 
-  // The threshold result — the hero of the dialog. Big number, with a live
-  // breakdown of the parts that produced it.
+  // The threshold result — the hero of the dialog, and the last thing read
+  // before the button under it is pressed. Just the number and what it is
+  // worth: it used to carry a strip of chips recapping the parts that produced
+  // it, which was the Δ column above restated one line under the total that
+  // already sums it.
   .tno-roll-result {
     display: flex;
     flex-direction: column;
@@ -934,8 +910,7 @@ $c-roll-negative: #c62828;
       background: rgba($c-tan, 0.025);
 
       .tno-roll-result-value,
-      .tno-roll-result-label,
-      .tno-roll-breakdown {
+      .tno-roll-result-label {
         opacity: 0.55;
       }
     }
@@ -1008,40 +983,6 @@ $c-roll-negative: #c62828;
     // The box flashes when the threshold changes; the strip sliding to its new
     // length is that same signal, in this readout's quieter register.
     transition: width 0.2s ease-out;
-  }
-
-  .tno-roll-breakdown {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 3px;
-    font-size: var(--font-size-11, 11px);
-    color: $c-tan;
-    min-height: 1.1em;
-  }
-
-  .tno-signed-chip {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 3px;
-    padding: 1px 5px;
-    border-radius: 999px;
-    background: rgba($c-tan, 0.08);
-    color: $c-tan;
-    line-height: 1.25;
-
-    &.is-positive .tno-signed-chip-value {
-      color: $c-roll-positive;
-    }
-
-    &.is-negative .tno-signed-chip-value {
-      color: $c-roll-negative;
-    }
-  }
-
-  .tno-signed-chip-value {
-    font-weight: bold;
-    font-variant-numeric: tabular-nums;
   }
 
   // Lighter than $c-primary itself so the flash still reads clearly against
@@ -1169,30 +1110,33 @@ $c-roll-negative: #c62828;
     }
   }
 
-  // The answer, pinned. Every section above exists to move this number, and a
-  // player who cannot see it move while they answer is filling in a form
-  // rather than making a decision — which is the whole reason the dialog is one
-  // scrolling page instead of a wizard.
-  //
-  // `bottom` is negative by the form's own padding, and the padding is given
-  // back below, so the opaque strip reaches the true bottom edge instead of
-  // leaving a gap for content to scroll through.
+  // The answer, closing the page. Every section above exists to move this
+  // number, so it comes last — after all of them, not floating over them.
+  // The foot of the sheet, in the order the roll is finished in: the last
+  // input, the total it produces, the gesture that fires it. The roll type led
+  // to sit here because it belongs to neither the ledger (it moves no Δ) nor
+  // the total — but it does move the odds printed inside the box, so it reads
+  // as an input to that box and now sits above it. Nothing stands between the
+  // Schwelle and the button any more.
   .tno-roll-footer {
-    position: sticky;
-    bottom: -$padding-md;
-    z-index: 1;
+    // The last block on the page rather than a strip pinned over it. The
+    // negative margins still carry it out to the dialog's own edges, so it
+    // reads as the foot of the sheet and not as a card sitting on one.
+    //
+    // It used to be `position: sticky` with an opaque, blurred background — the
+    // occlusion that a pinned strip needs so the ledger cannot scroll through
+    // it. Nothing passes under it now, so the background and the blur went with
+    // the pinning; the hairline above is the whole separation.
     margin: $padding-sm (-$padding-md) (-$padding-md);
     padding: $padding-sm $padding-md $padding-md;
     border-top: 1px solid $c-beige;
-    // Solid first: the blur is the nicety, the opacity is the requirement.
-    background: rgb(244, 241, 232);
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(6px);
 
-    // Inside the pinned strip the result box is no longer a block with room
-    // below it — the button is what follows.
+    // Nothing below the total but the button that acts on it, and the button
+    // brings its own $padding-sm standoff — the base dialog has no total and
+    // relies on that margin for its own gap to the footer hairline, so the
+    // spacing is given up here rather than taken away there.
     .tno-roll-result {
-      margin-bottom: $padding-sm;
+      margin-bottom: 0;
     }
   }
 
@@ -1208,6 +1152,12 @@ $c-roll-negative: #c62828;
     align-items: center;
     justify-content: center;
     gap: 2px;
+    // Top margin only, and stated on all four sides: Foundry gives every button
+    // a 1px margin, which put this one a pixel right of the threshold box above
+    // it. The 5px is the whole gap between the total and the gesture that fires
+    // it, and it is also what stands the base dialog's lone button off its
+    // footer hairline.
+    margin: $padding-sm 0 0;
     width: 100%;
     min-height: 40px;
     padding: 6px;
@@ -1249,137 +1199,50 @@ $c-roll-negative: #c62828;
       outline-offset: 2px;
     }
 
+    // Both lines state their own line-height. Inherited, each sat in a 28px box
+    // — a 16px die and an 11px caption boxed the same — which stacked into a
+    // 72px button with "Würfeln" floating in the middle of its own whitespace.
     .tno-roll-submit-main {
       display: flex;
       align-items: center;
       gap: 7px;
       font-size: var(--font-size-14, 14px);
       font-weight: bold;
+      line-height: 1.2;
 
       i {
         font-size: var(--font-size-16, 16px);
+        line-height: 1;
       }
     }
 
     .tno-roll-submit-echo {
       font-size: var(--font-size-11, 11px);
       font-weight: normal;
+      line-height: 1.2;
       color: rgba($c-white, 0.75);
     }
   }
 
-  /* ---------------------------------------- The questionnaire's own furniture */
+  /* -------------------------------------------------- The ledger's furniture */
 
-  // The two labelled hairlines that split the questions into what you are
-  // handed and what you decide. A caption on a rule rather than a heading of
-  // its own: it groups the sections below it without pretending to be one.
-  .tno-roll-divider {
-    display: flex;
-    align-items: center;
-    gap: $padding-sm;
-    margin: $padding-md 0 $padding-sm;
-    font-size: var(--font-size-9, 9px);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: $c-tan;
-    opacity: 0.6;
-
-    &::before,
-    &::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: $c-beige;
-    }
-  }
-
-  // The gear requirements inside the base section — Handhabung, the SV steps.
-  // Same section as the attribute and the skill because they are the same kind
-  // of thing (facts about this character), hairlined off because they are the
-  // half that was arrived at rather than chosen.
+  // The gear requirements — Handhabung, the SV steps — are the half of "what
+  // you bring" that was arrived at rather than chosen, though they are the same
+  // kind of thing: facts about this character. They are not marked off visually
+  // at all; the wrapper exists so the template can render them as a set, and
+  // `display: contents` keeps its children in the ledger's own rhythm.
   .tno-roll-gear-modifiers {
-    margin-top: $padding-sm;
-    padding-top: $padding-sm;
-    border-top: 1px dashed rgba($c-beige, 0.8);
+    display: contents;
   }
 
-  // The Ansagen and the scene's modification, closed by default — because
-  // closed *is* the standard attack, and because everything in here is the
-  // player choosing rather than the sheet stating. Shut, its heading still has
-  // to report whatever it carries, which is what the badge is for.
-  .tno-roll-attempt {
-    @include dialog-disclosure;
-    padding: 0;
 
-    > summary {
-      padding: $padding-sm;
-
-      &:hover .tno-roll-section-caption {
-        opacity: 1;
-      }
-
-      .tno-roll-section-caption {
-        margin: 0;
-      }
-    }
-
-    // What a closed block is costing, stated on the line that closed over it.
-    // Its auto margin is also what puts the caret at the right-hand end.
-    .tno-attempt-badge {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      gap: 3px;
-      margin-left: auto;
-      font-size: var(--font-size-10, 10px);
-      font-weight: bold;
-      font-variant-numeric: tabular-nums;
-
-      .tno-signed-chip {
-        padding-block: 0;
-      }
-    }
-
-    // An open block indents its controls under the summary rather than beside
-    // it, so the heading stays the row that owns the disclosure.
-    > *:not(summary) {
-      margin-left: $padding-sm;
-      margin-right: $padding-sm;
-    }
-
-    > *:last-child {
-      margin-bottom: $padding-sm;
-    }
-  }
-
-  // The Stelle's price, on the tile that charges it. Sits between the name and
-  // the damage rule because that is the order the decision is read in: where,
-  // what it costs, what it buys.
-  .tno-zone-tile-cost {
-    font-size: var(--font-size-11, 11px);
-    font-weight: bold;
-    font-variant-numeric: tabular-nums;
-    color: $c-roll-negative;
-
-    // The Torso states its ±0 rather than leaving a gap: "this one is free" is
-    // the fact worth showing beside three tiles that are not.
-    &.is-free {
-      font-weight: normal;
-      color: rgba(25, 24, 19, 0.45);
-    }
-  }
-
-  // The section caption is the question, so the shared picker's own "Wurftyp"
-  // label is redundant here and hidden. Only here: the same string is the right
-  // noun on the chat card, and the radiogroup carries its own `aria-label`, so
-  // nothing is lost from the accessibility tree by dropping the visible one.
+  // The last input, and outside the ledger because it carries no Δ: it leaves
+  // the Schwelle untouched and only moves the odds inside the box below it. Its
+  // own "Wurftyp" label stays visible here, since there is no section caption
+  // asking the question any more.
   .tno-roll-rolltype {
     .tno-advantage-field {
-      margin-bottom: 0;
-    }
-
-    .tno-advantage-field-head > label {
-      display: none;
+      margin-bottom: $padding-sm;
     }
   }
 

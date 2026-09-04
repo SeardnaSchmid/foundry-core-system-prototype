@@ -69,33 +69,3 @@ export function bindRadioGroup({ group, input, onSelect } = {}) {
 
   return select;
 }
-
-/**
- * Render signed threshold components without parsing caller-provided labels as
- * markup. Custom skills may be named freely, so every visible string enters the
- * DOM through `textContent`.
- *
- * @param {HTMLElement} container
- * @param {Array<{label: string, display: string, value: number}>} parts
- */
-export function renderSignedChips(container, parts = []) {
-  if (!container) return;
-  const fragment = document.createDocumentFragment();
-  for (const part of parts) {
-    const chip = document.createElement('span');
-    chip.classList.add('tno-signed-chip');
-    chip.classList.add(part.value > 0 ? 'is-positive' : part.value < 0 ? 'is-negative' : 'is-neutral');
-
-    const label = document.createElement('span');
-    label.classList.add('tno-signed-chip-label');
-    label.textContent = String(part.label ?? '');
-
-    const value = document.createElement('span');
-    value.classList.add('tno-signed-chip-value');
-    value.textContent = String(part.display ?? '');
-
-    chip.append(label, value);
-    fragment.append(chip);
-  }
-  container.replaceChildren(fragment);
-}

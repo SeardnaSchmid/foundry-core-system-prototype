@@ -531,24 +531,15 @@
       "Blocked": {
         "Missing": "Still missing: {label}"
       },
-      "Question": {
-        "Base": "What are you rolling with?",
-        "Situation": "How do you two stand?",
-        "Against": "What was declared against you?",
-        "Attempt": "Anything to declare or adjust?",
-        "Adjust": "Do you adjust anything?",
-        "Spend": "Are you spending anything?",
-        "RollType": "How do you roll it?"
-      },
-      "Divider": {
-        "Given": "what you are handed",
-        "Chosen": "what you decide"
+      "Ledger": {
+        "Posten": "Line item",
+        "Delta": "Δ threshold",
+        "InfoLabel": "Show hint"
       },
       "ContextPlaceholder": "Choose context",
-      "RequiredValueIncrease": "Increase value",
-      "RequiredValueDecrease": "Decrease value",
+      "ValueIncrease": "Increase value",
+      "ValueDecrease": "Decrease value",
       "ContextRequired": "Choose a combat context before rolling.",
-      "ValueRequired": "Enter the announced value before rolling.",
       "ChooseAttribute": "Attribute",
       "FreeTitle": "Free Roll",
       "FreeHint": "Roll a selectable attribute plus a free skill value",
@@ -578,10 +569,10 @@
       "ResistanceFlavor": "Resistance: {zone} → {damage}",
       "ResistanceRw": "RW ({zone})",
       "DamageValue": "Damage value",
-      "DamageSharp": "Damage (S)",
-      "DamageBlunt": "Blunt (WS)",
+      "DamageValueField": "Attacker damage value",
+      "DamageSharp": "Attacker damage (S)",
+      "DamageBlunt": "Attacker blunt (WS)",
       "DamageValueHint": "Both values are printed on the attacker's card.",
-      "DamageValuePlaceholder": "from the card",
       "Applied": "Apply",
       "AppliedAmount": "{amount} {pool} ({tag})",
       "AppliedMultiplier": "{base} × {multiplier} for {zone}",
