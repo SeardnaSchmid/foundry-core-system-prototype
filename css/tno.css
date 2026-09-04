@@ -2065,7 +2065,7 @@
   margin: 0 0 4px;
 }
 .tno .skill-groups {
-  columns: 3 200px;
+  columns: 190px;
   column-gap: 6px;
 }
 .tno .skill-group {

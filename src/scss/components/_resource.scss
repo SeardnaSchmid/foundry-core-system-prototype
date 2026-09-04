@@ -508,12 +508,19 @@ button:focus-visible {
 }
 
 // Balanced multi-column flow (not flex-wrap): the browser divides the cards
-// into three equal-height columns, so the long Knowledge list fills alongside
-// the short ones instead of leaving a large empty gap next to it (finding #5).
+// into equal-height columns, so the long Knowledge list fills alongside the
+// short ones instead of leaving a large empty gap next to it (finding #5).
 // Height is content-driven; the wrapper above provides the scroll.
+//
+// The column *count* is stated nowhere: `columns` here carries a width alone,
+// which asks for as many columns of at least that width as the cell can hold.
+// It used to read `3 200px` — a width and a cap — and the cap was the binding
+// constraint on any wide sheet, so widening the window past about 1580px went
+// on stretching three columns instead of adding a fourth. Every column the
+// cell can fit is now a column.
 .skill-groups {
-  columns: 3 200px;
-  column-gap: 6px;
+  columns: $skill-column-min;
+  column-gap: $skill-column-gap;
 }
 
 .skill-group {

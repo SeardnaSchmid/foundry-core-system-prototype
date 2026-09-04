@@ -11,3 +11,14 @@ $border-groove: 2px groove #eeede0;
 // retuned.
 $slot-bar-height: 46px;
 $worn-row-ratio: 0.6;
+
+// The narrowest a skill card may be before the flow drops a column, and the
+// gutter between two of them. A card is a name that has to stay readable plus
+// ~84px of fixed furniture (the rank chip, the XP bar, the gaps and the card's
+// own padding), so this is the name's floor — about 106px — rather than a round
+// number. CSS multi-column has no maximum column width: a column runs from this
+// figure up to just under twice it, at which point another column appears. That
+// band is why the figure is not larger; at 200px the flow held a single 400px
+// column on sheets wide enough for two.
+$skill-column-min: 190px;
+$skill-column-gap: 6px;
