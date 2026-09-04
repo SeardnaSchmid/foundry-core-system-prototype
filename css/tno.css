@@ -1203,7 +1203,7 @@
   gap: 3px;
 }
 .tno .cell-gear .armor-row {
-  min-height: 27.6px;
+  min-height: 34.8px;
   padding: 2px 6px;
 }
 .tno .cell-gear .armor-row.armor-suit {
@@ -2597,7 +2597,7 @@
   gap: 6px;
 }
 .tno .item-td-name .inventory-item-icon {
-  flex: 0 0 16px;
+  flex: 0 0 24px;
   color: #444;
   font-size: var(--font-size-14, 14px);
   text-align: center;
@@ -3467,8 +3467,17 @@
   color: #b3212b;
   font-size: 9px;
 }
+.tno.gear-dialog .gear-foot .item-post-row,
 .tno.gear-dialog .gear-foot .item-delete-row {
+  flex: none;
   margin: 0;
+}
+.tno.gear-dialog .gear-foot .item-post-chat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  font-size: 10px;
 }
 .tno.gear-dialog .gear-foot .item-delete-hint {
   flex: none;
@@ -4031,7 +4040,7 @@
   align-items: center;
   justify-content: flex-start;
   gap: 6px;
-  min-height: 46px;
+  min-height: 58px;
   padding: 0 6px;
   border-radius: 8px;
   font-size: var(--font-size-13, 13px);
@@ -4169,9 +4178,21 @@
   color: #fff;
 }
 .tno .slot-icon {
-  flex: 0 0 16px;
+  flex: 0 0 24px;
   text-align: center;
   color: #444;
+}
+.tno .slot-art {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 5px;
+  object-fit: contain;
+  mask-image: linear-gradient(to right, transparent 0, #000 12%, #000 88%, transparent 100%), linear-gradient(to bottom, transparent 0, #000 12%, #000 88%, transparent 100%);
+  mask-composite: intersect;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 12%, #000 88%, transparent 100%), linear-gradient(to bottom, transparent 0, #000 12%, #000 88%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  vertical-align: middle;
 }
 .tno .over-capacity .slot-icon {
   color: inherit;
@@ -6111,6 +6132,15 @@
 .tno-roll-card .tno-roll-flavor {
   margin: 0;
   border-bottom: none;
+}
+.tno-roll-card .tno-roll-icon {
+  align-self: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 3px;
+  object-fit: contain;
 }
 .tno-roll-card .tno-roll-advantage-badge {
   font-size: var(--font-size-10, 10px);

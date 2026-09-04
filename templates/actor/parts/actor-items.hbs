@@ -82,7 +82,11 @@ because that is what keeps every group's columns lined up under one header. --}}
                 {{!-- The role icon rather than the artwork, matching the carry
                 grid: a repeated, recognisable glyph is quicker to scan down a
                 list than ninety different portraits. --}}
-                <i class='fa-solid {{row.icon}} inventory-item-icon' aria-hidden='true'></i>
+                {{#if row.img}}
+                  <img class='inventory-item-icon slot-art' src='{{row.img}}' alt='' />
+                {{else}}
+                  <i class='fa-solid {{row.icon}} inventory-item-icon' aria-hidden='true'></i>
+                {{/if}}
                 <span class='item-row-name' title='{{row.name}}'>{{row.name}}</span>
               </div>
 

@@ -28,7 +28,7 @@ import {
   armorZones,
   canWeaponAttack,
   canWeaponParry,
-  inventoryIcon,
+  inventoryArt,
   itemRoles,
   selectRole,
   weaponUse,
@@ -659,7 +659,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       // Everything else is an object, and every object is inventory. What it
       // *does* is a matter of the roles it carries, which is a second question
       // asked of the same item rather than a different bucket to put it in.
-      i.inventoryIcon = inventoryIcon(i);
+      i.inventoryArt = inventoryArt(i);
       gear.push(i);
     }
 
@@ -778,7 +778,8 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       rows: group.rows.map((row) => ({
         id: row.id,
         name: row.name,
-        icon: row.item.inventoryIcon,
+        icon: row.item.inventoryArt.icon,
+        img: row.item.inventoryArt.img,
         worn: row.worn,
         cells: columns.map((column) => this.#cellContext(column, row.cells[column.key], row.item)),
       })),
@@ -1079,7 +1080,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         const quantity = Number(item.system?.quantity) || 1;
         return withQty({
           item,
-          icon: inventoryIcon(item),
+          ...inventoryArt(item),
           quantity,
           worn,
         });
@@ -1127,7 +1128,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       const over = index >= inside;
       return {
         item: block.item,
-        icon: inventoryIcon(block.item),
+        ...inventoryArt(block.item),
         over,
         first: index === 0,
         last: index === block.span - 1,

@@ -544,8 +544,9 @@ export const ROLE_ICONS = {
 
 /**
  * The compact, recognisable icon for a physical item in an inventory view.
- * Item artwork is useful on an item's own sheet, but a repeated role icon is
- * quicker to scan in the dense slot grid and flat inventory list.
+ * This is the fallback behind `inventoryArt`: what an item with no picture of
+ * its own is drawn as, and what the add-to-inventory dialog's cards use before
+ * an item exists at all.
  *
  * @param {Object} item An item document (or plain object).
  * @returns {string} A Font Awesome icon class without the style prefix.
@@ -556,6 +557,43 @@ export function inventoryIcon(item) {
   if (roles.armor) return ROLE_ICONS.armor;
   if (roles.consumable) return ROLE_ICONS.consumable;
   return ROLE_ICONS.plain;
+}
+
+/**
+ * Foundry's generic placeholder art. Everything under `icons/svg/` is the
+ * core silhouette set — the bag, the sword outline, the mystery man — which a
+ * document is *given* rather than authored with. Real art, core or system,
+ * lives anywhere else.
+ *
+ * This is what lets the inventory tell "this item has a picture" from "this
+ * item has the picture every item starts with", without asking the caller to
+ * know which strings are defaults.
+ * @param {string} img
+ * @returns {boolean}
+ */
+export function isPlaceholderArt(img) {
+  return !img || img.startsWith('icons/svg/');
+}
+
+/**
+ * What an inventory view draws for an item: its own picture when it has one,
+ * and the role icon when it does not.
+ *
+ * The dense views — slot grid, Kleinkram, the Inventar ledger — used the role
+ * icon unconditionally, on the reasoning that a repeated silhouette is quicker
+ * to scan than fifty different pictures. That holds while items have no art.
+ * Once a shipped catalogue gives every piece a distinct icon, the picture *is*
+ * the faster read: a grid of four identical `fa-shield-halved` says only
+ * "armour" four times, where the art says helmet, boots, gauntlets, vest.
+ *
+ * Both are returned, so a caller never has to decide: `img` is null unless the
+ * item carries real art, and `icon` is always the answer if it does not.
+ * @param {Object} item An item document (or plain object).
+ * @returns {{img: string|null, icon: string}}
+ */
+export function inventoryArt(item) {
+  const img = item?.img;
+  return { img: isPlaceholderArt(img) ? null : img, icon: inventoryIcon(item) };
 }
 
 /**

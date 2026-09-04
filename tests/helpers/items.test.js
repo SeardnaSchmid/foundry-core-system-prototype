@@ -8,6 +8,7 @@ import {
   clampGearNumber,
   cycleRangeModifier,
   hasRole,
+  inventoryArt,
   inventoryIcon,
   isGear,
   itemRoles,
@@ -304,6 +305,25 @@ describe('inventoryIcon', () => {
     expect(inventoryIcon(item())).toBe('fa-cube');
   });
 });
+
+// The dense views draw the item's own picture when it has one. Everything under
+// `icons/svg/` is Foundry's placeholder set — art a document is given, not art
+// somebody chose — so it falls back to the role icon rather than repeating the
+// same grey bag down a column.
+describe('inventoryArt', () => {
+  it('prefers the item\'s own picture', () => {
+    expect(inventoryArt({ ...item({ weapon: true }), img: 'icons/weapons/swords/machete.webp' }))
+      .toEqual({ img: 'icons/weapons/swords/machete.webp', icon: 'fa-sword' });
+  });
+
+  it('falls back to the role icon for placeholder and missing art', () => {
+    expect(inventoryArt({ ...item({ armor: true }), img: 'icons/svg/item-bag.svg' }))
+      .toEqual({ img: null, icon: 'fa-shield-halved' });
+    expect(inventoryArt(item({ consumable: true })))
+      .toEqual({ img: null, icon: 'fa-flask' });
+  });
+});
+
 
 describe('cycleRangeModifier', () => {
   it('cycles through the four rule-backed range states in both directions', () => {

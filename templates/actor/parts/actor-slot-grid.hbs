@@ -57,7 +57,14 @@ the same grid, marked over capacity. --}}
         {{#if cell.first}}
           <i class='fas fa-grip-vertical slot-grip'></i>
           {{#if cell.over}}<i class='fas fa-triangle-exclamation slot-overflow-icon'></i>{{/if}}
-          <i class='fa-solid {{cell.icon}} slot-icon' aria-hidden='true'></i>
+          {{!-- The piece's own art when it has any, the role icon when it has
+          not. Both occupy the same 16px box, so a grid of mixed items stays on
+          its column rhythm. --}}
+          {{#if cell.img}}
+            <img class='slot-icon slot-art' src='{{cell.img}}' alt='' />
+          {{else}}
+            <i class='fa-solid {{cell.icon}} slot-icon' aria-hidden='true'></i>
+          {{/if}}
           <span class='slot-content'>
             {{!-- The name is clipped to the run's width, so the full one has to
             stay reachable on hover as well as through the popover a click

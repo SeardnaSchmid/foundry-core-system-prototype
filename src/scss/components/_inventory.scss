@@ -981,9 +981,49 @@ $c-trinket-label: rgba($c-dark, 0.55);
 }
 
 .slot-icon {
-  flex: 0 0 16px;
+  flex: 0 0 24px;
   text-align: center;
   color: $c-tan;
+}
+
+// An item's own art, wherever a role icon would otherwise stand. It is sized to
+// `.slot-icon`'s track exactly, so the art and the fallback glyph occupy the
+// same box and a column of mixed items keeps one left edge.
+//
+// The rounding is the art's alone and is deliberately not the cell's: the
+// picture is a thumbnail inside a box, and softening the box instead turns the
+// carry raster into something else. It also drops the frame Foundry puts on
+// every `img` in a sheet, which at this size would be more border than picture.
+.slot-art {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 5px;
+  object-fit: contain;
+  // Core's item art is a painted tile on its own dark ground, so a hard crop
+  // reads as a sticker pressed onto the parchment. Fading the outer edge lets
+  // it sit *in* the cell instead.
+  //
+  // Two linear masks rather than one radial: a radial fade is a circle however
+  // late its falloff starts, because the corners of a square always sit further
+  // from the centre than its edges. Intersecting a horizontal and a vertical
+  // gradient fades all four edges evenly and leaves the picture square — the
+  // corners come out softest, since both gradients thin them, which is the
+  // squircle this wants and not the disc a vignette gives.
+  //
+  // The falloff is the outer 12% of each side, about 3px at this size. The
+  // subject is most of the picture at 24px and there is nothing to spare.
+  mask-image:
+    linear-gradient(to right, transparent 0, #000 12%, #000 88%, transparent 100%),
+    linear-gradient(to bottom, transparent 0, #000 12%, #000 88%, transparent 100%);
+  mask-composite: intersect;
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0, #000 12%, #000 88%, transparent 100%),
+    linear-gradient(to bottom, transparent 0, #000 12%, #000 88%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  // The role icons sit on the text baseline; a replaced element does not, and
+  // the one pixel of difference is visible in a grid this dense.
+  vertical-align: middle;
 }
 
 .over-capacity .slot-icon {
