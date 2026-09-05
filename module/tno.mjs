@@ -17,6 +17,7 @@ import { TnoBaseRollDialog } from './apps/base-roll-dialog.mjs';
 import { TnoHeatmapLab } from './apps/heatmap-lab.mjs';
 import { DEFAULT_HEATMAP_CONFIG, setActiveHeatmapConfig } from './helpers/heatmap.mjs';
 import { TnoCustomSkillsOverview } from './apps/custom-skills-overview.mjs';
+import { TnoItemOverview, ITEM_OVERVIEW_DEFAULT_CONFIG } from './apps/item-overview.mjs';
 import { registerMigrationSettings, migrateWorld } from './helpers/migrations.mjs';
 
 /* -------------------------------------------- */
@@ -115,6 +116,12 @@ Hooks.once('init', function () {
   // view-only and never touches `item.sort`.
   game.settings.register('tno', 'itemTableLayout', { scope: 'client', config: false, type: Object, default: DEFAULT_ITEM_TABLE_CONFIG });
 
+  // The item overview's own copy of that layout. Separate from the sheet's on
+  // purpose: the ledger is a per-character reading and the overview a
+  // world-wide audit, and the columns worth seeing differ — sharing one setting
+  // would have each surface silently retune the other.
+  game.settings.register('tno', 'itemOverviewLayout', { scope: 'client', config: false, type: Object, default: ITEM_OVERVIEW_DEFAULT_CONFIG });
+
   game.settings.registerMenu('tno', 'heatmapLabMenu', {
     name: 'TNO.Settings.HeatmapPreset.Name',
     hint: 'TNO.Settings.HeatmapPreset.Hint',
@@ -137,6 +144,18 @@ Hooks.once('init', function () {
     label: 'TNO.Settings.CustomSkillsOverview.Name',
     icon: 'fa-solid fa-list-check',
     type: TnoCustomSkillsOverview,
+    restricted: true,
+  });
+
+  // The same idea for gear: what is in play is spread across every actor's
+  // embedded items, and whether a piece came from the shipped catalogue or was
+  // typed in by hand is invisible on the sheets themselves.
+  game.settings.registerMenu('tno', 'itemOverviewMenu', {
+    name: 'TNO.Settings.ItemOverview.Name',
+    hint: 'TNO.Settings.ItemOverview.Hint',
+    label: 'TNO.Settings.ItemOverview.Name',
+    icon: 'fa-solid fa-boxes-stacked',
+    type: TnoItemOverview,
     restricted: true,
   });
 

@@ -209,6 +209,38 @@ export function buildGearSummary(item) {
  * S and WS are plain values on a 0..N scale, not counts of dice — there is no
  * unit to append, and a "W" suffix said there was one.
  */
+/**
+ * What kind of thing an item is, as the two localization keys that name it:
+ * the role, and the one qualifier that role brings.
+ *
+ * Keys rather than text, like everything else in this module — the caller joins
+ * them through `TNO.Item.TypeLine`, which is where a language that wants a
+ * different word order or separator states it.
+ *
+ * The role leads and the qualifier follows because the qualifier alone never
+ * said what it was qualifying: a line reading only `Kopf` or `Nah` names a
+ * detail of a category it leaves the reader to infer. Every item resolves to
+ * something here, including one carrying no role at all.
+ *
+ * Role precedence matches the gear sheet's: `setItemRole` writes one role at a
+ * time, so an item holding two is a hand-edited document rather than anything
+ * the UI can produce, and armour wins as it does elsewhere.
+ * @param {Item|object} item
+ * @returns {{roleKey: string, detailKey: string|null}}
+ */
+export function itemTypeLine(item) {
+  const roles = itemRoles(item);
+  if (roles.armor) {
+    const [zone] = armorZones(item);
+    return { roleKey: 'TNO.Item.Role.Armor', detailKey: zone ? TNO.armorZones[zone] ?? null : null };
+  }
+  if (roles.weapon) {
+    return { roleKey: 'TNO.Item.Role.Weapon', detailKey: TNO.weaponUses[weaponUse(item?.system)] ?? null };
+  }
+  if (roles.consumable) return { roleKey: 'TNO.Item.Role.Consumable', detailKey: null };
+  return { roleKey: 'TNO.Item.Role.Plain', detailKey: null };
+}
+
 export function damagePresentation(damage) {
   const count = Math.max(0, numberOrNull(damage?.count) ?? 0);
   return { count, label: String(count) };

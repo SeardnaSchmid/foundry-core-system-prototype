@@ -2283,6 +2283,71 @@
   font-style: italic;
   color: #444;
 }
+.tno .tno-item-overview {
+  padding: 6px 8px;
+}
+.tno .tno-item-overview .overview-toolbar {
+  flex: none;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-start;
+}
+.tno .tno-item-overview .item-table-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.tno .overview-columns {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  margin-bottom: 6px;
+  padding: 6px 8px;
+  border: 1px solid rgba(181, 179, 164, 0.7);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.35);
+}
+.tno .overview-columns-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tno .overview-columns-title {
+  font-size: var(--font-size-9, 9px);
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #444;
+}
+.tno .item-column-option {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--font-size-11, 11px);
+  cursor: pointer;
+}
+.tno .item-column-option input {
+  flex: none;
+  width: auto;
+  margin: 0;
+}
+.tno .overview-tally {
+  flex: 1;
+  font-size: var(--font-size-11, 11px);
+  color: #444;
+}
+.tno .overview-filter {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--font-size-11, 11px);
+  color: #444;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tno .overview-filter:hover, .tno .overview-filter.is-on {
+  color: #191813;
+}
 .tno .overview-table {
   width: 100%;
   border-collapse: collapse;
@@ -2300,12 +2365,41 @@
   text-transform: uppercase;
   font-size: var(--font-size-9, 9px);
 }
-.tno .overview-table .overview-open-actor {
+.tno .overview-table .overview-open-actor,
+.tno .overview-table .overview-open-item {
   cursor: pointer;
   color: #444;
 }
-.tno .overview-table .overview-open-actor:hover {
+.tno .overview-table .overview-open-actor:hover,
+.tno .overview-table .overview-open-item:hover {
   color: #191813;
+}
+.tno .tno-item-overview .item-td-holder .is-world {
+  font-style: italic;
+  color: #444;
+}
+.tno .tno-item-overview .origin-badge {
+  display: inline-block;
+  max-width: 100%;
+  padding: 0 6px;
+  border: 1px solid rgba(25, 24, 19, 0.18);
+  border-radius: 10px;
+  background: rgba(25, 24, 19, 0.05);
+  font-size: var(--font-size-10, 10px);
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tno .tno-item-overview .origin-homebrew .origin-badge {
+  border-color: rgba(179, 33, 43, 0.55);
+  background: rgba(179, 33, 43, 0.12);
+  color: #b3212b;
+  font-weight: bold;
+}
+.tno .tno-item-overview .origin-foreign .origin-badge {
+  border-color: rgba(184, 134, 11, 0.6);
+  background: rgba(184, 134, 11, 0.14);
 }
 .tno .items-header {
   height: 28px;

@@ -3,7 +3,7 @@ type: concept
 title: Item roles and the gear dialog
 description: Why a physical item has roles instead of a Foundry item type, and how the row-editor sheet is built from them.
 tags: [items, roles, weapons, armor, sheets, schema]
-resource: [module/apps/roll-dialog.mjs, module/documents/item.mjs, module/helpers/items.mjs, module/helpers/item-presentation.mjs, module/helpers/item-summary.mjs, module/helpers/item-transfer.mjs, module/sheets/actor-sheet.mjs, module/sheets/item-gear-sheet.mjs, templates/actor/parts/item-popover.hbs, templates/apps/create-item-dialog.hbs, templates/apps/take-item-dialog.hbs, templates/apps/roll-dialog.hbs, templates/chat/item-summary.hbs, templates/item/item-gear-sheet.hbs, templates/item/parts/item-gear-summary.hbs, templates/item/parts/item-role-weapon.hbs, templates/item/parts/item-post.hbs]
+resource: [module/apps/item-overview.mjs, module/helpers/item-audit.mjs, module/apps/roll-dialog.mjs, module/documents/item.mjs, module/helpers/items.mjs, module/helpers/item-presentation.mjs, module/helpers/item-summary.mjs, module/helpers/item-transfer.mjs, module/sheets/actor-sheet.mjs, module/sheets/item-gear-sheet.mjs, templates/actor/parts/item-popover.hbs, templates/apps/create-item-dialog.hbs, templates/apps/take-item-dialog.hbs, templates/apps/roll-dialog.hbs, templates/chat/item-summary.hbs, templates/item/item-gear-sheet.hbs, templates/item/parts/item-gear-summary.hbs, templates/item/parts/item-role-weapon.hbs, templates/item/parts/item-post.hbs]
 spec: docs/design/character-sheet-prd.md
 related: [concepts/combat-roll-workflows, concepts/inventory, concepts/migrations, reference/ui-surfaces, architecture/data-schema]
 ---
@@ -197,6 +197,45 @@ stays in place as a hatched `n/a` cell. Collapsing the row would move every row
 below it, so switching a weapon from melee to ranged would make the dialog jump
 under the cursor. Whole role blocks are the exception: a role that is off is a
 section the item does not have, not a field it cannot fill.
+
+## The GM's provenance window
+
+`tno.gear` is a starting point a GM drags from, not a live reference — an item
+copied onto an actor is a separate document from the moment it lands, and one
+typed in by hand is indistinguishable from a copied one on the sheet itself.
+[`apps/item-overview.mjs`](../../../module/apps/item-overview.mjs) is the surface
+that tells them apart, registered GM-only as `itemOverviewMenu` beside the custom
+skills overview it is modelled on.
+
+It walks `game.items` **and** every actor's embedded items, because in this system
+gear lives on actors: a window reading only the world directory would show almost
+nothing of what is in play.
+
+**It is the Inventar ledger's table, not a second one.** Grouping by role, the
+column catalogue, the three cell outcomes and the sort all come from
+[`helpers/item-table.mjs`](../../../module/helpers/item-table.mjs) — the same
+component the character sheet builds its ledger from — and the styling follows,
+since `_item-table.scss` is imported inside `.tno` and so reaches this app for
+free. A column therefore means the same thing in both places and the two cannot
+drift apart. What the window adds is the two columns that only mean something
+across actors: who holds the piece, and where it came from. It fixes its columns
+rather than offering the sheet's picker, which is a per-character layout with no
+reading across a whole world.
+
+The column that earns it is origin, and it is read off `_stats.compendiumSource`
+rather than guessed. Core stamps that field in both the directions that matter —
+`WorldCollection#fromCompendium` on import, and `ClientDocument.fromDropData`
+when a pack entry is dragged onto an actor — so an item with none was made in
+this world.
+[`helpers/item-audit.mjs`](../../../module/helpers/item-audit.mjs) is the pure
+half, and provenance is all it does: it parses the pack out of the source UUID
+rather than looking it up against installed packs, so an item outlives the module
+it came from and still says where it came from
+(`tests/helpers/item-audit.test.js › still names the pack of an item whose module is no longer installed`).
+
+The three outcomes are *made here* (no source), *other pack* (a source outside
+`tno.gear`) and *catalogue*. Only the first two are coloured; catalogue gear is
+the expected case and stays quiet.
 
 **The footer carries one action besides delete.** "Im Chat zeigen" posts the
 piece through the same `TnoItem#roll()` the inventory popover uses, and it is

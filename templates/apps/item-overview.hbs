@@ -1,0 +1,132 @@
+{{!-- GM overview of every item in the world and where each came from.
+
+The table is the Inventar ledger's: same grouping by role, same column
+catalogue, same cell grammar, same single-grid layout so every group's columns
+line up under one header. It adds the two columns that only mean something
+across actors — who holds the piece, and where it came from. See
+`module/apps/item-overview.mjs`. --}}
+
+<div class="tno-item-overview flexcol">
+  <div class="overview-toolbar flexrow">
+    <span class="overview-tally">
+      {{localize "TNO.ItemOverview.Tally" total=tally.total unlisted=unlisted}}
+    </span>
+    <a class="overview-filter {{#if unlistedOnly}}is-on{{/if}}"
+       title="{{localize 'TNO.ItemOverview.FilterHint'}}"
+       role="switch" aria-checked="{{unlistedOnly}}" tabindex="0">
+      <i class="fas {{#if unlistedOnly}}fa-square-check{{else}}fa-square{{/if}}"></i>
+      {{localize "TNO.ItemOverview.Filter"}}
+    </a>
+    <a class="item-columns-toggle {{#if pickerOpen}}is-on{{/if}}"
+       title="{{localize 'TNO.ItemTable.ColumnsHint'}}" tabindex="0">
+      <i class="fas fa-table-columns"></i>{{localize 'TNO.ItemTable.Columns'}}
+    </a>
+    <a class="overview-refresh" title="{{localize 'TNO.ItemOverview.Refresh'}}" tabindex="0">
+      <i class="fas fa-rotate"></i> {{localize "TNO.ItemOverview.Refresh"}}
+    </a>
+  </div>
+
+  {{!-- Inline rather than the sheet's top-layer popover, whose mounting and
+        positioning belong to the ActorSheetV2. A panel that pushes the table
+        down costs nothing in a window this size. --}}
+  {{#if pickerOpen}}
+    <div class="overview-columns">
+      {{#each sections as |section|}}
+        <div class="overview-columns-section">
+          <span class="overview-columns-title">{{section.label}}</span>
+          {{#each section.columns as |column|}}
+            <label class="item-column-option" title="{{column.hint}}">
+              <input type="checkbox" data-column="{{column.key}}" {{#if column.checked}}checked{{/if}} />
+              <span>{{column.label}}</span>
+            </label>
+          {{/each}}
+        </div>
+      {{/each}}
+    </div>
+  {{/if}}
+
+  {{#if isEmpty}}
+    <p class="overview-empty">
+      {{#if isFiltered}}
+        {{localize "TNO.ItemOverview.EmptyFiltered"}}
+      {{else}}
+        {{localize "TNO.ItemOverview.Empty"}}
+      {{/if}}
+    </p>
+  {{else}}
+    <div class="item-table-scroll">
+      <div class="item-table" style="grid-template-columns: {{gridTemplate}};">
+
+        {{!-- The ledger's own header band, minus the column picker: the
+              columns here are fixed, so only the sortable ones are links. --}}
+        <div class="item-thead">
+          {{#each headers as |column|}}
+            {{#if column.sortable}}
+              <a class="item-th item-table-sort{{#if column.numeric}} numeric{{/if}}{{#if column.sorted}} sorted{{/if}}"
+                 data-sort-key="{{column.key}}">
+                <span class="item-th-label">{{column.label}}</span>
+                {{#if column.sorted}}
+                  <i class="fas {{#ifEquals column.dir 'desc'}}fa-caret-down{{else}}fa-caret-up{{/ifEquals}}"
+                     aria-hidden="true"></i>
+                {{/if}}
+              </a>
+            {{else}}
+              <div class="item-th{{#if column.numeric}} numeric{{/if}}">
+                <span class="item-th-label">{{column.label}}</span>
+              </div>
+            {{/if}}
+          {{/each}}
+          <div class="item-th item-th-controls"></div>
+        </div>
+
+        {{#each groups as |group|}}
+          <div class="item-group" data-group="{{group.role}}">
+            <span class="item-group-name">{{group.label}}</span>
+            <span class="xp-badge">{{group.count}}</span>
+          </div>
+
+          {{#each group.rows as |row|}}
+            <div class="item-row origin-{{row.origin}}" data-group="{{group.role}}">
+              <div class="item-td item-td-name">
+                {{#if row.img}}
+                  <img class="inventory-item-icon slot-art" src="{{row.img}}" alt="" />
+                {{else}}
+                  <i class="fa-solid {{row.icon}} inventory-item-icon" aria-hidden="true"></i>
+                {{/if}}
+                <span class="item-row-name" title="{{row.name}}">{{row.name}}</span>
+              </div>
+
+              <div class="item-td item-td-holder">
+                {{#if row.holderId}}
+                  <a class="overview-open-actor" data-actor-id="{{row.holderId}}"
+                     title="{{localize 'TNO.ItemOverview.OpenActor'}}">{{row.holderLabel}}</a>
+                {{else}}
+                  <span class="is-world">{{row.holderLabel}}</span>
+                {{/if}}
+              </div>
+
+              {{!-- The pack id is the tooltip rather than the cell: a GM scans
+                    this column for the word and only wants the id when
+                    something is unaccounted for. --}}
+              <div class="item-td item-td-origin">
+                <span class="origin-badge" {{#if row.originPack}}title="{{row.originPack}}"{{/if}}>{{row.originLabel}}</span>
+              </div>
+
+              {{#each row.cells as |cell|}}
+                <div class="item-td{{#if cell.numeric}} numeric{{/if}}{{#if cell.na}} is-na{{/if}}{{#if cell.blank}} is-blank{{/if}}">{{cell.text}}</div>
+              {{/each}}
+
+              <div class="item-td item-controls">
+                <a class="overview-open-item" data-uuid="{{row.uuid}}"
+                   title="{{localize 'TNO.ItemOverview.OpenItem'}}">
+                  <i class="fas fa-arrow-up-right-from-square"></i>
+                </a>
+              </div>
+            </div>
+          {{/each}}
+        {{/each}}
+
+      </div>
+    </div>
+  {{/if}}
+</div>

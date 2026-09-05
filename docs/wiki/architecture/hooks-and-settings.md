@@ -61,6 +61,7 @@ One world-scoped hidden setting, registered by
 | --- | --- | --- |
 | `heatmapLabMenu` → `TnoHeatmapLab` | [`tno.mjs:86`](../../../module/tno.mjs) | No |
 | `customSkillsOverviewMenu` → `TnoCustomSkillsOverview` | [`tno.mjs:102`](../../../module/tno.mjs) | Yes (`restricted: true`) |
+| `itemOverviewMenu` → `TnoItemOverview` | [`tno.mjs`](../../../module/tno.mjs) | Yes (`restricted: true`) |
 
 ## Handlebars helpers
 

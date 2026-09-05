@@ -44,6 +44,7 @@ import {
   normalizeItemTableConfig,
   toggleItemTableColumn,
 } from '../helpers/item-table.mjs';
+import { itemTypeLine } from '../helpers/item-presentation.mjs';
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -1165,20 +1166,11 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    * @returns {string}
    */
   #slotTypeLine(item) {
-    const roles = itemRoles(item);
-    const line = (role, detail) => {
-      const name = game.i18n.localize(`TNO.Item.Role.${role}`);
-      return detail
-        ? game.i18n.format('TNO.Item.TypeLine', { role: name, detail: game.i18n.localize(detail) })
-        : name;
-    };
-    if (roles.armor) {
-      const [zone] = armorZones(item);
-      return line('Armor', zone ? CONFIG.TNO.armorZones[zone] : null);
-    }
-    if (roles.weapon) return line('Weapon', CONFIG.TNO.weaponUses[weaponUse(item.system)]);
-    if (roles.consumable) return line('Consumable', null);
-    return line('Plain', null);
+    const { roleKey, detailKey } = itemTypeLine(item);
+    const role = game.i18n.localize(roleKey);
+    return detailKey
+      ? game.i18n.format('TNO.Item.TypeLine', { role, detail: game.i18n.localize(detailKey) })
+      : role;
   }
 
   /** Format integer cents as the sheet user's localized euro amount. */

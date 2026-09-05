@@ -802,6 +802,92 @@ button:focus-visible {
   color: $c-tan;
 }
 
+.tno-item-overview {
+  padding: 6px 8px;
+}
+
+// Three controls rather than the skills overview's one, so the count leads and
+// the actions sit where that window already puts them.
+//
+// `flex: none` is load-bearing: core's `.flexcol > *` gives every child `flex: 1`,
+// which had the toolbar and the table splitting the window's height between them
+// — a 1348px toolbar with the table pushed below the fold of its own scroller.
+// The strip is as tall as its controls; the table takes the rest.
+.tno-item-overview .overview-toolbar {
+  flex: none;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-start;
+}
+
+.tno-item-overview .item-table-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+// The picker, opened from the toolbar. Four sections side by side, each a
+// column of checkboxes, wrapping when the window is narrowed.
+.overview-columns {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  margin-bottom: 6px;
+  padding: 6px 8px;
+  border: 1px solid rgba($c-beige, 0.7);
+  border-radius: 4px;
+  background: rgba($c-white, 0.35);
+}
+
+.overview-columns-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.overview-columns-title {
+  font-size: var(--font-size-9, 9px);
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: $c-tan;
+}
+
+.item-column-option {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--font-size-11, 11px);
+  cursor: pointer;
+
+  input {
+    flex: none;
+    width: auto;
+    margin: 0;
+  }
+}
+
+.overview-tally {
+  flex: 1;
+  font-size: var(--font-size-11, 11px);
+  color: $c-tan;
+}
+
+.overview-filter {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--font-size-11, 11px);
+  color: $c-tan;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover,
+  &.is-on {
+    color: $c-dark;
+  }
+}
+
 .overview-table {
   width: 100%;
   border-collapse: collapse;
@@ -821,12 +907,55 @@ button:focus-visible {
     font-size: var(--font-size-9, 9px);
   }
 
-  .overview-open-actor {
+  .overview-open-actor,
+  .overview-open-item {
     cursor: pointer;
     color: $c-tan;
 
     &:hover {
       color: $c-dark;
     }
+  }
+}
+
+// The two columns this window adds to the Inventar ledger. Everything else it
+// draws — the grid, the header band, the group headings, the three cell states
+// — comes from `_item-table.scss`, which is imported inside `.tno` and so
+// reaches this app for free. That reuse is the point: a column means the same
+// thing here as it does on a character sheet.
+.tno-item-overview {
+  .item-td-holder .is-world {
+    font-style: italic;
+    color: $c-tan;
+  }
+
+  // Origin is the column the window exists for, so it is the only one carrying
+  // colour — and only where there is something to say. Catalogue gear is the
+  // expected case and stays quiet; what the catalogue cannot account for is
+  // what the reader came to find.
+  .origin-badge {
+    display: inline-block;
+    max-width: 100%;
+    padding: 0 6px;
+    border: 1px solid rgba($c-dark, 0.18);
+    border-radius: 10px;
+    background: rgba($c-dark, 0.05);
+    font-size: var(--font-size-10, 10px);
+    line-height: 1.5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .origin-homebrew .origin-badge {
+    border-color: rgba($c-warning, 0.55);
+    background: rgba($c-warning, 0.12);
+    color: $c-warning;
+    font-weight: bold;
+  }
+
+  .origin-foreign .origin-badge {
+    border-color: rgba($c-advance, 0.6);
+    background: rgba($c-advance, 0.14);
   }
 }

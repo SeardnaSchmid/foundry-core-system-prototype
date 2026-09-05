@@ -133,6 +133,10 @@
       "CustomSkillsOverview": {
         "Name": "Übersicht: Eigene Fertigkeiten",
         "Hint": "Listet alle von Spielern angelegten eigenen Fertigkeiten über alle Charaktere dieser Welt auf."
+      },
+      "ItemOverview": {
+        "Name": "Gegenstandsübersicht",
+        "Hint": "Jeder Gegenstand der Welt — auf Akteuren und im Verzeichnis — mit seiner Herkunft."
       }
     },
     "HeatmapPreset": {
@@ -317,6 +321,26 @@
       "Empty": "Es wurden noch keine eigenen Fertigkeiten angelegt.",
       "OpenSheet": "Charakterbogen öffnen",
       "Refresh": "Aktualisieren"
+    },
+    "ItemOverview": {
+      "Refresh": "Aktualisieren",
+      "Filter": "Nur Gegenstände außerhalb des Katalogs",
+      "FilterHint": "Alles ausblenden, was aus dem mitgelieferten TNO-Ausrüstungskompendium stammt.",
+      "Tally": "{total} Gegenstände · {unlisted} nicht aus dem Katalog",
+      "Empty": "Diese Welt hat noch keine Gegenstände.",
+      "EmptyFiltered": "Jeder Gegenstand dieser Welt stammt aus dem mitgelieferten Katalog.",
+      "Item": "Gegenstand",
+      "Type": "Art",
+      "Holder": "Getragen von",
+      "World": "Weltverzeichnis",
+      "OpenItem": "Diesen Gegenstand öffnen",
+      "OpenActor": "Diesen Akteur öffnen",
+      "Origin": {
+        "Label": "Herkunft",
+        "Catalogue": "Katalog",
+        "Foreign": "Anderes Paket",
+        "Homebrew": "Hier erstellt"
+      }
     },
     "Migration": {
       "Started": "Systemdaten werden auf v{version} migriert…",

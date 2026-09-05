@@ -133,6 +133,10 @@
       "CustomSkillsOverview": {
         "Name": "Custom Skills Overview",
         "Hint": "List every custom skill defined by players across all character actors in this world."
+      },
+      "ItemOverview": {
+        "Name": "Item overview",
+        "Hint": "Every item in the world — on actors and in the directory — with where each one came from."
       }
     },
     "HeatmapPreset": {
@@ -317,6 +321,26 @@
       "Empty": "No custom skills have been added yet.",
       "OpenSheet": "Open Character Sheet",
       "Refresh": "Refresh"
+    },
+    "ItemOverview": {
+      "Refresh": "Refresh",
+      "Filter": "Only items not from the catalogue",
+      "FilterHint": "Hide everything that came from the shipped TNO gear compendium.",
+      "Tally": "{total} items · {unlisted} not from the catalogue",
+      "Empty": "This world has no items yet.",
+      "EmptyFiltered": "Every item in this world came from the shipped catalogue.",
+      "Item": "Item",
+      "Type": "Type",
+      "Holder": "Held by",
+      "World": "World directory",
+      "OpenItem": "Open this item",
+      "OpenActor": "Open this actor",
+      "Origin": {
+        "Label": "Origin",
+        "Catalogue": "Catalogue",
+        "Foreign": "Other pack",
+        "Homebrew": "Made here"
+      }
     },
     "Migration": {
       "Started": "System data is being migrated to v{version}…",
