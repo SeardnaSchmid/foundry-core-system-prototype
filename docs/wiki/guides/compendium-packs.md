@@ -108,8 +108,11 @@ to be art the project is allowed to redistribute.
   error for a registered pack whose path does not exist.
 - **Locally** — run it once before `npm run serve`. The dev server serves the
   working tree, so an unbuilt `packs/gear` is a missing compendium.
-- **`npm run release:verify`** includes it, so a broken source file fails before
-  a tag is cut rather than inside the release job.
+- **`npm run release:verify`** does *not* run it — it runs `packs:check`, which
+  compiles these same sources into a temporary directory and discards the
+  result. A broken source still fails before a tag is cut, but the check takes
+  no lock, so a release can be cut without shutting the world down. See
+  [build-test-release.md](build-test-release.md).
 
 ## What the GM gets, and what an update does to it
 

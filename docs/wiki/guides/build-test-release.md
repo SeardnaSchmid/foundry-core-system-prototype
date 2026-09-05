@@ -22,6 +22,7 @@ Command reference, CI wiring, and the full release procedure.
 | `npm run test:e2e` | Runs the Playwright suite against a disposable Foundry in Docker — see [e2e-testing.md](e2e-testing.md) |
 | `npm run docs:check` | Validates `docs/wiki/**` and the Proof citations in `docs/design/**` — see below |
 | `npm run css:check` | Fails if `css/tno.css` is not what `src/scss` currently compiles to — see below |
+| `npm run packs:check` | Fails if `src/packs/**` does not compile. Builds into a temp directory and discards it, so it never touches `packs/` and runs happily under a live Foundry — see below |
 | `npm run docs:odds` | Regenerates `docs/design/dice-odds.md` from the shipped dice helpers — see [dice-resolution.md](../concepts/dice-resolution.md) |
 | `npm run release` | Runs `release-it`: bumps version, updates `CHANGELOG.md`, tags, pushes |
 
@@ -35,9 +36,11 @@ When instructed to perform or prepare a release:
 1. **Check compatibility.** If updating Foundry compatibility, explicitly
    confirm or update `compatibility.verified` (and optionally
    `compatibility.minimum`) in `system.json`.
-2. **Run `npm run release`.** This runs `docs:check`, bumps the version in
-   `package.json` and `system.json`, updates `CHANGELOG.md`, creates a
-   `chore: release vX.Y.Z` commit, tags it, and pushes.
+2. **Run `npm run release`.** This runs `release:verify` (`docs:check`,
+   `css:check`, `packs:check`), bumps the version in `package.json` and
+   `system.json`, updates `CHANGELOG.md`, creates a `chore: release vX.Y.Z`
+   commit, tags it, and pushes. **Foundry may stay running** — nothing in the
+   release path writes to `packs/`.
 3. **Do not touch the `download` URL** in `system.json` by hand — the GitHub
    release workflow rewrites it on tag push.
 
@@ -80,6 +83,23 @@ with the real build. It runs as part of `npm run release:verify` alongside
 
 **If it fails, run `npm run build` and commit the result** — the checked-in CSS
 is out of date, not wrong.
+
+## Validating the packs without rebuilding them
+
+`release:verify` used to run `build:packs`, purely to prove the YAML compiles
+before a tag was cut. That worked, but it validated by destructively rebuilding
+`packs/` in place — and `packs/` is a LevelDB a running Foundry holds open. The
+guard in `build-packs.mjs` would then refuse, so cutting a release meant first
+shutting down the world you were developing against. The build output was never
+the point; only the fact that it could be produced.
+
+[`scripts/check-packs-build.mjs`](../../../scripts/check-packs-build.mjs)
+compiles every source under `src/packs/` into a temporary directory and deletes
+it, exactly as `check-css-build.mjs` does for the stylesheet. Same validation,
+no lock, no live directory touched — so a release can be cut with Foundry open.
+
+`build:packs` keeps its lock guard, because there it is still right: that
+command really does rebuild the pack a live Foundry is reading.
 
 ## Proof citations in docs/design
 
