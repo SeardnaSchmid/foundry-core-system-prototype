@@ -205,7 +205,14 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     this.#delegate('click', '.item-post-chat', () => this.item.roll());
 
     if (!this.isEditable) {
-      for (const control of this.element.querySelectorAll('input, select, textarea, button, prose-mirror')) {
+      // Scoped to the content, not to `this.element`. The application root is
+      // the <form> and the window frame lives *inside* it, so disabling every
+      // button under the root took the frame's own controls with it — a locked
+      // compendium item opened with a close button that would not close it.
+      // Core draws the same line in `DocumentSheetV2#_toggleDisabled`, which
+      // only touches what is inside `.window-content` while the sheet is framed.
+      const content = this.element.querySelector('.window-content') ?? this.element;
+      for (const control of content.querySelectorAll('input, select, textarea, button, prose-mirror')) {
         control.setAttribute('disabled', '');
       }
       return;
