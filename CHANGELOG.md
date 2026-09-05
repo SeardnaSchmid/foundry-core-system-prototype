@@ -1,5 +1,17 @@
 # Changelog
 
+# [0.43.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.42.1...v0.43.0) (2026-09-05)
+
+
+### Bug Fixes
+
+* **build:** validate the packs without rebuilding them ([5a4bd9d](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/5a4bd9d69804114e83cf2a95828b60d7a982f77d))
+
+
+### Features
+
+* **item:** GM overview of every item in the world and where it came from ([fe25b11](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/fe25b11069b61932bb4c207bcfc5f0e451aeac7d))
+
 ## [0.42.1](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.42.0...v0.42.1) (2026-09-05)
 
 
