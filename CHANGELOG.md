@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.42.1](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.42.0...v0.42.1) (2026-09-05)
+
+
+### Bug Fixes
+
+* **item:** keep the window controls live on a read-only gear sheet ([485fbe3](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/485fbe373794eb36eed91146a0ac3b7e2efa282b))
+
 # [0.42.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.41.0...v0.42.0) (2026-09-04)
 
 
