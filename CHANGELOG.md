@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.45.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.44.0...v0.45.0) (2026-09-06)
+
+
+### Features
+
+* **setup:** give TNO its own setup cover ([626bd22](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/626bd22a4346b4cfcefa7e1015013aa9127864ea))
+
 # [0.44.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.43.1...v0.44.0) (2026-09-06)
 
 
