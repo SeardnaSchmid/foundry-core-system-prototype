@@ -445,6 +445,51 @@ like any other declaration. Revisit once the zone tiles and the free field have
 been played with. Same for **Schwachstelle**, whose Erschwernis the GM names —
 that is a free number and always was.
 
+### Turn order
+
+"Initiativegrundwert + 1d10", and then **the slowest combatant acts first.**
+
+The formula lives once, in `TNO.initiativeFormula`, and both the combat tracker
+and the character sheet's Initiative caption roll it — so the two cannot drift
+apart. The order it produces is read *upward*: lowest value activates first,
+highest last.
+
+A round is kept as an ordered **activation history** rather than as a queue of
+who is still owed a turn. That is what makes stepping backwards truthful: a
+rewind retraces the round the way it was played, including an activation somebody
+pulled forward, instead of recomputing the order the initiative list would have
+produced.
+
+A player may pull their own combatant's activation forward **once per round**.
+Doing so spends that combatant's turn — they do not come round again until the
+next round — and it leaves everyone the order had not yet reached still owed a
+turn. When the round turns over, the initiative values from the start of the
+encounter are restored, so nothing an interrupt or a hand edit did to a number
+outlives the round it happened in.
+
+| Rule | Where | Proof |
+|---|---|---|
+| Initiative is `1d10 + Initiativegrundwert`, one formula for tracker and sheet | `CONFIG.Combat.initiative` ← `TNO.initiativeFormula` | `tests/e2e/specs/combat-initiative.spec.mjs › the tracker rolls 1d10 plus the derived initiative value`<br>`tests/e2e/specs/combat-initiative.spec.mjs › the sheet initiative cell and tracker share one formula` |
+| The lowest initiative activates first | `TnoCombat#_sortCombatants` (ascending) | `tests/e2e/specs/combat-reverse-initiative.spec.mjs › the slowest combatant activates first when combat starts`<br>`tests/documents/combat-turn-order.test.js › puts the slowest combatant first` |
+| Each further activation is the slowest combatant still owed a turn | `TnoCombat#nextTurn` | `tests/e2e/specs/combat-reverse-initiative.spec.mjs › next turn walks from the slowest to the fastest combatant`<br>`tests/documents/combat-turn-order.test.js › walks from the slowest to the fastest combatant` |
+| Stepping back retraces the activations that happened, not the initiative order | `TnoCombat#previousTurn` over `helpers/round-state.mjs` | `tests/e2e/specs/combat-reverse-initiative.spec.mjs › previous turn retraces the activation history`<br>`tests/helpers/round-state.test.js › preserves an interrupt activation in both directions` |
+| A combatant may activate early once a round, and not again that round | `TnoCombat#activateEarly` | `tests/e2e/specs/combat-reverse-initiative.spec.mjs › the GM can pull a combatant forward out of order`<br>`tests/documents/combat-interrupt.test.js › refuses a combatant who has already activated this round` |
+| Interrupting does not end the round for the combatants it skipped | `TnoCombat#nextTurn` | `tests/documents/combat-interrupt.test.js › leaves the combatants who were skipped over still owed a turn` |
+| A player's interrupt is a request the GM's client grants, checked against actor ownership | `helpers/combat-socket.mjs` | `tests/helpers/combat-socket.test.js › grants an owner their own combatant`<br>`tests/helpers/combat-socket.test.js › refuses a combatant the requesting user does not own` |
+| A new round restores the initiative values from combat start | `TnoCombat#nextRound` | `tests/e2e/specs/combat-reverse-initiative.spec.mjs › a new round restores the initiative values from combat start` |
+| A combatant's *first* initiative is their baseline, whenever it arrives — a round change never resets someone to no initiative | `TnoCombat#nextRound` | `tests/documents/combat-turn-order.test.js › never restores a combatant to no initiative at all`<br>`tests/documents/combat-turn-order.test.js › adopts a baseline for a combatant who joined mid-fight` |
+| The Haltung in force is visible per combatant in the tracker | `apps/combat-tracker.mjs` over `helpers/stances.mjs` | `tests/e2e/specs/combat-tracker-stance.spec.mjs › the tracker shows each combatant stance beside its initiative`<br>`tests/e2e/specs/combat-tracker-stance.spec.mjs › a stance change on the sheet reaches the tracker` |
+| A combatant with no Haltung reads as the default one | `helpers/stances.mjs` | `tests/e2e/specs/combat-tracker-stance.spec.mjs › a combatant without a stance falls back to the default`<br>`tests/helpers/stances.test.js › falls back for an actor with no combat block, which is every NPC` |
+
+**Display direction is not a rule.** The `combatTrackerOrder` world setting
+chooses which end of the list the sidebar draws first, and the activation order
+is identical either way.
+
+**No migration.** Combat state is transient — the round state and the initiative
+snapshot live in Combat flags that never existed in an earlier version of this
+system. The only thing a migration could rescue is an encounter running across
+the version bump, which is not worth a migration step.
+
 ### The envelope
 
 What crosses from attacker to defender, and all of it. Rendered as text on the
@@ -504,8 +549,13 @@ cover them.
 
 ## Deferred
 
-Targets, combatant state, Initiative, Bindung, action economy, ammunition,
-readying, chat-card follow-up chains.
+Targets, combatant state, Bindung, action economy, ammunition, readying,
+chat-card follow-up chains.
+
+**Combatant groups.** Foundry v14 has `CombatantGroup`. How a group behaves under
+slowest-first activation — one activation for the group, or one each — is a rule
+this document does not settle, and nothing in the code reads the class. Out of
+scope until the table wants it.
 
 **Nothing is applied automatically.** The attack card states the envelope, the
 defender enters what applies to them, and a failed resistance roll names the

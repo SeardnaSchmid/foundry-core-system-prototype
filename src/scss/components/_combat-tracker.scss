@@ -1,0 +1,124 @@
+// The sidebar combat tracker's TNO additions — see apps/combat-tracker.mjs.
+//
+// Imported outside the `.tno` block on purpose, the way `_base-roll-button` is.
+// The sidebar is painted by Foundry's own theme, light or dark by the viewer's
+// choice, while `.tno` carries the sheets' parchment palette and every sheet
+// component with it. Putting the tracker inside that scope would drag the form,
+// item and inventory rules into a surface none of them were written for, so
+// these rules stand alone and take their colours from tokens declared here.
+
+// One hue per Haltungsband, not per Haltung. Nine names down a narrow sidebar
+// are read one at a time; four colours are read at a glance — who is moving, who
+// is fighting, who is catching their breath. The bands are the ones
+// CONFIG.TNO.stanceGroups declares, and the chip is keyed by the group the
+// stance entry carries, so adding a Haltung to a band needs no CSS.
+//
+// Two sets, because the sidebar follows Foundry's own light/dark choice and
+// neither set is legible on the other ground. Deliberately not the sheets'
+// palette: `$c-warning` and friends are tuned for parchment.
+.combat-tracker {
+  --tno-stance-base: #5a5a52;
+  --tno-stance-movement: #1f5f9e;
+  --tno-stance-combat: #a32a24;
+  --tno-stance-recovery: #1f6b3a;
+  --tno-stance-wash: 12%;
+  // The interrupt is the one thing in this row a player *does* rather than
+  // toggles, so it takes the system's commit-to-this-action blue ($c-primary,
+  // the roll dialog's CTA) instead of another warm grey. Brighter and far more
+  // saturated than the movement band's #1f5f9e, so the two do not read as one
+  // colour when a moving combatant is also interruptible.
+  --tno-interrupt: #{$c-primary};
+}
+
+body.theme-dark .combat-tracker,
+.theme-dark .combat-tracker {
+  --tno-stance-base: #b9b7ad;
+  --tno-stance-movement: #6fb3f0;
+  --tno-stance-combat: #f0837c;
+  --tno-stance-recovery: #6fce93;
+  --tno-stance-wash: 20%;
+  --tno-interrupt: #7ea6ff;
+}
+
+// The Haltung, under the name. Icon plus the short name in the band's colour:
+// the icon alone is not nameable across nine Haltungen, the name alone is not
+// scannable, and grey 11px text under a bold name read as a subtitle rather
+// than as state. The full effect text is in the tooltip.
+.combat-tracker .tno-stance-chip {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 4px;
+  max-width: 100%;
+  padding: 1px 6px 1px 5px;
+  border: 1px solid color-mix(in srgb, var(--tno-stance-ink) 35%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--tno-stance-ink) var(--tno-stance-wash), transparent);
+  color: var(--tno-stance-ink);
+  font-size: var(--font-size-12);
+  font-weight: 600;
+  line-height: 1.35;
+  cursor: help;
+
+  // The band defaults to the neutral one, so a Haltung whose group is missing
+  // still gets a readable chip rather than an unstyled one.
+  --tno-stance-ink: var(--tno-stance-base);
+  &[data-stance-group='movement'] { --tno-stance-ink: var(--tno-stance-movement); }
+  &[data-stance-group='combat'] { --tno-stance-ink: var(--tno-stance-combat); }
+  &[data-stance-group='recovery'] { --tno-stance-ink: var(--tno-stance-recovery); }
+
+  // Offen is the Haltung for "nothing has been declared", and out of combat it
+  // is what every row carries. Drawn as a pill it made a list of ten look like
+  // ten decisions; drawn as plain muted text, a framed chip always means this
+  // combatant has committed to something.
+  &[data-stance-group='base'] {
+    padding-inline: 0;
+    border-color: transparent;
+    background: none;
+    font-weight: 400;
+  }
+
+  > i {
+    flex: none;
+    font-size: var(--font-size-11);
+    opacity: 0.85;
+  }
+}
+
+// "Einfache Bewegung" is wider than the sidebar has to spare, and a wrapped
+// second line would push the row's own height around. The tooltip carries the
+// whole thing anyway.
+.combat-tracker .tno-stance-label {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+// Spent for this round. Dimmed rather than hidden, and only lightly: the row
+// still has to be readable at a glance, it just no longer owes a turn. The
+// portrait carries most of the signal, so it takes the deeper fade and the text
+// keeps its contrast.
+.combat-tracker .combatant.tno-activated {
+  opacity: 0.75;
+
+  .token-image {
+    opacity: 0.55;
+    filter: grayscale(0.6);
+  }
+}
+
+.combat-tracker .combatant-control.tno-interrupt {
+  color: var(--tno-interrupt);
+
+  &:hover {
+    color: var(--tno-interrupt);
+    filter: brightness(1.25);
+  }
+}
+
+// Where a dragged combatant would land, while the GM is settling the order
+// before the first activation.
+.combat-tracker .combatant.tno-drop-target {
+  outline: 2px solid var(--color-warm-1);
+  outline-offset: -2px;
+}

@@ -38,6 +38,7 @@ New to the codebase? Read in this order:
 
 - [concepts/dice-resolution.md](concepts/dice-resolution.md) — the 3d20 roll-under mechanic
 - [concepts/combat-roll-workflows.md](concepts/combat-roll-workflows.md) — independent weapon Attack/Parry and character Dodge workflows
+- [concepts/combat-turn-order.md](concepts/combat-turn-order.md) — slowest-first activation, the round's activation history, the interrupt, and the tracker that draws it
 - [concepts/edge-pool.md](concepts/edge-pool.md) — problem-solving edge actions (Trial & error / Retry / Post-mortem)
 - [concepts/attributes.md](concepts/attributes.md) — the 12 attributes and their derived values
 - [concepts/damage.md](concepts/damage.md) — Schaden/Wuchtschaden health counters and the global roll malus

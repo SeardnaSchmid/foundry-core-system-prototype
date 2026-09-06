@@ -7247,3 +7247,88 @@
 .tno-base-roll-button:hover {
   color: #191813;
 }
+
+/* Sidebar combat tracker, likewise outside the sheet scope */
+.combat-tracker {
+  --tno-stance-base: #5a5a52;
+  --tno-stance-movement: #1f5f9e;
+  --tno-stance-combat: #a32a24;
+  --tno-stance-recovery: #1f6b3a;
+  --tno-stance-wash: 12%;
+  --tno-interrupt: #2f6bff;
+}
+
+body.theme-dark .combat-tracker,
+.theme-dark .combat-tracker {
+  --tno-stance-base: #b9b7ad;
+  --tno-stance-movement: #6fb3f0;
+  --tno-stance-combat: #f0837c;
+  --tno-stance-recovery: #6fce93;
+  --tno-stance-wash: 20%;
+  --tno-interrupt: #7ea6ff;
+}
+
+.combat-tracker .tno-stance-chip {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 4px;
+  max-width: 100%;
+  padding: 1px 6px 1px 5px;
+  border: 1px solid color-mix(in srgb, var(--tno-stance-ink) 35%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--tno-stance-ink) var(--tno-stance-wash), transparent);
+  color: var(--tno-stance-ink);
+  font-size: var(--font-size-12);
+  font-weight: 600;
+  line-height: 1.35;
+  cursor: help;
+  --tno-stance-ink: var(--tno-stance-base);
+}
+.combat-tracker .tno-stance-chip[data-stance-group=movement] {
+  --tno-stance-ink: var(--tno-stance-movement);
+}
+.combat-tracker .tno-stance-chip[data-stance-group=combat] {
+  --tno-stance-ink: var(--tno-stance-combat);
+}
+.combat-tracker .tno-stance-chip[data-stance-group=recovery] {
+  --tno-stance-ink: var(--tno-stance-recovery);
+}
+.combat-tracker .tno-stance-chip[data-stance-group=base] {
+  padding-inline: 0;
+  border-color: transparent;
+  background: none;
+  font-weight: 400;
+}
+.combat-tracker .tno-stance-chip > i {
+  flex: none;
+  font-size: var(--font-size-11);
+  opacity: 0.85;
+}
+
+.combat-tracker .tno-stance-label {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.combat-tracker .combatant.tno-activated {
+  opacity: 0.75;
+}
+.combat-tracker .combatant.tno-activated .token-image {
+  opacity: 0.55;
+  filter: grayscale(0.6);
+}
+
+.combat-tracker .combatant-control.tno-interrupt {
+  color: var(--tno-interrupt);
+}
+.combat-tracker .combatant-control.tno-interrupt:hover {
+  color: var(--tno-interrupt);
+  filter: brightness(1.25);
+}
+
+.combat-tracker .combatant.tno-drop-target {
+  outline: 2px solid var(--color-warm-1);
+  outline-offset: -2px;
+}

@@ -47,6 +47,8 @@ export const preloadHandlebarsTemplates = async function () {
     'systems/tno/templates/apps/custom-skill-dialog.hbs',
     'systems/tno/templates/apps/custom-skills-overview.hbs',
     'systems/tno/templates/apps/item-overview.hbs',
+    // Sidebar
+    'systems/tno/templates/sidebar/combat-tracker.hbs',
     // Chat
     'systems/tno/templates/chat/roll-card.hbs',
     'systems/tno/templates/chat/edge-panel.hbs',

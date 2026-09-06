@@ -5,7 +5,7 @@ description: Code map for the uncoupled Attack, Parry, Dodge and Resistance roll
 tags: [combat, weapons, defence, rolls, maneuvers]
 resource: [module/helpers/combat-actions.mjs, module/helpers/maneuvers.mjs, module/helpers/items.mjs, module/documents/item.mjs, module/documents/actor.mjs, module/apps/roll-dialog.mjs, module/sheets/actor-sheet.mjs, templates/actor/parts/item-popover.hbs, templates/actor/parts/actor-paperdoll.hbs, templates/actor/actor-character-sheet.hbs, templates/apps/roll-dialog.hbs, templates/chat/roll-card.hbs]
 spec: docs/design/workflows/combat-workflow-prd.md
-related: [concepts/dice-resolution, concepts/item-roles, concepts/skills, concepts/damage]
+related: [concepts/dice-resolution, concepts/item-roles, concepts/skills, concepts/damage, concepts/combat-turn-order]
 ---
 
 # Standalone combat roll workflows
@@ -17,8 +17,17 @@ This page maps those workflows to their implementation.
 **The rule the whole layout follows: no sheet ever reads another sheet.** A
 workflow either computes a value from its own actor, asks the player to pick a
 fact both sides can see, or asks them to type a number the other side announced.
-Nothing anywhere in this path takes a target, opens a second document, or checks
-another user's permissions.
+Nothing anywhere in *this* path takes a target, opens a second document, or
+checks another user's permissions.
+
+The scope of that sentence is the **roll** workflows on this page, and it is
+scoped deliberately rather than by omission. A roll belongs to the person making
+it, so nothing about it needs another client. The turn order does not: the
+activation history is one object every participant shares, and a player may not
+write it — so the interrupt is the one place in this system where a client asks
+another client to act. See
+[combat-turn-order.md](combat-turn-order.md#the-one-socket) for why the two sit
+on opposite sides of that line.
 
 - [`helpers/combat-actions.mjs`](../../../module/helpers/combat-actions.mjs) is
   the entry layer: one builder per Handlung — `angriffOptions`, `paradeOptions`,

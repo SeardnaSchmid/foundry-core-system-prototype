@@ -1,6 +1,7 @@
 // Import document classes.
 import { TnoActor } from './documents/actor.mjs';
 import { TnoItem } from './documents/item.mjs';
+import { TnoCombat } from './documents/combat.mjs';
 // Import sheet classes.
 import { TnoActorSheet, BASICS_LAYOUT_DEFAULT } from './sheets/actor-sheet.mjs';
 import { TnoItemSheet } from './sheets/item-sheet.mjs';
@@ -18,6 +19,8 @@ import { TnoHeatmapLab } from './apps/heatmap-lab.mjs';
 import { DEFAULT_HEATMAP_CONFIG, setActiveHeatmapConfig } from './helpers/heatmap.mjs';
 import { TnoCustomSkillsOverview } from './apps/custom-skills-overview.mjs';
 import { TnoItemOverview, ITEM_OVERVIEW_DEFAULT_CONFIG } from './apps/item-overview.mjs';
+import { TnoCombatTracker } from './apps/combat-tracker.mjs';
+import { registerCombatSocket } from './helpers/combat-socket.mjs';
 import { registerMigrationSettings, migrateWorld } from './helpers/migrations.mjs';
 
 /* -------------------------------------------- */
@@ -55,6 +58,13 @@ Hooks.once('init', function () {
   // Define custom Document classes
   CONFIG.Actor.documentClass = TnoActor;
   CONFIG.Item.documentClass = TnoItem;
+  // The slowest combatant acts first, and a combatant may pull their turn
+  // forward once a round — both are rules of this combat model, not options.
+  // See documents/combat.mjs.
+  CONFIG.Combat.documentClass = TnoCombat;
+  // The sidebar tracker has to say which Haltung each combatant is holding, and
+  // that is only interpretable through CONFIG.TNO — see apps/combat-tracker.mjs.
+  CONFIG.ui.combat = TnoCombatTracker;
 
   // Active Effects are never copied to the Actor,
   // but will still apply to the Actor from within the Item
@@ -122,6 +132,23 @@ Hooks.once('init', function () {
   // would have each surface silently retune the other.
   game.settings.register('tno', 'itemOverviewLayout', { scope: 'client', config: false, type: Object, default: ITEM_OVERVIEW_DEFAULT_CONFIG });
 
+  // Which end of the initiative list the sidebar draws first. Presentation
+  // only: the activation rule is fixed at slowest-first either way, so this
+  // setting can never change who acts when — see documents/combat.mjs.
+  game.settings.register('tno', 'combatTrackerOrder', {
+    name: 'TNO.Combat.Tracker.Order',
+    hint: 'TNO.Combat.Tracker.OrderHint',
+    scope: 'world',
+    config: true,
+    type: String,
+    choices: {
+      ascending: 'TNO.Combat.Tracker.OrderAscending',
+      descending: 'TNO.Combat.Tracker.OrderDescending',
+    },
+    default: 'ascending',
+    onChange: () => ui.combat?.render(),
+  });
+
   game.settings.registerMenu('tno', 'heatmapLabMenu', {
     name: 'TNO.Settings.HeatmapPreset.Name',
     hint: 'TNO.Settings.HeatmapPreset.Hint',
@@ -171,16 +198,20 @@ Hooks.once('init', function () {
   // Wire up the "Fehler finden" reroll tracker on failed roll cards.
   registerChatListeners();
 
+  // Nothing in core re-renders the combat tracker when an actor changes, so the
+  // Haltung a tracker row shows would otherwise stay on whatever it was when the
+  // row was last drawn.
+  Hooks.on('updateActor', (actor, changed) => {
+    if (!foundry.utils.hasProperty(changed, 'system.combat.stance')) return;
+    if (game.combat?.getCombatantsByActor(actor).length) ui.combat?.render();
+  });
+
   // A quick-access button for the "Basiswürfel" roll (bare 3d20 mechanic,
   // no threshold), reachable from the chat log without opening any actor
-  // sheet. Foundry v14 restructured the chat log's controls into the
-  // `renderChatInput` hook; older versions still render `#chat-controls`
-  // as part of `renderChatLog`, so both are handled here.
+  // sheet. Foundry v14 moved the chat log's controls into `renderChatInput`;
+  // the `renderChatLog` fallback that used to sit beside this is gone with the
+  // v13 floor, since v14 does not fire that hook at all.
   Hooks.on('renderChatInput', (app, elements) => injectBaseRollButton(elements?.['#chat-controls']));
-  Hooks.on('renderChatLog', (app, html) => {
-    const root = html instanceof HTMLElement ? html : html[0];
-    injectBaseRollButton(root?.querySelector('#chat-controls'));
-  });
 });
 
 /**
@@ -250,6 +281,10 @@ Handlebars.registerHelper('ifEquals', function (a, b, options) {
 Hooks.once('ready', function () {
   // Wait to register hotbar drop hook on ready so that modules could register earlier if they want to
   Hooks.on('hotbarDrop', (bar, data, slot) => createItemMacro(data, slot));
+
+  // Players cannot write the Combat document, so an interrupt they press is a
+  // request the GM's client grants — see helpers/combat-socket.mjs.
+  registerCombatSocket();
 
   migrateWorld();
 });

@@ -3,6 +3,7 @@ import {
   prepareActiveEffectCategories,
 } from '../helpers/effects.mjs';
 import { ausweichenOptions, canDefend, takeStance } from '../helpers/combat-actions.mjs';
+import { stanceEntry, stancePopoverGroups } from '../helpers/stances.mjs';
 import { colorForValue, INK_DARK } from '../helpers/heatmap.mjs';
 import { damageTrackRows } from '../helpers/damage.mjs';
 import { TnoRollDialog } from '../apps/roll-dialog.mjs';
@@ -307,8 +308,8 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // "kündigt er zuerst seine beabsichtigte Handlung und Haltung an" — and it
     // is the one value the defence side of an exchange cannot do without. The
     // banner only carries the Haltung in force; the nine to choose from live in
-    // the popover, which is built on demand by `#stancePopoverContext`.
-    context.stance = this.#stanceEntry(context.system.derived?.stance);
+    // the popover, which is built on demand from `helpers/stances.mjs`.
+    context.stance = stanceEntry(context.system.derived?.stance);
     const dodgeAvailable = context.system.derived?.defenses?.dodge?.available === true;
     const dodgeMalus = Number(context.system.derived?.defenses?.dodge?.malus) || 0;
     context.dodgeDefense = {
@@ -1377,48 +1378,16 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   }
 
   /**
-   * One Haltung as the banner and the picker display it. Falls back to the
-   * default Haltung for an unknown key, so a sheet whose stored stance predates
-   * a config change still shows something rather than an empty pill.
-   * @param {string} key
-   * @returns {{key: string, label: string, icon: string, effect: string, defenses: string}}
-   * @private
+   * The nine Haltungen in their bands, plus whichever one the panel reads out.
+   * Both halves come from [`helpers/stances.mjs`](../helpers/stances.mjs), which
+   * the combat tracker reads too — the fallback for an unknown key has to be the
+   * same wherever a Haltung is drawn.
    */
-  #stanceEntry(key) {
-    const stances = CONFIG.TNO.stances;
-    const resolved = key in stances ? key : CONFIG.TNO.defaultStance;
-    const stance = stances[resolved];
-    const defenses = stance.defenses.map((defense) => game.i18n.localize(
-      defense === 'parry' ? 'TNO.Combat.Parry' : 'TNO.Combat.Dodge'
-    ));
-    return {
-      key: resolved,
-      label: game.i18n.localize(stance.label),
-      icon: stance.icon,
-      effect: game.i18n.localize(stance.effect),
-      // The single question the defence side of an exchange asks the Haltung.
-      defenses: defenses.length
-        ? defenses.join(' · ')
-        : game.i18n.localize('TNO.Combat.StanceDefenseNone'),
-    };
-  }
-
-  /** The nine Haltungen in their bands, plus whichever one the panel reads out. */
   #stancePopoverContext() {
-    const current = this.#stanceEntry(this.actor.system.derived?.stance);
-    const entries = Object.keys(CONFIG.TNO.stances).map((key) => ({
-      ...this.#stanceEntry(key),
-      group: CONFIG.TNO.stances[key].group,
-      selected: key === current.key,
-    }));
+    const current = this.actor.system.derived?.stance;
     return {
-      detail: current,
-      groups: CONFIG.TNO.stanceGroups
-        .map((group) => ({
-          label: game.i18n.localize(group.label),
-          stances: entries.filter((entry) => entry.group === group.key),
-        }))
-        .filter((group) => group.stances.length),
+      detail: stanceEntry(current),
+      groups: stancePopoverGroups(current),
     };
   }
 

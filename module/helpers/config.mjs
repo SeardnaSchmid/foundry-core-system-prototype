@@ -284,15 +284,15 @@ TNO.armorAddonZones = ARMOR_ADDON_ZONES;
  * @type {Object<string, {label: string, effect: string, icon: string, group: string, defenses: Array<'parry'|'dodge'>}>}
  */
 TNO.stances = {
-  open: { label: 'TNO.Combat.Stance.Open', effect: 'TNO.Combat.StanceEffect.Open', icon: 'fa-person', group: 'base', defenses: [] },
+  open: { label: 'TNO.Combat.Stance.Open', effect: 'TNO.Combat.StanceEffect.Open', icon: 'fa-circle-dashed', group: 'base', defenses: [] },
   simpleMove: { label: 'TNO.Combat.Stance.SimpleMove', effect: 'TNO.Combat.StanceEffect.SimpleMove', icon: 'fa-person-walking', group: 'movement', defenses: ['parry', 'dodge'] },
-  carefulMove: { label: 'TNO.Combat.Stance.CarefulMove', effect: 'TNO.Combat.StanceEffect.CarefulMove', icon: 'fa-shoe-prints', group: 'movement', defenses: ['dodge'] },
-  fastMove: { label: 'TNO.Combat.Stance.FastMove', effect: 'TNO.Combat.StanceEffect.FastMove', icon: 'fa-person-running', group: 'movement', defenses: ['dodge'] },
-  inCover: { label: 'TNO.Combat.Stance.InCover', effect: 'TNO.Combat.StanceEffect.InCover', icon: 'fa-shield-halved', group: 'combat', defenses: ['dodge'] },
-  enGarde: { label: 'TNO.Combat.Stance.EnGarde', effect: 'TNO.Combat.StanceEffect.EnGarde', icon: 'fa-hand-fist', group: 'combat', defenses: ['parry', 'dodge'] },
-  suppressiveFire: { label: 'TNO.Combat.Stance.SuppressiveFire', effect: 'TNO.Combat.StanceEffect.SuppressiveFire', icon: 'fa-burst', group: 'combat', defenses: ['dodge'] },
+  carefulMove: { label: 'TNO.Combat.Stance.CarefulMove', effect: 'TNO.Combat.StanceEffect.CarefulMove', icon: 'fa-user-secret', group: 'movement', defenses: ['dodge'] },
+  fastMove: { label: 'TNO.Combat.Stance.FastMove', effect: 'TNO.Combat.StanceEffect.FastMove', icon: 'fa-person-running-fast', group: 'movement', defenses: ['dodge'] },
+  inCover: { label: 'TNO.Combat.Stance.InCover', effect: 'TNO.Combat.StanceEffect.InCover', icon: 'fa-person-shelter', group: 'combat', defenses: ['dodge'] },
+  enGarde: { label: 'TNO.Combat.Stance.EnGarde', effect: 'TNO.Combat.StanceEffect.EnGarde', icon: 'fa-swords', group: 'combat', defenses: ['parry', 'dodge'] },
+  suppressiveFire: { label: 'TNO.Combat.Stance.SuppressiveFire', effect: 'TNO.Combat.StanceEffect.SuppressiveFire', icon: 'fa-spray-can', group: 'combat', defenses: ['dodge'] },
   grappling: { label: 'TNO.Combat.Stance.Grappling', effect: 'TNO.Combat.StanceEffect.Grappling', icon: 'fa-people-arrows', group: 'combat', defenses: [] },
-  catchBreath: { label: 'TNO.Combat.Stance.CatchBreath', effect: 'TNO.Combat.StanceEffect.CatchBreath', icon: 'fa-lungs', group: 'recovery', defenses: [] },
+  catchBreath: { label: 'TNO.Combat.Stance.CatchBreath', effect: 'TNO.Combat.StanceEffect.CatchBreath', icon: 'fa-person-meditating', group: 'recovery', defenses: [] },
 };
 
 /**

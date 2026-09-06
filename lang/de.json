@@ -688,7 +688,16 @@
         "Damage": "RB/RD {penetration} · Schaden {sharp} / Wucht {blunt}",
         "Dk": "DK {dk}"
       },
-      "BypassArmorHint": "Der Angreifer hat die RA dieser Stelle bezahlt, um die Rüstung zu umgehen — ihr Rüstungswert gilt nicht, und der Treffer geht immer in den Schaden statt in den Wuchtschaden."
+      "BypassArmorHint": "Der Angreifer hat die RA dieser Stelle bezahlt, um die Rüstung zu umgehen — ihr Rüstungswert gilt nicht, und der Treffer geht immer in den Schaden statt in den Wuchtschaden.",
+      "Tracker": {
+        "Order": "Initiative-Reihenfolge im Combat Tracker",
+        "OrderHint": "Legt nur die sichtbare Reihenfolge in der Seitenleiste fest. Aktiviert wird in beiden Fällen von der niedrigsten zur höchsten Initiative.",
+        "OrderAscending": "Niedrig nach hoch (oben nach unten aktivieren)",
+        "OrderDescending": "Hoch nach niedrig (unten nach oben aktivieren)",
+        "Interrupt": "Jetzt aktivieren (Interrupt)",
+        "Activated": "In dieser Runde bereits aktiviert",
+        "AlreadyActivated": "{name} hat sich in dieser Runde bereits aktiviert."
+      }
     },
     "Damage": {
       "Pool": "Schadenspool",

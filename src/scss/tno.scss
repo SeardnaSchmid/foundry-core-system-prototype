@@ -31,3 +31,6 @@
 /* Chat message styles, rendered outside of any tno-classed sheet */
 @import 'components/dice-card';
 @import 'components/base-roll-button';
+
+/* Sidebar combat tracker, likewise outside the sheet scope */
+@import 'components/combat-tracker';

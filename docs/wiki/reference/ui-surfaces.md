@@ -4,7 +4,7 @@ title: UI surfaces
 description: Handlebars templates and SCSS components, mapped to the app or sheet that consumes them.
 tags: [templates, handlebars, scss, reference]
 resource: [templates, src/scss]
-related: [reference/module-map]
+related: [reference/module-map, concepts/combat-turn-order]
 ---
 
 # UI surfaces
@@ -50,6 +50,7 @@ related: [reference/module-map]
 | `item/item-sheet.hbs`, `item-feature-sheet.hbs`, `item-spell-sheet.hbs` | `TnoItemSheet`, resolved per item type — only `feature` and `spell` reach it now |
 | `item/parts/item-delete.hbs` | Delete action included by all item sheet templates; item sheets intentionally expose no Foundry Active Effect UI |
 | `item/parts/item-post.hbs` | "Show in chat" action in the gear dialog's footer, beside delete. The V1 feature/spell sheets get the same action from `TnoItemSheet#_getHeaderButtons` instead, since their footer is inside a tab |
+| `sidebar/combat-tracker.hbs` | `TnoCombatTracker`'s `tracker` part. **A copy of a core template** — `templates/sidebar/tabs/combat/tracker.hbs` from Foundry 14.364 — with four marked TNO changes: the Haltung chip under each name, the interrupt button as the last left-aligned control in the control row (not beside the initiative — core's `.token-initiative` is a one-child flex column and a second child there changed the row height; and last in its group so nothing shifts when a row is spent), an initiative field an owner may edit rather than only the GM, and the spent-this-round marker on the row. The `header` and `footer` parts stay on core's own templates. Diff it against the core file before every Foundry upgrade; `tests/e2e/specs/combat-tracker-stance.spec.mjs` guards the core parts in the meantime — see [combat-turn-order.md](../concepts/combat-turn-order.md) |
 
 All of the above are preloaded by
 [`helpers/templates.mjs`](../../../module/helpers/templates.mjs) — if you
@@ -105,6 +106,7 @@ them in step with `BASICS_LAYOUT_DEFAULT`.
 | `components/_effects.scss` | Active effect list rendering |
 | `components/_tooltip.scss` | Both halves of the rich `data-tooltip-html` tooltip: the `.tno-tooltip` card itself, declared at the top level of `tno.scss` because Foundry mounts `#tooltip` on `<body>` outside any `.tno` element, and `.tno-tooltip-hint`, the dotted underline marking a plain-text trigger. Icon and chip triggers are left unmarked — they already carry their own affordance |
 | `components/_base-roll-button.scss` | The chat-log "Basiswürfel" quick-roll button |
+| `components/_combat-tracker.scss` | The sidebar tracker's Haltung chip, spent-round dimming, interrupt button and drag drop-target. Imported **outside** the `.tno` block, like `_base-roll-button` above it: the sidebar is painted by Foundry's own light/dark theme, and pulling it into `.tno` would drag the sheets' parchment palette and every sheet component with it into a surface none of them were written for. It therefore declares its own four band colours plus the interrupt blue as tokens on `.combat-tracker`, with a `.theme-dark` set beside them — the sheets' `utils/_colors.scss` is tuned for parchment and unreadable here. The chip picks its band off `data-stance-group`, so adding a Haltung to an existing band needs no CSS |
 | `global/_flex.scss`, `_grid.scss`, `_window.scss` | Layout primitives |
 | `utils/_colors.scss`, `_mixins.scss`, `_typography.scss`, `_variables.scss` | Shared tokens |
 

@@ -23,6 +23,7 @@ Entry point, no exports (side-effecting init). See
 | --- | --- | --- |
 | `actor.mjs` | `TnoActor extends Actor` | Derived-data computation — see [data-schema.md](../architecture/data-schema.md) |
 | `item.mjs` | `TnoItem extends Item` | `isWorn`, `confirmDelete()`, `getRollData()`, `roll()` (posts to chat), weapon-check and consumable-stock helpers |
+| `combat.mjs` | `TnoCombat extends Combat`, `ROUND_STATE_FLAG`, `BASE_INITIATIVES_FLAG` | Slowest-first activation and the round's activation history: `_sortCombatants` (ascending, and never reading `this`), `startCombat`/`nextTurn`/`previousTurn`/`nextRound`, `activateEarly`, `activatedIds` — see [combat-turn-order.md](../concepts/combat-turn-order.md) |
 
 ## `sheets/`
 
@@ -56,6 +57,9 @@ Entry point, no exports (side-effecting init). See
 | `item-summary.mjs` | `localizeGearSummary`, `prepareGearSummaryContext` | Adds localization and the live actor context to `buildGearSummary`; the one context builder behind the popover, the chat card and the carry-cell tooltips |
 | `item-table.mjs` | `ITEM_TABLE_COLUMNS`, `ITEM_TABLE_GROUPS`, `ITEM_TABLE_SECTIONS`, `CELL_KINDS`, `DEFAULT_ITEM_TABLE_CONFIG`, `normalizeItemTableConfig`, `toggleItemTableColumn`, `nextItemTableSort`, `itemGroupKey`, `columnCell`, `buildItemGroups` | The Inventar tab's ledger: the column catalogue, the role grouping and the view-only ordering. Returns raw values and an ordering — the sheet turns those into words — so it stays free of Foundry globals like the two helpers it composes. See [inventory.md](../concepts/inventory.md#the-ledger) |
 | `maneuvers.mjs` | `ansageEnvelope`, `DAMAGE_RULES`, `ZONE_CHOICES`, `DEFAULT_ZONE` | The Stelle and the A→B envelope. Models no Manöver: an Ansage is one free number the table agrees on, so there is no cost ladder and no table of nine. Pure, no Foundry globals — see [combat-roll-workflows.md](../concepts/combat-roll-workflows.md) |
+| `round-state.mjs` | `createRoundState`, `normalizeRoundState`, `getActivatedIds`, `advanceActivation`, `rewindActivation`, `activateEarly`, `startNextRound` | One combat round as an ordered activation *history* plus a cursor, which is what lets a rewind retrace the round that was played rather than the one the initiative list describes. Imports nothing and holds itself free of Foundry globals — see [combat-turn-order.md](../concepts/combat-turn-order.md) |
+| `stances.mjs` | `stanceEntry`, `stancePopoverGroups` | The read side of a Haltung — label, icon, effect, permitted defences, and the fallback for a key `CONFIG.TNO` no longer has. Shared by the sheet's banner, its picker and the combat tracker, so all three fall back the same way |
+| `combat-socket.mjs` | `TNO_SOCKET`, `emitInterrupt`, `registerCombatSocket`, `handleCombatSocketMessage` | The system's only socket: a player asking the GM's client to pull their own combatant's activation forward. Carries no authority — ownership, the combat's state and the sender are all re-derived on receipt |
 | `combat-actions.mjs` | `angriffOptions`, `paradeOptions`, `ausweichenOptions`, `widerstandOptions`, `actorStance`, `canDefend`, `defenseMalus`, `countDefense`, `takeStance` | One builder per Handlung, plus the Haltung rules. Every combat roll is assembled here and nowhere else, so an Ansage can reach the same options an ordinary attack builds |
 | `migrations.mjs` | `MIGRATIONS`, `registerMigrationSettings`, `migrateWorld` | See [migrations.md](../concepts/migrations.md) |
 | `templates.mjs` | `preloadHandlebarsTemplates` | Preloads every `.hbs` used by apps/sheets — see [ui-surfaces.md](ui-surfaces.md) |
@@ -72,6 +76,7 @@ Entry point, no exports (side-effecting init). See
 | `custom-skill-dialog.mjs` | `TnoCustomSkillDialog extends FormApplication` | Add/edit a custom skill — see [skills.md](../concepts/skills.md) |
 | `custom-skills-overview.mjs` | `TnoCustomSkillsOverview extends FormApplication` | GM-only world-wide custom skill listing |
 | `item-overview.mjs` | `TnoItemOverview extends FormApplication` | GM-only listing of every item in the world, on actors and loose, with where each came from — see [item-roles.md](../concepts/item-roles.md) |
+| `combat-tracker.mjs` | `TnoCombatTracker extends CombatTracker` | The sidebar tracker, registered as `CONFIG.ui.combat`: the Haltung chip on each row, the spent-this-round marker, the interrupt button, pre-combat drag reordering, and the display-order setting — see [combat-turn-order.md](../concepts/combat-turn-order.md) |
 
 `TnoActorSheet` is on **ApplicationV2** (`HandlebarsApplicationMixin(ActorSheetV2)`);
 that is what earns it Foundry v14's native pop-out, since the "Detach" window
@@ -101,7 +106,11 @@ ApplicationV1 and still use `getData()`, jQuery `activateListeners(html)` and
 across seven classes with no e2e coverage on any of them, so it wants to be
 its own change with tests in front of it, not a side effect of another one.
 
-Because `foundry.appv1`, `foundry.documents.collections`,
-`foundry.applications.handlebars` and `foundry.applications.ux` are all **v13+**
-namespaces, `system.json` declares `compatibility.minimum: "13"`. It previously
-said `"12"`, which the code could not honour.
+`system.json` declares `compatibility.minimum: "14"`. It has walked up twice:
+`"12"` was a floor the code could not honour once it moved onto the **v13+**
+namespaces `foundry.appv1`, `foundry.documents.collections`,
+`foundry.applications.handlebars` and `foundry.applications.ux`; `"13"` fell
+when the combat tracker started drawing Haltung icons from Font Awesome 7,
+which Foundry only bundles from v14 (`fa-person-meditating` is the one that
+does not exist in the v13 build) — see
+[combat-turn-order.md](../concepts/combat-turn-order.md).

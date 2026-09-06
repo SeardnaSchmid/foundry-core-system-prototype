@@ -688,7 +688,16 @@
         "Damage": "RB/RD {penetration} · damage {sharp} / blunt {blunt}",
         "Dk": "DK {dk}"
       },
-      "BypassArmorHint": "The attacker paid this location's RA to bypass its armour, so its padding does not apply — and the hit always enters damage rather than blunt damage."
+      "BypassArmorHint": "The attacker paid this location's RA to bypass its armour, so its padding does not apply — and the hit always enters damage rather than blunt damage.",
+      "Tracker": {
+        "Order": "Initiative order in the combat tracker",
+        "OrderHint": "Sets the visible order in the sidebar only. Either way activation runs from the lowest initiative to the highest.",
+        "OrderAscending": "Low to high (activate top to bottom)",
+        "OrderDescending": "High to low (activate bottom to top)",
+        "Interrupt": "Activate now (interrupt)",
+        "Activated": "Already activated this round",
+        "AlreadyActivated": "{name} has already activated this round."
+      }
     },
     "Damage": {
       "Pool": "Damage pool",
