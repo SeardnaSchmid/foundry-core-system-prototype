@@ -11,7 +11,7 @@
  * Stärke 5, an Unterkleidung of RW 1 under a helmet of RW 3, resisting an
  * announced 7 from a weapon the armour is harder than: 5 + 4 − 7 + 3 = 5.
  */
-import { test, expect, createCharacter, openSheet } from '../fixtures.mjs';
+import { armor, test, expect, createCharacter, lastMessage, localize, openSheet } from '../fixtures.mjs';
 
 const RESIST = {
   strength: 5,
@@ -26,45 +26,19 @@ test('a hit location rolls its resistance against the damage the attacker announ
 
   const { id } = await createCharacter(page, {
     abilities: { str: RESIST.strength, dex: 4 },
+    // An Unterkleidung under a helmet: the RW of a location is summed over the
+    // all-covering suit and the addon worn on top of it.
+    items: [
+      armor({ name: 'Unterkleidung', zone: 'suit', equipped: true, rw: RESIST.suitRw }),
+      armor({ name: 'Helm', zone: 'head', equipped: true, rh: 5, rw: RESIST.helmetRw, ra: 6 }),
+    ],
   });
 
-  await page.evaluate(async ([actorId, spec]) => {
-    const actor = game.actors.get(actorId);
-    const [suit, helmet] = await actor.createEmbeddedDocuments('Item', [
-      {
-        name: 'Unterkleidung',
-        type: 'item',
-        system: {
-          roles: { weapon: false, armor: true, consumable: false },
-          zone: 'suit',
-          slots: 1,
-          quantity: 1,
-          sv: 0,
-          rw: spec.suitRw,
-        },
-      },
-      {
-        name: 'Helm',
-        type: 'item',
-        system: {
-          roles: { weapon: false, armor: true, consumable: false },
-          zone: 'head',
-          slots: 1,
-          quantity: 1,
-          sv: 0,
-          rh: 5,
-          rw: spec.helmetRw,
-          ra: 6,
-        },
-      },
-    ]);
-    await actor.update({ 'system.equipment.suit': suit.id, 'system.equipment.head': helmet.id });
-  }, [id, RESIST]);
-
-  const labels = await page.evaluate(() => ({
-    rw: game.i18n.format('TNO.Combat.ResistanceRw', { zone: game.i18n.localize('TNO.Armor.Zone.Head') }),
-    damage: game.i18n.localize('TNO.Combat.DamageValue'),
-  }));
+  const { head } = await localize(page, { head: 'TNO.Armor.Zone.Head' });
+  const labels = await localize(page, {
+    rw: ['TNO.Combat.ResistanceRw', { zone: head }],
+    damage: 'TNO.Combat.DamageValue',
+  });
 
   const sheet = await openSheet(page, id);
 
@@ -74,12 +48,14 @@ test('a hit location rolls its resistance against the damage the attacker announ
     zone.dispatchEvent(new MouseEvent('click', { bubbles: true }));
   });
 
-  const dialog = page.locator('#tno-roll-dialog');
+  // The window's id carries the appId (`tno-roll-dialog-${appId}`), so it is
+  // generated and not a selector. The form's own class is the stable handle.
+  const dialog = page.locator('form.tno-roll-dialog');
   await expect(dialog).toBeVisible();
 
   // The RW of the location clicked, already summed over the suit and the addon.
   const modifiers = dialog.locator('.tno-roll-gear-modifiers .tno-ledger-row');
-  await expect(modifiers.filter({ hasText: labels.rw })).toHaveText(new RegExp(`${labels.rw}\\s*\\+4`));
+  await expect(modifiers.filter({ hasText: labels.rw })).toContainText('+4');
 
   // Neither the announced damage nor the comparison is answered yet, and until
   // both are there is nothing truthful to roll.
@@ -97,14 +73,7 @@ test('a hit location rolls its resistance against the damage the attacker announ
   await submit.click();
   await expect(dialog).toBeHidden();
 
-  const flags = await page.evaluate(() => {
-    const message = game.messages.contents.at(-1);
-    return {
-      threshold: message.flags.tno.threshold,
-      components: message.flags.tno.components,
-      requiredValue: message.flags.tno.requiredValue,
-    };
-  });
+  const flags = await lastMessage(page);
   expect(flags.threshold).toBe(RESIST.threshold);
   expect(flags.requiredValue).toMatchObject({ label: labels.damage, value: -RESIST.damage });
   expect(flags.components.reduce((sum, part) => sum + part.value, 0)).toBe(RESIST.threshold);

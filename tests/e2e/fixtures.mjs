@@ -11,9 +11,16 @@
  *  - Clicking through dialogs to build an actor is slow and brittle, and it
  *    tests the dialog rather than the thing the spec is actually about. UI
  *    interaction is reserved for the behaviour under test.
+ *
+ * This file holds the Playwright fixture and the one helper that waits on a
+ * rendered sheet. Everything that *builds* a world — characters, gear, combats —
+ * lives in [`factories.mjs`](factories.mjs) and is re-exported here, so a spec
+ * needs one import line.
  */
 
 import { test as base, expect } from '@playwright/test';
+
+export * from './factories.mjs';
 
 /** Attributes as defined in template.json. */
 export const ABILITY_KEYS = [
@@ -42,30 +49,6 @@ export const test = base.extend({
     await use({ page, errors });
   },
 });
-
-/**
- * Create a character actor and return its id plus its computed derived data.
- *
- * @param {import('@playwright/test').Page} page
- * @param {{name?: string, abilities?: Record<string, number|{base: number}>, system?: object}} spec
- * @returns {Promise<{id: string, derived: object}>}
- */
-export async function createCharacter(page, spec = {}) {
-  return page.evaluate(async (spec) => {
-    const abilities = {};
-    for (const [key, val] of Object.entries(spec.abilities ?? {})) {
-      abilities[key] = typeof val === 'number' ? { base: val, xp: 0 } : { xp: 0, ...val };
-    }
-
-    const actor = await Actor.create({
-      name: spec.name ?? 'E2E Character',
-      type: 'character',
-      system: { ...(spec.system ?? {}), abilities },
-    });
-
-    return { id: actor.id, derived: foundry.utils.deepClone(actor.system.derived) };
-  }, spec);
-}
 
 /**
  * Render an actor's sheet and wait for it to be on screen.

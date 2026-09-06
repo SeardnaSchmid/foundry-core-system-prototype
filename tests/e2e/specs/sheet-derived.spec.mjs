@@ -11,7 +11,7 @@
  * would pass even if the formula were wrong.
  */
 
-import { test, expect, createCharacter, openSheet } from '../fixtures.mjs';
+import { armor, gear, test, expect, createCharacter, openSheet } from '../fixtures.mjs';
 
 /**
  * Attribute bases chosen so each formula produces a distinct, non-obvious
@@ -131,18 +131,15 @@ test('spending more than the pool holds clamps to zero rather than going negativ
 });
 
 test('carried items consume slots by slot cost times quantity', async ({ world }) => {
-  const { id } = await createCharacter(world.page, { abilities: ABILITIES });
-
-  const derived = await world.page.evaluate(async (actorId) => {
-    const actor = game.actors.get(actorId);
-    await actor.createEmbeddedDocuments('Item', [
-      { name: 'Crate', type: 'item', system: { slots: 3, quantity: 2 } },
-      { name: 'Toolkit', type: 'item', system: { slots: 4, quantity: 1 } },
+  const { derived } = await createCharacter(world.page, {
+    abilities: ABILITIES,
+    items: [
+      gear({ name: 'Crate', slots: 3, quantity: 2 }),
+      gear({ name: 'Toolkit', slots: 4 }),
       // A feature is not carried gear, so it must not consume slots.
       { name: 'Steady Hands', type: 'feature', system: {} },
-    ]);
-    return foundry.utils.deepClone(actor.system.derived);
-  }, id);
+    ],
+  });
 
   expect(derived.carrySlotsUsed).toBe(10); // 3*2 + 4*1
   expect(derived.carrySlots).toBe(17);
@@ -152,83 +149,60 @@ test('carried items consume slots by slot cost times quantity', async ({ world }
 });
 
 test('worn armour remains in the slot budget and moves into the worn subtotal', async ({ world }) => {
-  const { id } = await createCharacter(world.page, { abilities: ABILITIES });
+  // Neither is worn yet, so both are merely carried.
+  const { id, items, derived } = await createCharacter(world.page, {
+    abilities: ABILITIES,
+    items: [
+      armor({ name: 'Composite Helmet', zone: 'head', slots: 2, rh: 5, rw: 3, ra: 8 }),
+      armor({ name: 'Spare Plates', zone: 'torso', slots: 3 }),
+    ],
+  });
 
-  const result = await world.page.evaluate(async (actorId) => {
+  // Putting the helmet on is the transition under test, so it happens here
+  // rather than in the fixture: the point is the pair of readings around it.
+  const result = await world.page.evaluate(async ([actorId, helmId]) => {
     const actor = game.actors.get(actorId);
-    const [helm] = await actor.createEmbeddedDocuments('Item', [
-      {
-        name: 'Composite Helmet',
-        type: 'item',
-        system: { roles: { armor: true }, zone: 'head', slots: 2, rh: 5, rw: 3, ra: 8 },
-      },
-      {
-        name: 'Spare Plates',
-        type: 'item',
-        system: { roles: { armor: true }, zone: 'torso', slots: 3 },
-      },
-    ]);
+    await actor.update({ 'system.equipment.head': helmId });
+    return {
+      worn: actor.system.derived.carrySlotsUsed,
+      wornSubtotal: actor.system.derived.carryWorn,
+      carriedSubtotal: actor.system.derived.carryCarried,
+    };
+  }, [id, items['Composite Helmet']]);
 
-    // Both are merely carried at this point.
-    const carried = actor.system.derived.carrySlotsUsed;
-
-    await actor.update({ 'system.equipment.head': helm.id });
-    const worn = actor.system.derived.carrySlotsUsed;
-    const wornSubtotal = actor.system.derived.carryWorn;
-    const carriedSubtotal = actor.system.derived.carryCarried;
-
-    return { carried, worn, wornSubtotal, carriedSubtotal };
-  }, id);
-
-  expect(result.carried).toBe(5); // 2 + 3, neither worn yet
+  expect(derived.carrySlotsUsed).toBe(5); // 2 + 3, neither worn yet
   expect(result.worn).toBe(5); // wearing changes the band, not the shared total
   expect(result.wornSubtotal).toBe(2);
   expect(result.carriedSubtotal).toBe(3);
 });
 
 test('the Unterkleidung layers under every zone without granting hardness', async ({ world }) => {
-  const { id } = await createCharacter(world.page, { abilities: ABILITIES });
-
-  const armor = await world.page.evaluate(async (actorId) => {
-    const actor = game.actors.get(actorId);
-    const [suit, helm] = await actor.createEmbeddedDocuments('Item', [
-      {
-        name: 'Vacuum Suit',
-        type: 'item',
-        system: { roles: { armor: true }, zone: 'suit', rh: 2, rw: 1, ra: 6 },
-      },
-      {
-        name: 'Composite Helmet',
-        type: 'item',
-        system: { roles: { armor: true }, zone: 'head', rh: 5, rw: 3, ra: 8 },
-      },
-    ]);
-    await actor.update({ 'system.equipment.suit': suit.id, 'system.equipment.head': helm.id });
-    return foundry.utils.deepClone(actor.system.derived.armor);
-  }, id);
+  const { derived } = await createCharacter(world.page, {
+    abilities: ABILITIES,
+    items: [
+      armor({ name: 'Vacuum Suit', zone: 'suit', equipped: true, rh: 2, rw: 1, ra: 6 }),
+      armor({ name: 'Composite Helmet', zone: 'head', equipped: true, rh: 5, rw: 3, ra: 8 }),
+    ],
+  });
+  const zones = derived.armor;
 
   // RH comes from the addon alone — 5, not 5+2.
-  expect(armor.head.rh).toBe(5);
+  expect(zones.head.rh).toBe(5);
   // RW adds suit and addon.
-  expect(armor.head.rw).toBe(4);
+  expect(zones.head.rw).toBe(4);
   // RA adds too, clamped to the documented 1-10 band.
-  expect(armor.head.ra).toBe(10);
+  expect(zones.head.ra).toBe(10);
   // The suit still covers a zone with no addon of its own, but gives it no RH.
-  expect(armor.legs).toMatchObject({ rh: 0, rw: 1, ra: 6 });
+  expect(zones.legs).toMatchObject({ rh: 0, rw: 1, ra: 6 });
 });
 
 test('exceeding the slot budget drops the character to crawling', async ({ world }) => {
-  const { id } = await createCharacter(world.page, { abilities: ABILITIES });
-
-  const derived = await world.page.evaluate(async (actorId) => {
-    const actor = game.actors.get(actorId);
-    // 20 slots against a budget of 17 — over capacity is legal, it just costs
-    // movement, so the item is created rather than refused.
-    await actor.createEmbeddedDocuments('Item', [
-      { name: 'Cargo', type: 'item', system: { slots: 4, quantity: 5 } },
-    ]);
-    return foundry.utils.deepClone(actor.system.derived);
-  }, id);
+  // 20 slots against a budget of 17 — over capacity is legal, it just costs
+  // movement, so the item is created rather than refused.
+  const { derived } = await createCharacter(world.page, {
+    abilities: ABILITIES,
+    items: [gear({ name: 'Cargo', slots: 4, quantity: 5 })],
+  });
 
   expect(derived.carrySlotsUsed).toBe(20);
   expect(derived.carryState).toBe('crawlOnly');
@@ -236,15 +210,17 @@ test('exceeding the slot budget drops the character to crawling', async ({ world
 });
 
 test('without a container only worn gear participates in the slot economy', async ({ world }) => {
-  const { id } = await createCharacter(world.page, { abilities: ABILITIES });
+  const { id } = await createCharacter(world.page, {
+    abilities: ABILITIES,
+    items: [
+      gear({ name: 'Cargo', slots: 4, quantity: 5 }),
+      armor({ name: 'Suit', zone: 'suit', slots: 6, equipped: true }),
+    ],
+  });
 
+  // Losing the container is the transition under test.
   const derived = await world.page.evaluate(async (actorId) => {
     const actor = game.actors.get(actorId);
-    const [, suit] = await actor.createEmbeddedDocuments('Item', [
-      { name: 'Cargo', type: 'item', system: { slots: 4, quantity: 5 } },
-      { name: 'Suit', type: 'item', system: { roles: { armor: true }, zone: 'suit', slots: 6 } },
-    ]);
-    await actor.update({ 'system.equipment.suit': suit.id });
     await actor.update({ 'system.hasContainer': false });
     return foundry.utils.deepClone(actor.system.derived);
   }, id);

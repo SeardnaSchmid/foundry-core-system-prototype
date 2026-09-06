@@ -12,7 +12,7 @@
  * defence at all and the default 'Offen' permits none — "einfach in der Gegend
  * rumstehen wie ein Trottel".
  */
-import { test, expect, createCharacter, openSheet } from '../fixtures.mjs';
+import { armor, test, expect, createCharacter, lastMessage, localize, openSheet } from '../fixtures.mjs';
 
 const DODGE = {
   dex: 4,
@@ -27,53 +27,36 @@ test('a dodge is Beweglichkeit plus Akrobatik, less the armour step', async ({ w
 
   const { id } = await createCharacter(page, {
     abilities: { str: DODGE.strength, dex: DODGE.dex },
-    system: {
-      skills: { acrobatics: { value: DODGE.acrobatics, xp: 0 } },
-      combat: { stance: 'enGarde', defenses: { parry: 0, dodge: 0 } },
-    },
+    skills: { acrobatics: DODGE.acrobatics },
+    stance: 'enGarde',
+    // A single worn piece whose SV outweighs the character's base Strength.
+    items: [armor({
+      name: 'Heavy Plate', zone: 'torso', equipped: true,
+      slots: 2, sv: DODGE.armorSv, rh: 4, rw: 2, ra: 6,
+    })],
   });
 
-  // A single worn piece whose SV outweighs the character's base Strength.
-  await page.evaluate(async ([actorId, spec]) => {
-    const actor = game.actors.get(actorId);
-    const [armor] = await actor.createEmbeddedDocuments('Item', [{
-      name: 'Heavy Plate',
-      type: 'item',
-      system: {
-        roles: { weapon: false, armor: true, consumable: false },
-        zone: 'torso',
-        slots: 2,
-        quantity: 1,
-        sv: spec.armorSv,
-        rh: 4,
-        rw: 2,
-        ra: 6,
-      },
-    }]);
-    await actor.update({ 'system.equipment.torso': armor.id });
-  }, [id, DODGE]);
-
-  const label = await page.evaluate(() => game.i18n.localize('TNO.Combat.ArmorSvMalus'));
+  const { label } = await localize(page, { label: 'TNO.Combat.ArmorSvMalus' });
 
   const sheet = await openSheet(page, id);
   await sheet.locator('[data-roll-type="dodge"]').click();
 
-  const dialog = page.locator('#tno-roll-dialog');
+  // The window's id carries the appId (`tno-roll-dialog-${appId}`), so it is
+  // generated and not a selector. The form's own class is the stable handle.
+  const dialog = page.locator('form.tno-roll-dialog');
   await expect(dialog).toBeVisible();
 
   // The step is a line of its own, not folded into Akrobatik or the bonus.
   const armorRow = dialog.locator('.tno-roll-gear-modifiers .tno-armor-malus');
   await expect(armorRow).toBeVisible();
-  await expect(armorRow).toHaveText(new RegExp(`${label}\\s*−3`));
+  await expect(armorRow).toContainText(label);
+  await expect(armorRow).toContainText('−3');
   await expect(dialog.locator('.tno-threshold-value')).toHaveText(String(DODGE.threshold));
 
   await dialog.locator('button[type="submit"]').click();
   await expect(dialog).toBeHidden();
 
-  const flags = await page.evaluate(() => {
-    const message = game.messages.contents.at(-1);
-    return { threshold: message.flags.tno.threshold, components: message.flags.tno.components };
-  });
+  const flags = await lastMessage(page);
   expect(flags.threshold).toBe(DODGE.threshold);
   expect(flags.components).toEqual(expect.arrayContaining([
     expect.objectContaining({ label, value: -3 }),

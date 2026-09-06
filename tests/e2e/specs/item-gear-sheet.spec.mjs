@@ -1,43 +1,44 @@
-import { test, expect, createCharacter } from '../fixtures.mjs';
+import { test, expect, createCharacter, weapon } from '../fixtures.mjs';
 
-async function createWeaponAndOpen(page, actorId) {
-  const result = await page.evaluate(async (id) => {
-    const actor = game.actors.get(id);
-    const [item] = await actor.createEmbeddedDocuments('Item', [{
-      name: 'E2E Carbine',
-      type: 'item',
-      system: {
-        roles: { weapon: true, armor: false, consumable: false },
-        use: 'ranged',
-        slots: 2,
-        quantity: 1,
-        price: 40,
-        availability: 2,
-        sv: 5,
-        fv: { skill: 'shooting', rank: 3 },
-        dk: 2,
-        range: { sn: null, near: -3, mid: 0, far: 3, sf: 0 },
-        rd: 5,
-        ss: { count: 4, die: 'd6' },
-        ws: { count: 2, die: 'd6' },
-        hh: { active: 1, passive: 0 },
-        rb: 1,
-        description: '<p>Compact service weapon.</p>',
-      },
-    }]);
-    await item.sheet.render(true);
-    return { itemId: item.id, appId: item.sheet.id };
-  }, actorId);
+/** The example carbine, authored in full: this spec is about the editor's rows. */
+const CARBINE = weapon({
+  name: 'E2E Carbine',
+  use: 'ranged',
+  slots: 2,
+  price: 40,
+  availability: 2,
+  sv: 5,
+  fv: { skill: 'shooting', rank: 3 },
+  dk: 2,
+  range: { sn: null, near: -3, mid: 0, far: 3, sf: 0 },
+  rd: 5,
+  ss: { count: 4, die: 'd6' },
+  ws: { count: 2, die: 'd6' },
+  hh: { active: 1, passive: 0 },
+  rb: 1,
+  description: '<p>Compact service weapon.</p>',
+});
 
-  const sheet = page.locator(`#${result.appId}`);
+/** Open the gear sheet of an item the actor already owns. */
+async function openGearSheet(page, actorId, itemId) {
+  const appId = await page.evaluate(async ([actor, item]) => {
+    const owned = game.actors.get(actor).items.get(item);
+    await owned.sheet.render(true);
+    return owned.sheet.id;
+  }, [actorId, itemId]);
+
+  const sheet = page.locator(`#${appId}`);
   await sheet.waitFor({ state: 'visible', timeout: 20_000 });
   await sheet.locator('.gear-rows').waitFor({ state: 'visible', timeout: 20_000 });
-  return { ...result, sheet };
+  return sheet;
 }
 
 test('gear sheet opens directly as a bounded editor', async ({ world }) => {
-  const { id } = await createCharacter(world.page, { abilities: { str: 3, dex: 6 } });
-  const { sheet } = await createWeaponAndOpen(world.page, id);
+  const { id, items } = await createCharacter(world.page, {
+    abilities: { str: 3, dex: 6 },
+    items: [CARBINE],
+  });
+  const sheet = await openGearSheet(world.page, id, items['E2E Carbine']);
 
   await expect(sheet.locator('.gear-overview, .gear-modes')).toHaveCount(0);
   await expect(sheet.locator('.effect-control')).toHaveCount(0);

@@ -11,43 +11,22 @@
  * `tests/documents/combat-turn-order.test.js`.
  */
 
-import { test, expect, createCharacter } from '../fixtures.mjs';
-
-const ABILITIES = {
-  str: 5, dex: 7, fin: 3, per: 5, aut: 2, cha: 3,
-  man: 4, emp: 6, wil: 9, int: 8, wis: 4, inv: 3,
-};
+import { ABILITIES, test, expect, createCharacter, createCombat, deleteCombat } from '../fixtures.mjs';
 
 /**
  * Three combatants on fixed initiatives, so the order under test is the rule
- * rather than the dice. They are created out of order on purpose.
+ * rather than the dice. They join the combat out of order on purpose.
  * @returns {Promise<string>} the combat id
  */
 async function stageCombat(page) {
-  const actorIds = [];
-  for (const name of ['Slow', 'Medium', 'Fast']) {
+  const roster = {};
+  for (const [name, initiative] of [['Slow', 6], ['Medium', 9], ['Fast', 14]]) {
     const { id } = await createCharacter(page, { name: `E2E ${name}`, abilities: ABILITIES });
-    actorIds.push(id);
+    roster[name] = { actorId: id, initiative };
   }
 
-  return page.evaluate(async ([slow, medium, fast]) => {
-    const combat = await Combat.create({});
-    const created = await combat.createEmbeddedDocuments('Combatant', [
-      { actorId: fast }, { actorId: slow }, { actorId: medium },
-    ]);
-    const byActor = Object.fromEntries(created.map((c) => [c.actorId, c.id]));
-    await combat.updateEmbeddedDocuments('Combatant', [
-      { _id: byActor[slow], initiative: 6 },
-      { _id: byActor[medium], initiative: 9 },
-      { _id: byActor[fast], initiative: 14 },
-    ]);
-    return combat.id;
-  }, actorIds);
-}
-
-/** The combat outlives the `world` fixture's actor purge, so remove it by hand. */
-async function endCombat(page, combatId) {
-  await page.evaluate((id) => game.combats.get(id)?.delete(), combatId);
+  const { id } = await createCombat(page, [roster.Fast, roster.Slow, roster.Medium]);
+  return id;
 }
 
 test('the slowest combatant activates first when combat starts', async ({ world }) => {
@@ -72,7 +51,7 @@ test('the slowest combatant activates first when combat starts', async ({ world 
   expect(result.activated).toBe(1);
   expect(result.baseInitiatives.sort((a, b) => a - b)).toEqual([6, 9, 14]);
 
-  await endCombat(world.page, combatId);
+  await deleteCombat(world.page, combatId);
   expect(world.errors, 'no uncaught page errors while starting combat').toEqual([]);
 });
 
@@ -94,7 +73,7 @@ test('next turn walks from the slowest to the fastest combatant', async ({ world
   expect(result.round).toBe(1);
   expect(result.activated).toBe(3);
 
-  await endCombat(world.page, combatId);
+  await deleteCombat(world.page, combatId);
   expect(world.errors, 'no uncaught page errors while advancing turns').toEqual([]);
 });
 
@@ -118,7 +97,7 @@ test('previous turn retraces the activation history', async ({ world }) => {
   expect(result.back).toEqual(['E2E Medium', 'E2E Slow']);
   expect(result.activated).toHaveLength(1);
 
-  await endCombat(world.page, combatId);
+  await deleteCombat(world.page, combatId);
   expect(world.errors, 'no uncaught page errors while rewinding turns').toEqual([]);
 });
 
@@ -143,7 +122,7 @@ test('a new round restores the initiative values from combat start', async ({ wo
   expect(result.initiatives).toEqual([6, 9, 14]);
   expect(result.active).toBe('E2E Slow');
 
-  await endCombat(world.page, combatId);
+  await deleteCombat(world.page, combatId);
   expect(world.errors, 'no uncaught page errors while turning the round').toEqual([]);
 });
 
@@ -180,6 +159,6 @@ test('the GM can pull a combatant forward out of order', async ({ world }) => {
   expect(result.next).toBe('E2E Medium');
   expect(result.round).toBe(1);
 
-  await endCombat(world.page, combatId);
+  await deleteCombat(world.page, combatId);
   expect(world.errors, 'no uncaught page errors while interrupting').toEqual([]);
 });

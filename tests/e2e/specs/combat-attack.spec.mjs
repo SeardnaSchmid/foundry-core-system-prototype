@@ -19,7 +19,7 @@
  * shortfall deliberately costs nothing, because that malus is a Manöver rule
  * and a standard attack is not a Manöver. Threshold: 2 + 5 + 1 − 6 + 3 = 5.
  */
-import { test, expect, createCharacter, openSheet } from '../fixtures.mjs';
+import { test, expect, createCharacter, lastMessage, localize, openSheet, weapon } from '../fixtures.mjs';
 
 const ATTACK = {
   strength: 2,
@@ -34,38 +34,27 @@ const ATTACK = {
 test('a weapon attack carries its requirement maluses from dialog to chat card', async ({ world }) => {
   const { page } = world;
 
-  const { id } = await createCharacter(page, {
+  const { id, items } = await createCharacter(page, {
     abilities: { str: ATTACK.strength, dex: 4, fin: 4 },
-    system: { skills: { swords: { value: ATTACK.skillRank, xp: 0 } } },
-  });
-
-  const itemId = await page.evaluate(async ([actorId, spec]) => {
-    const [item] = await game.actors.get(actorId).createEmbeddedDocuments('Item', [{
+    skills: { swords: ATTACK.skillRank },
+    items: [weapon({
       name: 'Requirement Blade',
-      type: 'item',
-      system: {
-        roles: { weapon: true, armor: false, consumable: false },
-        use: 'melee',
-        wa: 'str',
-        slots: 1,
-        quantity: 1,
-        fv: { skill: 'swords', rank: spec.fvRank },
-        sv: spec.sv,
-        dk: 0,
-        hh: { active: spec.handling, passive: -1 },
-      },
-    }]);
-    return item.id;
-  }, [id, ATTACK]);
+      wa: 'str',
+      fv: { skill: 'swords', rank: ATTACK.fvRank },
+      sv: ATTACK.sv,
+      hh: { active: ATTACK.handling, passive: -1 },
+    })],
+  });
+  const itemId = items['Requirement Blade'];
 
   // The labels are read out of the running world rather than hard-coded, so
   // the spec asserts the same strings the player sees in whichever language
   // the world runs, and does not quietly pass on a missing translation key.
-  const labels = await page.evaluate(() => ({
-    sv: game.i18n.format('TNO.Combat.SvMalus', { steps: 2 }),
-    handling: game.i18n.localize('TNO.Combat.ActiveHandling'),
-    reach: game.i18n.localize('TNO.Combat.DkDifference'),
-  }));
+  const labels = await localize(page, {
+    sv: ['TNO.Combat.SvMalus', { steps: 2 }],
+    handling: 'TNO.Combat.ActiveHandling',
+    reach: 'TNO.Combat.DkDifference',
+  });
 
   const sheet = await openSheet(page, id);
 
@@ -77,14 +66,22 @@ test('a weapon attack carries its requirement maluses from dialog to chat card',
   await expect(attack).toBeEnabled();
 
   await attack.click();
-  const dialog = page.locator('#tno-roll-dialog');
+  // The window's id carries the appId (`tno-roll-dialog-${appId}`), so it is
+  // generated and not a selector. The form's own class is the stable handle.
+  const dialog = page.locator('form.tno-roll-dialog');
   await expect(dialog).toBeVisible();
 
   // 3a. The SV shortfall reaches the dialog as its own line, and the FV
   // shortfall reaches it not at all.
+  // `filter` scopes to the row, so the label and its delta are asserted together
+  // without building a regex out of a localized string — "SV requirement (2×)"
+  // carries parentheses, which a regex would read as a capture group.
   const modifiers = dialog.locator('.tno-roll-gear-modifiers .tno-ledger-row');
-  await expect(modifiers.filter({ hasText: labels.sv })).toHaveText(new RegExp(`${labels.sv}\\s*−6`));
-  await expect(modifiers).toHaveCount(2); // Handhabung and the SV malus, nothing else.
+  await expect(modifiers.filter({ hasText: labels.sv })).toContainText('−6');
+  // `:visible`, because the FV row is in the DOM from the start and only
+  // unhides once something is declared — an unfiltered count would see three.
+  const visibleModifiers = dialog.locator('.tno-roll-gear-modifiers .tno-ledger-row:visible');
+  await expect(visibleModifiers).toHaveCount(2); // Handhabung and the SV malus, nothing else.
 
   // 2. A melee attack requires the reach comparison: until it is answered there
   // is nothing to roll, and the dialog must say so by refusing to submit. Only
@@ -104,16 +101,16 @@ test('a weapon attack carries its requirement maluses from dialog to chat card',
   await expect(dialog).toBeHidden();
 
   // 4. The card and the flags carry the same breakdown the dialog previewed.
-  const card = page.locator('#chat-log .chat-message').last();
+  // `.chat-scroll`, not `#chat-log`: v14 renders the log as `ol.chat-log` and
+  // renders it *twice* — once in the sidebar tab and once inside the floating
+  // `#chat-notifications` toast. Only the sidebar's sits in a `.chat-scroll`.
+  const card = page.locator('.chat-scroll .chat-message').last();
   await expect(card).toBeVisible();
   const breakdown = card.locator('.tno-roll-tooltip .tno-roll-detail');
   await expect(breakdown.filter({ hasText: labels.sv })).toHaveCount(1);
   await expect(breakdown.filter({ hasText: labels.reach })).toHaveCount(1);
 
-  const flags = await page.evaluate(() => {
-    const message = game.messages.contents.at(-1);
-    return { threshold: message.flags.tno.threshold, components: message.flags.tno.components };
-  });
+  const flags = await lastMessage(page);
   expect(flags.threshold).toBe(ATTACK.threshold);
   // `objectContaining`, because an immutable component also carries the signed
   // string the dialog and the card display it as.

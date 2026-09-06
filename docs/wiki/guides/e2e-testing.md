@@ -64,17 +64,45 @@ value straight back to Node — so a spec asserts on genuine derived data with
 no mock layer and no in-world test-runner module. UI interaction is reserved
 for the behaviour actually under test.
 
-`tests/e2e/fixtures.mjs` provides:
+**Setting the world up is not the spec's job.** No spec creates a document by
+hand: [`tests/e2e/factories.mjs`](../../../tests/e2e/factories.mjs) shapes the
+data in Node as plain objects and applies it in one round trip, so a spec names
+only the values it is testing and inherits the rest. If you find yourself
+writing `createEmbeddedDocuments` in a spec, the factory is missing a builder —
+add it there. What *does* belong in a spec's own `evaluate` is driving the
+system: a mutation whose before-and-after is the thing under test.
 
-- a `world` fixture — a page inside the world, actors cleared, collecting
-  uncaught page errors so a spec can assert none occurred;
-- `createCharacter(page, { abilities, system })` — creates a character and
-  returns its id plus computed derived data;
-- `openSheet(page, actorId)` — renders an actor sheet and waits for it.
+`tests/e2e/fixtures.mjs` provides the Playwright fixture and re-exports the
+factory, so a spec needs one import line:
+
+| | |
+| --- | --- |
+| `world` | fixture: a page inside the world, actors cleared, collecting uncaught page errors so a spec can assert none occurred |
+| `ABILITIES` | the suite's example character — the twelve attributes, for specs where they are scenery rather than the subject |
+| `weapon()` `armor()` `gear()` | pure builders returning item data with the boilerplate filled in; unknown keys pass through to `system` |
+| `createCharacter(page, spec)` | `{name, abilities, skills, stance, items, system}` → `{id, derived, items}`, where `items` maps name to id. Armour built with `equipped: true` is worn. |
+| `createNpc(page, name)` | an actor with no `system.combat` and no derived data |
+| `createCombat(page, combatants, {render})` | `[actorId]` or `[{actorId, initiative}]` → `{id, ids}`; `render` brings the tracker on screen |
+| `deleteCombat(page, id)` | required for every combat: the `world` purge clears actors, not combats |
+| `localize(page, keys)` | localize/format in the running world, so a spec asserts the string the player sees |
+| `lastMessage(page)` | the whole `flags.tno` of the most recent chat message |
+| `openSheet(page, actorId)` | renders an actor sheet and waits for it |
 
 Expected values are written as literals rather than recomputed from the
 formula under test; a test that re-derives its own expectation passes even
 when the formula is wrong. See `tests/e2e/specs/sheet-derived.spec.mjs`.
+
+## What belongs here, and what does not
+
+The e2e tier is the expensive one — Docker, a ~40s container, `workers: 1` — so
+it earns its place only on things a browser is required to answer: rendered
+markup, CSS and layout, real gestures, Foundry's own partials, and the wiring
+that proves core actually calls this system's overrides.
+
+Arithmetic does not belong here. Neither does anything already pinned in the
+Vitest suite, where a case costs a millisecond. A spec whose file contains no
+`locator` at all is a unit test wearing a browser: move it to `tests/documents/`
+and leave behind the single case that proves the wiring.
 
 ## Gotchas
 

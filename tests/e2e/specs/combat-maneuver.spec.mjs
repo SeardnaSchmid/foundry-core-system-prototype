@@ -20,7 +20,7 @@
  * Fingerfertigkeit 4 + Schwerter 5 = 9, less 3 for the Ansage and 3 for the FV
  * shortfall; or less 6 for a head shot and the same 3.
  */
-import { test, expect, createCharacter, openSheet } from '../fixtures.mjs';
+import { test, expect, createCharacter, lastMessage, localize, openSheet, weapon } from '../fixtures.mjs';
 
 const MANEUVER = {
   fin: 4,
@@ -36,46 +36,31 @@ const MANEUVER = {
 test('an Ansage turns an attack into a Manöver and brings the FV malus with it', async ({ world }) => {
   const { page } = world;
 
-  const { id } = await createCharacter(page, {
+  const { id, items } = await createCharacter(page, {
     abilities: { str: 4, dex: 4, fin: MANEUVER.fin },
-    system: { skills: { swords: { value: MANEUVER.swords, xp: 0 } } },
+    skills: { swords: MANEUVER.swords },
+    items: [weapon({
+      name: 'Demanding Blade',
+      wa: 'fin',
+      // Asks for a rank the character does not have, and for no Strength at
+      // all: the SV must stay out of what this spec is about.
+      fv: { skill: 'swords', rank: MANEUVER.fvRank },
+      rb: 3,
+      ss: { count: 2 },
+    })],
   });
+  const itemId = items['Demanding Blade'];
 
-  const itemId = await page.evaluate(async ([actorId, spec]) => {
-    const actor = game.actors.get(actorId);
-    const [blade] = await actor.createEmbeddedDocuments('Item', [
-      {
-        name: 'Demanding Blade',
-        type: 'item',
-        system: {
-          roles: { weapon: true, armor: false, consumable: false },
-          use: 'melee',
-          wa: 'fin',
-          slots: 1,
-          quantity: 1,
-          // Asks for a rank the character does not have, and for no Strength at
-          // all: the SV must stay out of what this spec is about.
-          fv: { skill: 'swords', rank: spec.fvRank },
-          sv: 0,
-          dk: 0,
-          rb: 3,
-          ss: { count: 2 },
-          hh: { active: 0, passive: 0 },
-        },
-      },
-    ]);
-    return blade.id;
-  }, [id, MANEUVER]);
 
-  const labels = await page.evaluate(() => ({
-    fv: game.i18n.localize('TNO.Combat.FvMalus'),
-  }));
+  const labels = await localize(page, { fv: 'TNO.Combat.FvMalus' });
 
   const sheet = await openSheet(page, id);
 
   await sheet.locator(`.slot-cell.slot-first[data-item-id="${itemId}"]`).evaluate((cell) => cell.click());
   await page.locator('.tno.item-popover [data-popover-action="weapon-check"]').click();
-  const dialog = page.locator('#tno-roll-dialog');
+  // The window's id carries the appId (`tno-roll-dialog-${appId}`), so it is
+  // generated and not a selector. The form's own class is the stable handle.
+  const dialog = page.locator('form.tno-roll-dialog');
   await expect(dialog).toBeVisible();
 
   // 1. Nothing declared: Handhabung alone among the gear rows, and no FV step —
@@ -118,7 +103,7 @@ test('an Ansage turns an attack into a Manöver and brings the FV malus with it'
   await submit.click();
   await expect(dialog).toBeHidden();
 
-  const flags = await page.evaluate(() => game.messages.contents.at(-1).flags.tno);
+  const flags = await lastMessage(page);
   // The FV step reached the roll as its own component, never folded into another.
   expect(flags.components).toEqual(expect.arrayContaining([
     expect.objectContaining({ label: labels.fv, value: -3 }),

@@ -6,31 +6,30 @@
  * has built a real Combat with a real Combatant, so it cannot be unit tested.
  */
 
-import { test, expect, createCharacter, openSheet } from '../fixtures.mjs';
+import {
+  ABILITIES, test, expect, createCharacter, createCombat, createNpc, deleteCombat, openSheet,
+} from '../fixtures.mjs';
 
-/** ceil((2*7 + 5) / 3) = 7, so every roll must land in 8..17. */
-const ABILITIES = {
-  str: 5, dex: 7, fin: 3, per: 5, aut: 2, cha: 3,
-  man: 4, emp: 6, wil: 9, int: 8, wis: 4, inv: 3,
-};
+// The shared example character's derived initiative is ceil((2*7 + 5) / 3) = 7,
+// so every roll below must land in 8..17.
 
-/**
- * Put an actor into a fresh combat and roll its initiative through the tracker.
- * Combats outlive the `world` fixture's actor purge, so each one is deleted
- * again on the way out.
- */
+/** Put an actor into a fresh combat and roll its initiative through the tracker. */
 async function rollInitiativeFor(page, actorId) {
-  return page.evaluate(async (id) => {
-    const combat = await Combat.create({});
-    const [combatant] = await combat.createEmbeddedDocuments('Combatant', [{ actorId: id }]);
+  const { id, ids } = await createCombat(page, [actorId]);
 
-    const formula = combatant.getInitiativeRoll().formula;
-    await combat.rollInitiative([combatant.id]);
-    const initiative = combat.combatants.get(combatant.id).initiative;
+  const result = await page.evaluate(async ([combatId, combatantId]) => {
+    const combat = game.combats.get(combatId);
+    const formula = combat.combatants.get(combatantId).getInitiativeRoll().formula;
+    await combat.rollInitiative([combatantId]);
+    return {
+      formula,
+      initiative: combat.combatants.get(combatantId).initiative,
+      configured: CONFIG.Combat.initiative.formula,
+    };
+  }, [id, ids[actorId]]);
 
-    await combat.delete();
-    return { formula, initiative, configured: CONFIG.Combat.initiative.formula };
-  }, actorId);
+  await deleteCombat(page, id);
+  return result;
 }
 
 test('the tracker rolls 1d10 plus the derived initiative value', async ({ world }) => {
@@ -58,10 +57,7 @@ test('the sheet initiative cell and tracker share one formula', async ({ world }
 test('an NPC without derived data still rolls initiative', async ({ world }) => {
   // Only characters compute system.derived; the unresolved term used to make
   // the NPC's initiative roll throw instead of falling back to a flat 0.
-  const npcId = await world.page.evaluate(async () => {
-    const actor = await Actor.create({ name: 'E2E NPC', type: 'npc' });
-    return actor.id;
-  });
+  const npcId = await createNpc(world.page);
 
   const { formula, initiative } = await rollInitiativeFor(world.page, npcId);
 

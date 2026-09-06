@@ -18,12 +18,19 @@ export default defineConfig({
   use: {
     baseURL: BASE_URL,
     storageState: STORAGE_STATE,
-    // Foundry hard-refuses to start below 1366x768 and shows a blocking
-    // "unsupported resolution" notice instead of the UI. Playwright's default
-    // viewport is 1280x720, which trips it.
-    viewport: { width: 2560, height: 1440 },
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [{
+    name: 'chromium',
+    use: {
+      ...devices['Desktop Chrome'],
+      // Foundry refuses to run below 1366x768 and covers the UI with an
+      // "unsupported resolution" notice instead. The viewport belongs *here*,
+      // after the device spread and inside the project: `Desktop Chrome`
+      // carries its own 1280x720, and a project's `use` overrides the
+      // top-level one — so setting it above looks right and never arrives.
+      viewport: { width: 1920, height: 1080 },
+    },
+  }],
 });
