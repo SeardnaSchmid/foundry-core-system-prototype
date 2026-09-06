@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.44.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.43.1...v0.44.0) (2026-09-06)
+
+
+### Features
+
+* **combat:** slowest-first turn order, interrupts, and the Haltung in the tracker ([f5ee1fd](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/f5ee1fd947c5fe7667c5c7f27cd153ec8f5894bf))
+
 ## [0.43.1](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.43.0...v0.43.1) (2026-09-05)
 
 # [0.43.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.42.1...v0.43.0) (2026-09-05)
