@@ -28,4 +28,6 @@ SOFTWARE.
 
 IMAGE LICENSES
 
-anvil-impact.png by Lorc under CC BY 3.0 from game-icons.net
+tno-cover.png, tno-cover-thumb.png and tno-cover.svg are original work by the
+TNO authors, released under the MIT terms above. The PNGs are rendered from
+tno-cover.svg.
