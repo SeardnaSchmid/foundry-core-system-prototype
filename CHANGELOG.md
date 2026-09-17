@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.45.1](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.45.0...v0.45.1) (2026-09-17)
+
+
+### Bug Fixes
+
+* update armor penetration resolution ([cf8447f](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/cf8447f97d3cb67d14375da2ae13e33acf657a7f))
+
 # [0.45.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.44.0...v0.45.0) (2026-09-06)
 
 
