@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.46.2](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.46.1...v0.46.2) (2026-09-17)
+
+
+### Bug Fixes
+
+* **sheet:** the Geldbörse lists holdings, not the same value twice ([800bcda](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/800bcdaab881183a3971797892d18f42c219fd97))
+
 ## [0.46.1](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.46.0...v0.46.1) (2026-09-17)
 
 # [0.46.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.45.1...v0.46.0) (2026-09-17)
