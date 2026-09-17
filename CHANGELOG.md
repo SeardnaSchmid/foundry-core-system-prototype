@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.46.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.45.1...v0.46.0) (2026-09-17)
+
+
+### Features
+
+* add campaign briefing and ranged weapon catalog ([3fb1ac0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/3fb1ac0b49335e00f8129e52bd67cf37df6ab8f9))
+
 ## [0.45.1](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.45.0...v0.45.1) (2026-09-17)
 
 
