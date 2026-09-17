@@ -4531,6 +4531,12 @@
   color: #191813;
   font-variant-numeric: tabular-nums;
 }
+.tno .money-wallet-empty {
+  margin: 0;
+  font-size: var(--font-size-11, 11px);
+  font-style: italic;
+  color: rgba(25, 24, 19, 0.55);
+}
 .tno.item-popover {
   position: fixed;
   inset: auto;

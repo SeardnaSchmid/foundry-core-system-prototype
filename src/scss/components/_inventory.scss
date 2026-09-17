@@ -1318,3 +1318,12 @@ $slot-icon-size: 36px;
   color: $c-dark;
   font-variant-numeric: tabular-nums;
 }
+
+// An empty purse has no rows at all, and the header total alone would read as a
+// half-drawn component — same italic note Kleinkram uses for the same reason.
+.money-wallet-empty {
+  margin: 0;
+  font-size: var(--font-size-11, 11px);
+  font-style: italic;
+  color: $c-trinket-label;
+}

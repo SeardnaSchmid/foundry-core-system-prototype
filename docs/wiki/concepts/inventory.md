@@ -58,7 +58,7 @@ into `system.derived` — see
 [`module/helpers/money.mjs`](../../../module/helpers/money.mjs) is the matching
 pure helper for the wallet. `MONEY_CURRENCIES` defines display order, integer
 euro-cent rates; `prepareWallet()` normalises the five balances, builds the
-visible non-zero rows and computes the total.
+non-zero `presentRows` the sheet lists and computes the total.
 
 ## Money
 
@@ -66,10 +66,11 @@ The Basics sheet places a compact Geldbörse at the bottom of the Kleinkram
 column. The column stretches to the top row's height and an automatic flex gap
 holds the wallet against its bottom edge; a growing Kleinkram list instead
 extends the complete row and pushes the wallet down naturally. Its thin rows
-are summaries rather than balances: both express the complete combined wallet
-value, once in OR and once in Imperial Qian, regardless of the actual currency
-mix. The euro total stays secondary in the header. Owners can open a body-level
-native popover with all five actual balances. Every row states its money form
+are the balances actually held — `presentRows`, one row per non-zero currency
+in its own units, so a purse holding only Qian lists only Qian. The combined
+euro value stays secondary in the header and is independent of the currency
+mix; an empty purse renders `TNO.Money.Empty` instead of rows. Owners can open
+a body-level native popover with all five balances. Every row states its money form
 and exchange rate; typing updates every euro conversion and the secondary
 total immediately, while saving writes all balances in one actor update. That
 editor carries both
@@ -80,7 +81,8 @@ Read-only sheets render no edit affordance.
 Conversions stay in integer cents: OR = 100, Imperialer Qian = 1, Or Nior =
 50, Or Odur = 20 and Or Forseti = 10 cents per native unit. Odur and Forseti
 are approximate; a non-zero balance in either prefixes its conversion and the
-combined total with `≈`.
+combined total with `≈`. A wallet row's own amount counts notes and chips, so
+it is exact and never carries that prefix.
 
 ## Carrying
 

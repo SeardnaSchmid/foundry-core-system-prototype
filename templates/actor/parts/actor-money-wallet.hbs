@@ -1,6 +1,7 @@
-{{!-- The wallet is actor state rather than a zero-slot Item. The sheet shows
-the complete value expressed once as OR and once as Qian, regardless of which
-five native balances compose it. The actual holdings live in the editor. --}}
+{{!-- The wallet is actor state rather than a zero-slot Item. It lists the
+balances actually held, each in its own currency — a purse holding nothing but
+Qian shows one row. The combined euro value stays in the header, so the total
+still reads the same whichever currencies compose it. --}}
 <section class='money-wallet-block{{#if editable}} editable{{/if}}'
          {{#if editable}}data-action='edit-money' tabindex='0' role='button'
          title='{{localize "TNO.Money.EditHint"}}'{{/if}}>
@@ -15,12 +16,16 @@ five native balances compose it. The actual holdings live in the editor. --}}
   </div>
 
   <div class='money-wallet'>
-    {{#each money.summaryRows as |currency|}}
+    {{#each money.presentRows as |currency|}}
+      {{!-- The amount is a count of notes and chips, so it is never
+      approximate; only its euro conversion in the header is. --}}
       <div class='money-wallet-row'>
         <i class='fa-solid {{currency.icon}} money-wallet-currency-icon' aria-hidden='true'></i>
-        <span class='money-wallet-currency'>{{currency.label}}</span>
-        <strong class='money-wallet-amount'>{{#if currency.summaryApproximate}}≈{{/if}}{{currency.summaryDisplay}}</strong>
+        <span class='money-wallet-currency' title='{{currency.medium}}'>{{currency.label}}</span>
+        <strong class='money-wallet-amount'>{{currency.amountDisplay}}</strong>
       </div>
+    {{else}}
+      <p class='money-wallet-empty'>{{localize 'TNO.Money.Empty'}}</p>
     {{/each}}
   </div>
 </section>

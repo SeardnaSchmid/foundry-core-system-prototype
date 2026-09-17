@@ -7,12 +7,12 @@ import {
 
 describe('money currencies', () => {
   it('keeps every wallet currency and its rate in integer euro cents', () => {
-    expect(MONEY_CURRENCIES.map(({ key, cents, approximate, primary }) => [key, cents, approximate, primary])).toEqual([
-      ['templeOr', 100, false, true],
-      ['imperialQian', 1, false, true],
-      ['orNior', 50, false, false],
-      ['orOdur', 20, true, false],
-      ['orForseti', 10, true, false],
+    expect(MONEY_CURRENCIES.map(({ key, cents, approximate }) => [key, cents, approximate])).toEqual([
+      ['templeOr', 100, false],
+      ['imperialQian', 1, false],
+      ['orNior', 50, false],
+      ['orOdur', 20, true],
+      ['orForseti', 10, true],
     ]);
   });
 });
@@ -47,15 +47,17 @@ describe('prepareWallet', () => {
       ['orForseti', 40],
     ]);
     expect(wallet.totalCents).toBe(13040);
-    expect(wallet.summaryRows.map(({ key, summaryAmount }) => [key, summaryAmount])).toEqual([
-      ['templeOr', 130.4],
-      ['imperialQian', 13040],
-    ]);
   });
 
   it('reports every non-zero balance for callers to place on their surface', () => {
     const wallet = prepareWallet({ templeOr: 3, imperialQian: 0, orNior: 2 });
     expect(wallet.presentRows.map((row) => row.key)).toEqual(['templeOr', 'orNior']);
+  });
+
+  it('lists nothing but the one currency a single-balance purse holds', () => {
+    const wallet = prepareWallet({ imperialQian: 10000 });
+    expect(wallet.presentRows.map(({ key, amount }) => [key, amount])).toEqual([['imperialQian', 10000]]);
+    expect(wallet.totalCents).toBe(10000);
   });
 
   it('marks totals approximate only when Odur or Forseti is present', () => {

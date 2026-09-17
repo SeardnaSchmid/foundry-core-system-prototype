@@ -5,7 +5,6 @@ export const MONEY_CURRENCIES = Object.freeze([
     label: 'TNO.Money.Currency.Or',
     medium: 'TNO.Money.Medium.Or',
     icon: 'fa-money-bill',
-    primary: true,
     cents: 100,
     approximate: false,
   }),
@@ -14,7 +13,6 @@ export const MONEY_CURRENCIES = Object.freeze([
     label: 'TNO.Money.Currency.ImperialQian',
     medium: 'TNO.Money.Medium.ImperialQian',
     icon: 'fa-microchip',
-    primary: true,
     cents: 1,
     approximate: false,
   }),
@@ -23,7 +21,6 @@ export const MONEY_CURRENCIES = Object.freeze([
     label: 'TNO.Money.Currency.OrNior',
     medium: 'TNO.Money.Medium.OrNior',
     icon: 'fa-qrcode',
-    primary: false,
     cents: 50,
     approximate: false,
   }),
@@ -32,7 +29,6 @@ export const MONEY_CURRENCIES = Object.freeze([
     label: 'TNO.Money.Currency.OrOdur',
     medium: 'TNO.Money.Medium.OrOdur',
     icon: 'fa-coins',
-    primary: false,
     cents: 20,
     approximate: true,
   }),
@@ -41,7 +37,6 @@ export const MONEY_CURRENCIES = Object.freeze([
     label: 'TNO.Money.Currency.OrForseti',
     medium: 'TNO.Money.Medium.OrForseti',
     icon: 'fa-money-bill-wave',
-    primary: false,
     cents: 10,
     approximate: true,
   }),
@@ -71,9 +66,6 @@ export function prepareWallet(money = {}) {
   return {
     rows,
     presentRows: rows.filter((row) => row.amount > 0),
-    summaryRows: rows
-      .filter((row) => row.primary)
-      .map((row) => ({ ...row, summaryAmount: totalCents / row.cents })),
     totalCents,
     approximate: rows.some((row) => row.approximate && row.amount > 0),
   };

@@ -1196,18 +1196,12 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       euroDisplay: this.#formatEuro(row.euroCents),
       rateDisplay: this.#formatEuro(row.cents),
     }));
-    const summaryRows = wallet.summaryRows.map((row) => ({
-      ...row,
-      label: game.i18n.localize(row.label),
-      summaryDisplay: new Intl.NumberFormat(game.i18n.lang, {
-        maximumFractionDigits: row.cents === 1 ? 0 : 2,
-      }).format(row.summaryAmount),
-      summaryApproximate: wallet.approximate,
-    }));
     return {
       ...wallet,
       rows,
-      summaryRows,
+      // The wallet lists the balances actually held, so the localized rows are
+      // filtered here rather than re-localizing the helper's own selection.
+      presentRows: rows.filter((row) => row.amount > 0),
       totalDisplay: this.#formatEuro(wallet.totalCents),
     };
   }
