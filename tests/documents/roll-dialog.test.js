@@ -90,6 +90,32 @@ describe('TnoRollDialog pre-roll context', () => {
     expect(dialog._breakdownText(data)).toContain('Range: Near −3');
   });
 
+  it('suppresses a confirmation toggle when the selected context already provides its effect', () => {
+    const compared = new TnoRollDialog(actor, {
+      fixedValue: { label: 'Base', value: 8 },
+      preRollContext: {
+        label: 'Comparison',
+        choices: [
+          { key: 'through', label: 'Through', value: -4, suppressesToggleModifier: true },
+          { key: 'held', label: 'Held', value: 0 },
+        ],
+      },
+      toggleModifier: { label: 'Bypass', value: -4 },
+    });
+
+    const redundant = { contextChoice: 'through', toggleModifier: true };
+    expect(compared._toggleModifierSuppressed(redundant)).toBe(true);
+    expect(compared._conditionalModifiers(redundant)).toEqual([]);
+    expect(compared._computeThreshold(redundant)).toBe(4);
+
+    const additional = { contextChoice: 'held', toggleModifier: true };
+    expect(compared._toggleModifierSuppressed(additional)).toBe(false);
+    expect(compared._conditionalModifiers(additional)).toContainEqual(
+      expect.objectContaining({ label: 'Bypass', value: -4 })
+    );
+    expect(compared._computeThreshold(additional)).toBe(4);
+  });
+
   it('keeps the native select by default and configures compact context tile pickers', () => {
     expect(dialog.preRollContext.control).toBe('select');
     const dkDialog = new TnoRollDialog(actor, {

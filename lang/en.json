@@ -674,11 +674,11 @@
         "Anchor": "Your RH",
         "Component": "RB/RD against RH {rh}",
         "Softer": "> {rh}",
-        "SofterEffect": "punches through · damage",
+        "SofterEffect": "punches through · damage, RW ignored",
         "Equal": "= {rh}",
-        "EqualEffect": "holds · blunt damage",
+        "EqualEffect": "damage, RW applies",
         "Harder": "< {rh}",
-        "HarderEffect": "holds · blunt damage, +3 on this roll"
+        "HarderEffect": "holds · blunt damage"
       },
       "OpposingAnsage": "Announced against you",
       "Envelope": {

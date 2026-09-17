@@ -281,18 +281,20 @@ describe('armour SV malus', () => {
 });
 
 describe('armour penetration outcomes', () => {
-  // "Rüstung härter als RB/RD: Widerstandswurf +3". The other two rows of the
-  // damage table change which Schadenswert is taken, not the threshold.
-  it('offers the penetration comparison as three outcomes, only the hardest worth a bonus step', () => {
+  it('offers the penetration comparison without the removed resistance bonus', () => {
     expect(armorPenetrationChoices().map((choice) => [choice.key, choice.value])).toEqual([
       ['softer', 0],
       ['equal', 0],
-      ['harder', 3],
+      ['harder', 0],
     ]);
   });
 
   it('names the damage value each penetration outcome calls for', () => {
-    expect(armorPenetrationChoices().map((choice) => choice.damage)).toEqual(['ss', 'ws', 'ws']);
+    expect(armorPenetrationChoices().map((choice) => choice.damage)).toEqual(['ss', 'ss', 'ws']);
+  });
+
+  it('ignores RW only when the armour is penetrated', () => {
+    expect(armorPenetrationChoices().map((choice) => choice.ignoresRw)).toEqual([true, false, false]);
   });
 });
 

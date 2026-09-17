@@ -9,7 +9,7 @@
  * really block the roll until the player states them.
  *
  * Stärke 5, an Unterkleidung of RW 1 under a helmet of RW 3, resisting an
- * announced 7 from a weapon the armour is harder than: 5 + 4 − 7 + 3 = 5.
+ * announced 7 from a weapon the armour is harder than: 5 + 4 − 7 = 2.
  */
 import { armor, test, expect, createCharacter, lastMessage, localize, openSheet } from '../fixtures.mjs';
 
@@ -18,7 +18,7 @@ const RESIST = {
   suitRw: 1,
   helmetRw: 3,
   damage: 7,
-  threshold: 5,
+  threshold: 2,
 };
 
 test('a hit location rolls its resistance against the damage the attacker announced', async ({ world }) => {

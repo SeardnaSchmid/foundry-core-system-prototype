@@ -674,11 +674,11 @@
         "Anchor": "Deine RH",
         "Component": "RB/RD gegen RH {rh}",
         "Softer": "> {rh}",
-        "SofterEffect": "durchschlägt · Schaden",
+        "SofterEffect": "durchschlägt · Schaden, RW ignoriert",
         "Equal": "= {rh}",
-        "EqualEffect": "hält · Wuchtschaden",
+        "EqualEffect": "Schaden, RW gilt",
         "Harder": "< {rh}",
-        "HarderEffect": "hält · Wuchtschaden, +3 auf diesen Wurf"
+        "HarderEffect": "hält · Wuchtschaden"
       },
       "OpposingAnsage": "Gegen dich angesagt",
       "Envelope": {

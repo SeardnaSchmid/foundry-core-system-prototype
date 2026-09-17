@@ -265,9 +265,9 @@ export function buildRangeProfile(system) {
 }
 
 /**
- * Divide the RH domain around RD without inventing the unresolved damage rule.
- * Consumers may show the comparison and both damage values, but must not label
- * a segment as S/WS until the combat PRD defines equality and overflow.
+ * Divide the RH domain around RD. This presentation helper keeps the graph to
+ * authored weapon numbers; the resistance workflow owns the resulting damage
+ * pool and RW interaction.
  */
 export function buildPenetrationProfile(system) {
   const key = weaponUse(system) === 'ranged' ? 'rd' : 'rb';

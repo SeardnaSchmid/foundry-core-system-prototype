@@ -440,19 +440,40 @@ export function armorSvMalus(actor, attributeKeys = []) {
  * The player states which of the three rows applies; what they must not be able
  * to state is a row the table does not have.
  *
- * Only the third outcome is worth anything on the threshold — "Rüstung härter
- * als RB/RD: Widerstandswurf +3". The other two exist so the player says out
- * loud which Schadenswert they took, which is the same choice under a different
- * name and is what `damage` reports.
+ * A penetrating hit ignores the location's Rüstungswert; the other two retain
+ * it. The comparison also chooses the damage pool: penetration and equality use
+ * Schaden, while harder armour uses Wuchtschaden. The location's actual RW is
+ * supplied later by the resistance-roll builder, so `value` stays neutral here.
  *
- * @returns {Array<{key: 'softer'|'equal'|'harder', value: number, damage: 'ss'|'ws'}>}
+ * @returns {Array<{key: 'softer'|'equal'|'harder', value: number, damage: 'ss'|'ws', ignoresRw: boolean}>}
  */
 export function armorPenetrationChoices() {
   return [
-    { key: 'softer', value: 0, damage: 'ss' },
-    { key: 'equal', value: 0, damage: 'ws' },
-    { key: 'harder', value: BONUS_STEP, damage: 'ws' },
+    { key: 'softer', value: 0, damage: 'ss', ignoresRw: true },
+    { key: 'equal', value: 0, damage: 'ss', ignoresRw: false },
+    { key: 'harder', value: 0, damage: 'ws', ignoresRw: false },
   ];
+}
+
+/**
+ * Resolve the complete armour interaction after the comparison and the
+ * separately announced "Rüstung umgehen" maneuver are known.
+ *
+ * Bypassing armour makes the comparison immaterial: the hit uses Schaden and
+ * the location's RW does not apply. A missing comparison remains unanswered
+ * even when bypass was announced, because the resistance dialog still requires
+ * the table row the players compared.
+ *
+ * @param {string} key  One of the keys returned by armorPenetrationChoices.
+ * @param {{bypass?: boolean}} [options]
+ * @returns {{damage: 'ss'|'ws', ignoresRw: boolean}|null}
+ */
+export function resolveArmorInteraction(key, { bypass = false } = {}) {
+  const choice = armorPenetrationChoices().find((entry) => entry.key === key);
+  if (!choice) return null;
+  return bypass
+    ? { damage: 'ss', ignoresRw: true }
+    : { damage: choice.damage, ignoresRw: choice.ignoresRw };
 }
 
 /**

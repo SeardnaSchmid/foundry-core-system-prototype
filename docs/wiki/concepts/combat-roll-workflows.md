@@ -58,7 +58,9 @@ on opposite sides of that line.
   something has been declared — an Ansage typed, or a Stelle named other than the
   Torso. `armorSvMalus` answers the third, differently shaped
   requirement — the armour SV — for a given set of attributes, and
-  `armorPenetrationChoices` returns the damage table's three outcomes.
+  `armorPenetrationChoices` returns the damage table's three outcomes with the
+  pool and whether RW survives. `resolveArmorInteraction` adds the separately
+  confirmed `Rüstung umgehen`: it always selects Schaden and ignores RW.
 - [`documents/item.mjs`](../../../module/documents/item.mjs) and
   [`documents/actor.mjs`](../../../module/documents/actor.mjs) are now thin:
   `openWeaponCheck`, `openWeaponParry` and `openResistanceCheck(zone)` call a
@@ -106,8 +108,8 @@ on opposite sides of that line.
     (`tests/documents/roll-dialog.test.js › keeps a zero`).
   - `requiredValue` — one typed number, e.g. the announced Schadenswert. It
     opens at 0 and does **not** gate the roll: the field is edited, not filled
-    from empty. Optionally `labels` (one per `preRollContext` choice key) and
-    `hint`. The
+    from empty. Optionally `labels` (one per `preRollContext` choice key), a
+    `toggleLabel` for the confirmed override, and `hint`. The
     resistance roll uses both: the attacker's card prints a Schaden *and* a
     Wucht value, and the penetration comparison is precisely what decides which
     of them landed — so the field renames itself to `Angreifer Schaden (S)`
@@ -159,9 +161,13 @@ on opposite sides of that line.
     types it. There is deliberately no shortcut that
     writes it onto their sheet for them — the card publishes, nothing pushes.
   - `toggleModifier` — a rule the player confirms rather than computes, today
-    only `Rüstung umgehen` cancelling a Stelle's RW. Offered on every padded
-    location and never pre-ticked: the attack card carries an amount, not a
-    reason, so it cannot say a bypass was bought.
+    only `Rüstung umgehen` selecting Schaden and cancelling a Stelle's RW.
+    Offered on every padded location and never pre-ticked: the attack card
+    carries an amount, not a reason, so it cannot say a bypass was bought. A
+    `preRollContext` choice may mark that it already supplies the toggle's whole
+    effect; penetration does so, which disables and clears the redundant toggle
+    and prevents RW from being subtracted twice
+    (`tests/documents/actor-resistance-roll.test.js › cancels the location padding exactly once when penetration or a maneuver bypasses it`).
   - `envelope` — the attacker's half of an exchange, merged with
     `ansageEnvelope(ansage, zone)` at roll time into `flags.tno.envelope`. No
     per-Manöver list rides along beside it any more.
@@ -385,8 +391,8 @@ message this dialog already writes
 and a typed zero were different answers. That was dropped deliberately: the
 announced Schadenswert now opens at 0 and is edited. The comparison keeps its
 gate because nothing could default it — it decides *which* of the attacker's two
-damage values applies and whether the roll earns its `+3`, so a default would be
-picking one of those for the player. The cost of the trade is real and worth
+damage values applies and whether the location's RW applies, so a default would
+be picking one of those for the player. The cost of the trade is real and worth
 naming: a resistance roll can now be made carrying a damage value nobody
 confirmed, and the consequence line on a failed card will say `0` when that
 happens

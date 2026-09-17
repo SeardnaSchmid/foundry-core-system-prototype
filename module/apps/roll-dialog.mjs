@@ -88,10 +88,11 @@ export class TnoRollDialog extends FormApplication {
    *   card can always type what they were told.
    * @param {{label: string, hint?: string, value: number}} [options.toggleModifier]
    *   A modifier this player confirms rather than computes — today only
-   *   'Rüstung umgehen' cancelling the padding of the Stelle being resisted at.
+   *   'Rüstung umgehen'. Its numeric part cancels the Stelle's padding; the
+   *   workflow separately resolves which damage value the confirmation selects.
    *   Never pre-set from anything the other side sent: an attack card carries an
    *   amount, not a reason.
-   * @param {(answers: {contextKey: string, value: number|null}) => {label: string, text: string, note?: string, hint?: string}|null} [options.consequence]
+   * @param {(answers: {contextKey: string, value: number|null, toggleModifier: boolean}) => {label: string, text: string, note?: string, hint?: string}|null} [options.consequence]
    *   What this roll costs the roller if it fails, phrased by the workflow that
    *   opened the dialog — the resistance roll's applied damage is the first.
    *   Called with the answers that decide it, and rendered on the chat card only
@@ -190,6 +191,11 @@ export class TnoRollDialog extends FormApplication {
         // whitelist explicitly: without it that picker would be captioned by
         // its outcomes and named by nothing.
         ...(choice.headline ? { headline: String(choice.headline) } : {}),
+        // A context may already provide the same outcome as the workflow's
+        // separate confirmation toggle. Preserve that relationship so the
+        // generic dialog can disable the redundant control and, critically,
+        // never count its modifier twice.
+        ...(choice.suppressesToggleModifier ? { suppressesToggleModifier: true } : {}),
       }));
     if (!choices.length) return null;
     const control = context.control === 'toggle'
@@ -236,6 +242,10 @@ export class TnoRollDialog extends FormApplication {
       // the attacker's card applies, so the field it feeds says which one to
       // read rather than leaving that to the rulebook.
       labels: spec.labels && typeof spec.labels === 'object' ? { ...spec.labels } : null,
+      // Some announced states replace the context's ordinary value rather than
+      // merely modifying it. Rüstung umgehen is the first: it always asks for
+      // Schaden, whatever the penetration comparison would otherwise select.
+      toggleLabel: spec.toggleLabel ? String(spec.toggleLabel) : '',
       sign: Number(spec.sign) === -1 ? -1 : 1,
       min: isAuthoredNumber(spec.min) ? Number(spec.min) : null,
       max: isAuthoredNumber(spec.max) ? Number(spec.max) : null,
@@ -250,8 +260,31 @@ export class TnoRollDialog extends FormApplication {
    */
   _requiredValueLabel(data) {
     if (!this.requiredValue) return '';
+    if (this.requiredValue.toggleLabel && this._toggleModifierActive(data)) {
+      return this.requiredValue.toggleLabel;
+    }
     const key = this._contextChoice(data)?.key;
     return this.requiredValue.labels?.[key] || this.requiredValue.label;
+  }
+
+  /**
+   * Whether the selected context has already supplied the toggle's complete
+   * effect. This is a relationship declared by the workflow, not armour logic
+   * embedded in the generic dialog.
+   * @param {object} data  Form data with contextChoice.
+   * @returns {boolean}
+   */
+  _toggleModifierSuppressed(data) {
+    return !!(this.toggleModifier && this._contextChoice(data)?.suppressesToggleModifier);
+  }
+
+  /**
+   * Whether the separate toggle contributes to the resolved roll.
+   * @param {object} data  Form data with contextChoice/toggleModifier.
+   * @returns {boolean}
+   */
+  _toggleModifierActive(data) {
+    return !!(this.toggleModifier && data?.toggleModifier && !this._toggleModifierSuppressed(data));
   }
 
   /**
@@ -430,6 +463,7 @@ export class TnoRollDialog extends FormApplication {
     const { hasIdeaOption } = sectionFlags;
     const bonus = Number(this.object.bonus) || 0;
     const contextChoice = this._contextChoice(this.object);
+    const toggleModifierSuppressed = this._toggleModifierSuppressed(this.object);
     const thresholdReadout = this._thresholdReadout(this.object);
     // The armour step is data-dependent — the chosen attribute decides whether
     // it applies — so its row is rendered once, up front, and only toggled
@@ -472,7 +506,9 @@ export class TnoRollDialog extends FormApplication {
       ? this._deltaCell(this._opposingAnsageComponent(this.object)?.value ?? 0)
       : null;
     const toggleModifierDelta = this.toggleModifier
-      ? this._deltaCell(this.toggleModifier.value, { provisional: !this.object.toggleModifier })
+      ? this._deltaCell(toggleModifierSuppressed ? 0 : this.toggleModifier.value, {
+          provisional: toggleModifierSuppressed || !this.object.toggleModifier,
+        })
       : null;
     const zoneDelta = this.zonePicker
       ? this._deltaCell(this._zoneComponent(this.object)?.value ?? 0)
@@ -586,8 +622,9 @@ export class TnoRollDialog extends FormApplication {
       opposingAnsageDelta: opposingAnsageDelta || { display: '', cls: 'is-neutral' },
       toggleModifier: this.toggleModifier && {
         ...this.toggleModifier,
-        display: this._formatBonus(this.toggleModifier.value),
-        checked: !!this.object.toggleModifier,
+        display: this._formatBonus(toggleModifierSuppressed ? 0 : this.toggleModifier.value),
+        checked: this._toggleModifierActive(this.object),
+        disabled: toggleModifierSuppressed,
       },
       toggleModifierDelta: toggleModifierDelta || { display: '', cls: 'is-neutral' },
       requiredValueDelta: requiredValueDelta || { display: '', cls: 'is-neutral' },
@@ -740,6 +777,7 @@ export class TnoRollDialog extends FormApplication {
     return this.consequence({
       contextKey: this._contextChoice(data)?.key ?? '',
       value: this._requiredValueEntry(data),
+      toggleModifier: this._toggleModifierActive(data),
     }) ?? null;
   }
 
@@ -784,10 +822,9 @@ export class TnoRollDialog extends FormApplication {
     // three requirements, three shapes.
     const declared = this._ansageValue(data) || this._zoneComponent(data);
     const fv = this.maneuverMalus && declared ? [this.maneuverMalus] : [];
-    // A rule the *other* side announced, which the player confirms rather than
-    // computes — today only 'Rüstung umgehen', which cancels the padding of the
-    // Stelle it was declared on.
-    const toggled = this.toggleModifier && data?.toggleModifier ? [this.toggleModifier] : [];
+    // A state the *other* side announced, which the player confirms rather than
+    // computes — today only 'Rüstung umgehen'.
+    const toggled = this._toggleModifierActive(data) ? [this.toggleModifier] : [];
     return [...armor, ...fv, ...toggled];
   }
 
@@ -982,8 +1019,8 @@ export class TnoRollDialog extends FormApplication {
    * Whether the roll has everything it needs.
    *
    * The required *pick* is the only thing that gates: it decides which of the
-   * attacker's two damage values applies and whether the roll gets its `+3`, and
-   * no default could stand in for it. The required *number* no longer gates —
+   * attacker's two damage values applies and whether the location's RW applies,
+   * and no default could stand in for it. The required *number* no longer gates —
    * it opens at 0 and the player edits it.
    * @param {object} data  Form data.
    * @returns {boolean}
@@ -1223,7 +1260,16 @@ export class TnoRollDialog extends FormApplication {
       paint('opposingAnsage-delta', this._deltaCell(this._opposingAnsageComponent(data)?.value ?? 0));
     }
     if (this.toggleModifier) {
-      paint('toggleModifier-delta', this._deltaCell(this.toggleModifier.value, { provisional: !data.toggleModifier }));
+      const suppressed = this._toggleModifierSuppressed(data);
+      const checkbox = form.querySelector('input[name="toggleModifier"]');
+      if (checkbox) {
+        checkbox.disabled = suppressed;
+        if (suppressed) checkbox.checked = false;
+      }
+      if (suppressed) data.toggleModifier = false;
+      paint('toggleModifier-delta', this._deltaCell(suppressed ? 0 : this.toggleModifier.value, {
+        provisional: suppressed || !data.toggleModifier,
+      }));
     }
 
     // ③ chosen

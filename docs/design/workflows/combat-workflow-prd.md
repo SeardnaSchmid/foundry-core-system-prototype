@@ -71,7 +71,7 @@ All addends signed; maluses are negative numbers.
 | **Attack** (Angriffswert) | WA + weapon skill + HH (attack) + DK modifier + SV malus (weapon) | `tests/e2e/specs/combat-attack.spec.mjs › a weapon attack carries its requirement maluses from dialog to chat card` |
 | **Parry** (Paradewert) | WA + weapon skill + HH (parry) + DK modifier + SV malus (weapon) | `tests/documents/item-weapon-roll.test.js › gives a parry passive handling, the same SV malus, and a reach choice` |
 | **Dodge** (Ausweichenwert) | Beweglichkeit + Akrobatik + SV malus (armour) | `tests/documents/roll-dialog.test.js › adds the armour step the moment the chosen attribute becomes Beweglichkeit`<br>`tests/e2e/specs/combat-dodge.spec.mjs › a dodge is Beweglichkeit plus Akrobatik, less the armour step` |
-| **Resistance** (Widerstandswert) | Stärke + RW(Stelle) − the weapon's SS or WS, `+3` when RH > RB/RD | `tests/documents/actor-resistance-roll.test.js › opens the resistance roll of the location that was clicked, with its armour value`<br>`tests/documents/actor-resistance-roll.test.js › reads the sole Stärke rating` |
+| **Resistance** (Widerstandswert) | Stärke + applicable RW(Stelle) − the weapon's SS or WS; RW is ignored when RH < RB/RD or armour was bypassed | `tests/documents/actor-resistance-roll.test.js › opens the resistance roll of the location that was clicked, with its armour value`<br>`tests/documents/actor-resistance-roll.test.js › reads the sole Stärke rating`<br>`tests/documents/actor-resistance-roll.test.js › cancels the location padding exactly once when penetration or a maneuver bypasses it` |
 
 Resistance takes the same sole `base` rating as requirements, regular attribute
 rolls and `derived.dodge`; there is no separate temporary/effective attribute
@@ -137,8 +137,8 @@ If 3 fails, the target takes the applicable damage value:
 
 | | RH < RB/RD | RH = RB/RD | RH > RB/RD |
 |---|---|---|---|
-| Damage value | S (Schaden) | WS (Wucht) | WS (Wucht) |
-| Resistance roll | — | — | `+3` (1 bonus step) |
+| Damage value | S (Schaden) | S (Schaden) | WS (Wucht) |
+| RW(Stelle) | ignored | applies | applies |
 
 The comparison needs one number from each side, and the direction it runs in is
 what keeps the armour private: **the attacker reads their weapon card out** —
@@ -249,11 +249,13 @@ nowhere. Read here as the value itself — the damage track counts in points, an
 the alternative is a roll no rule defines. Should dice turn out to be meant,
 `appliedDamage` in `helpers/maneuvers.mjs` is the single place that decides it.
 
-`Rüstung umgehen` cancels the Stelle's RW on the resistance roll. It is offered
-on every location that has padding to cancel and is ticked by the defender alone
-— nothing an attack sends can pre-set it, because the card carries an amount and
-never a reason
-(`tests/documents/actor-resistance-roll.test.js › cancels the location padding when the attacker bypassed its armour`).
+`Rüstung umgehen` makes the hit use Schaden and cancels the Stelle's RW on the
+resistance roll. It is offered on every location that has padding to cancel and
+is ticked by the defender alone — nothing an attack sends can pre-set it,
+because the card carries an amount and never a reason. When penetration already
+selects Schaden and ignores RW, the toggle is redundant and disabled; both
+paths can therefore cancel RW only once
+(`tests/documents/actor-resistance-roll.test.js › cancels the location padding exactly once when penetration or a maneuver bypasses it`).
 
 ## Implemented
 
@@ -280,7 +282,7 @@ component decided by form state.
 | **Attack** | WA + the actor's current FV-skill rank · HH active · SV malus | melee: DK modifier `+3 / 0` · ranged: one authored range band (each authored `−3 … +3`) · the Stelle, priced per [Gezielte Angriffe](#the-stelle) and free only at the Torso | `tests/documents/item-weapon-roll.test.js › offers a melee attack the two reach outcomes as its required context`<br>`tests/documents/item-weapon-roll.test.js › labels both reach-toggle answers rather than showing bare numbers`<br>`tests/helpers/items.test.js › offers only authored ranged bands and preserves their modifiers` |
 | **Parry** (melee) | WA + the actor's current FV-skill rank · HH passive · SV malus | DK modifier `+3 / 0`; no Stelle | `tests/documents/item-weapon-roll.test.js › gives a parry passive handling, the same SV malus, and a reach choice` |
 | **Dodge** | Beweglichkeit + Akrobatik · armour SV malus | — | `tests/e2e/specs/combat-dodge.spec.mjs › a dodge is Beweglichkeit plus Akrobatik, less the armour step` |
-| **Resistance** | Stärke (locked) · RW(Stelle) | the penetration comparison `softer / equal / harder`; the announced Schadenswert opens at 0 and is edited, not required | `tests/documents/actor-resistance-roll.test.js › requires the penetration comparison, and defaults the announced damage`<br>`tests/documents/roll-dialog.test.js › opens the announced value at zero and never blocks the roll on it` |
+| **Resistance** | Stärke (locked) · RW(Stelle), unless penetration or Rüstung umgehen ignores it | the penetration comparison `softer / equal / harder`; the announced Schadenswert opens at 0 and is edited, not required | `tests/documents/actor-resistance-roll.test.js › requires the penetration comparison, and defaults the announced damage`<br>`tests/documents/roll-dialog.test.js › opens the announced value at zero and never blocks the roll on it` |
 | **Haltung** | — | which defence is possible at all, and what the next one costs | `tests/helpers/combat-actions.test.js › lets the Haltung decide which defence is possible at all`<br>`tests/helpers/combat-actions.test.js › leaves the first defence unmodified and sums a step onto every one after` |
 
 **Manöver are not a workflow.** A Manöver is not a roll of its own — "alles das
@@ -430,9 +432,9 @@ the Gezielter Stich entry describes *schießen* — read as where the section si
 in the book rather than as a restriction.
 
 `Rüstung umgehen` has no control of its own on the attack. Its effect is the
-defender's — the cancelled RW is their armour — so it lives on their resistance
-roll, as a checkbox they tick on being told and that nothing the attacker sent
-can pre-set
+defender's — Schaden replaces Wuchtschaden and the cancelled RW is their armour
+— so it lives on their resistance roll, as a checkbox they tick on being told
+and that nothing the attacker sent can pre-set
 (`tests/helpers/combat-actions.test.js › never pre-ticks the armour bypass`).
 
 That is **not** what the rule says, and the divergence is deliberate for now. The

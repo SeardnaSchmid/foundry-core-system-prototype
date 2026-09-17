@@ -134,8 +134,9 @@ describe('resistance roll', () => {
   it('reads the sole Stärke rating', () => {
     const dialog = resist('head');
     expect(dialog.lockAttribute).toBe(true);
-    // Stärke 5 + RW 4 − the announced 7, plus the bonus step the harder armour earns.
-    expect(dialog._computeThreshold(answered({ requiredValue: 7, contextChoice: 'harder' }))).toBe(5);
+    // Stärke 5 + RW 4 − the announced 7. Harder armour no longer adds a bonus
+    // step of its own.
+    expect(dialog._computeThreshold(answered({ requiredValue: 7, contextChoice: 'harder' }))).toBe(2);
     // And the armour SV malus stays away without being special-cased: this is
     // a Stärkewurf, and the rule names Beweglichkeit.
     expect(dialog._conditionalModifiers(answered())).toEqual([]);
@@ -143,14 +144,14 @@ describe('resistance roll', () => {
 
   it('includes the always-on damage malus on the resistance roll', () => {
     const dialog = resist('head', { damageMalus: -3 });
-    expect(dialog._computeThreshold(answered({ requiredValue: 7, contextChoice: 'harder' }))).toBe(2);
+    expect(dialog._computeThreshold(answered({ requiredValue: 7, contextChoice: 'harder' }))).toBe(-1);
     expect(dialog._actorModifiers()).toEqual([{ label: 'TNO.Damage.Malus', value: -3 }]);
   });
 
   // "Erschwere deinen Angriff um die Rüstungsabdeckung der jeweiligen Stelle und
   // ignoriere sie dafür" — the attacker paid this location's RA, and what they
   // bought is that its armour does not apply.
-  it('cancels the location padding when the attacker bypassed its armour', () => {
+  it('cancels the location padding exactly once when penetration or a maneuver bypasses it', () => {
     const dialog = resist('head');
     expect(dialog.toggleModifier).toEqual({
       label: 'TNO.Combat.Envelope.BypassArmor',
@@ -159,11 +160,17 @@ describe('resistance roll', () => {
       // Stärke alone.
       value: -4,
     });
-    expect(dialog._computeThreshold(answered({ requiredValue: 7, contextChoice: 'softer' }))).toBe(2);
+    // Penetration itself ignores RW: Stärke 5 − Schaden 7.
+    expect(dialog._computeThreshold(answered({ requiredValue: 7, contextChoice: 'softer' }))).toBe(-2);
+    // The redundant maneuver is suppressed rather than subtracting RW twice.
     expect(dialog._computeThreshold(answered({ requiredValue: 7, contextChoice: 'softer', toggleModifier: true }))).toBe(-2);
-    // Confirming it is the defender's move, not a default: unbypassed armour
-    // must never quietly vanish.
-    expect(dialog._conditionalModifiers(answered())).toEqual([]);
+    expect(dialog._toggleModifierSuppressed(answered({ contextChoice: 'softer' }))).toBe(true);
+    expect(dialog._conditionalModifiers(answered({ contextChoice: 'softer', toggleModifier: true }))).toEqual([]);
+
+    // At equality RW ordinarily applies, but an announced bypass cancels it.
+    expect(dialog._computeThreshold(answered({ requiredValue: 7, contextChoice: 'equal' }))).toBe(2);
+    expect(dialog._computeThreshold(answered({ requiredValue: 7, contextChoice: 'equal', toggleModifier: true }))).toBe(-2);
+    expect(dialog._toggleModifierSuppressed(answered({ contextChoice: 'equal' }))).toBe(false);
   });
 
   it('offers no bypass on a location with no padding to cancel', () => {
@@ -192,7 +199,7 @@ describe('resistance roll', () => {
   it('requires the penetration comparison, and defaults the announced damage', () => {
     const dialog = resist('head');
     // The comparison decides which of the attacker's two damage values applies
-    // and whether the roll gets its +3, so no default could stand in for it.
+    // and whether RW applies, so no default could stand in for it.
     expect(dialog._canSubmit(answered())).toBe(false);
     expect(dialog._canSubmit(answered({ requiredValue: 7 }))).toBe(false);
     // The announced number opens at 0 and never holds the roll back.
@@ -200,14 +207,14 @@ describe('resistance roll', () => {
     expect(dialog._canSubmit(answered({ contextChoice: 'equal' }))).toBe(true);
     expect(dialog._canSubmit(answered({ requiredValue: 7, contextChoice: 'equal' }))).toBe(true);
 
-    // Three outcomes, only the hardest worth a Bonusstufe, as three captioned
-    // tiles — the damage table's rows and nothing else. One column, because the
-    // three are a ladder read against the anchor beside them rather than three
-    // options weighed against each other.
+    // Three captioned outcomes: penetration cancels this location's RW, while
+    // equality and harder armour retain it. One column, because the three are a
+    // ladder read against the anchor beside them rather than options weighed
+    // against each other.
     expect(dialog.preRollContext.choices.map((choice) => [choice.key, choice.value])).toEqual([
-      ['softer', 0],
+      ['softer', -4],
       ['equal', 0],
-      ['harder', 3],
+      ['harder', 0],
     ]);
     expect(dialog.preRollContext).toMatchObject({ control: 'tiles', tileColumns: 1 });
   });
@@ -282,11 +289,15 @@ describe('resistance roll', () => {
     expect(dialog._requiredValueLabel(answered())).toBe('TNO.Combat.DamageValueField');
     expect(dialog._requiredValueLabel(answered({ contextChoice: 'softer' })))
       .toBe('TNO.Combat.DamageSharp');
-    // Both "hält" outcomes take the blunt value; only the Bonusstufe differs.
+    // Equality now penetrates too, but retains RW. Only harder armour takes the
+    // Wucht value.
     expect(dialog._requiredValueLabel(answered({ contextChoice: 'equal' })))
-      .toBe('TNO.Combat.DamageBlunt');
+      .toBe('TNO.Combat.DamageSharp');
     expect(dialog._requiredValueLabel(answered({ contextChoice: 'harder' })))
       .toBe('TNO.Combat.DamageBlunt');
+    // Rüstung umgehen makes even the harder-armour branch ask for Schaden.
+    expect(dialog._requiredValueLabel(answered({ contextChoice: 'harder', toggleModifier: true })))
+      .toBe('TNO.Combat.DamageSharp');
     // And the breakdown says the same thing the field did, rather than falling
     // back to a bare "Schadenswert" that names neither column.
     expect(dialog._breakdownText(answered({ requiredValue: 7, contextChoice: 'softer' })))
@@ -306,12 +317,16 @@ describe('resistance roll', () => {
       text: 'TNO.Combat.AppliedAmount(4,TNO.Damage.Sharp,TNO.Damage.TagSharp)',
       note: '',
     });
-    // Both "hält" outcomes land in the blunt pool, exactly as the field above
-    // them was named.
+    // Equality now lands in Schaden; only harder armour lands in Wucht.
     expect(torso._consequence(answered({ requiredValue: 4, contextChoice: 'equal' })).text)
-      .toBe('TNO.Combat.AppliedAmount(4,TNO.Damage.Blunt,TNO.Damage.TagBlunt)');
+      .toBe('TNO.Combat.AppliedAmount(4,TNO.Damage.Sharp,TNO.Damage.TagSharp)');
     expect(torso._consequence(answered({ requiredValue: 4, contextChoice: 'harder' })).text)
       .toBe('TNO.Combat.AppliedAmount(4,TNO.Damage.Blunt,TNO.Damage.TagBlunt)');
+    expect(torso._consequence(answered({
+      requiredValue: 4,
+      contextChoice: 'harder',
+      toggleModifier: true,
+    })).text).toBe('TNO.Combat.AppliedAmount(4,TNO.Damage.Sharp,TNO.Damage.TagSharp)');
   });
 
   it('cashes in the Stelle multiplier and shows the arithmetic it did', () => {

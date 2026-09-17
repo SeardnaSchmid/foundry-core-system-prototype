@@ -15,6 +15,7 @@ import {
   weaponRequirementStatus,
   weaponSkillRank,
   MALUS_STEP,
+  resolveArmorInteraction,
 } from './items.mjs';
 import { DAMAGE_RULES, DEFAULT_ZONE, ZONE_CHOICES, appliedDamage, zoneCost } from './maneuvers.mjs';
 import { getSkillDefinition, getSkillDefinitions } from './skills.mjs';
@@ -290,13 +291,13 @@ function damageTargetLabel(zone) {
  * @param {number|null} value  The announced Schadenswert, as typed.
  * @returns {{label: string, text: string, note: string, hint: string}|null}
  */
-function resistanceConsequence(zone, contextKey, value) {
-  const choice = armorPenetrationChoices().find((entry) => entry.key === contextKey);
+function resistanceConsequence(zone, contextKey, value, bypass = false) {
+  const interaction = resolveArmorInteraction(contextKey, { bypass });
   // Both halves or nothing: `null` is the unanswered field, and reading it
   // through `Number()` would turn it into a confidently applied zero.
-  if (!choice || !isAuthoredNumber(value)) return null;
+  if (!interaction || !isAuthoredNumber(value)) return null;
 
-  const sharp = choice.damage === 'ss';
+  const sharp = interaction.damage === 'ss';
   const { base, multiplier, total } = appliedDamage(value, zone);
   return {
     label: game.i18n.localize('TNO.Combat.Applied'),
@@ -572,9 +573,9 @@ function wornArmorArt(actor, zone) {
 }
 
 /**
- * The resistance roll of one hit location: Stärke + RW(Stelle) − the damage
- * value the attacker announced, plus a Bonusstufe when the armour is harder than
- * what the weapon brings through it.
+ * The resistance roll of one hit location: Stärke + the RW that survives the
+ * armour interaction − the damage value the attacker announced. Penetration or
+ * an announced bypass removes RW; neither awards a separate bonus step.
  *
  * The defender's sheet knows no attacker, and this deliberately does not try to
  * become one: it neither determines the hit location — the player states it by
@@ -631,6 +632,9 @@ export function widerstandOptions(actor, zone) {
           game.i18n.localize(choice.damage === 'ss' ? 'TNO.Combat.DamageSharp' : 'TNO.Combat.DamageBlunt'),
         ])
       ),
+      // Rüstung umgehen makes the comparison's ordinary damage pool
+      // irrelevant: without armour, the hit always uses Schaden.
+      toggleLabel: game.i18n.localize('TNO.Combat.DamageSharp'),
       // No placeholder: the hint directly under this row already says where the
       // number is read off, in full, and a 3rem field only ever clipped it.
       hint: game.i18n.localize('TNO.Combat.DamageValueHint'),
@@ -667,6 +671,12 @@ export function widerstandOptions(actor, zone) {
         const suffix = `${choice.key.charAt(0).toUpperCase()}${choice.key.slice(1)}`;
         return {
           ...choice,
+          // RW is visible as a fixed component above. Penetration cancels that
+          // exact amount here, while equality and harder armour retain it.
+          value: choice.ignoresRw ? -armor.rw : choice.value,
+          // The separate Rüstung-umgehen toggle would buy the same result and
+          // must neither double-subtract RW nor pretend there is another effect.
+          suppressesToggleModifier: choice.ignoresRw,
           headline: game.i18n.format(`TNO.Combat.Penetration.${suffix}`, { rh: armor.rh }),
           label: game.i18n.localize(`TNO.Combat.Penetration.${suffix}Effect`),
           componentLabel: game.i18n.format('TNO.Combat.Penetration.Component', { rh: armor.rh }),
@@ -694,9 +704,14 @@ export function widerstandOptions(actor, zone) {
     // The two answers above are also the two halves of the damage: which pool,
     // and how much of it. Stated on the card, because a roll the player has to
     // do arithmetic on afterwards is a roll they will get wrong at the table.
-    consequence: ({ contextKey, value }) => resistanceConsequence(zone, contextKey, value),
-    // The Stelle keeps only its multiplier. The penetration comparison names
-    // whether the announced value enters Schaden or Wuchtschaden.
+    consequence: ({ contextKey, value, toggleModifier }) => resistanceConsequence(
+      zone,
+      contextKey,
+      value,
+      toggleModifier
+    ),
+    // The Stelle keeps only its multiplier. The resolved armour interaction
+    // names whether the announced value enters Schaden or Wuchtschaden.
     img: wornArmorArt(actor, zone),
     flavor: game.i18n.format('TNO.Combat.ResistanceFlavor', {
       zone: zoneLabel,

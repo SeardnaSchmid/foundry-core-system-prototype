@@ -293,7 +293,8 @@ be renamed. --}}
       <div class="tno-ledger-row" data-row="toggleModifier">
         <span class="tno-ledger-label tno-toggle-modifier">
           <label for="{{dialogId}}-toggle-modifier" title="{{toggleModifier.hint}}">
-            <input id="{{dialogId}}-toggle-modifier" type="checkbox" name="toggleModifier" {{#if toggleModifier.checked}}checked{{/if}}>
+            <input id="{{dialogId}}-toggle-modifier" type="checkbox" name="toggleModifier"
+                   {{#if toggleModifier.checked}}checked{{/if}} {{#if toggleModifier.disabled}}disabled{{/if}}>
             {{toggleModifier.label}}
           </label>
         </span>
