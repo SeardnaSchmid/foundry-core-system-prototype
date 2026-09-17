@@ -19,6 +19,8 @@ import { TnoHeatmapLab } from './apps/heatmap-lab.mjs';
 import { DEFAULT_HEATMAP_CONFIG, setActiveHeatmapConfig } from './helpers/heatmap.mjs';
 import { TnoCustomSkillsOverview } from './apps/custom-skills-overview.mjs';
 import { TnoItemOverview, ITEM_OVERVIEW_DEFAULT_CONFIG } from './apps/item-overview.mjs';
+import { TnoCampaignBriefingEditor, openCampaignBriefing } from './apps/campaign-briefing.mjs';
+import { DEFAULT_CAMPAIGN_BRIEFING } from './helpers/campaign-briefing.mjs';
 import { TnoCombatTracker } from './apps/combat-tracker.mjs';
 import { registerCombatSocket } from './helpers/combat-socket.mjs';
 import { registerMigrationSettings, migrateWorld } from './helpers/migrations.mjs';
@@ -39,6 +41,7 @@ Hooks.once('init', function () {
     rollTnoBase,
     rollItemMacro,
     rollBaseDice,
+    openCampaignBriefing,
   };
 
   // Add custom constants for configuration.
@@ -132,6 +135,13 @@ Hooks.once('init', function () {
   // would have each surface silently retune the other.
   game.settings.register('tno', 'itemOverviewLayout', { scope: 'client', config: false, type: Object, default: ITEM_OVERVIEW_DEFAULT_CONFIG });
 
+  // A world-owned, player-facing campaign board: locations on a star map and
+  // the previous-session recaps. It stays hidden until its GM opts into it,
+  // then every non-GM client receives the read-only board on joining.
+  game.settings.register('tno', 'campaignBriefing', {
+    scope: 'world', config: false, type: Object, default: DEFAULT_CAMPAIGN_BRIEFING,
+  });
+
   // Which end of the initiative list the sidebar draws first. Presentation
   // only: the activation rule is fixed at slowest-first either way, so this
   // setting can never change who acts when — see documents/combat.mjs.
@@ -183,6 +193,15 @@ Hooks.once('init', function () {
     label: 'TNO.Settings.ItemOverview.Name',
     icon: 'fa-solid fa-boxes-stacked',
     type: TnoItemOverview,
+    restricted: true,
+  });
+
+  game.settings.registerMenu('tno', 'campaignBriefingMenu', {
+    name: 'TNO.Settings.CampaignBriefing.Name',
+    hint: 'TNO.Settings.CampaignBriefing.Hint',
+    label: 'TNO.Settings.CampaignBriefing.Name',
+    icon: 'fa-solid fa-star',
+    type: TnoCampaignBriefingEditor,
     restricted: true,
   });
 
@@ -287,6 +306,10 @@ Hooks.once('ready', function () {
   registerCombatSocket();
 
   migrateWorld();
+
+  if (!game.user.isGM && game.settings.get('tno', 'campaignBriefing')?.enabled) {
+    openCampaignBriefing();
+  }
 });
 
 /* -------------------------------------------- */

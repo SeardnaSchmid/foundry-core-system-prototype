@@ -24,10 +24,26 @@ Command reference, CI wiring, and the full release procedure.
 | `npm run css:check` | Fails if `css/tno.css` is not what `src/scss` currently compiles to — see below |
 | `npm run packs:check` | Fails if `src/packs/**` does not compile. Builds into a temp directory and discards it, so it never touches `packs/` and runs happily under a live Foundry — see below |
 | `npm run docs:odds` | Regenerates `docs/design/dice-odds.md` from the shipped dice helpers — see [dice-resolution.md](../concepts/dice-resolution.md) |
+| `npm run rules:fetch` | Refreshes the private rule mirror in the independent `rules/` Git repository |
 | `npm run release` | Runs `release-it`: bumps version, updates `CHANGELOG.md`, tags, pushes |
 
 There is no bundler and no linter (`eslint`/`prettier`) in this repo —
 `module/**/*.mjs` ships as-authored.
+
+## Refreshing the private rule mirror
+
+`npm run rules:fetch` downloads the public Google Drive rule tree into a
+temporary sibling directory first. Only a complete download replaces
+`rules/wiki/`, so a network failure cannot leave a partial mirror behind.
+
+The whole `rules/` directory remains ignored by the parent repository
+intentionally; it is initialized as a separate Git repository so rule text and
+its history are not published with the Foundry system. Every successful fetch
+automatically creates a commit scoped to `wiki/`, including an empty commit
+when the source did not change. Use `git -C rules diff HEAD^ HEAD -- wiki` to
+review the exact delta. Unchanged documents retain their existing `scraped:`
+value so the diff contains no daily timestamp churn. See `rules/README.md` for
+the short workflow.
 
 ## Release procedure
 

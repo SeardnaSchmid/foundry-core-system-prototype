@@ -45,6 +45,7 @@ Entry point, no exports (side-effecting init). See
 | `chat.mjs` | `registerChatListeners` | Everything a chat card gains after it is posted: the post-roll edge action UI (see [edge-pool.md](../concepts/edge-pool.md)) and the take action on a posted item card |
 | `item-transfer.mjs` | `travellingItemData`, `receivingActors`, `postedItemFlag`, `takeItemFromMessage`, `renderItemTakeAction` | Copying a posted gear card onto a sheet the reader owns: what the card carries, who may receive it, and the action itself — see [item-roles.md](../concepts/item-roles.md#taking-a-posted-item) |
 | `heatmap.mjs` | gradient constants, `HEATMAP_QUICK_PRESETS`, `DEFAULT_HEATMAP_CONFIG`, `INK_DARK`, `INK_LIGHT`, `setActiveHeatmapConfig`, `getActiveHeatmapConfig`, `colorForValue` | See [heatmap.md](../concepts/heatmap.md) |
+| `campaign-briefing.mjs` | `DEFAULT_CAMPAIGN_BRIEFING`, `normalizeCampaignBriefing`, `newBriefingLocation`, `newBriefingSession` | Normalises the world-owned player briefing: an editable star map and previous-session recaps, with no game-rule data or Foundry globals |
 | `skills.mjs` | `slugifySkillName`, `generateCustomSkillKey`, `getSkillDefinitions`, `getSkillDefinition` | See [skills.md](../concepts/skills.md) |
 | `effects.mjs` | `onManageActiveEffect`, `prepareActiveEffectCategories` | See [active-effects.md](../concepts/active-effects.md) |
 | `inventory.mjs` | `ARMOR_ADDON_ZONES`, `ARMOR_SV_STEP`, `CARRIED_ITEM_TYPES`, `CARRY_THRESHOLDS`, `wornItemIds`, `itemSlotCost`, `computeCarry`, `buildSlotGrid`, `resolveArmor` | Pure carry/armour maths, no Foundry globals — see [inventory.md](../concepts/inventory.md) |
@@ -76,6 +77,7 @@ Entry point, no exports (side-effecting init). See
 | `custom-skill-dialog.mjs` | `TnoCustomSkillDialog extends FormApplication` | Add/edit a custom skill — see [skills.md](../concepts/skills.md) |
 | `custom-skills-overview.mjs` | `TnoCustomSkillsOverview extends FormApplication` | GM-only world-wide custom skill listing |
 | `item-overview.mjs` | `TnoItemOverview extends FormApplication` | GM-only listing of every item in the world, on actors and loose, with where each came from — see [item-roles.md](../concepts/item-roles.md) |
+| `campaign-briefing.mjs` | `TnoCampaignBriefing extends FormApplication`, `TnoCampaignBriefingEditor`, `openCampaignBriefing` | The read-only player board, automatically opened for joining players when enabled; the settings-menu subclass edits the world-owned star map and recap data |
 | `combat-tracker.mjs` | `TnoCombatTracker extends CombatTracker` | The sidebar tracker, registered as `CONFIG.ui.combat`: the Haltung chip on each row, the spent-this-round marker, the interrupt button, pre-combat drag reordering, and the display-order setting — see [combat-turn-order.md](../concepts/combat-turn-order.md) |
 
 `TnoActorSheet` is on **ApplicationV2** (`HandlebarsApplicationMixin(ActorSheetV2)`);

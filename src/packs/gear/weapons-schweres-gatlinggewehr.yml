@@ -1,0 +1,48 @@
+_id: p59XPmQHK4fzah89
+_key: '!items!p59XPmQHK4fzah89'
+name: Schweres Gatlinggewehr
+type: item
+img: icons/weapons/guns/machine-gun-drum.webp
+system:
+  quantity: 1
+  slots: 3
+  sv: 5
+  price: null
+  availability: null
+  description: '<p>Munition: RL</p>'
+  fv:
+    skill: heavyRanged
+    rank: 0
+  roles:
+    weapon: true
+    armor: false
+    consumable: false
+  use: ranged
+  wa: str
+  dk: null
+  range:
+    sn: null
+    near: -6
+    mid: 0
+    far: 0
+    sf: -3
+  rd: 2
+  ss:
+    count: 4
+  ws:
+    count: 2
+  hh:
+    active: 0
+    passive: null
+  rb: null
+  zone: null
+  rh: null
+  rw: null
+  ra: null
+  consumableEffects: []
+effects: []
+folder: JD2ryKhUHUn5NX5c
+sort: 3200000
+ownership:
+  default: 0
+flags: {}

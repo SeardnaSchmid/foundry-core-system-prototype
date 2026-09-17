@@ -137,7 +137,48 @@
       "ItemOverview": {
         "Name": "Item overview",
         "Hint": "Every item in the world — on actors and in the directory — with where each one came from."
+      },
+      "CampaignBriefing": {
+        "Name": "Campaign briefing",
+        "Hint": "Edit the player-facing star map and the previous-session recaps."
       }
+    },
+    "CampaignBriefing": {
+      "WindowTitle": "Campaign briefing",
+      "EditorKicker": "Player-facing board",
+      "EditorTitle": "Campaign briefing",
+      "Preview": "Preview player view",
+      "Enabled": "Open this briefing automatically when a player joins",
+      "Title": "Campaign title",
+      "Subtitle": "Subtitle",
+      "StarName": "Central star",
+      "Locations": "Star map locations",
+      "AddLocation": "Add location",
+      "RemoveLocation": "Remove location",
+      "LocationName": "Name",
+      "LocationType": "Type",
+      "Distance": "Distance",
+      "X": "X",
+      "Y": "Y",
+      "Current": "Current location",
+      "Sessions": "Previous sessions",
+      "AddSession": "Add recap",
+      "RemoveSession": "Remove recap",
+      "SessionLabel": "Label",
+      "SessionTitle": "Title",
+      "Summary": "Summary",
+      "Save": "Save briefing",
+      "Saved": "Campaign briefing saved.",
+      "Untitled": "Campaign briefing",
+      "Close": "Close campaign briefing",
+      "Archive": "Campaign archive",
+      "MapKicker": "Navigational record",
+      "StarMap": "Star map",
+      "ChartedLocation": "Charted location",
+      "EmptyMap": "No locations have been added to this star map yet.",
+      "RecapsKicker": "Previous sessions",
+      "RecapsTitle": "Where the story left off",
+      "EmptySessions": "No previous-session recaps have been added yet."
     },
     "HeatmapPreset": {
       "Viridis": "Viridis",

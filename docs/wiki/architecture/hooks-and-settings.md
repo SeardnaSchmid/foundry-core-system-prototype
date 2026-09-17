@@ -50,6 +50,13 @@ only.** The activation rule is slowest-first in either direction, and the settin
 never reaches the Combat document; see
 [combat-turn-order.md](../concepts/combat-turn-order.md).
 
+`campaignBriefing` is another world-scoped setting, deliberately hidden
+(`config: false`) because its structured star-map and recap content belongs in
+the GM-only Campaign Briefing editor, not Foundry's plain settings fields.
+When its `enabled` flag is set, the `ready` hook opens the read-only briefing
+for every non-GM client. It never shows a session-start status: it is simply a
+campaign map and previous-session summaries.
+
 ### The core colour scheme
 
 The system does not register a theme setting of its own; it only nudges
@@ -72,6 +79,7 @@ One world-scoped hidden setting, registered by
 | `heatmapLabMenu` → `TnoHeatmapLab` | [`tno.mjs:152`](../../../module/tno.mjs) | No |
 | `customSkillsOverviewMenu` → `TnoCustomSkillsOverview` | [`tno.mjs:168`](../../../module/tno.mjs) | Yes (`restricted: true`) |
 | `itemOverviewMenu` → `TnoItemOverview` | [`tno.mjs:180`](../../../module/tno.mjs) | Yes (`restricted: true`) |
+| `campaignBriefingMenu` → `TnoCampaignBriefingEditor` | [`tno.mjs`](../../../module/tno.mjs) | Yes (`restricted: true`) |
 
 ## Sockets
 

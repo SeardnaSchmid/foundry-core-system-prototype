@@ -19,6 +19,7 @@
     "test:e2e:report": "playwright show-report",
     "docs:check": "node scripts/validate-wiki.mjs && node scripts/validate-proofs.mjs",
     "docs:odds": "node scripts/dice-odds.mjs",
+    "rules:fetch": "node scripts/scrape-wiki.mjs",
     "serve": "node scripts/serve-foundry.mjs",
     "serve:stop": "fuser -k ${FOUNDRY_PORT:-30000}/tcp 2>/dev/null || true; rmdir \"${FOUNDRY_DATA_PATH:-$HOME/.local/share/FoundryVTT}/Config/options.json.lock\" 2>/dev/null || true"
   },

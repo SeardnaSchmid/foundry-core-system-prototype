@@ -1,0 +1,48 @@
+_id: 3aHHFccNVYh8IpZh
+_key: '!items!3aHHFccNVYh8IpZh'
+name: Überschweres Sturmgeschütz
+type: item
+img: icons/weapons/artillery/cannon-energy-plasma.webp
+system:
+  quantity: 1
+  slots: 3
+  sv: 9
+  price: null
+  availability: null
+  description: '<p>Munition: EL</p>'
+  fv:
+    skill: heavyRanged
+    rank: 0
+  roles:
+    weapon: true
+    armor: false
+    consumable: false
+  use: ranged
+  wa: str
+  dk: null
+  range:
+    sn: -6
+    near: 0
+    mid: 0
+    far: -3
+    sf: -6
+  rd: 4
+  ss:
+    count: 6
+  ws:
+    count: 4
+  hh:
+    active: 0
+    passive: null
+  rb: null
+  zone: null
+  rh: null
+  rw: null
+  ra: null
+  consumableEffects: []
+effects: []
+folder: JD2ryKhUHUn5NX5c
+sort: 3700000
+ownership:
+  default: 0
+flags: {}

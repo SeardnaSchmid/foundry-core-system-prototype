@@ -137,7 +137,48 @@
       "ItemOverview": {
         "Name": "Gegenstandsübersicht",
         "Hint": "Jeder Gegenstand der Welt — auf Akteuren und im Verzeichnis — mit seiner Herkunft."
+      },
+      "CampaignBriefing": {
+        "Name": "Kampagnenbriefing",
+        "Hint": "Bearbeitet die sichtbare Sternkarte und die Zusammenfassungen vergangener Sitzungen für die Spieler."
       }
+    },
+    "CampaignBriefing": {
+      "WindowTitle": "Kampagnenbriefing",
+      "EditorKicker": "Sichtbare Kampagnenansicht",
+      "EditorTitle": "Kampagnenbriefing",
+      "Preview": "Spieleransicht ansehen",
+      "Enabled": "Dieses Briefing beim Beitritt eines Spielers automatisch öffnen",
+      "Title": "Kampagnentitel",
+      "Subtitle": "Untertitel",
+      "StarName": "Zentralstern",
+      "Locations": "Orte auf der Sternkarte",
+      "AddLocation": "Ort hinzufügen",
+      "RemoveLocation": "Ort entfernen",
+      "LocationName": "Name",
+      "LocationType": "Art",
+      "Distance": "Distanz",
+      "X": "X",
+      "Y": "Y",
+      "Current": "Aktueller Ort",
+      "Sessions": "Vergangene Sitzungen",
+      "AddSession": "Zusammenfassung hinzufügen",
+      "RemoveSession": "Zusammenfassung entfernen",
+      "SessionLabel": "Kennzeichnung",
+      "SessionTitle": "Titel",
+      "Summary": "Zusammenfassung",
+      "Save": "Briefing speichern",
+      "Saved": "Kampagnenbriefing gespeichert.",
+      "Untitled": "Kampagnenbriefing",
+      "Close": "Kampagnenbriefing schließen",
+      "Archive": "Kampagnenarchiv",
+      "MapKicker": "Navigationsaufzeichnung",
+      "StarMap": "Sternkarte",
+      "ChartedLocation": "Kartierter Ort",
+      "EmptyMap": "Für diese Sternkarte wurden noch keine Orte angelegt.",
+      "RecapsKicker": "Vergangene Sitzungen",
+      "RecapsTitle": "Wo die Geschichte endete",
+      "EmptySessions": "Es wurden noch keine Zusammenfassungen vergangener Sitzungen angelegt."
     },
     "HeatmapPreset": {
       "Viridis": "Viridis",

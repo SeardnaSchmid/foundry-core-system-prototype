@@ -1,0 +1,48 @@
+_id: xI6nHIjNo2hm4aeu
+_key: '!items!xI6nHIjNo2hm4aeu'
+name: Überschweres Maschinengewehr
+type: item
+img: icons/weapons/guns/machine-gun-silver.webp
+system:
+  quantity: 1
+  slots: 3
+  sv: 7
+  price: null
+  availability: null
+  description: '<p>Munition: VA</p>'
+  fv:
+    skill: heavyRanged
+    rank: 0
+  roles:
+    weapon: true
+    armor: false
+    consumable: false
+  use: ranged
+  wa: str
+  dk: null
+  range:
+    sn: null
+    near: -3
+    mid: 0
+    far: 0
+    sf: 0
+  rd: 3
+  ss:
+    count: 5
+  ws:
+    count: 3
+  hh:
+    active: 0
+    passive: null
+  rb: null
+  zone: null
+  rh: null
+  rw: null
+  ra: null
+  consumableEffects: []
+effects: []
+folder: JD2ryKhUHUn5NX5c
+sort: 2900000
+ownership:
+  default: 0
+flags: {}

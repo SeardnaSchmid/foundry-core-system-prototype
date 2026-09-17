@@ -1,0 +1,48 @@
+_id: NcjhsUNVG9rs7XQH
+_key: '!items!NcjhsUNVG9rs7XQH'
+name: Überschwere Handkanone
+type: item
+img: icons/weapons/guns/pistol-revolver-energy-heavy.webp
+system:
+  quantity: 1
+  slots: 1
+  sv: 8
+  price: null
+  availability: null
+  description: '<p>Munition: EL</p>'
+  fv:
+    skill: heavyRanged
+    rank: 0
+  roles:
+    weapon: true
+    armor: false
+    consumable: false
+  use: ranged
+  wa: fin
+  dk: null
+  range:
+    sn: 0
+    near: 0
+    mid: -6
+    far: null
+    sf: null
+  rd: 4
+  ss:
+    count: 5
+  ws:
+    count: 4
+  hh:
+    active: 0
+    passive: null
+  rb: null
+  zone: null
+  rh: null
+  rw: null
+  ra: null
+  consumableEffects: []
+effects: []
+folder: JD2ryKhUHUn5NX5c
+sort: 2800000
+ownership:
+  default: 0
+flags: {}

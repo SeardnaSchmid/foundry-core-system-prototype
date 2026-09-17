@@ -1,0 +1,48 @@
+_id: eaGL0eJ9JGHZ2UbN
+_key: '!items!eaGL0eJ9JGHZ2UbN'
+name: Schweres Scharfschützengewehr
+type: item
+img: icons/weapons/guns/rifle-sniper-heavy-long.webp
+system:
+  quantity: 1
+  slots: 2
+  sv: 7
+  price: null
+  availability: null
+  description: '<p>Munition: EL</p>'
+  fv:
+    skill: sniper
+    rank: 0
+  roles:
+    weapon: true
+    armor: false
+    consumable: false
+  use: ranged
+  wa: per
+  dk: null
+  range:
+    sn: null
+    near: -6
+    mid: -3
+    far: 0
+    sf: 0
+  rd: 3
+  ss:
+    count: 5
+  ws:
+    count: 3
+  hh:
+    active: 0
+    passive: null
+  rb: null
+  zone: null
+  rh: null
+  rw: null
+  ra: null
+  consumableEffects: []
+effects: []
+folder: hWKk2Eglv3LRt46R
+sort: 2300000
+ownership:
+  default: 0
+flags: {}

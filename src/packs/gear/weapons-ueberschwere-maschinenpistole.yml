@@ -1,0 +1,48 @@
+_id: URrNx3mTSkY0teiL
+_key: '!items!URrNx3mTSkY0teiL'
+name: Überschwere Maschinenpistole
+type: item
+img: icons/weapons/guns/machine-gun-sub-pistol.webp
+system:
+  quantity: 1
+  slots: 1
+  sv: 6
+  price: null
+  availability: null
+  description: '<p>Munition: AS</p>'
+  fv:
+    skill: shooting
+    rank: 0
+  roles:
+    weapon: true
+    armor: false
+    consumable: false
+  use: ranged
+  wa: fin
+  dk: null
+  range:
+    sn: -3
+    near: 0
+    mid: 0
+    far: -3
+    sf: null
+  rd: 2
+  ss:
+    count: 4
+  ws:
+    count: 2
+  hh:
+    active: 0
+    passive: null
+  rb: null
+  zone: null
+  rh: null
+  rw: null
+  ra: null
+  consumableEffects: []
+effects: []
+folder: xHBgjoFBp1lclmOU
+sort: 2000000
+ownership:
+  default: 0
+flags: {}

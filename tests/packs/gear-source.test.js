@@ -32,9 +32,13 @@ describe('gear pack source', () => {
     }
   });
 
-  it('files every item in a folder the pack defines', () => {
+  it('files every item and nested folder in a folder the pack defines', () => {
     const known = new Set(folders.map(({ doc }) => doc._id));
     for (const { name, doc } of items) expect(known, name).toContain(doc.folder);
+    for (const { name, doc } of folders.filter(({ doc }) => doc.folder)) {
+      expect(known, name).toContain(doc.folder);
+      expect(doc.folder, name).not.toBe(doc._id);
+    }
   });
 
   it('creates every item as a registered gear type', () => {

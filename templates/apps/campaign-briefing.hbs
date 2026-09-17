@@ -1,0 +1,128 @@
+<section class="campaign-briefing{{#if editable}} is-editing{{/if}}">
+  {{#if editable}}
+    <header class="briefing-editor-head">
+      <div>
+        <p class="briefing-kicker">{{localize "TNO.CampaignBriefing.EditorKicker"}}</p>
+        <h2>{{localize "TNO.CampaignBriefing.EditorTitle"}}</h2>
+      </div>
+      <div class="briefing-editor-actions">
+        <button type="button" data-action="preview"><i class="fa-solid fa-eye"></i> {{localize "TNO.CampaignBriefing.Preview"}}</button>
+        <label class="briefing-enabled">
+          <input type="checkbox" data-briefing-field="enabled" {{checked enabled}}>
+          {{localize "TNO.CampaignBriefing.Enabled"}}
+        </label>
+      </div>
+    </header>
+
+    <div class="briefing-editor-fields">
+      <label>{{localize "TNO.CampaignBriefing.Title"}}<input type="text" data-briefing-field="title" value="{{title}}"></label>
+      <label>{{localize "TNO.CampaignBriefing.Subtitle"}}<input type="text" data-briefing-field="subtitle" value="{{subtitle}}"></label>
+      <label>{{localize "TNO.CampaignBriefing.StarName"}}<input type="text" data-briefing-field="starName" value="{{starName}}"></label>
+    </div>
+
+    <section class="briefing-editor-section">
+      <div class="briefing-editor-section-head">
+        <h3>{{localize "TNO.CampaignBriefing.Locations"}}</h3>
+        <button type="button" data-action="add-location"><i class="fa-solid fa-plus"></i> {{localize "TNO.CampaignBriefing.AddLocation"}}</button>
+      </div>
+      {{#each locations}}
+        <div class="briefing-location-fields">
+          <label>{{localize "TNO.CampaignBriefing.LocationName"}}<input type="text" data-briefing-field="location.{{@index}}.name" value="{{name}}"></label>
+          <label>{{localize "TNO.CampaignBriefing.LocationType"}}<input type="text" data-briefing-field="location.{{@index}}.type" value="{{type}}"></label>
+          <label>{{localize "TNO.CampaignBriefing.Distance"}}<input type="text" data-briefing-field="location.{{@index}}.distance" value="{{distance}}"></label>
+          <label>{{localize "TNO.CampaignBriefing.X"}}<input type="number" min="0" max="100" data-briefing-field="location.{{@index}}.x" value="{{x}}"></label>
+          <label>{{localize "TNO.CampaignBriefing.Y"}}<input type="number" min="0" max="100" data-briefing-field="location.{{@index}}.y" value="{{y}}"></label>
+          <label class="briefing-current"><input type="checkbox" data-briefing-field="location.{{@index}}.current" {{checked current}}> {{localize "TNO.CampaignBriefing.Current"}}</label>
+          <button type="button" class="briefing-remove" data-action="remove-location" data-index="{{@index}}" aria-label="{{localize "TNO.CampaignBriefing.RemoveLocation"}}"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      {{/each}}
+    </section>
+
+    <section class="briefing-editor-section">
+      <div class="briefing-editor-section-head">
+        <h3>{{localize "TNO.CampaignBriefing.Sessions"}}</h3>
+        <button type="button" data-action="add-session"><i class="fa-solid fa-plus"></i> {{localize "TNO.CampaignBriefing.AddSession"}}</button>
+      </div>
+      {{#each sessions}}
+        <div class="briefing-session-fields">
+          <label>{{localize "TNO.CampaignBriefing.SessionLabel"}}<input type="text" data-briefing-field="session.{{@index}}.label" value="{{label}}"></label>
+          <label>{{localize "TNO.CampaignBriefing.SessionTitle"}}<input type="text" data-briefing-field="session.{{@index}}.title" value="{{title}}"></label>
+          <label>{{localize "TNO.CampaignBriefing.Summary"}}<textarea rows="2" data-briefing-field="session.{{@index}}.summary">{{summary}}</textarea></label>
+          <button type="button" class="briefing-remove" data-action="remove-session" data-index="{{@index}}" aria-label="{{localize "TNO.CampaignBriefing.RemoveSession"}}"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      {{/each}}
+    </section>
+    <footer class="briefing-editor-footer">
+      <button type="submit"><i class="fa-solid fa-floppy-disk"></i> {{localize "TNO.CampaignBriefing.Save"}}</button>
+    </footer>
+  {{else}}
+    <div class="briefing-noise" aria-hidden="true"></div>
+    <button type="button" class="briefing-close" data-action="close-briefing" aria-label="{{localize 'TNO.CampaignBriefing.Close'}}">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <header class="briefing-title">
+      <div class="briefing-brandline">
+        <strong>TNO</strong>
+        <span>{{localize "TNO.CampaignBriefing.Archive"}}</span>
+      </div>
+      {{#if subtitle}}<p>{{subtitle}}</p>{{/if}}
+      <h2>{{#if title}}{{title}}{{else}}{{localize "TNO.CampaignBriefing.Untitled"}}{{/if}}</h2>
+      <div class="briefing-title-rule"><span></span></div>
+    </header>
+
+    <div class="briefing-display-grid">
+      <section class="briefing-map-panel" aria-label="{{localize "TNO.CampaignBriefing.StarMap"}}">
+        <header class="briefing-panel-head">
+          <div>
+            <p>{{localize "TNO.CampaignBriefing.MapKicker"}}</p>
+            <h3>{{localize "TNO.CampaignBriefing.StarMap"}}</h3>
+          </div>
+          <span class="briefing-chart-id">{{starName}} / 01</span>
+        </header>
+        <div class="briefing-map">
+          <div class="briefing-map-grid" aria-hidden="true"></div>
+          <div class="briefing-star"><span></span><strong>{{starName}}</strong></div>
+          {{#each locations}}
+            <article class="briefing-location{{#if current}} is-current{{/if}}" style="left: {{x}}%; top: {{y}}%;">
+              <span class="briefing-location-dot"></span>
+              <div class="briefing-location-label">
+                <strong>{{name}}</strong>
+                {{#if type}}<span>{{type}}</span>{{/if}}
+                {{#if distance}}<small>{{distance}}</small>{{/if}}
+              </div>
+            </article>
+          {{/each}}
+          {{#unless hasLocations}}<p class="briefing-empty-map">{{localize "TNO.CampaignBriefing.EmptyMap"}}</p>{{/unless}}
+        </div>
+        <footer class="briefing-map-foot">
+          <span><i class="briefing-legend-dot"></i>{{localize "TNO.CampaignBriefing.ChartedLocation"}}</span>
+          {{#if currentLocation}}<strong>{{localize "TNO.CampaignBriefing.Current"}} · {{currentLocation.name}}</strong>{{/if}}
+        </footer>
+      </section>
+
+      <section class="briefing-sessions-panel">
+        <div class="briefing-sessions-head">
+          <div>
+            <p>{{localize "TNO.CampaignBriefing.RecapsKicker"}}</p>
+            <h3>{{localize "TNO.CampaignBriefing.RecapsTitle"}}</h3>
+          </div>
+          <span>{{sessionCount}}</span>
+        </div>
+        {{#if hasSessions}}
+          <ol class="briefing-sessions">
+            {{#each sessions}}
+              <li>
+                {{#if label}}<p class="briefing-session-label">{{label}}</p>{{/if}}
+                {{#if title}}<h4>{{title}}</h4>{{/if}}
+                {{#if summary}}<p>{{summary}}</p>{{/if}}
+              </li>
+            {{/each}}
+          </ol>
+        {{else}}
+          <p class="briefing-empty-sessions">{{localize "TNO.CampaignBriefing.EmptySessions"}}</p>
+        {{/if}}
+      </section>
+    </div>
+  {{/if}}
+</section>

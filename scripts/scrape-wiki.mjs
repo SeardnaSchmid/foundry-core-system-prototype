@@ -7,10 +7,12 @@
 //   node scripts/scrape-wiki.mjs [--root <folderId>] [--out <dir>] [--dry-run]
 //
 // Output mirrors the Drive tree: one directory per folder, one .md per doc,
-// plus an index.md listing every page. Existing files in --out are overwritten.
+// plus an index.md listing every page. A complete download is staged before it
+// replaces --out. Keep rules/ as its own Git repository to review each refresh.
 
-import { mkdir, rm, writeFile } from 'node:fs/promises';
-import { dirname, join, relative, resolve } from 'node:path';
+import { mkdir, mkdtemp, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
+import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -84,6 +86,68 @@ async function fetchText(url, { label }) {
   throw new Error(`${label}: ${lastError.message} (${url})`);
 }
 
+async function exists(path) {
+  try {
+    await stat(path);
+    return true;
+  } catch (error) {
+    if (error.code === 'ENOENT') return false;
+    throw error;
+  }
+}
+
+function runGit(repo, args) {
+  const result = spawnSync('git', args, { cwd: repo, encoding: 'utf8' });
+  if (result.error) throw result.error;
+  if (result.status !== 0) {
+    throw new Error(`git ${args[0]} failed: ${result.stderr.trim() || `exit ${result.status}`}`);
+  }
+  return result.stdout.trim();
+}
+
+async function ensureRulesRepo(out) {
+  const repo = dirname(out);
+  await mkdir(repo, { recursive: true });
+  if (!(await exists(join(repo, '.git')))) {
+    runGit(repo, ['init', '-b', 'main', '.']);
+  }
+  const topLevel = resolve(runGit(repo, ['rev-parse', '--show-toplevel']));
+  if (topLevel !== resolve(repo)) {
+    throw new Error(`${repo} is not an independent Git repository`);
+  }
+  return repo;
+}
+
+function commitSnapshot(repo, out, timestamp) {
+  const target = relative(repo, out);
+  runGit(repo, ['add', '--', target]);
+  runGit(repo, [
+    'commit',
+    '--allow-empty',
+    '--only',
+    '-m',
+    `chore: fetch rules ${timestamp}`,
+    '--',
+    target,
+  ]);
+  return runGit(repo, ['rev-parse', '--short', 'HEAD']);
+}
+
+function withoutScrapeDate(text) {
+  return text.replace(/^scraped: .*$/m, 'scraped:');
+}
+
+async function writeSnapshotFile(file, content, previousFile) {
+  if (await exists(previousFile)) {
+    const previous = await readFile(previousFile, 'utf8');
+    if (withoutScrapeDate(previous) === withoutScrapeDate(content)) {
+      await writeFile(file, previous);
+      return;
+    }
+  }
+  await writeFile(file, content);
+}
+
 async function listFolder(folderId, title) {
   const html = await fetchText(FOLDER_VIEW(folderId), { label: `folder "${title}"` });
   const entries = [];
@@ -113,7 +177,7 @@ function uniqueName(used, name) {
   }
 }
 
-async function crawl(node, { root, out, dryRun, stats }, depth = 0) {
+async function crawl(node, { root, out, previousOut, dryRun, stats, scrapedDate }, depth = 0) {
   const entries = await listFolder(node.id, node.title);
   const used = new Set();
   const children = [];
@@ -124,7 +188,11 @@ async function crawl(node, { root, out, dryRun, stats }, depth = 0) {
       const child = { ...entry, name, dir: join(node.dir, name), children: [] };
       children.push(child);
       if (!dryRun) await mkdir(child.dir, { recursive: true });
-      child.children = await crawl(child, { root, out, dryRun, stats }, depth + 1);
+      child.children = await crawl(
+        child,
+        { root, out, previousOut, dryRun, stats, scrapedDate },
+        depth + 1,
+      );
     } else {
       const body = await fetchText(DOC_EXPORT(entry.id), { label: `doc "${entry.title}"` });
       const file = join(node.dir, `${name}.md`);
@@ -135,11 +203,17 @@ async function crawl(node, { root, out, dryRun, stats }, depth = 0) {
         `doc_id: ${entry.id}`,
         `source: ${DOC_URL(entry.id)}`,
         `wiki: ${WIKI_URL(entry.id, root)}`,
-        `scraped: ${new Date().toISOString().slice(0, 10)}`,
+        `scraped: ${scrapedDate}`,
         '---',
         '',
       ].join('\n');
-      if (!dryRun) await writeFile(file, `${front}${empty ? '_(Dokument ist leer.)_\n' : body}`);
+      if (!dryRun) {
+        await writeSnapshotFile(
+          file,
+          `${front}${empty ? '_(Dokument ist leer.)_\n' : body}`,
+          join(previousOut, relative(out, file)),
+        );
+      }
       children.push({ ...entry, name, file, empty });
       stats.docs += 1;
       if (empty) stats.empty += 1;
@@ -171,6 +245,19 @@ function renderIndex(children, out, depth = 0) {
   return lines;
 }
 
+async function installSnapshot(stagingOut, out) {
+  const hadPrevious = await exists(out);
+  const backup = `${out}.previous-${process.pid}`;
+  if (hadPrevious) await rename(out, backup);
+  try {
+    await rename(stagingOut, out);
+  } catch (error) {
+    if (hadPrevious) await rename(backup, out);
+    throw error;
+  }
+  if (hadPrevious) await rm(backup, { recursive: true, force: true });
+}
+
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   if (opts.help) {
@@ -187,39 +274,68 @@ async function main() {
     );
   }
 
+  const timestamp = new Date().toISOString();
+  const scrapedDate = timestamp.slice(0, 10);
+  let stagingOut = opts.out;
+  let rulesRepo;
   if (!opts.dryRun) {
-    await rm(opts.out, { recursive: true, force: true });
-    await mkdir(opts.out, { recursive: true });
+    rulesRepo = await ensureRulesRepo(opts.out);
+    stagingOut = await mkdtemp(join(dirname(opts.out), `.${basename(opts.out)}-staging-`));
   }
 
   const stats = { docs: 0, empty: 0 };
-  const tree = await crawl(
-    { id: opts.root, title: 'root', dir: opts.out },
-    { root: opts.root, out: opts.out, dryRun: opts.dryRun, stats },
-  );
+  try {
+    const tree = await crawl(
+      { id: opts.root, title: 'root', dir: stagingOut },
+      {
+        root: opts.root,
+        out: stagingOut,
+        previousOut: opts.out,
+        dryRun: opts.dryRun,
+        stats,
+        scrapedDate,
+      },
+    );
 
-  if (!opts.dryRun) {
-    const index = [
-      '---',
-      'title: "Wiki-Abzug"',
-      `root_folder: ${opts.root}`,
-      `source: https://drive.google.com/drive/folders/${opts.root}`,
-      `scraped: ${new Date().toISOString().slice(0, 10)}`,
-      '---',
-      '',
-      '# Wiki-Abzug',
-      '',
-      `Automatisch erzeugt von \`scripts/scrape-wiki.mjs\` — nicht von Hand bearbeiten.`,
-      '',
-      ...renderIndex(tree, opts.out),
-      '',
-    ].join('\n');
-    await writeFile(join(opts.out, 'index.md'), index);
+    if (!opts.dryRun) {
+      const index = [
+        '---',
+        'title: "Wiki-Abzug"',
+        `root_folder: ${opts.root}`,
+        `source: https://drive.google.com/drive/folders/${opts.root}`,
+        `scraped: ${scrapedDate}`,
+        '---',
+        '',
+        '# Wiki-Abzug',
+        '',
+        `Automatisch erzeugt von \`scripts/scrape-wiki.mjs\` — nicht von Hand bearbeiten.`,
+        '',
+        ...renderIndex(tree, stagingOut),
+        '',
+      ].join('\n');
+      await writeSnapshotFile(
+        join(stagingOut, 'index.md'),
+        index,
+        join(opts.out, 'index.md'),
+      );
+
+      await installSnapshot(stagingOut, opts.out);
+      stagingOut = undefined;
+      const commit = commitSnapshot(rulesRepo, opts.out, timestamp);
+      process.stdout.write(`Regel-Commit: ${commit}\n`);
+    }
+
+    process.stdout.write(
+      `${stats.docs} Dokumente (${stats.empty} leer) → ${relative(process.cwd(), opts.out)}\n`,
+    );
+    if (!opts.dryRun) {
+      process.stdout.write(`Letztes Delta: git -C ${relative(process.cwd(), rulesRepo)} show --stat --oneline HEAD\n`);
+    }
+  } finally {
+    if (stagingOut && stagingOut !== opts.out) {
+      await rm(stagingOut, { recursive: true, force: true });
+    }
   }
-
-  process.stdout.write(
-    `\n${stats.docs} Dokumente (${stats.empty} leer) → ${relative(process.cwd(), opts.out)}\n`,
-  );
 }
 
 main().catch((error) => {

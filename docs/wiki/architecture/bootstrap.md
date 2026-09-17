@@ -38,12 +38,14 @@ Runs once, before any world data loads. In order:
 7. Registers 7 client-scoped heatmap settings (hidden, `config: false`) plus
    the `heatmapLabMenu` settings menu that edits them — see
    [heatmap.md](../concepts/heatmap.md).
-   Then the one world-scoped, player-visible setting this system has:
-   `combatTrackerOrder` (line 138), which flips the tracker's *display*
-   direction and nothing else.
+   Then the player-visible `combatTrackerOrder` world setting, which flips the
+   tracker's *display* direction and nothing else; and the hidden,
+   world-scoped `campaignBriefing` object, edited through the GM-only Campaign
+   Briefing menu.
 8. Calls `registerMigrationSettings()` — see
    [migrations.md](../concepts/migrations.md).
-9. Registers the GM-only `customSkillsOverviewMenu`.
+9. Registers the GM-only `customSkillsOverviewMenu`, `itemOverviewMenu`, and
+   `campaignBriefingMenu`.
 10. Seeds the active heatmap config from the settings just registered.
 11. Calls `registerChatListeners()` — see
     [edge-pool.md](../concepts/edge-pool.md).
@@ -64,7 +66,9 @@ Runs once, after world data is loaded. Registers the `hotbarDrop` hook
 handler first), calls `registerCombatSocket()` (line 291) to start listening
 for interrupt requests — see
 [combat-turn-order.md](../concepts/combat-turn-order.md#the-one-socket) — and
-calls `migrateWorld()` — see [migrations.md](../concepts/migrations.md).
+calls `migrateWorld()` — see [migrations.md](../concepts/migrations.md). If a
+GM has enabled the campaign briefing, the hook also opens its read-only star
+map and previous-session recaps for non-GM clients.
 
 ## Hotbar macros
 
