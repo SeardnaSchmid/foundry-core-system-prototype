@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.48.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.47.0...v0.48.0) (2026-10-03)
+
+
+### Features
+
+* **combat:** simplify declarations and armor resolution ([33c14e0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/33c14e08ee54b033b5dcb96dfaec3a8edfbeb7a7))
+
 # [0.47.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.46.2...v0.47.0) (2026-10-03)
 
 
