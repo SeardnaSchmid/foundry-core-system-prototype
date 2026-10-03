@@ -41,26 +41,23 @@ on opposite sides of that line.
   by the (defence, Haltung) pair, because Ausweichen has two relief skills and
   the Haltung decides which one applies.
 - [`helpers/maneuvers.mjs`](../../../module/helpers/maneuvers.mjs) is pure and
-  global-free, and holds everything a Stelle is: `ZONE_CHOICES` / `DEFAULT_ZONE`
-  (the Stellen an attack can name, Torso first), `ZONE_COSTS` / `zoneCost(zone)`
-  (what aiming there costs, from Gezielte Angriffe), `DAMAGE_RULES` (the pool
-  multiplier for that Stelle) and `ansageEnvelope(ansage, zone)` (what crosses to
-  the defender). It models no *other* Manöver at all — the table of nine, their
-  governing Fertigkeiten and the `ansageKosten` ladder are gone, because every
-  other Ansage is one free magnitude the players agree on before typing it. The
-  Trefferzonen stayed because the rulebook prices them itself.
+  global-free. `DAMAGE_RULES` and `DEFAULT_ZONE` resolve the multiplier of the
+  location selected on the defender's paper doll; attacks do not choose or
+  transmit a location. `ansageEnvelope(ansage)` carries only the attacker's own
+  announced magnitude. It models no other Manöver: an Ansage is one free number
+  the table agrees on before typing it.
 - [`helpers/items.mjs`](../../../module/helpers/items.mjs) contains the pure
   weapon-profile, requirement, handling, range-band, and DK-choice helpers.
   `requirementMalusSteps` grades an **SV** shortfall into Malusstufen;
   `weaponRequirementStatus` reports it alongside the flat one-step FV shortfall.
   The SV malus reaches every attack and parry; the FV one is a Manöver rule and
-  is handed to the dialog as `maneuverMalus`, which applies it only once
-  something has been declared — an Ansage typed, or a Stelle named other than the
-  Torso. `armorSvMalus` answers the third, differently shaped
+  is handed to the dialog as `maneuverMalus`, which applies it only once a
+  positive Ansage has been declared. `armorSvMalus` answers the third, differently shaped
   requirement — the armour SV — for a given set of attributes, and
   `armorPenetrationChoices` returns the damage table's three outcomes with the
-  pool and whether RW survives. `resolveArmorInteraction` adds the separately
-  confirmed `Rüstung umgehen`: it always selects Schaden and ignores RW.
+  pool and whether RW survives. A separately confirmed `Rüstung umgehen`
+  chooses Schaden and removes only the outer armour's `rwAddon`; the
+  Unterkleidung's `rwSuit` continues to protect the location.
 - [`documents/item.mjs`](../../../module/documents/item.mjs) and
   [`documents/actor.mjs`](../../../module/documents/actor.mjs) are now thin:
   `openWeaponCheck`, `openWeaponParry` and `openResistanceCheck(zone)` call a
@@ -86,8 +83,8 @@ on opposite sides of that line.
     advantage), a radio-tile grid of 1, 2, 3, 5 or 7 columns (range bands), a
     select, or a `compare`: a typed number that `compare.derive(value)` turns
     into one of the choices. The resistance roll uses `compare` — the defender
-    types the attacker's RB/RD and the dialog compares it against the struck
-    location's RH (`tests/documents/actor-resistance-roll.test.js › derives the penetration outcome from the RB/RD typed against the RH of the struck location`).
+    types the attacker's RB and the dialog compares it against the struck
+    location's RH (`tests/documents/actor-resistance-roll.test.js › derives the penetration outcome from the RB typed against the RH of the struck location`).
     Each choice's `componentLabel` is the noun recorded in the breakdown; a
     choice supplying a `headline` is one whose `label` is an effect, so the
     headline names it and the label captions it
@@ -110,26 +107,16 @@ on opposite sides of that line.
   - `ansage` — one optional integer that worsens this roll by what it declares,
     unpriced and ungated; negative eases it without counting as a Manöver.
     `_ansageValue` reads it, `_ansageComponent` signs it.
-  - `zonePicker` — the Stelle, as tiles carrying the price Gezielte Angriffe
-    puts on it (`ZONE_COSTS`) and the pool multiplier. `_zoneComponent` keeps
-    the price its own component, and only the location crosses in the envelope
-    (`tests/documents/roll-dialog.test.js › charges the Stelle what Gezielte Angriffe prices it at`,
-    `tests/documents/roll-dialog.test.js › keeps the Stelle price on the attacker and out of the envelope entirely`).
-  - `opposingAnsage` — the receiving end of the envelope: one optional integer
-    the player types off the other side's card, opening at 0. Offered on the
-    attack, the parry, the dodge and the resistance roll. Nothing writes it for
-    them — the card publishes, nothing pushes.
   - `toggleModifier` — a rule the player confirms rather than computes, today
-    only `Rüstung umgehen`, asked as a yes/no question (`question`,
-    `yesLabel`). With `waivesContext` a yes makes the context moot:
-    `_contextWaived` drops the comparison, and the toggle cancels the RW once
-    (`tests/documents/actor-resistance-roll.test.js › cancels the location padding exactly once when penetration or a maneuver bypasses it`).
-    A context choice marked `suppressesToggleModifier` (penetration) disables
-    the toggle's own effect so RW is never subtracted twice.
+    only `Rüstung umgehen`, asked as a yes/no question against the private RA of
+    the struck outer armour. It is offered only when such an outer piece exists:
+    yes means the announced value was at least RA, skips the RB/RH comparison,
+    chooses Schaden and subtracts exactly `rwAddon`; no (including every lower
+    announcement) leaves the normal comparison in place. `rwSuit` remains.
   - `phase` (`{label, detail}`) and `sources` (`{weapon, armor}`) — display
     only: the strip at the top and the names that complete a Beleg heading.
   - `envelope` — the attacker's half of an exchange, merged with
-    `ansageEnvelope(ansage, zone)` at roll time into `flags.tno.envelope`.
+    `ansageEnvelope(ansage)` at roll time into `flags.tno.envelope`.
   - `consequence` — what a failure costs, worded by the builder: a function of
     the answers, kept by `rollTno` only when the dice fail. The resistance roll
     returns the applied damage via `appliedDamage(value, zone)`
@@ -143,9 +130,7 @@ on opposite sides of that line.
   `combat-actions.mjs` tag theirs. The dialog also owns an actor-state bucket:
   `_actorModifiers` reads the damage malus for every roll, and
   `_conditionalModifiers` adds the armour SV step to any roll built on
-  Beweglichkeit and the FV step to any roll that has declared something — a
-  positive Ansage, or a Stelle other than the Torso
-  (`tests/documents/roll-dialog.test.js › makes an aimed attack a Manöver, and the Torso not`).
+  Beweglichkeit and the FV step to a positive Ansage.
 - [`roll-card.hbs`](../../../templates/chat/roll-card.hbs) renders the envelope
   as plain text under the outcome — always visible, never inside the collapsible
   tooltip, because the card is the only record of what was announced. Above it
@@ -153,8 +138,8 @@ on opposite sides of that line.
   still asks something of the player, so it is stated in the unit the damage
   widget takes rather than as the arithmetic that produced it.
   `envelopeLines` in [`helpers/dice.mjs`](../../../module/helpers/dice.mjs)
-  builds those lines: one Ansage figure rather than a penalty per defence,
-  because which roll it was aimed at is what the two players said out loud.
+  builds those lines. A location is deliberately absent: the defender selects
+  the actual hit location on their own paper doll when opening resistance.
 - **The card shows what the roll was made with.** `angriffOptions` and
   `paradeOptions` put the weapon's own `img` in the roll options;
   `widerstandOptions` puts the armour's, through `wornArmorArt` — the piece at
@@ -185,12 +170,14 @@ on opposite sides of that line.
 1. **The phase strip** — `_phase()`: the workflow's `phase`, or one derived
    from the mode (skill, ability, free, fixed).
 2. **"Zu klären"** — only what the roller answers. `_questions(data)` is the one
-   ordered list: `toggle`, `context`, `required`, `attribute`, `attributeB`,
-   `free`, `zone`, `ansagen` (own + opposing side by side), `bonus`
+  ordered list: `toggle`, `ansage`, `context`, `required`, `attribute`,
+   `attributeB`, `free`, `bonus`
    (`−3 −1 value +1 +3`; the value resets), `idea` (pips + a `+N` toggle). Each
    carries its number, its `pending` and `locked` state; the form, the Beleg's
    marks (①②…), the "Noch offen" line and `_canSubmit` all read it
    (`tests/documents/roll-dialog.test.js › asks only what the roller answers, numbered in one order`).
+   Attack and parry have no toggle, so their visible order starts with Ansage,
+   then weapon context, then situational modifier.
    A pending question is `.is-open` (dashed blue); a locked one `.is-locked`.
    A locked combat attribute is not asked at all — it is a fact.
 3. **The card** — the Beleg toggle with one chip per group, the Schwelle,
@@ -214,7 +201,7 @@ questions so the Schwelle never moves; `_paintBeleg` rebuilds it (and the
 chips) on every `_refresh`, and its open state is kept for the session.
 
 **`_refresh` repaints, never re-renders**: question states, the bypass and Idee
-buttons, the verdict a typed RB/RD selects, the lock on the damage field, the
+buttons, the verdict a typed RB selects, the lock on the damage field, the
 Ansage deltas, stepper bounds (read off each input's own `min`/`max` via
 `_stepValue`), the Beleg, the Schwelle, the odds and the button. Typed contents
 and focus survive. `_breakdownParts` / `_breakdownText` feed only the chat card

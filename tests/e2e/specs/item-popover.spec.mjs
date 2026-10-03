@@ -8,7 +8,7 @@ test('carry-cell popover stays open across actions and opens the editor directly
       use: 'ranged',
       slots: 2,
       fv: { skill: 'shooting', rank: 3 },
-      rd: 4,
+      rb: 4,
       ss: { count: 3 },
     })],
   });

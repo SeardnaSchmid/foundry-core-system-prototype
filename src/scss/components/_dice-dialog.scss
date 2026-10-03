@@ -681,7 +681,7 @@ $w-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monos
     }
   }
 
-  // ── Comparison: the attacker's RB/RD against your own RH ──
+  // ── Comparison: the attacker's RB against your own RH ──
   .tno-compare {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 128px;
@@ -792,29 +792,19 @@ $w-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monos
     }
   }
 
-  // ── Ansagen: what you declare, what was declared against you ──
-  .tno-ansage {
+  // ── Ansage: compact beside its question, with the roll effect kept visible ──
+  .tno-ansage-control {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 8px 10px;
-    border: 1px solid $w-line;
-    border-radius: 6px;
-  }
-
-  .tno-ansage-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-
-    label {
-      font-weight: 600;
-    }
+    flex: none;
+    align-items: center;
+    gap: 10px;
   }
 
   .tno-ansage-delta {
+    min-width: 30px;
     font-family: $w-mono;
     font-weight: 600;
+    text-align: right;
   }
 
   // ── Beleg and Schwelle ──

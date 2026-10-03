@@ -116,7 +116,7 @@ export function buildGearSummary(item) {
     );
   } else if (roles.weapon) {
     tiles.push(
-      tile('rd', 'TNO.Weapons.RdShort', system.rd),
+      tile('rb', 'TNO.Weapons.Rb', system.rb),
       tile('ss', 'TNO.Weapons.Ss', system.ss?.count),
       tile('ws', 'TNO.Weapons.Ws', system.ws?.count),
       tile('hh', 'TNO.Item.Summary.HhActive', system.hh?.active, signed),
@@ -265,15 +265,14 @@ export function buildRangeProfile(system) {
 }
 
 /**
- * Divide the RH domain around RD. This presentation helper keeps the graph to
+ * Divide the RH domain around RB. This presentation helper keeps the graph to
  * authored weapon numbers; the resistance workflow owns the resulting damage
  * pool and RW interaction.
  */
 export function buildPenetrationProfile(system) {
-  const key = weaponUse(system) === 'ranged' ? 'rd' : 'rb';
-  const raw = numberOrNull(system?.[key]);
-  const minimum = key === 'rd' ? 1 : 0;
-  const value = raw === null ? null : Math.min(PENETRATION_MAX_RH, Math.max(minimum, raw));
+  const key = 'rb';
+  const raw = numberOrNull(system?.rb);
+  const value = raw === null ? null : Math.min(PENETRATION_MAX_RH, Math.max(0, raw));
   if (value === null) return { key, value: null, segments: [], ss: damagePresentation(system?.ss), ws: damagePresentation(system?.ws) };
 
   const segments = [

@@ -1,6 +1,5 @@
 /**
- * Manöver, as the two things a roll has to carry: how much was announced, and
- * where the blow is aimed.
+ * Manöver and hit-location damage rules.
  *
  * "Manöver sind alles, was Kampfhandlungen wie Angriffe, Paraden, Ausweichen,
  * Bewegung und so weiter modifiziert" — and every declarable one modifies a roll
@@ -13,35 +12,19 @@
  * talk that no field can hold and no arithmetic needs. What the system carries is
  * the number.
  *
- * The Stelle is the exception, because it is two things at once. It is a
- * location — it decides the damage multiplier, and the defender opens that
- * roll by clicking it on the paper doll, so it has to be a discrete pick or the
- * damage rule has nothing to read. And it is an Ansage
- * with a price the rulebook writes down, which is what {@link ZONE_COSTS} holds.
- * The pick and the price travel separately on purpose: the price worsens the
- * attacker's own roll, while only the location crosses to the defender.
+ * The attack dialog does not model a separate aimed-location choice. The
+ * defender opens the resistance roll directly on the struck paper-doll zone;
+ * that zone still decides the damage multiplier here.
  *
  * This module holds itself free of Foundry globals so it can be unit-tested
  * without a game world.
  */
-
-import { MALUS_STEP } from './items.mjs';
 
 /**
  * The Stelle a standard attack hits when nothing was announced.
  * @type {string}
  */
 export const DEFAULT_ZONE = 'torso';
-
-/**
- * Every Stelle an attack can name, the default first.
- *
- * There is no "keine Ansage" entry: an attack always lands somewhere, and where
- * it lands when nobody said otherwise is the Torso. Offering an empty option
- * beside a Torso option would be two names for one outcome.
- * @type {Array<string>}
- */
-export const ZONE_CHOICES = [DEFAULT_ZONE, 'arms', 'legs', 'head'];
 
 /**
  * The damage multiplier of a hit, given its Stelle. Attribute routing is gone:
@@ -79,50 +62,11 @@ export function appliedDamage(value, zone) {
 }
 
 /**
- * What naming a Stelle costs the attack that names it.
- *
- * Straight out of Gezielte Angriffe, which prices each location in Stufen and
- * then spells the number out: Arme and Beine "um eine Stufe, also -3", Kopf "um
- * zwei Stufen, also -6". Written as multiples of {@link MALUS_STEP} rather than
- * as bare numbers, because that is what the rule says — the −3 and the −6 are
- * the step, restated.
- *
- * The Torso is free and has to be: it is where an attack that announced nothing
- * lands, so charging for it would price the standard attack.
- *
- * These are **Ansagen**, not a modifier of their own — "Ansagen auf Trefferzonen
- * im Nahkampf, normale Ansageregeln gelten hier auf alles". Two consequences the
- * dialog depends on: an aimed attack is a Manöver and takes the weapon's FV
- * step, and the amount is subject to whatever the table does with the Ansage
- * ladder, which is why nothing here caps or gates it.
- *
- * Kopf carries one more clause — "maximal um die Höhe deiner 'Gezielte Angriffe'
- * Fertigkeit" — that is deliberately not enforced; see the combat PRD's Open
- * section for why it is still unsettled.
- * @type {Object<string, number>}
- */
-export const ZONE_COSTS = {
-  torso: 0,
-  arms: MALUS_STEP,
-  legs: MALUS_STEP,
-  head: 2 * MALUS_STEP,
-};
-
-/**
- * What this Stelle costs, or nothing for a location that is not one.
- * @param {string} zone
- * @returns {number}  A signed addend to the threshold, 0 or negative.
- */
-export function zoneCost(zone) {
-  return ZONE_COSTS[zone] ?? 0;
-}
-
-/**
  * What the attacker has to tell the defender, reduced to numbers.
  *
- * This is the whole of the A→B channel, and it is deliberately tiny: one
- * announced amount and one Stelle. The defender needs none of the attacker's
- * stats to use it, and the attacker needed none of the defender's to produce it.
+ * This is the whole declaration portion of the A→B channel: one announced
+ * amount. The defender needs none of the attacker's stats to use it, and the
+ * attacker needed none of the defender's to produce it.
  *
  * The Ansage arrives as a single figure rather than one per defence. Which of
  * the defender's rolls it lands on is exactly the part the two players said out
@@ -130,12 +74,10 @@ export function zoneCost(zone) {
  * claiming knowledge the system no longer has.
  *
  * @param {number} ansage  The declared Betrag, as typed.
- * @param {string} zone    The Stelle the attack named.
- * @returns {{ansage: number, zone: string}}
+ * @returns {{ansage: number}}
  */
-export function ansageEnvelope(ansage, zone) {
+export function ansageEnvelope(ansage) {
   return {
     ansage: Math.max(0, Math.trunc(Number(ansage) || 0)),
-    zone: ZONE_CHOICES.includes(zone) ? zone : DEFAULT_ZONE,
   };
 }

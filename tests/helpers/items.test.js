@@ -340,7 +340,7 @@ describe('cycleRangeModifier', () => {
 describe('scaleCells', () => {
   it('spans the band the rules table documents', () => {
     expect(scaleCells('dk', 2).map((cell) => cell.value)).toEqual([0, 1, 2, 3, 4, 5, 6]);
-    expect(scaleCells('rd', 1)).toHaveLength(10);
+    expect(scaleCells('rb', 0)).toHaveLength(11);
   });
 
   it('selects the cell holding the value', () => {
@@ -395,7 +395,7 @@ describe('missingRequired', () => {
     expect(melee).toEqual([]);
 
     const ranged = missingRequired(
-      item({ weapon: true }, { ...complete, use: 'ranged', fv: { skill: 'shooting', rank: 0 }, wa: 'per', rd: 3, ss: { count: 2 } })
+      item({ weapon: true }, { ...complete, use: 'ranged', fv: { skill: 'shooting', rank: 0 }, wa: 'per', rb: 3, ss: { count: 2 } })
     );
     // No DK is asked of a rifle; a band is.
     expect(ranged).toEqual(['range']);
@@ -407,7 +407,7 @@ describe('missingRequired', () => {
       use: 'ranged',
       fv: { skill: 'shooting', rank: 0 },
       wa: 'per',
-      rd: 3,
+      rb: 3,
       ss: { count: 2 },
       range: { sn: null, near: 0, mid: null, far: null, sf: null },
     };

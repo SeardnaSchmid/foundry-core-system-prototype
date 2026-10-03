@@ -26,7 +26,6 @@ system:
     mid: 0
     far: -3
     sf: -6
-  rd: 3
   ss:
     count: 5
   ws:
@@ -34,7 +33,7 @@ system:
   hh:
     active: 0
     passive: null
-  rb: null
+  rb: 3
   zone: null
   rh: null
   rw: null

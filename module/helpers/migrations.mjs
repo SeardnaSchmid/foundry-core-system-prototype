@@ -18,6 +18,7 @@ export const MIGRATIONS = [
   { version: '0.35.0', migrate: migrateDropStealthSkill },
   { version: '0.35.0', migrate: migrateDropPendingAnsage },
   { version: '0.36.0', migrate: migrateDropTemporaryAttributeValues },
+  { version: '0.48.0', migrate: migrateRdToRb },
 ];
 
 /**
@@ -282,6 +283,34 @@ async function migrateDropTemporaryAttributeValues() {
       if (Object.hasOwn(ability ?? {}, 'value')) update[`system.abilities.${key}.-=value`] = null;
     }
     if (!foundry.utils.isEmpty(update)) await actor.update(update);
+  }
+}
+
+/**
+ * Merge the former ranged `rd` field into the one weapon penetration value
+ * `rb`. Existing RB wins if both happen to be authored; otherwise the ranged
+ * value carries over unchanged. The legacy key is always removed.
+ *
+ * Reads `_source` so a schema default cannot masquerade as stored data, and is
+ * idempotent because an item without its own `rd` key is skipped.
+ */
+async function migrateRdToRb() {
+  const migrate = async (item) => {
+    if (!GEAR_TYPES.includes(item.type)) return;
+    const system = item._source?.system;
+    if (!system || !Object.hasOwn(system, 'rd')) return;
+
+    const update = { 'system.-=rd': null };
+    const rbBlank = system.rb === null || system.rb === undefined || system.rb === '';
+    if (rbBlank && system.rd !== null && system.rd !== undefined && system.rd !== '') {
+      update['system.rb'] = system.rd;
+    }
+    await item.update(update);
+  };
+
+  for (const item of game.items) await migrate(item);
+  for (const actor of game.actors) {
+    for (const item of actor.items) await migrate(item);
   }
 }
 

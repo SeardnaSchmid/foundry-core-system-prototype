@@ -79,10 +79,10 @@ describe('resistance roll', () => {
         abilities: { str: { base: strength } },
         derived: {
           armor: {
-            head: { rh: 3, rw: 4, ra: 6 },
-            torso: { rh: 2, rw: 1, ra: 0 },
-            arms: { rh: 0, rw: 1, ra: 0 },
-            legs: { rh: 0, rw: 1, ra: 0 },
+            head: { equipped: true, rh: 3, rw: 4, rwSuit: 1, rwAddon: 3, ra: 6 },
+            torso: { equipped: false, rh: 2, rw: 1, rwSuit: 1, rwAddon: 0, ra: 0 },
+            arms: { equipped: false, rh: 0, rw: 1, rwSuit: 1, rwAddon: 0, ra: 0 },
+            legs: { equipped: false, rh: 0, rw: 1, rwSuit: 1, rwAddon: 0, ra: 0 },
           },
           armorSvPenalty: true,
           damage: { malus: damageMalus },
@@ -150,44 +150,39 @@ describe('resistance roll', () => {
     expect(dialog._actorModifiers()).toEqual([{ label: 'TNO.Damage.Malus', value: -3 }]);
   });
 
-  // "Erschwere deinen Angriff um die Rüstungsabdeckung der jeweiligen Stelle und
-  // ignoriere sie dafür" — the attacker paid this location's RA, and what they
-  // bought is that its armour does not apply.
-  it('cancels the location padding exactly once when penetration or a maneuver bypasses it', () => {
+  it('bypasses only the outer armour and keeps the underclothing RW', () => {
     const dialog = resist('head');
     expect(dialog.toggleModifier).toMatchObject({
       label: 'TNO.Combat.Envelope.BypassArmor',
       hint: 'TNO.Combat.BypassArmorHint',
-      // Exactly the RW it takes back out, so a bypassed location resists on
-      // Stärke alone.
-      value: -4,
+      // Only the add-on's RW comes back out; the suit's RW 1 remains.
+      value: -3,
+      question: 'TNO.Combat.BypassQuestion(6)',
       waivesContext: true,
     });
-    // Penetration itself ignores RW: Stärke 5 − Schaden 7. RB/RD 5 beats RH 3.
+    // Penetration itself still ignores all RW: Stärke 5 − Schaden 7. RB 5 beats RH 3.
     expect(dialog._computeThreshold(answered({ requiredValue: 7, compareValue: 5 }))).toBe(-2);
     expect(dialog._toggleModifierSuppressed(answered({ compareValue: 5 }))).toBe(true);
     // A confirmed bypass makes the comparison moot rather than stacking on it:
     // whatever was typed, the padding comes out once, through the bypass.
     expect(dialog._contextChoice(answered({ compareValue: 5, toggleModifier: true }))).toBeNull();
-    expect(dialog._computeThreshold(answered({ requiredValue: 7, compareValue: 5, toggleModifier: true }))).toBe(-2);
+    expect(dialog._computeThreshold(answered({ requiredValue: 7, compareValue: 5, toggleModifier: true }))).toBe(-1);
     expect(dialog._conditionalModifiers(answered({ compareValue: 5, toggleModifier: true })))
-      .toEqual([{ label: 'TNO.Combat.Envelope.BypassArmor', value: -4 }]);
+      .toEqual([{ label: 'TNO.Combat.Envelope.BypassArmor', value: -3 }]);
 
     // At equality RW ordinarily applies, but an announced bypass cancels it.
     expect(dialog._computeThreshold(answered({ requiredValue: 7, compareValue: 3 }))).toBe(2);
-    expect(dialog._computeThreshold(answered({ requiredValue: 7, compareValue: 3, toggleModifier: true }))).toBe(-2);
+    expect(dialog._computeThreshold(answered({ requiredValue: 7, compareValue: 3, toggleModifier: true }))).toBe(-1);
     expect(dialog._toggleModifierSuppressed(answered({ compareValue: 3 }))).toBe(false);
   });
 
-  it('offers no bypass on a location with no padding to cancel', () => {
-    // Nothing to ignore, so nothing to confirm: an unarmoured location resists
-    // on Stärke either way.
+  it('offers no bypass when only underclothing covers the location', () => {
     const bare = Object.assign(new TnoActor(), {
       type: 'character',
       isOwner: true,
       system: {
         abilities: { str: { base: 5 } },
-        derived: { armor: { torso: { rh: 0, rw: 0, ra: 0 } } },
+        derived: { armor: { torso: { equipped: false, rh: 0, rw: 2, rwSuit: 2, rwAddon: 0, ra: 0 } } },
       },
     });
     opened = null;
@@ -202,7 +197,7 @@ describe('resistance roll', () => {
     expect(resist('nowhere')).toBeNull();
   });
 
-  it('requires the RB/RD and the damage, unless a bypass makes the comparison moot', () => {
+  it('requires the RB and the damage, unless a bypass makes the comparison moot', () => {
     const dialog = resist('head');
     // The comparison decides which of the attacker's two damage values applies
     // and whether RW applies, so no default could stand in for it — and a
@@ -214,13 +209,13 @@ describe('resistance roll', () => {
     expect(dialog._canSubmit(answered({ requiredValue: 7, compareValue: 3 }))).toBe(true);
     // A typed zero is an answer.
     expect(dialog._canSubmit(answered({ requiredValue: 0, compareValue: 3 }))).toBe(true);
-    // With the armour bypassed there is no RB/RD left to compare.
+    // With the outer armour bypassed there is no RB-to-RH comparison left.
     expect(dialog._canSubmit(answered({ requiredValue: 7, toggleModifier: true }))).toBe(true);
   });
 
   // The defender types the attacker's number; the dialog does the comparing,
   // against the RH of the location that was struck.
-  it('derives the penetration outcome from the RB/RD typed against the RH of the struck location', () => {
+  it('derives the penetration outcome from the RB typed against the RH of the struck location', () => {
     const dialog = resist('head');
     expect(dialog.preRollContext.control).toBe('compare');
     expect(dialog._contextChoice(answered({ compareValue: 4 }))?.key).toBe('softer');
@@ -348,11 +343,8 @@ describe('resistance roll', () => {
       .toBe('TNO.Combat.AppliedAmount(4,TNO.Damage.Sharp,TNO.Damage.TagSharp)');
     expect(torso._consequence(answered({ requiredValue: 4, compareValue: 1 })).text)
       .toBe('TNO.Combat.AppliedAmount(4,TNO.Damage.Blunt,TNO.Damage.TagBlunt)');
-    expect(torso._consequence(answered({
-      requiredValue: 4,
-      compareValue: 1,
-      toggleModifier: true,
-    })).text).toBe('TNO.Combat.AppliedAmount(4,TNO.Damage.Sharp,TNO.Damage.TagSharp)');
+    // The torso fixture has only Unterkleidung, so it deliberately offers no
+    // armour-bypass answer. The separate head case below covers bypass.
   });
 
   it('cashes in the Stelle multiplier and shows the arithmetic it did', () => {

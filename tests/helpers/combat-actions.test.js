@@ -75,7 +75,7 @@ describe('combat action builders', () => {
       abilities: { str: { base: 4 }, dex: { base: 4 } },
       skills,
       combat: { stance, defenses },
-      derived: { armor: { torso: { rh: 1, rw: 2, ra: 3 } } },
+      derived: { armor: { torso: { equipped: true, rh: 1, rw: 2, rwSuit: 0, rwAddon: 2, ra: 3 } } },
     },
   });
 
@@ -115,10 +115,7 @@ describe('combat action builders', () => {
       note: 'TNO.Combat.DkNote(4)',
     });
     expect(options.preRollContext.choices.map((choice) => choice.value)).toEqual([0, 3]);
-    expect(options.zonePicker).toMatchObject({
-      label: 'TNO.Combat.ZoneQuestion',
-      componentLabel: 'TNO.Combat.Zone',
-    });
+    expect(options.zonePicker).toBeUndefined();
   });
 
   // A ranged weapon answers a different question — which band it is fired at —
@@ -126,7 +123,7 @@ describe('combat action builders', () => {
   it('asks a ranged attack for its band instead of the reach comparison', () => {
     const options = angriffOptions(
       actor(),
-      weapon({ use: 'ranged', dk: null, rd: 3, range: { near: 0, mid: -3 } })
+      weapon({ use: 'ranged', dk: null, rb: 3, range: { near: 0, mid: -3 } })
     );
     expect(options.preRollContext.label).toBe('TNO.Combat.RangeQuestion');
     expect(options.preRollContext.note).toBeUndefined();
@@ -234,37 +231,7 @@ describe('combat action builders', () => {
       .toEqual(options.ansage);
   });
 
-  // The Stelle stayed a pick when everything else collapsed into the number,
-  // because it is a location rather than an amount: it decides the multiplier,
-  // and the defender opens that roll from the same location on their paper doll.
-  it('offers every Stelle as a tile captioned with what a hit there costs', () => {
-    const { zonePicker } = angriffOptions(actor({ skills: { swords: { value: 5 } } }), weapon());
-    expect(zonePicker.choices.map((choice) => choice.key)).toEqual(['torso', 'arms', 'legs', 'head']);
-    // The caption is the damage rule, which is the one thing about a Trefferzone
-    // worth saying in the dialog.
-    expect(zonePicker.choices.find((choice) => choice.key === 'head').caption)
-      .toBe('TNO.Damage.Pool ×2');
-    expect(zonePicker.choices.find((choice) => choice.key === 'arms').caption)
-      .toBe('TNO.Damage.Pool');
-    // Torso is the plain one, which is exactly why it is the default.
-    expect(zonePicker.choices.find((choice) => choice.key === 'torso').caption)
-      .toBe('TNO.Damage.Pool');
-  });
-
-  it('prices every tile the way Gezielte Angriffe does', () => {
-    const { zonePicker } = angriffOptions(actor({ skills: { swords: { value: 5 } } }), weapon());
-    const cost = (key) => zonePicker.choices.find((choice) => choice.key === key).cost;
-    // The tile carries the price as well as the damage rule: what aiming costs
-    // and what it buys are the same decision seen from two ends.
-    expect(cost('torso')).toBe(0);
-    expect(cost('arms')).toBe(-3);
-    expect(cost('legs')).toBe(-3);
-    expect(cost('head')).toBe(-6);
-  });
-
-  // A parry announces an amount but never a location: the Stelle is the
-  // attacker's to name, and a Riposte lands on your own next attack.
-  it('gives a parry the Ansage field and no Stelle', () => {
+  it('gives a parry the Ansage field', () => {
     const options = paradeOptions(actor({ skills: { swords: { value: 5 } } }), weapon());
     expect(options.ansage).toEqual({ label: 'TNO.Combat.Ansage', hint: 'TNO.Combat.AnsageHint' });
     expect(options.zonePicker).toBeUndefined();
@@ -406,7 +373,7 @@ describe('Haltung and repeated defences', () => {
       ausweichenOptions(character()),
       widerstandOptions(character(), 'torso'),
     ]) {
-      expect(options.opposingAnsage).toBe(true);
+      expect(options.opposingAnsage).toBeUndefined();
       // And none of them takes an envelope: a defence is built from the
       // defender's own sheet and one number they were told.
       expect(options.envelope).toBeUndefined();
@@ -442,13 +409,13 @@ describe('what a defence takes from the other side', () => {
       abilities: { dex: { base: 4 } },
       skills: { acrobatics: { value: 3 } },
       combat: { stance: 'enGarde', defenses: { parry: 0, dodge: 0 } },
-      derived: { armor: { torso: { rh: 1, rw: 2, ra: 3 } } },
+      derived: { armor: { torso: { equipped: true, rh: 1, rw: 2, rwSuit: 0, rwAddon: 2, ra: 3 } } },
     },
   });
 
-  it('offers the announcement field blank, on every defence, always', () => {
-    expect(ausweichenOptions(defender()).opposingAnsage).toBe(true);
-    expect(widerstandOptions(defender(), 'torso').opposingAnsage).toBe(true);
+  it('does not offer an opposing declaration field on defences', () => {
+    expect(ausweichenOptions(defender()).opposingAnsage).toBeUndefined();
+    expect(widerstandOptions(defender(), 'torso').opposingAnsage).toBeUndefined();
   });
 
   // The bypass is the defender's own control and is never pre-ticked. The card

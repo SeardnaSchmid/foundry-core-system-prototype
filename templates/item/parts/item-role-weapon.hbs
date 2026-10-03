@@ -82,17 +82,12 @@ ranged profile into a second, incomplete weapon profile. --}}
   {{/if}}
 </div>
 
-<div class='gear-row {{#if missing.rd}}is-missing{{/if}}{{#if missing.rb}}is-missing{{/if}}' data-row='penetration'>
-  {{#if ranged}}
-    <span class='gear-label' title='{{localize "TNO.Weapons.RdHint"}}'>{{localize 'TNO.Weapons.Rd'}}</span>
-    {{> 'systems/tno/templates/item/parts/item-scale.hbs' cells=scales.rd key='rd'}}
-  {{else}}
-    <span class='gear-label' title='{{localize "TNO.Weapons.RbHint"}}'>{{localize 'TNO.Weapons.Rb'}}</span>
-    {{> 'systems/tno/templates/item/parts/item-scale.hbs' cells=scales.rb key='rb'}}
-  {{/if}}
+<div class='gear-row {{#if missing.rb}}is-missing{{/if}}' data-row='penetration'>
+  <span class='gear-label' title='{{localize "TNO.Weapons.RbHint"}}'>{{localize 'TNO.Weapons.Rb'}}</span>
+  {{> 'systems/tno/templates/item/parts/item-scale.hbs' cells=scales.rb key='rb'}}
 </div>
 
-{{!-- Which of the two damage figures applies is decided at the table, by RD
+{{!-- Which of the two damage figures applies is decided at the table, by RB
 against the armour's RH — so both are authored side by side and neither is ever
 n/a. --}}
 <div class='gear-row {{#if missing.ss}}is-missing{{/if}}' data-row='damage'>

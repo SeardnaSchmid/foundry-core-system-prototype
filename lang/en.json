@@ -513,9 +513,9 @@
       "ImageEdit": "Change image",
       "Overview": {
         "RangeProfile": "Range profile",
-        "Penetration": "Penetration",
-        "PenetrationHint": "RD divides the opposing RH. The exact damage outcome remains part of combat resolution.",
-        "NoPenetration": "No armour penetration has been entered yet.",
+        "Penetration": "Armour breaking",
+        "PenetrationHint": "RB is compared with the opposing RH. The exact damage outcome remains part of combat resolution.",
+        "NoPenetration": "No armour breaking value has been entered yet.",
         "Footprint": "Footprint",
         "OwnerSlots": "{used} of {capacity} inventory slots occupied",
         "Requirement": "Requirement",
@@ -639,13 +639,11 @@
       },
       "Question": {
         "Attribute": "Which attribute goes with {skill}?",
-        "Ansagen": "Declarations",
         "Idea": "Spend the idea bonus?"
       },
       "Info": {
         "Attribute": "A skill is always combined with an attribute. Usually you pick it; sometimes the GM decides.",
-        "Bonus": "The modifier the GM calls for the situation — normally in steps of ±3. The small ±1 buttons are for fine-tuning.",
-        "OpposingAnsage": "What the other side declared against this roll. The number is on their roll card."
+        "Bonus": "The modifier the GM calls for the situation — normally in steps of ±3. The small ±1 buttons are for fine-tuning."
       },
       "IdeaCharges": "{left} of {max} edge left",
       "Waived": "Moot — the bypass applies.",
@@ -715,12 +713,10 @@
       "RepeatedDefenseLabel": "Repeated defence",
       "NextDefenseMalus": "Next defence: {value}",
       "FvMalus": "FV requirement (manoeuvre)",
-      "FvMalusHint": "The weapon skill falls short of its FV. This penalty applies once a declaration or aimed location makes the roll a manoeuvre.",
+      "FvMalusHint": "The weapon skill falls short of its FV. This penalty applies once a declaration makes the roll a manoeuvre.",
       "AnsageCaption": "Manoeuvres",
       "Ansage": "Your declaration",
-      "AnsageHint": "How far you worsen this roll in order to gain something else. What exactly is settled at the table — only the number lives here, and the opponent takes it at the same size. A negative value eases the roll instead, for instance when you collect on an earlier declaration; nothing is announced to the opponent then.",
-      "Zone": "Hit location",
-      "ZoneQuestion": "Where are you aiming?",
+      "AnsageHint": "How far you worsen this roll in order to gain something else. What exactly is settled at the table — only the number lives here. A negative value eases the roll instead, for instance when you collect on an earlier declaration.",
       "StanceLabel": "Stance",
       "StanceHint": "Announced when you activate, held until your next one. It decides which defence you may make, and taking one — even the same one again — clears the repeated-defence malus.",
       "StanceRetake": "Take the current stance again and clear defence penalties",
@@ -760,30 +756,29 @@
       "ResistanceRwHint": "The combined RW of the armour at the {zone} location raises this resistance roll.",
       "RangeComponent": "Range: {band}",
       "Penetration": {
-        "Label": "Attacker RB/RD",
+        "Label": "Attacker RB",
         "Placeholder": "Pick the comparison",
         "Anchor": "Your RH",
-        "Component": "RB/RD against RH {rh}",
+        "Component": "RB against RH {rh}",
         "Softer": "> {rh}",
         "SofterEffect": "punches through · damage, RW ignored",
         "Equal": "= {rh}",
         "EqualEffect": "damage, RW applies",
         "Harder": "< {rh}",
         "HarderEffect": "holds · blunt damage",
-        "Question": "What RB/RD does the attacker have?",
-        "Value": "Attacker's RB/RD",
+        "Question": "What RB does the attacker have?",
+        "Value": "Attacker's RB",
         "AnchorZone": "your RH {zone}",
-        "Hint": "The attacker's armour breaking (RB) or penetration (RD), compared with your armour hardness (RH) at the struck location."
+        "Hint": "The attacker's armour breaking value (RB), compared with your armour hardness (RH) at the struck location."
       },
-      "OpposingAnsage": "Announced against you",
       "Envelope": {
         "From": "From",
         "Ansage": "Declaration −{value}",
         "BypassArmor": "armour on that location bypassed",
-        "Damage": "RB/RD {penetration} · damage {sharp} / blunt {blunt}",
+        "Damage": "RB {penetration} · damage {sharp} / blunt {blunt}",
         "Dk": "DK {dk}"
       },
-      "BypassArmorHint": "The attacker paid this location's RA to bypass its armour, so its padding does not apply — and the hit always enters damage rather than blunt damage.",
+      "BypassArmorHint": "Answer yes only if the announced armour bypass is at least your RA. The outer armour's RW is then removed; the underlayer's RW remains, and the hit enters damage rather than blunt damage.",
       "Tracker": {
         "Order": "Initiative order in the combat tracker",
         "OrderHint": "Sets the visible order in the sidebar only. Either way activation runs from the lowest initiative to the highest.",
@@ -806,7 +801,7 @@
         "DodgeDetail": "Dodge",
         "ResistanceDetail": "Hit: {zone}"
       },
-      "BypassQuestion": "Did the attacker declare “bypass armour” (RA {ra})?",
+      "BypassQuestion": "Did the attacker declare armour bypass of at least RA {ra}?",
       "BypassYes": "Yes, bypassed"
     },
     "Damage": {
@@ -927,7 +922,7 @@
       "Rh": "Armour Hardness (RH)",
       "NaSuit": "n/a — underclothing",
       "RhShort": "RH",
-      "RhHint": "Compared against a weapon's Armour Penetration. Underclothing is always RH 0.",
+      "RhHint": "Compared against a weapon's Armour Breaking value. Underclothing is always RH 0.",
       "Rw": "Armour Value (RW)",
       "RwShort": "RW",
       "RwHint": "Padding. Feeds into Resistance = Strength + RW − Damage.",
@@ -1045,11 +1040,8 @@
       "Values": "Weapon Values",
       "Dk": "Distance Class (DK)",
       "DkHint": "0 grip · 1 very short · 2 short · 3 normal · 4 long · 5 very long · 6 overlong.",
-      "Rd": "Armour Penetration (RD)",
-      "RdShort": "RD",
-      "RdHint": "Compared against Armour Hardness; decides which damage figure applies.",
       "Rb": "RB",
-      "RbHint": "Armour breaking in melee.",
+      "RbHint": "Armour breaking. Compared against Armour Hardness; decides which damage figure applies.",
       "Ss": "S",
       "SsHint": "Damage — rolled when the armour is penetrated.",
       "Ws": "WS",

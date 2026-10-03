@@ -94,6 +94,18 @@ Every `name=` here is load-bearing: `_updateObject` reads the form by name. --}}
         <input type="hidden" name="bonus" value="{{../bonus}}"/>
         {{/if}}
 
+        {{#if q.isAnsage}}
+        <div class="tno-ansage-control">
+          <span class="tno-stepper">
+            <button type="button" class="tno-step" data-step="-1" aria-label="{{localize 'TNO.Roll.ValueDecrease'}}">&minus;</button>
+            <input id="{{../dialogId}}-ansage" type="number" name="ansage" step="1" value="{{q.value}}"
+                   aria-label="{{q.title}}" autocomplete="off"/>
+            <button type="button" class="tno-step" data-step="1" aria-label="{{localize 'TNO.Roll.ValueIncrease'}}">+</button>
+          </span>
+          <span class="tno-ansage-delta {{q.delta.cls}}" data-role="ansage-delta">{{q.delta.display}}</span>
+        </div>
+        {{/if}}
+
         {{#if q.isIdea}}
         <button type="button" class="tno-q-idea-toggle" aria-pressed="{{#if q.checked}}true{{else}}false{{/if}}"
                 aria-label="{{q.title}}" {{#if q.disabled}}disabled{{/if}}>{{q.insight}}</button>
@@ -176,36 +188,6 @@ Every `name=` here is load-bearing: `_updateObject` reads the form by name. --}}
       <input type="hidden" name="attributeA" value="{{q.value}}"/>
       {{/if}}
 
-      {{#if q.isZone}}
-      <div class="tno-choice-grid tno-choice-grid-4" role="radiogroup" aria-label="{{q.title}}">
-        {{#each q.choices as |choice|}}
-        <input id="{{../../dialogId}}-zone-{{choice.key}}" class="tno-choice-input" type="radio" name="zoneChoice" value="{{choice.key}}" {{#if choice.selected}}checked{{/if}}>
-        <label class="tno-choice" for="{{../../dialogId}}-zone-{{choice.key}}" title="{{choice.caption}}">
-          <strong>{{choice.label}} <span class="tno-choice-delta is-{{choice.state}}">{{choice.costDisplay}}</span></strong>
-          <small>{{choice.caption}}</small>
-        </label>
-        {{/each}}
-      </div>
-      {{/if}}
-
-      {{#if q.isAnsagen}}
-      <div class="tno-choice-grid tno-choice-grid-{{q.columns}}">
-        {{#each q.sides as |side|}}
-        <div class="tno-ansage">
-          <span class="tno-ansage-head">
-            <label for="{{../../dialogId}}-{{side.name}}">{{side.label}}</label>
-            <span class="tno-ansage-delta {{side.delta.cls}}" data-role="{{side.name}}-delta">{{side.delta.display}}</span>
-          </span>
-          <span class="tno-stepper">
-            <button type="button" class="tno-step" data-step="-1" aria-label="{{localize 'TNO.Roll.ValueDecrease'}}">&minus;</button>
-            <input id="{{../../dialogId}}-{{side.name}}" type="number" name="{{side.name}}" step="1" value="{{side.value}}"
-                   {{#if side.hasMin}}min="0"{{/if}} autocomplete="off"/>
-            <button type="button" class="tno-step" data-step="1" aria-label="{{localize 'TNO.Roll.ValueIncrease'}}">+</button>
-          </span>
-        </div>
-        {{/each}}
-      </div>
-      {{/if}}
     </div>
     {{/each}}
   </section>

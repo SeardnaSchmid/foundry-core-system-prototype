@@ -107,6 +107,11 @@ system version has advanced past what a world last recorded.
   trained `base` rating is now the only persisted and rolled attribute value;
   the step preserves `base` and `xp`, skips NPCs, and writes nothing once the
   legacy keys are gone.
+- **`0.48.0` — `migrateRdToRb`**: merges the former ranged-weapon
+  `system.rd` into the single `system.rb` penetration value on world items and
+  embedded actor items. An already-authored RB wins when both exist; otherwise
+  the old RD value is copied, then `rd` is removed. Skipping documents without
+  their own `rd` key makes the step idempotent.
 
 ## Adding a new step
 

@@ -6072,25 +6072,17 @@
   font-size: 16px;
   font-weight: 600;
 }
-.tno .tno-roll-dialog.tno-wurf .tno-ansage {
+.tno .tno-roll-dialog.tno-wurf .tno-ansage-control {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 8px 10px;
-  border: 1px solid #d6d4cf;
-  border-radius: 6px;
-}
-.tno .tno-roll-dialog.tno-wurf .tno-ansage-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-}
-.tno .tno-roll-dialog.tno-wurf .tno-ansage-head label {
-  font-weight: 600;
+  flex: none;
+  align-items: center;
+  gap: 10px;
 }
 .tno .tno-roll-dialog.tno-wurf .tno-ansage-delta {
+  min-width: 30px;
   font-family: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
   font-weight: 600;
+  text-align: right;
 }
 .tno .tno-roll-dialog.tno-wurf .tno-beleg {
   position: relative;

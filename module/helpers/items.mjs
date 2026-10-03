@@ -87,7 +87,6 @@ export const SCALES = {
   slots: { min: 0, max: 4 },
   availability: { min: 1, max: 10 },
   dk: { min: 0, max: 6 },
-  rd: { min: 1, max: 10 },
   rb: { min: 0, max: 10 },
   rh: { min: 1, max: 10 },
   rw: { min: 0, max: 6 },
@@ -432,11 +431,11 @@ export function armorSvMalus(actor, attributeKeys = []) {
 }
 
 /**
- * The RH-versus-RB/RD comparison, as the three outcomes the damage table can
+ * The RH-versus-RB comparison, as the three outcomes the damage table can
  * produce.
  *
  * A defender's sheet knows no attacker, so it cannot compare the armour's
- * Rüstungshärte against the weapon's Rüstungsbrechung/-durchdringung itself.
+ * Rüstungshärte against the weapon's Rüstungsbrechung itself.
  * The player states which of the three rows applies; what they must not be able
  * to state is a row the table does not have.
  *
@@ -691,7 +690,6 @@ export const MISSING_FIELD_LABELS = {
   wa: 'TNO.Weapons.Attribute',
   dk: 'TNO.Weapons.Dk',
   range: 'TNO.Weapons.Range',
-  rd: 'TNO.Weapons.Rd',
   ss: 'TNO.Weapons.Ss',
   zone: 'TNO.Armor.Zone.Label',
   rh: 'TNO.Armor.Rh',
@@ -724,8 +722,7 @@ export function missingRequired(item) {
   if (roles.weapon) {
     if (blank(system.fv?.skill)) missing.push('fv');
     if (!WEAPON_ATTRIBUTES.includes(system.wa)) missing.push('wa');
-    if (usesRanged(system) && blank(system.rd)) missing.push('rd');
-    if (usesMelee(system) && blank(system.rb)) missing.push('rb');
+    if (blank(system.rb)) missing.push('rb');
     if (!Number(system.ss?.count)) missing.push('ss');
     // The Distanzklasse and the range bands are the same question asked of
     // the two uses, so only the one that currently applies is required.

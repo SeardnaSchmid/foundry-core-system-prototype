@@ -11,11 +11,10 @@ const CARBINE = weapon({
   fv: { skill: 'shooting', rank: 3 },
   dk: 2,
   range: { sn: null, near: -3, mid: 0, far: 3, sf: 0 },
-  rd: 5,
+  rb: 5,
   ss: { count: 4, die: 'd6' },
   ws: { count: 2, die: 'd6' },
   hh: { active: 1, passive: 0 },
-  rb: 1,
   description: '<p>Compact service weapon.</p>',
 });
 

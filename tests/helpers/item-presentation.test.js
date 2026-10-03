@@ -34,9 +34,9 @@ describe('item presentation', () => {
   });
 
   it('splits RH around RD without assigning an unresolved damage outcome', () => {
-    expect(buildPenetrationProfile({ use: 'ranged', rd: 5, ss: { count: 4, die: 'd6' }, ws: { count: 2, die: 'd6' } }))
+    expect(buildPenetrationProfile({ use: 'ranged', rb: 5, ss: { count: 4, die: 'd6' }, ws: { count: 2, die: 'd6' } }))
       .toEqual({
-        key: 'rd',
+        key: 'rb',
         value: 5,
         segments: [
           { key: 'below', from: 0, to: 4, size: 5, single: false },
@@ -112,7 +112,7 @@ describe('item presentation', () => {
   it('swaps two tiles for a ranged profile', () => {
     const summary = buildGearSummary(weapon({
       use: 'ranged',
-      rd: 4,
+      rb: 4,
       range: { near: 0 },
       ss: { count: 2 },
       ws: { count: 1 },
@@ -121,7 +121,7 @@ describe('item presentation', () => {
     }));
 
     expect(summary.tiles).toEqual([
-      { key: 'rd', labelKey: 'TNO.Weapons.RdShort', value: '4', state: 'value' },
+      { key: 'rb', labelKey: 'TNO.Weapons.Rb', value: '4', state: 'value' },
       { key: 'ss', labelKey: 'TNO.Weapons.Ss', value: '2', state: 'value' },
       { key: 'ws', labelKey: 'TNO.Weapons.Ws', value: '1', state: 'value' },
       { key: 'hh', labelKey: 'TNO.Item.Summary.HhActive', value: '0', state: 'value' },

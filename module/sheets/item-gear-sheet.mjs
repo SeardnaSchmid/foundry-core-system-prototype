@@ -374,7 +374,7 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 
   /** Focus the first control belonging to one missing-field marker. */
   #focusMissing(field) {
-    if (field === 'rd' || field === 'rb') field = 'penetration';
+    if (field === 'rb') field = 'penetration';
     const container = field === 'name'
       ? this.element.querySelector('.gear-name')
       : this.element.querySelector(`[data-row="${CSS.escape(field)}"]`);

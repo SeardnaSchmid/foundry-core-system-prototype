@@ -5,7 +5,7 @@
  * Two things only a real Foundry can answer, and this spec asserts nothing
  * else: that clicking a location on the paper doll opens *that* location's
  * roll with the RW the doll shows, and that the two numbers the defender's
- * sheet cannot know — the attacker's RB/RD and their announced damage — really
+ * sheet cannot know — the attacker's RB and their announced damage — really
  * block the roll until the player types them.
  *
  * Stärke 5, an Unterkleidung of RW 1 under a helmet of RW 3, resisting an
@@ -60,7 +60,7 @@ test('a hit location rolls its resistance against the damage the attacker announ
   const rows = dialog.locator('.tno-beleg-row');
   await expect(rows.filter({ hasText: labels.rw })).toContainText('+4');
 
-  // Neither the RB/RD nor the damage is in yet, and until both are there is
+  // Neither the RB nor the damage is in yet, and until both are there is
   // nothing truthful to roll. The damage stays closed until the comparison is.
   const submit = dialog.locator('button[type="submit"]');
   await expect(submit).toHaveAttribute('aria-disabled', 'true');

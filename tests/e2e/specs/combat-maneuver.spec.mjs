@@ -8,9 +8,6 @@
  * dialog: with nothing declared the attack refuses the shortfall, and the first
  * Ansage turns the same roll into a Manöver and brings it in.
  *
- * Two things declare, and the spec walks both: naming a Stelle other than the
- * Torso, which Gezielte Angriffe prices itself, and typing a free amount.
- *
  * It also pins what the Ansage field is now: a free magnitude, taken at face
  * value. The rulebook's 1:1-to-the-rank / 2:1-past-it conversion is arithmetic
  * the player and the GM do out loud before typing, so a declared 3 costs the
@@ -18,7 +15,7 @@
  * no rank appears anywhere in this path.
  *
  * Fingerfertigkeit 4 + Schwerter 5 = 9, less 3 for the Ansage and 3 for the FV
- * shortfall; or less 6 for a head shot and the same 3.
+ * shortfall.
  */
 import { test, expect, createCharacter, lastMessage, localize, openSheet, weapon } from '../fixtures.mjs';
 
@@ -28,8 +25,6 @@ const MANEUVER = {
   fvRank: 9,
   ansage: 3,
   standardThreshold: 9,
-  // 9, less 6 for the Kopf and 3 for the FV shortfall the aim brought with it.
-  aimedThreshold: 0,
   maneuverThreshold: 3,
 };
 
@@ -64,28 +59,13 @@ test('an Ansage turns an attack into a Manöver and brings the FV malus with it'
   await expect(dialog).toBeVisible();
 
   // 1. Nothing declared: Handhabung alone among the gear rows, and no FV step —
-  //    this is a Standardangriff and a Standardangriff is not a Manöver. The
-  //    Stelle line reads ±0, the Torso being where an unannounced blow lands.
+  //    this is a Standardangriff and a Standardangriff is not a Manöver.
   const threshold = dialog.locator('[data-role="threshold"]');
   const fvRow = dialog.locator('.tno-beleg-row').filter({ hasText: labels.fv });
   await expect(threshold).toHaveText(`(≤ ${MANEUVER.standardThreshold})`);
   await expect(fvRow).toHaveCount(0);
 
-  // 2. Naming a Stelle other than the Torso *is* a declaration — "Ansagen auf
-  //    Trefferzonen im Nahkampf, normale Ansageregeln gelten hier auf alles" —
-  //    so the head costs its own −6 and pulls the FV shortfall in with it.
-  await dialog.locator('input[name="zoneChoice"][value="head"]').evaluate((input) => input.click());
-  await expect(threshold).toHaveText(`(≤ ${MANEUVER.aimedThreshold})`);
-  await expect(fvRow).toHaveCount(1);
-
-  // Back to the Torso: the standard attack is where an unannounced blow lands,
-  // so it costs nothing and takes the FV step back off again.
-  await dialog.locator('input[name="zoneChoice"][value="torso"]').evaluate((input) => input.click());
-  await expect(threshold).toHaveText(`(≤ ${MANEUVER.standardThreshold})`);
-  await expect(fvRow).toHaveCount(0);
-
-  // 3. Declaring an amount does the same thing by the other route, and the two
-  //    stay separate components rather than one summed figure.
+  // 2. Declaring an amount turns the attack into a Manöver.
   const ansage = dialog.locator('input[name="ansage"]');
   await expect(ansage).toBeVisible();
   await ansage.fill(String(MANEUVER.ansage));
@@ -110,9 +90,8 @@ test('an Ansage turns an attack into a Manöver and brings the FV malus with it'
   ]));
   expect(flags.components.reduce((sum, part) => sum + part.value, 0)).toBe(MANEUVER.maneuverThreshold);
 
-  // What crosses to the defender: the amount at face value and the Stelle, with
-  // nothing said about which of their rolls it lands on.
-  expect(flags.envelope).toMatchObject({ ansage: MANEUVER.ansage, zone: 'head' });
+  // What crosses to the defender is only the amount at face value.
+  expect(flags.envelope).toEqual({ ansage: MANEUVER.ansage });
 
   expect(world.errors, 'no uncaught page errors during a Manöver').toEqual([]);
 });

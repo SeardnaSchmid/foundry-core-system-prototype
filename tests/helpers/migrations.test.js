@@ -523,6 +523,43 @@ describe('migrateDropTemporaryAttributeValues (0.36.0)', () => {
 
 /* -------------------------------------------------------------------------- */
 
+describe('migrateRdToRb (0.48.0)', () => {
+  it('moves ranged RD into RB on world and embedded gear', async () => {
+    const worldItem = makeItem({ system: { roles: { weapon: true }, rd: 4, rb: null } });
+    const embedded = makeItem({ type: 'weapon', system: { rd: 2 } });
+    stubFoundry({ items: [worldItem], actors: [makeActor({ items: [embedded] })] });
+
+    await step('0.48.0')();
+
+    expect(worldItem.system).toMatchObject({ rb: 4 });
+    expect(embedded.system).toMatchObject({ rb: 2 });
+    expect(worldItem.system).not.toHaveProperty('rd');
+    expect(embedded.system).not.toHaveProperty('rd');
+  });
+
+  it('keeps an authored RB when both legacy fields exist', async () => {
+    const item = makeItem({ system: { rd: 5, rb: 3 } });
+    stubFoundry({ items: [item] });
+
+    await step('0.48.0')();
+
+    expect(item.system.rb).toBe(3);
+    expect(item.system).not.toHaveProperty('rd');
+  });
+
+  it('is idempotent after the legacy key is gone', async () => {
+    const item = makeItem({ system: { rd: 5, rb: null } });
+    stubFoundry({ items: [item] });
+
+    await step('0.48.0')();
+    await step('0.48.0')();
+
+    expect(item.updates).toHaveLength(1);
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+
 describe('migrateWorld', () => {
   it('does nothing at all for a non-GM', async () => {
     const item = makeItem({ system: { weight: 2 } });
@@ -550,7 +587,7 @@ describe('migrateWorld', () => {
 
   it('runs nothing once the stored version covers every step', async () => {
     const item = makeItem({ type: 'weapon', system: { weight: 2 } });
-    stubFoundry({ items: [item], stored: '0.36.0' });
+    stubFoundry({ items: [item], stored: '0.48.0' });
 
     await migrateWorld();
 
@@ -569,7 +606,7 @@ describe('migrateWorld', () => {
 
     await migrateWorld();
 
-    expect(pinned).toBe('0.36.0');
+    expect(pinned).toBe('0.48.0');
     expect(notifications).toHaveLength(0);
   });
 

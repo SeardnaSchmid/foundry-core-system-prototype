@@ -28,8 +28,10 @@ Neuer Eintrag: Überschrift mit laufender Nummer, dann **Wo**, **Problem**,
      Zeile, und `+` bei „Deine Ansage" verschlechtert weiterhin.
   3. Knöpfe nach Wirkung beschriften (`schwerer` / `leichter`) statt `+` / `−`.
      Kleinster Umbau, bricht aber das einheitliche Stepper-Aussehen.
-- **Offen:** „Gegen dich angesagt" hat dasselbe Muster (`+` verschlechtert).
-  Dort tippt man eine genannte Zahl ab — mit umdrehen oder als Betrag lassen?
+- **Offen:** Das Feld betrifft nur noch die eigene Ansage; das frühere
+  Gegenansage-Feld wurde aus allen Würfeldialogen entfernt. Zu entscheiden ist
+  nur noch, ob die Wirkung der eigenen positiven und negativen Werte im
+  Stepper verständlicher dargestellt werden soll.
 
 ## Erledigt
 

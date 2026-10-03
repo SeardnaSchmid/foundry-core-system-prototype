@@ -11,7 +11,7 @@
  * Two rules the rest of the system already lives by, restated because a table
  * is where they are easiest to break:
  *
- *  - **Blank is not zero.** `dk`, `rd`, `rh`, `rw`, `ra`, `price` and the range
+ *  - **Blank is not zero.** `dk`, `rb`, `rh`, `rw`, `ra`, `price` and the range
  *    bands are nullable on purpose — "not filled in yet" and "the lowest step"
  *    are different answers. Every read goes through `isAuthoredNumber`, and a
  *    blank cell reports `value: null` rather than 0.
@@ -38,7 +38,6 @@ import {
   itemRoles,
   missingRequired,
   usesMelee,
-  usesRanged,
   weaponAttribute,
   weaponUse,
   ARMOR_SUIT_ZONE,
@@ -114,7 +113,6 @@ export const ITEM_TABLE_COLUMNS = [
   { key: 'wa', section: 'weapon', labelKey: 'TNO.Weapons.AttributeShort', hintKey: 'TNO.Weapons.Attribute', kind: CELL_KINDS.CHOICE, appliesTo: 'weapon', numeric: false },
   { key: 'fv', section: 'weapon', labelKey: 'TNO.Item.Cap.Fv', hintKey: 'TNO.Item.Summary.SkillRequirement', kind: CELL_KINDS.NUMBER, appliesTo: 'weapon', numeric: true },
   { key: 'dk', section: 'weapon', labelKey: 'TNO.Item.Summary.Dk', hintKey: 'TNO.Weapons.Dk', kind: CELL_KINDS.NUMBER, appliesTo: 'weapon', numeric: true },
-  { key: 'rd', section: 'weapon', labelKey: 'TNO.Weapons.RdShort', hintKey: 'TNO.Weapons.Rd', kind: CELL_KINDS.NUMBER, appliesTo: 'weapon', numeric: true },
   { key: 'rb', section: 'weapon', labelKey: 'TNO.Weapons.Rb', hintKey: 'TNO.Weapons.RbHint', kind: CELL_KINDS.NUMBER, appliesTo: 'weapon', numeric: true },
   { key: 'ss', section: 'weapon', labelKey: 'TNO.Weapons.Ss', hintKey: 'TNO.Weapons.SsHint', kind: CELL_KINDS.NUMBER, appliesTo: 'weapon', numeric: true },
   { key: 'ws', section: 'weapon', labelKey: 'TNO.Weapons.Ws', hintKey: 'TNO.Weapons.WsHint', kind: CELL_KINDS.NUMBER, appliesTo: 'weapon', numeric: true },
@@ -240,8 +238,7 @@ export function itemGroupKey(item) {
  * all rules rather than presentation:
  *
  *  - the column belongs to a role the piece has not taken on;
- *  - DK and RB are melee questions, RD is a ranged one, so only the use the
- *    weapon actually has answers them;
+ *  - DK is a melee question, so only a melee weapon answers it;
  *  - the Unterkleidung has no Rüstungshärte and covers no single location, so
  *    RH and RA are values a suit cannot have at all (see `missingRequired`,
  *    which makes the same exception).
@@ -255,8 +252,7 @@ function columnApplies(column, item) {
   if (!hasRole(item, column.appliesTo)) return false;
 
   const system = item?.system ?? {};
-  if (column.key === 'dk' || column.key === 'rb') return usesMelee(system);
-  if (column.key === 'rd') return usesRanged(system);
+  if (column.key === 'dk') return usesMelee(system);
   if (column.key === 'rh' || column.key === 'ra') {
     return !armorZones(item).includes(ARMOR_SUIT_ZONE);
   }

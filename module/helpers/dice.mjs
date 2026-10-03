@@ -310,9 +310,6 @@ export function envelopeLines(envelope) {
   // itself, but this is the fact it is answered from.
   if (Number.isFinite(envelope.dk)) lines.push(game.i18n.format('TNO.Combat.Envelope.Dk', { dk: envelope.dk }));
 
-  const zone = envelope.zone ?? 'torso';
-  lines.push(game.i18n.localize(CONFIG.TNO.armorZones[zone] ?? CONFIG.TNO.armorZones.torso));
-
   // The three weapon numbers the penetration comparison needs. The defender owns
   // the other half of it — their RH — and therefore makes the comparison.
   const damage = [envelope.sharp, envelope.blunt];

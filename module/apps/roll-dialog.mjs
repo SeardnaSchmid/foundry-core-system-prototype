@@ -1,7 +1,7 @@
 import { TNO_ADVANTAGE, describeAdvantage, rollTno } from '../helpers/dice.mjs';
 import { formatChance, oddsTooltipHtml, successChanceFor } from '../helpers/dice-odds.mjs';
 import { armorSvMalus, isAuthoredNumber } from '../helpers/items.mjs';
-import { DEFAULT_ZONE, ansageEnvelope } from '../helpers/maneuvers.mjs';
+import { ansageEnvelope } from '../helpers/maneuvers.mjs';
 import { advantageOptions, bindRadioGroup } from './roll-dialog-shared.mjs';
 
 // Namespaced rather than the bare `FormApplication` global, which is
@@ -100,21 +100,14 @@ export class TnoRollDialog extends FormApplication {
    *   by what it declares. Deliberately unpriced and ungated — the player and the
    *   GM agree the number out loud, and which Manöver it stands for is table talk
    *   the form has no business re-deriving.
-   * @param {{label: string, choices: Array<{key: string, label: string, caption?: string}>}} [options.zonePicker]
-   *   The Stelle this attack names. A pick rather than part of the Ansage number
-   *   because it is a location, not an amount: it decides the multiplier of a
-   *   failed resistance roll.
    * @param {{from: string, penetration: number|null, sharp: number|null, blunt: number|null}} [options.envelope]
    *   The attacker's half of an exchange: who is attacking and what their weapon
-   *   brings, to which the declared Ansage and the Stelle are added. Rendered on
+   *   brings, to which the declared Ansage is added. Rendered on
    *   the chat card as plain text — there is no targeting and no second document
    *   — so the defender reads it and enters what applies.
    * @param {{label: string, value: number, hint?: string}} [options.maneuverMalus]
    *   A modifier that applies only while an Ansage is declared — the weapon's FV
    *   shortfall, which lands on "alle Manöver" and never on a Standardangriff.
-   * @param {boolean|number} [options.opposingAnsage]
-   *   Offer a field for the Ansage the other side announced against this roll.
-   *   One optional integer, taken as given. Pass a number to start it filled in.
    * @param {object} [options.toggleModifier]
    *   A modifier this player confirms rather than computes — today only
    *   'Rüstung umgehen', asked as a yes/no question. `{label, value, hint,
@@ -128,9 +121,9 @@ export class TnoRollDialog extends FormApplication {
    *   Run once the dice have actually been cast, never when the dialog is
    *   cancelled — the repeated-defence counter must count rolls, not intentions.
    */
-  constructor(actor, { attributeA = '', lockAttribute = false, skill = null, freeSkill = false, fixedValue = null, fixedModifiers = [], preRollContext = null, requiredValue = null, ansage = null, zonePicker = null, maneuverMalus = null, envelope = null, opposingAnsage = false, toggleModifier = null, consequence = null, afterRoll = null, phase = null, sources = null, flavor = '', img = '', width = null } = {}) {
+  constructor(actor, { attributeA = '', lockAttribute = false, skill = null, freeSkill = false, fixedValue = null, fixedModifiers = [], preRollContext = null, requiredValue = null, ansage = null, maneuverMalus = null, envelope = null, toggleModifier = null, consequence = null, afterRoll = null, phase = null, sources = null, flavor = '', img = '', width = null } = {}) {
     super(
-      { attributeA, attributeB: '', skillValue: 0, bonus: 0, advantage: TNO_ADVANTAGE.none, useIdea: false, contextChoice: '', compareValue: '', requiredValue: 0, ansage: 0, zoneChoice: DEFAULT_ZONE, opposingAnsage: 0, toggleModifier: false },
+      { attributeA, attributeB: '', skillValue: 0, bonus: 0, advantage: TNO_ADVANTAGE.none, useIdea: false, contextChoice: '', compareValue: '', requiredValue: 0, ansage: 0, toggleModifier: false },
       Number.isFinite(Number(width)) && Number(width) > 0 ? { width: Number(width) } : {}
     );
     this.actor = actor;
@@ -152,7 +145,6 @@ export class TnoRollDialog extends FormApplication {
     // on 0, the value most announcements start from.
     if (this.requiredValue?.required) this.object.requiredValue = '';
     this.ansage = ansage?.label ? { label: String(ansage.label), hint: String(ansage.hint ?? '') } : null;
-    this.zonePicker = this._normalizeZonePicker(zonePicker);
     this.maneuverMalus = maneuverMalus?.label && Number.isFinite(Number(maneuverMalus.value))
       ? {
           label: String(maneuverMalus.label),
@@ -161,17 +153,6 @@ export class TnoRollDialog extends FormApplication {
         }
       : null;
     this.envelope = envelope?.from ? envelope : null;
-    // `true` offers the field at 0; a number offers it pre-filled.
-    //
-    // Typed, not coerced: `Number(false)` is 0 and 0 is finite, so testing the
-    // default through `Number()` put the field on every roll in the system,
-    // attacks and plain skill checks included. `Number(true)` is 1, which would
-    // then have pre-filled it with a 1 nobody announced.
-    const announced = typeof opposingAnsage === 'number' && Number.isFinite(opposingAnsage)
-      ? Math.trunc(opposingAnsage)
-      : null;
-    this.opposingAnsage = opposingAnsage === true || announced !== null;
-    if (announced > 0) this.object.opposingAnsage = announced;
     this.toggleModifier = toggleModifier?.label && Number.isFinite(Number(toggleModifier.value))
       ? {
           label: String(toggleModifier.label),
@@ -376,34 +357,6 @@ export class TnoRollDialog extends FormApplication {
     this._refresh(form);
   }
 
-  /**
-   * Keep the optional Stelle picker safe the same way the other optional inputs
-   * are: anything malformed behaves as though no location was offered, and the
-   * attack then lands where an unannounced one always does.
-   * @param {*} picker
-   * @returns {{label: string, componentLabel?: string, choices: Array<{key: string, label: string, caption: string, cost: number}>}|null}
-   */
-  _normalizeZonePicker(picker) {
-    if (!picker?.label || !Array.isArray(picker.choices)) return null;
-    const choices = picker.choices
-      .filter((choice) => choice?.key && choice?.label)
-      .map((choice) => ({
-        key: String(choice.key),
-        label: String(choice.label),
-        caption: String(choice.caption ?? ''),
-        // Coerced here rather than trusted, since this normalizer is the only
-        // thing standing between a caller's object and the threshold sum. A
-        // location with no price authored is free, which is what the Torso is.
-        cost: Number(choice.cost) || 0,
-      }));
-    if (!choices.length) return null;
-    return {
-      label: String(picker.label),
-      ...(picker.componentLabel ? { componentLabel: String(picker.componentLabel) } : {}),
-      choices,
-    };
-  }
-
   /** @override */
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
@@ -528,6 +481,7 @@ export class TnoRollDialog extends FormApplication {
     const push = (key, title, { pending = false, locked = false } = {}) => list.push({ key, title, pending, locked });
 
     if (this.toggleModifier) push('toggle', this.toggleModifier.question);
+    if (this.ansage) push('ansage', this.ansage.label);
     if (this.preRollContext) {
       const waived = this._contextWaived(data);
       push('context', this.preRollContext.label, { pending: !waived && !this._contextChoice(data), locked: waived });
@@ -545,8 +499,6 @@ export class TnoRollDialog extends FormApplication {
       if (!this.skill && !this.freeSkill) push('attributeB', L('TNO.Roll.AttributeB'));
       if (this.freeSkill) push('free', L('TNO.Roll.FreeSkillValue'));
     }
-    if (this.zonePicker) push('zone', this.zonePicker.label);
-    if (this.ansage || this.opposingAnsage) push('ansagen', L('TNO.Roll.Question.Ansagen'));
     if (!this.fixedValue) push('bonus', L('TNO.Roll.Bonus'));
     if (this.actor.type === 'character') push('idea', L('TNO.Roll.Question.Idea'));
 
@@ -659,49 +611,14 @@ export class TnoRollDialog extends FormApplication {
           };
         case 'free':
           return { ...base, isFree: true, value: this._freeSkillValue(data), min: FREE_SKILL_MIN, max: FREE_SKILL_MAX };
-        case 'zone': {
-          const zone = this._zoneChoice(data);
+        case 'ansage':
           return {
             ...base,
-            isZone: true,
-            choices: this.zonePicker.choices.map((choice) => ({
-              ...choice,
-              selected: choice.key === zone,
-              // The free Stelle reads "±0" rather than being left blank: "the
-              // Torso is free" is the fact worth stating.
-              costDisplay: this._formatBonus(choice.cost),
-              state: choice.cost < 0 ? 'negative' : 'neutral',
-            })),
+            isAnsage: true,
+            info: this.ansage.hint,
+            value: data.ansage,
+            delta: this._deltaCell(this._ansageComponent(data)?.value ?? 0),
           };
-        }
-        case 'ansagen': {
-          const sides = [];
-          if (this.ansage) {
-            sides.push({
-              name: 'ansage',
-              label: this.ansage.label,
-              value: data.ansage,
-              hasMin: false,
-              delta: this._deltaCell(this._ansageComponent(data)?.value ?? 0),
-            });
-          }
-          if (this.opposingAnsage) {
-            sides.push({
-              name: 'opposingAnsage',
-              label: L('TNO.Combat.OpposingAnsage'),
-              value: data.opposingAnsage,
-              hasMin: true,
-              delta: this._deltaCell(this._opposingAnsageComponent(data)?.value ?? 0),
-            });
-          }
-          return {
-            ...base,
-            isAnsagen: true,
-            info: this.ansage?.hint || L('TNO.Roll.Info.OpposingAnsage'),
-            columns: sides.length,
-            sides,
-          };
-        }
         case 'bonus':
           return {
             ...base,
@@ -918,16 +835,12 @@ export class TnoRollDialog extends FormApplication {
     const armor = value ? [{ label: game.i18n.localize('TNO.Combat.ArmorSvMalus'), value }] : [];
     // The FV shortfall is the other rule the form state decides: it lands on
     // "alle Manöver" and on nothing else, so it appears the moment something is
-    // declared and vanishes again when it is all cleared. Two things declare:
-    // a typed Ansage, and naming a Stelle other than the Torso — "Ansagen auf
-    // Trefferzonen im Nahkampf, normale Ansageregeln gelten hier auf alles", so
-    // an aimed attack is a Manöver as surely as a Finte is. The Torso alone is
-    // not, because that is where an attack that announced nothing lands — and
-    // neither is a negative Ansage, which collects on an earlier declaration
-    // rather than making one.
+    // declared and vanishes again when it is cleared. A positive typed Ansage
+    // declares a Manöver; a negative Ansage eases the roll but does not create
+    // one by itself.
     // It stays its own component next to the armour step, never folded into it —
     // three requirements, three shapes.
-    const declared = this._ansageValue(data) > 0 || this._zoneComponent(data);
+    const declared = this._ansageValue(data) > 0;
     const fv = this.maneuverMalus && declared ? [this.maneuverMalus] : [];
     // A state the *other* side announced, which the player confirms rather than
     // computes — today only 'Rüstung umgehen'.
@@ -1032,28 +945,6 @@ export class TnoRollDialog extends FormApplication {
   }
 
   /**
-   * The Ansage the other side announced against this roll, as a signed
-   * component. Optional and never gating, and outside the `±30` clamp for the
-   * same reason the announced Schadenswert is.
-   *
-   * This is the entire receiving end of the A→B channel. It takes an integer
-   * and asks nothing about where it came from.
-   * @param {object} data  Form data with opposingAnsage.
-   * @returns {{label: string, value: number, display: string}|null}
-   */
-  _opposingAnsageComponent(data) {
-    if (!this.opposingAnsage) return null;
-    if (!isAuthoredNumber(data?.opposingAnsage)) return null;
-    const declared = Math.max(0, Math.trunc(Number(data.opposingAnsage)));
-    if (!declared) return null;
-    return {
-      label: game.i18n.localize('TNO.Combat.OpposingAnsage'),
-      value: -declared,
-      display: this._formatBonus(-declared),
-    };
-  }
-
-  /**
    * The Ansage as typed: a signed whole number, or 0 for a roll that declares
    * nothing. Positive worsens this roll; negative eases it — the other half of
    * "erschwert einen deiner Würfe um einen anderen zu erleichtern".
@@ -1085,48 +976,6 @@ export class TnoRollDialog extends FormApplication {
   }
 
   /**
-   * The Stelle this attack names, defaulting to the one an unannounced hit
-   * lands on.
-   * @param {object} data  Form data with zoneChoice.
-   * @returns {string}
-   */
-  _zoneChoice(data) {
-    if (!this.zonePicker) return DEFAULT_ZONE;
-    const key = String(data?.zoneChoice ?? '');
-    return this.zonePicker.choices.some((choice) => choice.key === key) ? key : DEFAULT_ZONE;
-  }
-
-  /**
-   * What that Stelle costs, as a signed threshold component.
-   *
-   * Gezielte Angriffe prices every location, so aiming is paid for on the
-   * attacker's own roll. The Torso yields no component at all rather than a
-   * component worth zero: a standard attack should not carry a line saying it
-   * was charged nothing.
-   *
-   * **Kept separate from the Ansage rather than folded into it**, and never
-   * summed near the envelope: the price buys a location, not a harder defence,
-   * so the Stelle crosses to the defender as a location and never as an amount.
-   * @param {object} data  Form data with zoneChoice.
-   * @returns {{label: string, value: number, display: string}|null}
-   */
-  _zoneComponent(data) {
-    if (!this.zonePicker) return null;
-    const key = this._zoneChoice(data);
-    const choice = this.zonePicker.choices.find((entry) => entry.key === key);
-    const value = Number(choice?.cost) || 0;
-    if (!value) return null;
-    return { label: this._zoneLabel(choice), value, display: this._formatBonus(value) };
-  }
-
-  /** @param {{label: string}} choice @returns {string} */
-  _zoneLabel(choice) {
-    return this.zonePicker.componentLabel
-      ? `${this.zonePicker.componentLabel}: ${choice.label}`
-      : choice.label;
-  }
-
-  /**
    * Whether the roll has everything it needs: no question still pending.
    * @param {object} data  Form data.
    * @returns {boolean}
@@ -1146,10 +995,8 @@ export class TnoRollDialog extends FormApplication {
     const fixedModifiers = this._fixedModifierComponents(data).reduce((sum, modifier) => sum + modifier.value, 0);
     const context = this._contextComponent(data)?.value ?? 0;
     const required = this._requiredValueComponent(data)?.value ?? 0;
-    const zone = this._zoneComponent(data)?.value ?? 0;
     const ansage = this._ansageComponent(data)?.value ?? 0;
-    const opposing = this._opposingAnsageComponent(data)?.value ?? 0;
-    return base + fixedModifiers + context + required + zone + ansage + opposing
+    return base + fixedModifiers + context + required + ansage
       + (Number(data.bonus) || 0) + this._ideaBonus(data);
   }
 
@@ -1192,12 +1039,8 @@ export class TnoRollDialog extends FormApplication {
     if (context) parts.push(context);
     const required = this._requiredValueComponent(data);
     if (required) parts.push(required);
-    const zone = this._zoneComponent(data);
-    if (zone) parts.push(zone);
     const ansage = this._ansageComponent(data);
     if (ansage) parts.push(ansage);
-    const opposing = this._opposingAnsageComponent(data);
-    if (opposing) parts.push(opposing);
     const bonus = Number(data.bonus) || 0;
     if (bonus !== 0) {
       parts.push({
@@ -1286,23 +1129,11 @@ export class TnoRollDialog extends FormApplication {
       if (!component) row(this.requiredValue.origin, question.title, null, 'pending', { mark: question.mark });
       else row(this.requiredValue.origin, component.label, component.value, 'active', { mark: question.mark });
     }
-    if (this.zonePicker) {
-      const choice = this.zonePicker.choices.find((entry) => entry.key === this._zoneChoice(data));
-      row('choice', this._zoneLabel(choice), this._zoneComponent(data)?.value ?? 0, 'active', {
-        mark: questions.zone.mark,
-        note: choice.caption,
-      });
-    }
-    if (this.opposingAnsage) {
-      row('situation', L('TNO.Combat.OpposingAnsage'), this._opposingAnsageComponent(data)?.value ?? 0, 'active', {
-        mark: questions.ansagen.mark,
-      });
-    }
     if (!this.fixedValue) {
       row('situation', L('TNO.Roll.Bonus'), Number(data.bonus) || 0, 'active', { mark: questions.bonus.mark });
     }
     if (this.ansage) {
-      row('choice', this.ansage.label, this._ansageComponent(data)?.value ?? 0, 'active', { mark: questions.ansagen.mark });
+      row('choice', this.ansage.label, this._ansageComponent(data)?.value ?? 0, 'active', { mark: questions.ansage.mark });
     }
     if (questions.idea) {
       row('choice', L('TNO.Roll.IdeaComponent'), this._ideaInsight(), this._ideaArmed(data) ? 'active' : 'provisional', {
@@ -1495,7 +1326,7 @@ export class TnoRollDialog extends FormApplication {
       if (ask) ask.hidden = requiredQ.locked;
     }
 
-    // The two Ansagen.
+    // The roll's own Ansage.
     const paintDelta = (role, cell) => {
       const el = form.querySelector(`[data-role="${role}"]`);
       if (!el) return;
@@ -1503,7 +1334,6 @@ export class TnoRollDialog extends FormApplication {
       el.className = `tno-ansage-delta ${cell.cls}`;
     };
     if (this.ansage) paintDelta('ansage-delta', this._deltaCell(this._ansageComponent(data)?.value ?? 0));
-    if (this.opposingAnsage) paintDelta('opposingAnsage-delta', this._deltaCell(this._opposingAnsageComponent(data)?.value ?? 0));
 
     // The Idee: pressed state and what is left of the pool.
     const idea = form.querySelector('.tno-q-idea-toggle');
@@ -1642,8 +1472,8 @@ export class TnoRollDialog extends FormApplication {
     if (!form) return;
     const refresh = () => this._refresh(form);
 
-    html.on('change', 'select[name="attributeB"], select[name="contextChoice"], input[name="contextChoice"], input[name="zoneChoice"]', refresh);
-    html.on('change input', 'input[name="skillValue"], input[name="requiredValue"], input[name="opposingAnsage"], input[name="ansage"], input[name="compareValue"]', refresh);
+    html.on('change', 'select[name="attributeB"], select[name="contextChoice"], input[name="contextChoice"]', refresh);
+    html.on('change input', 'input[name="skillValue"], input[name="requiredValue"], input[name="ansage"], input[name="compareValue"]', refresh);
 
     // Yes/no: two buttons over the checkbox the form reads.
     html.on('click', '.tno-q-bool', (ev) => {
@@ -1761,18 +1591,14 @@ export class TnoRollDialog extends FormApplication {
     }
     const context = this._contextComponent(formData);
     const required = this._requiredValueComponent(formData);
-    const zoneComponent = this._zoneComponent(formData);
     const consequence = this._consequence(formData);
     const ansageComponent = this._ansageComponent(formData);
-    const opposing = this._opposingAnsageComponent(formData);
     const components = [
       ...this._baseComponents(formData),
       ...this._fixedModifierComponents(formData),
       ...(context ? [context] : []),
       ...(required ? [required] : []),
-      ...(zoneComponent ? [zoneComponent] : []),
       ...(ansageComponent ? [ansageComponent] : []),
-      ...(opposing ? [opposing] : []),
     ];
 
     // "Insight" (pre-edge): compute the threshold and bonus off the
@@ -1829,13 +1655,12 @@ export class TnoRollDialog extends FormApplication {
         // decide whether it happened, and they have not been rolled yet.
         ...(consequence ? { consequence } : {}),
         // The A→B channel, as numbers the defender can act on without ever
-        // reading this sheet: the amount that was declared and where the blow
-        // was aimed.
+        // reading this sheet.
         ...(this.envelope
           ? {
               envelope: {
                 ...this.envelope,
-                ...ansageEnvelope(this._ansageValue(formData), this._zoneChoice(formData)),
+                ...ansageEnvelope(this._ansageValue(formData)),
               },
             }
           : {}),

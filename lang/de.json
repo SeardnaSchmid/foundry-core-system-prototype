@@ -513,9 +513,9 @@
       "ImageEdit": "Bild ändern",
       "Overview": {
         "RangeProfile": "Reichweitenprofil",
-        "Penetration": "Durchschlag",
-        "PenetrationHint": "RD teilt die gegnerische RH. Die genaue Schadensfolge bleibt bei der Kampfauflösung.",
-        "NoPenetration": "Noch keine Rüstungsdurchdringung eingetragen.",
+        "Penetration": "Rüstungsbrechung",
+        "PenetrationHint": "RB wird mit der gegnerischen RH verglichen. Die genaue Schadensfolge bleibt bei der Kampfauflösung.",
+        "NoPenetration": "Noch keine Rüstungsbrechung eingetragen.",
         "Footprint": "Platzbedarf",
         "OwnerSlots": "{used} von {capacity} Inventarslots belegt",
         "Requirement": "Voraussetzung",
@@ -639,13 +639,11 @@
       },
       "Question": {
         "Attribute": "Womit kombinierst du {skill}?",
-        "Ansagen": "Ansagen",
         "Idea": "Ideen Bonus einsetzen?"
       },
       "Info": {
         "Attribute": "Eine Fertigkeit wird immer mit einem Attribut kombiniert. Meist wählst du es selbst, manchmal gibt die SL es vor.",
-        "Bonus": "Modifikation, die die SL für die Situation ansagt — normal in Schritten von ±3. Die kleinen ±1 sind zum Feinjustieren.",
-        "OpposingAnsage": "Was die Gegenseite gegen diesen Wurf angesagt hat. Die Zahl steht auf ihrer Wurfkarte."
+        "Bonus": "Modifikation, die die SL für die Situation ansagt — normal in Schritten von ±3. Die kleinen ±1 sind zum Feinjustieren."
       },
       "IdeaCharges": "{left} von {max} Edge übrig",
       "Waived": "Entfällt, die Umgehung gilt.",
@@ -715,12 +713,10 @@
       "RepeatedDefenseLabel": "Wiederholte Verteidigung",
       "NextDefenseMalus": "Nächste Verteidigung: {value}",
       "FvMalus": "FV-Voraussetzung (Manöver)",
-      "FvMalusHint": "Die Waffenfertigkeit unterschreitet die FV. Dieser Malus gilt, sobald der Wurf durch Ansage oder gezielte Stelle ein Manöver ist.",
+      "FvMalusHint": "Die Waffenfertigkeit unterschreitet die FV. Dieser Malus gilt, sobald der Wurf durch eine Ansage zum Manöver wird.",
       "AnsageCaption": "Manöver",
       "Ansage": "Deine Ansage",
-      "AnsageHint": "Wie weit du diesen Wurf erschwerst, um dafür etwas anderes zu erreichen. Wofür genau, klärt ihr am Tisch — hier steht nur die Zahl, und der Gegner bekommt sie in derselben Höhe. Ein negativer Wert erleichtert den Wurf stattdessen, etwa wenn du einen früher angesagten Bonus einlöst; dem Gegner wird dann nichts angesagt.",
-      "Zone": "Trefferzone",
-      "ZoneQuestion": "Wohin zielst du?",
+      "AnsageHint": "Wie weit du diesen Wurf erschwerst, um dafür etwas anderes zu erreichen. Wofür genau, klärt ihr am Tisch — hier steht nur die Zahl. Ein negativer Wert erleichtert den Wurf stattdessen, etwa wenn du einen früher angesagten Bonus einlöst.",
       "StanceLabel": "Haltung",
       "StanceHint": "Wird bei der Aktivierung angesagt und bis zur nächsten gehalten. Sie entscheidet, welche Verteidigung möglich ist — und eine Haltung einzunehmen, auch dieselbe noch einmal, löscht den Wiederholungsmalus.",
       "StanceRetake": "Aktuelle Haltung erneut einnehmen und Verteidigungsmali zurücksetzen",
@@ -760,30 +756,29 @@
       "ResistanceRwHint": "Der addierte RW der Rüstung an der Stelle {zone} erhöht diesen Widerstandswurf.",
       "RangeComponent": "Reichweite: {band}",
       "Penetration": {
-        "Label": "Angreifer RB/RD",
+        "Label": "Angreifer RB",
         "Placeholder": "Vergleich wählen",
         "Anchor": "Deine RH",
-        "Component": "RB/RD gegen RH {rh}",
+        "Component": "RB gegen RH {rh}",
         "Softer": "> {rh}",
         "SofterEffect": "durchschlägt · Schaden, RW ignoriert",
         "Equal": "= {rh}",
         "EqualEffect": "Schaden, RW gilt",
         "Harder": "< {rh}",
         "HarderEffect": "hält · Wuchtschaden",
-        "Question": "Was hat der Angreifer an RB/RD?",
-        "Value": "RB/RD des Angreifers",
+        "Question": "Was hat der Angreifer an RB?",
+        "Value": "RB des Angreifers",
         "AnchorZone": "deine RH {zone}",
-        "Hint": "RB = Rüstungsbrechung, RD = Rüstungsdurchdringung des Angreifers, verglichen mit deiner Rüsthärte (RH) an der getroffenen Stelle."
+        "Hint": "Die Rüstungsbrechung (RB) des Angreifers wird mit deiner Rüstungshärte (RH) an der getroffenen Stelle verglichen."
       },
-      "OpposingAnsage": "Gegen dich angesagt",
       "Envelope": {
         "From": "Von",
         "Ansage": "Ansage −{value}",
         "BypassArmor": "Rüstung an der Stelle umgangen",
-        "Damage": "RB/RD {penetration} · Schaden {sharp} / Wucht {blunt}",
+        "Damage": "RB {penetration} · Schaden {sharp} / Wucht {blunt}",
         "Dk": "DK {dk}"
       },
-      "BypassArmorHint": "Der Angreifer hat die RA dieser Stelle bezahlt, um die Rüstung zu umgehen — ihr Rüstungswert gilt nicht, und der Treffer geht immer in den Schaden statt in den Wuchtschaden.",
+      "BypassArmorHint": "Ja gilt nur, wenn die angesagte Rüstungsumgehung mindestens deiner RA entspricht. Dann entfällt der RW des äußeren Rüstungsteils; der RW der Unterkleidung bleibt erhalten, und der Treffer geht in den Schaden statt in den Wuchtschaden.",
       "Tracker": {
         "Order": "Initiative-Reihenfolge im Combat Tracker",
         "OrderHint": "Legt nur die sichtbare Reihenfolge in der Seitenleiste fest. Aktiviert wird in beiden Fällen von der niedrigsten zur höchsten Initiative.",
@@ -806,7 +801,7 @@
         "DodgeDetail": "Ausweichen",
         "ResistanceDetail": "Treffer: {zone}"
       },
-      "BypassQuestion": "Hat der Angreifer „Rüstung umgehen“ angesagt (RA {ra})?",
+      "BypassQuestion": "Hat der Angreifer mindestens RA {ra} als Rüstungsumgehung angesagt?",
       "BypassYes": "Ja, umgangen"
     },
     "Damage": {
@@ -927,7 +922,7 @@
       "Rh": "Rüstungshärte (RH)",
       "NaSuit": "n/a — Unterkleidung",
       "RhShort": "RH",
-      "RhHint": "Wird mit der Rüstungsdurchdringung der Waffe verglichen. Unterkleidung hat immer RH 0.",
+      "RhHint": "Wird mit der Rüstungsbrechung der Waffe verglichen. Unterkleidung hat immer RH 0.",
       "Rw": "Rüstungswert (RW)",
       "RwShort": "RW",
       "RwHint": "Polsterung. Geht ein in Widerstandswert = Stärke + RW − Schadenswert.",
@@ -1045,11 +1040,8 @@
       "Values": "Waffenwerte",
       "Dk": "Distanzklasse (DK)",
       "DkHint": "0 Griff · 1 sehr kurz · 2 kurz · 3 normal · 4 lang · 5 sehr lang · 6 überlang.",
-      "Rd": "Rüstungsdurchdringung (RD)",
-      "RdShort": "RD",
-      "RdHint": "Wird mit der Rüstungshärte verglichen und entscheidet, welcher Schadenswert zählt.",
       "Rb": "RB",
-      "RbHint": "Rüstungsbrechung im Nahkampf.",
+      "RbHint": "Rüstungsbrechung. Wird mit der Rüstungshärte verglichen und entscheidet, welcher Schadenswert zählt.",
       "Ss": "S",
       "SsHint": "Schaden — gewürfelt, wenn die Rüstung durchdrungen wird.",
       "Ws": "WS",

@@ -28,7 +28,6 @@ system:
     mid: null
     far: null
     sf: null
-  rd: null
   ss:
     count: 0
   ws:

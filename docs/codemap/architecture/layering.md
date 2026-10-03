@@ -34,7 +34,8 @@ module/tno.mjs                          (entry point, imports everything below)
 │                 → items.mjs is the base of the helper graph: it imports
 │                   nothing, and inventory.mjs and config.mjs import it
 │                 → maneuvers.mjs is the second global-free base: it imports
-│                   nothing and holds the Stellen and the A→B envelope
+│                   nothing and holds resistance-location damage rules and the
+│                   attacker's Ansage envelope
 │                 → damage.mjs is another global-free base: it imports nothing
 │                   and resolves the two raw health counters
 │                 → round-state.mjs is the fourth: it imports nothing and holds
@@ -59,7 +60,7 @@ module/tno.mjs                          (entry point, imports everything below)
                     roll-dialog-shared.mjs (the advantage picker UI) and
                     helpers/dice.mjs
                   → roll-dialog.mjs additionally imports helpers/maneuvers.mjs
-                    to build the envelope it sends and to know the default Stelle
+                    to build the Ansage envelope and resolve resistance locations
                   → combat-tracker.mjs imports helpers/{combat-actions,stances,
                     combat-socket}.mjs, and reaches the Combat document only
                     through the one it is handed

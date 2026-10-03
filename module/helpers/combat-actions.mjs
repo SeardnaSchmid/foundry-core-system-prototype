@@ -17,7 +17,7 @@ import {
   MALUS_STEP,
   resolveArmorInteraction,
 } from './items.mjs';
-import { DAMAGE_RULES, DEFAULT_ZONE, ZONE_CHOICES, appliedDamage, zoneCost } from './maneuvers.mjs';
+import { DAMAGE_RULES, DEFAULT_ZONE, appliedDamage } from './maneuvers.mjs';
 import { getSkillDefinition, getSkillDefinitions } from './skills.mjs';
 
 /**
@@ -283,7 +283,7 @@ function attackEnvelope(actor, weapon) {
     // Only melee has a Distanzklasse; a ranged weapon's DK column is the five
     // range bands, which say nothing about reach in a melee.
     dk: melee ? authored(system?.dk) : null,
-    penetration: authored(melee ? system?.rb : system?.rd),
+    penetration: authored(system?.rb),
     sharp: authored(system?.ss?.count),
     blunt: authored(system?.ws?.count),
   };
@@ -373,35 +373,6 @@ function ansageField() {
 }
 
 /**
- * The Stelle, as tiles carrying both halves of the bargain: what aiming there
- * costs you, and what it buys.
- *
- * This is the one declaration that stayed a pick rather than becoming part of
- * the free number, because it is not only a magnitude: it decides the damage
- * multiplier, and the defender opens that roll by clicking the same location
- * on their paper doll.
- *
- * It does have a magnitude too — Gezielte Angriffe prices every location — and
- * putting the price on the tile beside the damage rule is what makes the choice
- * legible: "Kopf", "−6" and "Schadenspool ×2" are one decision seen from three
- * ends. The tile is the only place the dialog still explains a Manöver, and this
- * is the Manöver worth explaining.
- * @returns {{label: string, choices: Array<{key: string, label: string, caption: string, cost: number}>}}
- */
-function zonePicker() {
-  return {
-    label: game.i18n.localize('TNO.Combat.ZoneQuestion'),
-    componentLabel: game.i18n.localize('TNO.Combat.Zone'),
-    choices: ZONE_CHOICES.map((zone) => ({
-      key: zone,
-      label: game.i18n.localize(CONFIG.TNO.armorZones[zone]),
-      caption: damageTargetLabel(zone),
-      cost: zoneCost(zone),
-    })),
-  };
-}
-
-/**
  * Whether this actor may open a weapon roll with this item at all, and the
  * skill definition the roll is built on.
  * @param {Actor} actor
@@ -434,11 +405,7 @@ export function angriffOptions(actor, weapon) {
     skill: { key, label: definition.label, value: weaponSkillRank(actor, weapon.system) },
     fixedModifiers: weaponModifiers(actor, weapon.system, 'active'),
     preRollContext: weaponContext(weapon.system, 'TNO.Combat.AskDefender'),
-    zonePicker: zonePicker(),
     ansage: ansageField(),
-    // An attack can be declared against too — the other side's earlier Ansage
-    // lands on whichever roll of yours it was aimed at.
-    opposingAnsage: true,
     maneuverMalus: maneuverFvMalus(actor, weapon.system),
     envelope: attackEnvelope(actor, weapon),
     phase: {
@@ -489,12 +456,11 @@ export function paradeOptions(actor, weapon) {
       detail: game.i18n.format('TNO.Combat.Phase.ParryDetail', { weapon: weapon.name }),
     },
     sources: { weapon: weapon.name },
-    // A parry declares an amount but never a Stelle: the location is the
-    // attacker's to name, and a Riposte — the one Manöver the rules put on a
-    // parry — lands on your own next attack rather than anywhere on a body.
+    // A parry declares an amount but never a Stelle. Hit locations are selected
+    // on the defender's paper doll when resistance is opened; a Riposte — the
+    // one Manöver the rules put on a parry — lands on your own next attack.
     ansage: ansageField(),
     maneuverMalus: maneuverFvMalus(actor, weapon.system),
-    opposingAnsage: true,
     afterRoll: async () => {
       await countDefense(actor, 'parry');
     },
@@ -525,7 +491,6 @@ export function ausweichenOptions(actor) {
       value: actor.system.skills?.acrobatics?.value ?? 0,
     },
     fixedModifiers: repeatedDefense(actor, 'dodge'),
-    opposingAnsage: true,
     phase: {
       label: game.i18n.localize('TNO.Combat.Phase.Defend'),
       detail: game.i18n.localize('TNO.Combat.Phase.DodgeDetail'),
@@ -621,14 +586,15 @@ function wornArmorArt(actor, zone) {
 
 /**
  * The resistance roll of one hit location: Stärke + the RW that survives the
- * armour interaction − the damage value the attacker announced. Penetration or
- * an announced bypass removes RW; neither awards a separate bonus step.
+ * armour interaction − the damage value the attacker announced. Penetration
+ * removes all RW; a confirmed bypass removes only the outer armour's RW and
+ * leaves the Unterkleidung in place. Neither awards a separate bonus step.
  *
  * The defender's sheet knows no attacker, and this deliberately does not try to
  * become one: it neither determines the hit location — the player states it by
  * clicking one — nor applies any damage. What it cannot know is asked for, as
  * numbers the attacker reads off their own card: whether they bypassed the
- * armour, their RB/RD, and their damage value.
+ * armour, their RB, and their damage value.
  *
  * Stärke enters at its sole persisted `base` rating, the same reading
  * `derived.dodge` and regular attribute rolls use.
@@ -689,7 +655,7 @@ export function widerstandOptions(actor, zone) {
       origin: 'attack',
     },
     // The one comparison the defender's sheet cannot make on its own. The
-    // attacker reads their RB/RD off their weapon card; the defender types it,
+    // attacker reads their RB off their weapon card; the defender types it,
     // and the dialog compares it against this location's own RH — the number
     // the defender would otherwise have to hold in their head while choosing.
     // The three outcomes stay on show as readouts, so the consequence of each
@@ -727,21 +693,19 @@ export function widerstandOptions(actor, zone) {
         };
       }),
     },
-    opposingAnsage: true,
-    // "Erschwere deinen Angriff um die Rüstungsabdeckung der jeweiligen Stelle
-    // und ignoriere sie dafür": the attacker paid this location's RA to make its
-    // armour not apply, so the padding comes back out of the threshold — and
-    // with the armour gone there is no RB/RD left to compare.
+    // The defender answers whether the announced bypass reached this location's
+    // private RA. A successful bypass removes only the add-on's RW; the
+    // Unterkleidung remains underneath and still contributes its RW.
     //
     // Asked first, and never pre-answered. The attack card has no way to say a
     // bypass was bought — it carries an amount, not a reason — so this is the
     // defender acting on what they were told.
-    ...(armor.rw
+    ...(armor.equipped && Number(armor.ra) > 0
       ? {
           toggleModifier: {
             label: game.i18n.localize('TNO.Combat.Envelope.BypassArmor'),
             hint: game.i18n.localize('TNO.Combat.BypassArmorHint'),
-            value: -armor.rw,
+            value: -(Number(armor.rwAddon) || 0),
             question: game.i18n.format('TNO.Combat.BypassQuestion', { ra: Number(armor.ra) || 0 }),
             yesLabel: game.i18n.localize('TNO.Combat.BypassYes'),
             waivesContext: true,

@@ -141,13 +141,13 @@ describe('columnCell', () => {
     expect(columnCell(roled('w', 'Knife', 'weapon', { dk: 1 }), 'rh')).toMatchObject({ applies: false });
   });
 
-  it('asks a melee weapon for its DK and a ranged one for its RD', () => {
-    const knife = roled('k', 'Knife', 'weapon', { use: 'melee', dk: 2, rd: 4 });
+  it('asks every weapon for RB and only a melee weapon for DK', () => {
+    const knife = roled('k', 'Knife', 'weapon', { use: 'melee', dk: 2, rb: 4 });
     expect(columnCell(knife, 'dk')).toMatchObject({ applies: true, value: 2 });
-    expect(columnCell(knife, 'rd')).toMatchObject({ applies: false });
+    expect(columnCell(knife, 'rb')).toMatchObject({ applies: true, value: 4 });
 
-    const rifle = roled('r', 'Rifle', 'weapon', { use: 'ranged', dk: 2, rd: 4 });
-    expect(columnCell(rifle, 'rd')).toMatchObject({ applies: true, value: 4 });
+    const rifle = roled('r', 'Rifle', 'weapon', { use: 'ranged', dk: 2, rb: 4 });
+    expect(columnCell(rifle, 'rb')).toMatchObject({ applies: true, value: 4 });
     expect(columnCell(rifle, 'dk')).toMatchObject({ applies: false });
   });
 
@@ -186,7 +186,7 @@ describe('itemGroupKey', () => {
 describe('buildItemGroups', () => {
   const items = [
     roled('knife', 'Messer', 'weapon', { use: 'melee', dk: 2, slots: 1, price: 30 }),
-    roled('rifle', 'Gewehr', 'weapon', { use: 'ranged', rd: 5, slots: 2, quantity: 1, price: 400 }),
+    roled('rifle', 'Gewehr', 'weapon', { use: 'ranged', rb: 5, slots: 2, quantity: 1, price: 400 }),
     roled('helm', 'Helm', 'armor', { zone: 'head', rh: 4, slots: 1 }),
     roled('kit', 'Verbandskasten', 'consumable', { slots: 1, quantity: 2 }),
     item('rope', 'Seil', { slots: 2 }),

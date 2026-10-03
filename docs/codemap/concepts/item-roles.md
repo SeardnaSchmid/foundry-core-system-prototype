@@ -101,7 +101,7 @@ always did.
 | Group | Fields |
 | --- | --- |
 | Every item | `quantity`, `slots`, `sv`, `price`, `availability`, `description` |
-| Weapon role | `use` (`melee`/`ranged`), `fv: {skill, rank}`, `wa` (one primary-attribute key), `dk`, `range: {sn, near, mid, far, sf}`, `rd`, `ss: {count}`, `ws: {count}`, `hh: {active, passive}`, `rb` |
+| Weapon role | `use` (`melee`/`ranged`), `fv: {skill, rank}`, `wa` (one primary-attribute key), `dk`, `range: {sn, near, mid, far, sf}`, `ss: {count}`, `ws: {count}`, `hh: {active, passive}`, `rb` |
 | Armour role | `zone`, `rh`, `rw`, `ra` |
 | Consumable role | `consumableEffects: [{id, text}]`; its remaining stock is the shared `quantity` |
 
@@ -111,7 +111,7 @@ indexed object left by an early live-editor form and a legacy single string.
 Every validation and editor path consumes the normalized array; the next
 add/edit/remove action writes that canonical shape back to the item.
 
-`dk`, `rd`, `rh`, `rw` and every `range` band are **nullable**, and that is
+`dk`, `rb`, `rh`, `rw` and every `range` band are **nullable**, and that is
 load-bearing: not filled in and set to the lowest step are different answers.
 `scaleCells()` has to check for blank before coercing, because `Number(null)`
 is 0.
@@ -305,7 +305,7 @@ Controls, and when each is right:
 
 | Control | Used for | Why |
 | --- | --- | --- |
-| Click-scale | slots, availability, DK, RB/RD, RH, RW, RA | A closed set of steps a rules table enumerates. Clicking the selected cell again clears it — the only way back to "not set". The slots label has a keyboard-focusable info-icon tooltip containing the complete size guideline table |
+| Click-scale | slots, availability, DK, RB, RH, RW, RA | A closed set of steps a rules table enumerates. Clicking the selected cell again clears it — the only way back to "not set". The slots label has a keyboard-focusable info-icon tooltip containing the complete size guideline table |
 | Stepper | quantity | A count with no table behind it, nudged far more often than typed |
 | Chips | role, armour location | Both are exclusive and clearable selections |
 | Segments | weapon use | Single-select melee/ranged category, joined into one bar |

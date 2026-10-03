@@ -397,28 +397,18 @@ describe('Tno Dice System', () => {
 // alone would leave the sentence they read untested, and it is the sentence —
 // not the flag — that the manual path depends on.
 describe('envelopeLines', () => {
-  const zones = {
-    head: 'Head',
-    torso: 'Torso',
-    arms: 'Arms',
-    legs: 'Legs',
-  };
-
   const withGlobals = (fn) => {
     const priorGame = globalThis.game;
-    const priorConfig = globalThis.CONFIG;
     globalThis.game = {
       i18n: {
         localize: (key) => key,
         format: (key, values) => `${key}(${Object.values(values ?? {}).join(',')})`,
       },
     };
-    globalThis.CONFIG = { TNO: { armorZones: zones } };
     try {
       return fn();
     } finally {
       globalThis.game = priorGame;
-      globalThis.CONFIG = priorConfig;
     }
   };
 
@@ -426,7 +416,6 @@ describe('envelopeLines', () => {
     from: 'Anton',
     dk: 4,
     ansage: 3,
-    zone: 'head',
     penetration: 5,
     sharp: 4,
     blunt: 2,
@@ -456,13 +445,6 @@ describe('envelopeLines', () => {
     // than showing a null.
     const ranged = withGlobals(() => envelopeLines({ ...full, dk: null }));
     expect(ranged.lines.some((line) => line.startsWith('TNO.Combat.Envelope.Dk'))).toBe(false);
-  });
-
-  it('always names a Stelle, defaulting to Torso', () => {
-    expect(withGlobals(() => envelopeLines(full)).lines).toContain('Head');
-    // An attack that announced nothing still tells the defender where it landed.
-    const plain = withGlobals(() => envelopeLines({ from: 'Anton', sharp: 4, blunt: 2 }));
-    expect(plain.lines).toContain('Torso');
   });
 
   it('reads out the weapon card so the defender can make the comparison', () => {
