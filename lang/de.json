@@ -703,7 +703,7 @@
       "RangeQuestion": "Auf welcher Distanz?",
       "DkDifference": "Reichweitenvorteil",
       "DkQuestion": "Hast du die längere Waffe?",
-      "DkNote": "Deine DK {dk}",
+      "DkNote": "Deine Distanzklasse (DK) {dk}",
       "Reach": {
         "Longer": "Längere Waffe",
         "NotLonger": "Nicht länger"
@@ -758,7 +758,7 @@
       "Penetration": {
         "Label": "Angreifer RB",
         "Placeholder": "Vergleich wählen",
-        "Anchor": "Deine RH",
+        "Anchor": "Deine Rüstungshärte (RH)",
         "Component": "RB gegen RH {rh}",
         "Softer": "> {rh}",
         "SofterEffect": "durchschlägt · Schaden, RW ignoriert",
@@ -766,9 +766,9 @@
         "EqualEffect": "Schaden, RW gilt",
         "Harder": "< {rh}",
         "HarderEffect": "hält · Wuchtschaden",
-        "Question": "Was hat der Angreifer an RB?",
+        "Question": "Wie viel Rüstungsbrechung (RB) hat der Angreifer?",
         "Value": "RB des Angreifers",
-        "AnchorZone": "deine RH {zone}",
+        "AnchorZone": "deine Rüstungshärte (RH) {zone}",
         "Hint": "Die Rüstungsbrechung (RB) des Angreifers wird mit deiner Rüstungshärte (RH) an der getroffenen Stelle verglichen."
       },
       "Envelope": {
@@ -801,7 +801,7 @@
         "DodgeDetail": "Ausweichen",
         "ResistanceDetail": "Treffer: {zone}"
       },
-      "BypassQuestion": "Hat der Angreifer mindestens RA {ra} als Rüstungsumgehung angesagt?",
+      "BypassQuestion": "Hat der Angreifer mindestens {ra} Punkte Rüstungsumgehung angesagt (deine Rüstungsabdeckung, RA)?",
       "BypassYes": "Ja, umgangen"
     },
     "Damage": {

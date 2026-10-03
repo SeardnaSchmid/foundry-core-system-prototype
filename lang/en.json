@@ -703,7 +703,7 @@
       "RangeQuestion": "At what distance?",
       "DkDifference": "Reach advantage",
       "DkQuestion": "Do you have the longer weapon?",
-      "DkNote": "Your DK {dk}",
+      "DkNote": "Your range class (DK) {dk}",
       "Reach": {
         "Longer": "Longer weapon",
         "NotLonger": "Not longer"
@@ -758,7 +758,7 @@
       "Penetration": {
         "Label": "Attacker RB",
         "Placeholder": "Pick the comparison",
-        "Anchor": "Your RH",
+        "Anchor": "Your armour hardness (RH)",
         "Component": "RB against RH {rh}",
         "Softer": "> {rh}",
         "SofterEffect": "punches through · damage, RW ignored",
@@ -766,9 +766,9 @@
         "EqualEffect": "damage, RW applies",
         "Harder": "< {rh}",
         "HarderEffect": "holds · blunt damage",
-        "Question": "What RB does the attacker have?",
+        "Question": "How much armour penetration (RB) does the attacker have?",
         "Value": "Attacker's RB",
-        "AnchorZone": "your RH {zone}",
+        "AnchorZone": "your armour hardness (RH) {zone}",
         "Hint": "The attacker's armour breaking value (RB), compared with your armour hardness (RH) at the struck location."
       },
       "Envelope": {
@@ -801,7 +801,7 @@
         "DodgeDetail": "Dodge",
         "ResistanceDetail": "Hit: {zone}"
       },
-      "BypassQuestion": "Did the attacker declare armour bypass of at least RA {ra}?",
+      "BypassQuestion": "Did the attacker declare at least {ra} points of armour bypass (your armour coverage, RA)?",
       "BypassYes": "Yes, bypassed"
     },
     "Damage": {
