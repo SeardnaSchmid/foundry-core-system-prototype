@@ -3,7 +3,7 @@
  *
  * Everything on the roll side is deliberately decoupled — no sheet reads another
  * sheet, no workflow checks another user's permissions (see
- * [`combat-roll-workflows.md`](../../docs/wiki/concepts/combat-roll-workflows.md)).
+ * [`combat-roll-workflows.md`](../../docs/codemap/concepts/combat-roll-workflows.md)).
  * The turn order is the exception, and it is one for a structural reason rather
  * than a convenient one: a roll belongs to the person making it, while the
  * activation history is a single object every participant shares. A player may

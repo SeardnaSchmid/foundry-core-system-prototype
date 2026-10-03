@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Validates docs/wiki/**: frontmatter shape, that resource/spec paths still
+// Validates docs/codemap/**: frontmatter shape, that resource/spec paths still
 // exist on disk (the anti-rot check), that relative links resolve, and that
 // every page is reachable from index.md. Exits non-zero on any failure.
 
@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { load as loadYaml } from 'js-yaml';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const WIKI_ROOT = join(ROOT, 'docs', 'wiki');
+const CODEMAP_ROOT = join(ROOT, 'docs', 'codemap');
 const TYPES = new Set(['concept', 'architecture', 'reference', 'guide', 'index']);
 const TYPES_REQUIRING_RESOURCE = new Set(['concept', 'architecture', 'reference']);
 const KEBAB = /^[a-z0-9]+(-[a-z0-9]+)*$/;
@@ -105,21 +105,21 @@ function validateFrontmatter(file, data, errors) {
   }
 
   if (data.related !== undefined && !Array.isArray(data.related)) {
-    errors.push(`${label}: "related" must be an array of wiki slugs`);
+    errors.push(`${label}: "related" must be an array of code-map slugs`);
   }
 }
 
 function slugOf(file) {
-  return relative(WIKI_ROOT, file).replace(/\.md$/, '');
+  return relative(CODEMAP_ROOT, file).replace(/\.md$/, '');
 }
 
 async function main() {
-  if (!existsSync(WIKI_ROOT)) {
-    console.error(`No wiki found at ${rel(WIKI_ROOT)}`);
+  if (!existsSync(CODEMAP_ROOT)) {
+    console.error(`No code map found at ${rel(CODEMAP_ROOT)}`);
     process.exit(1);
   }
 
-  const files = await walk(WIKI_ROOT);
+  const files = await walk(CODEMAP_ROOT);
   const errors = [];
   const pages = new Map(); // slug -> { file, data, body }
   const titles = new Map(); // title -> [files]
@@ -153,7 +153,7 @@ async function main() {
       if (/^(https?:)?\/\//.test(target) || target.startsWith('mailto:')) continue;
 
       const resolved = resolve(dirname(page.file), target);
-      if (resolved.startsWith(WIKI_ROOT)) {
+      if (resolved.startsWith(CODEMAP_ROOT)) {
         if (!existsSync(resolved)) {
           errors.push(`${rel(page.file)}: broken link to "${target}"`);
         } else if (resolved.endsWith('.md')) {
@@ -167,7 +167,7 @@ async function main() {
     if (Array.isArray(page.data.related)) {
       for (const slug of page.data.related) {
         if (!pages.has(slug)) {
-          errors.push(`${rel(page.file)}: related slug "${slug}" does not resolve to a wiki page`);
+          errors.push(`${rel(page.file)}: related slug "${slug}" does not resolve to a code-map page`);
         } else {
           edges.add(slug);
         }
@@ -194,7 +194,7 @@ async function main() {
       }
     }
   } else {
-    errors.push('docs/wiki/index.md is missing — required as the orphan-check root');
+    errors.push('docs/codemap/index.md is missing — required as the orphan-check root');
   }
 
   if (errors.length) {
@@ -204,7 +204,7 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`Wiki validation passed: ${pages.size} page(s) checked.`);
+  console.log(`Code-map validation passed: ${pages.size} page(s) checked.`);
 }
 
 main();

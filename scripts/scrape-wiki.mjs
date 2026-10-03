@@ -4,11 +4,15 @@
 // Google Docs, so no auth is needed: folders are listed via Drive's
 // embeddedfolderview HTML, docs are pulled through the Docs Markdown export.
 //
-//   node scripts/scrape-wiki.mjs [--root <folderId>] [--out <dir>] [--dry-run]
+//   node scripts/scrape-wiki.mjs [--root <folderId>] [--out <dir>] [--dry-run] [--no-summary]
 //
 // Output mirrors the Drive tree: one directory per folder, one .md per doc,
 // plus an index.md listing every page. A complete download is staged before it
 // replaces --out. Keep rules/ as its own Git repository to review each refresh.
+//
+// When the text changed, the delta is handed to the local `claude` CLI, which
+// writes a plain-language entry at the top of rules/CHANGELOG.md. That entry is
+// committed together with the snapshot; a failed summary never fails the fetch.
 
 import { mkdir, mkdtemp, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
@@ -32,12 +36,13 @@ const ENTRY_RE =
   /<div class="flip-entry" id="entry-([\w-]+)"[\s\S]*?href="([^"]+)"[\s\S]*?<div class="flip-entry-title">([\s\S]*?)<\/div>/g;
 
 function parseArgs(argv) {
-  const opts = { ...DEFAULTS, dryRun: false };
+  const opts = { ...DEFAULTS, dryRun: false, summary: true };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === '--root') opts.root = argv[++i];
     else if (arg === '--out') opts.out = resolve(process.cwd(), argv[++i]);
     else if (arg === '--dry-run') opts.dryRun = true;
+    else if (arg === '--no-summary') opts.summary = false;
     else if (arg === '--help' || arg === '-h') opts.help = true;
     else throw new Error(`unknown argument: ${arg}`);
   }
@@ -97,7 +102,7 @@ async function exists(path) {
 }
 
 function runGit(repo, args) {
-  const result = spawnSync('git', args, { cwd: repo, encoding: 'utf8' });
+  const result = spawnSync('git', args, { cwd: repo, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
   if (result.error) throw result.error;
   if (result.status !== 0) {
     throw new Error(`git ${args[0]} failed: ${result.stderr.trim() || `exit ${result.status}`}`);
@@ -118,9 +123,8 @@ async function ensureRulesRepo(out) {
   return repo;
 }
 
-function commitSnapshot(repo, out, timestamp) {
-  const target = relative(repo, out);
-  runGit(repo, ['add', '--', target]);
+function commitSnapshot(repo, paths, timestamp) {
+  runGit(repo, ['add', '--', ...paths]);
   runGit(repo, [
     'commit',
     '--allow-empty',
@@ -128,9 +132,89 @@ function commitSnapshot(repo, out, timestamp) {
     '-m',
     `chore: fetch rules ${timestamp}`,
     '--',
-    target,
+    ...paths,
   ]);
   return runGit(repo, ['rev-parse', '--short', 'HEAD']);
+}
+
+// The staged delta of the snapshot, minus the `scraped:` lines a changed
+// document rewrites — those say when, not what.
+function stagedRuleDiff(repo, target) {
+  runGit(repo, ['add', '--', target]);
+  return runGit(repo, ['diff', '--cached', '-I', '^scraped: ', '--', target]);
+}
+
+const SUMMARY_PROMPT = `Du bekommst auf stdin den git-Diff eines Regel-Wikis für das Pen-&-Paper-Rollenspiel TNO (Transneptunische Subjekte). Schreibe daraus einen Changelog-Eintrag auf Deutsch in Markdown für jemanden, der verstehen will, was sich an den Regeln geändert hat.
+
+- Beginne mit ein bis drei Sätzen Überblick: was ist die wichtigste Änderung?
+- Danach je Dokument mit inhaltlichen Änderungen eine Überschrift \`### <Dokumenttitel>\` und pro Änderung einen Stichpunkt in Klartext: was galt vorher, was gilt jetzt, und was folgt daraus. Ändert sich eine Formel oder ein Wert, rechne ein kurzes Beispiel vor.
+- Neue Tabellen und Einträge zusammenfassen statt abschreiben: Namen und auffällige Werte genügen.
+- Gestrichene Abschnitte ausdrücklich als entfernt nennen.
+- Rein formale Änderungen (Ankerlinks, Formatierung, Tippfehler) am Ende unter \`### Formales\` in einem Satz bündeln; gibt es keine, lass den Abschnitt weg.
+- Nichts erfinden und nicht über Gründe spekulieren. Was der Diff offenlässt, als unklar kennzeichnen.
+- Gib nur den Eintrag aus: keine Einleitung wie „Hier ist“, keine Überschrift der ersten oder zweiten Ebene.`;
+
+function summarizeRuleDiff(repo, diff) {
+  const result = spawnSync(
+    'claude',
+    ['-p', SUMMARY_PROMPT, '--tools', '', '--no-session-persistence'],
+    { cwd: repo, input: diff, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, timeout: 10 * 60 * 1000 },
+  );
+  if (result.error) throw result.error;
+  if (result.status !== 0) {
+    throw new Error(result.stderr.trim() || result.stdout.trim() || `exit ${result.status}`);
+  }
+  const text = result.stdout.trim();
+  if (!text) throw new Error('leere Antwort');
+  return text;
+}
+
+const CHANGELOG_HEADER = `# Regeländerungen
+
+Automatisch erzeugt von \`scripts/scrape-wiki.mjs\` bei jedem Abruf mit
+inhaltlicher Änderung, neueste zuerst. Die Zusammenfassung schreibt die
+\`claude\`-CLI; maßgeblich bleibt der Diff des jeweiligen Commits.
+`;
+
+async function prependChangelog(file, timestamp, body) {
+  const previous = (await exists(file)) ? await readFile(file, 'utf8') : '';
+  const start = previous.indexOf('\n## ');
+  const entries = start === -1 ? '' : previous.slice(start + 1);
+  const entry = `## ${timestamp.slice(0, 10)} · Abruf ${timestamp.slice(11, 16)} UTC\n\n${body}\n`;
+  await writeFile(file, `${CHANGELOG_HEADER}\n${entry}${entries ? `\n${entries}` : ''}`);
+}
+
+// Never throws: a summary that cannot be written is recorded as such, with the
+// pointer to the raw delta, and the snapshot is committed regardless.
+async function recordChangelog(repo, target, timestamp) {
+  const diff = stagedRuleDiff(repo, target);
+  if (!diff) {
+    process.stdout.write('Keine inhaltlichen Regeländerungen.\n');
+    return [];
+  }
+  const file = join(repo, 'CHANGELOG.md');
+  process.stdout.write('Fasse Regeländerungen zusammen …\n');
+  let body;
+  try {
+    body = summarizeRuleDiff(repo, diff);
+  } catch (error) {
+    const stat = runGit(repo, ['diff', '--cached', '--stat', '-I', '^scraped: ', '--', target]);
+    body = [
+      `_Zusammenfassung fehlgeschlagen: ${error.message.split('\n')[0]}_`,
+      '',
+      'Geänderte Dateien:',
+      '',
+      '```',
+      stat,
+      '```',
+      '',
+      `Rohes Delta: \`git -C rules show HEAD -- ${target}\` direkt nach diesem Abruf.`,
+    ].join('\n');
+    process.stderr.write(`scrape-wiki: Zusammenfassung fehlgeschlagen: ${error.message}\n`);
+  }
+  await prependChangelog(file, timestamp, body);
+  process.stdout.write(`Changelog: ${relative(process.cwd(), file)}\n`);
+  return [relative(repo, file)];
 }
 
 function withoutScrapeDate(text) {
@@ -262,7 +346,7 @@ async function main() {
   const opts = parseArgs(process.argv.slice(2));
   if (opts.help) {
     process.stdout.write(
-      'usage: node scripts/scrape-wiki.mjs [--root <folderId>] [--out <dir>] [--dry-run]\n',
+      'usage: node scripts/scrape-wiki.mjs [--root <folderId>] [--out <dir>] [--dry-run] [--no-summary]\n',
     );
     return;
   }
@@ -321,7 +405,9 @@ async function main() {
 
       await installSnapshot(stagingOut, opts.out);
       stagingOut = undefined;
-      const commit = commitSnapshot(rulesRepo, opts.out, timestamp);
+      const target = relative(rulesRepo, opts.out);
+      const extra = opts.summary ? await recordChangelog(rulesRepo, target, timestamp) : [];
+      const commit = commitSnapshot(rulesRepo, [target, ...extra], timestamp);
       process.stdout.write(`Regel-Commit: ${commit}\n`);
     }
 

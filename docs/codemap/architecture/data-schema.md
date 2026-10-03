@@ -99,7 +99,7 @@ computes them in `TnoActor.prepareDerivedData()`, writing to
 | `initiative` | `ceil((2·base(dex) + base(per)) / 3)` | |
 | `movementWalk` / `movementSprint` / `movementCrawl` | `base(dex)`, `3·base(dex)`, `ceil(base(dex) / 3)` | the crawl is *aufgerundet* like `initiative` and `insight`, not rounded to nearest like `sixthSense` — rounding down would leave a low Beweglichkeit with no crawl at all |
 | `canSprint` | the load is under half capacity | the inventory state alone rules sprinting out |
-| `carrySlots` / `carrySlotsUsed` | `2·base(str) + base(dex)` / `carryWorn + carryCarried` | worn gear always counts; carried gear counts only with a container; `used` is never clamped — see [inventory.md](../concepts/inventory.md) |
+| `carrySlots` / `carrySlotsUsed` | `8 + 2·base(str) + base(dex)` / `carryWorn + carryCarried` | worn gear always counts; carried gear counts only with a container; `used` is never clamped — see [inventory.md](../concepts/inventory.md) |
 | `carryWorn` / `carryCarried` | sum of each slot band | the carried subtotal is 0 without a container |
 | `carryState` / `carryNoContainer` | `ok` \| `noSprint` \| `crawlOnly` / boolean | movement consequence and missing-container fact are independent |
 | `damage` | `resolveDamage(system.damage, base(str))` | raw pools, blunt split/conversion, total, `−1` per-point malus, and strict `effectiveSharp > capacity` incapacitation — see [damage.md](../concepts/damage.md) |

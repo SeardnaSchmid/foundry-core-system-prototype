@@ -2,7 +2,7 @@ import { getSkillDefinitions, generateCustomSkillKey } from '../helpers/skills.m
 
 // Namespaced rather than the bare `FormApplication` global, which is
 // deprecated. Still ApplicationV1 — see the V1 apps note in
-// docs/wiki/reference/module-map.md.
+// docs/codemap/reference/module-map.md.
 const { FormApplication } = foundry.appv1.api;
 
 /**

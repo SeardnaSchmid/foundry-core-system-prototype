@@ -218,15 +218,15 @@ column, the drag indicator, or the delete dialog.
 
 Per `CLAUDE.md` these come last, once the code is final. Currently wrong:
 
-- `docs/wiki/concepts/inventory.md:198` — "A block only stays inside the budget
+- `docs/codemap/concepts/inventory.md:198` — "A block only stays inside the budget
   if it fits there **whole**". Inverted by §1.
-- `docs/wiki/concepts/inventory.md:161` — "Core's `ActorSheetV2#_onSortItem`
+- `docs/codemap/concepts/inventory.md:161` — "Core's `ActorSheetV2#_onSortItem`
   does the whole job". It is now overridden, and why matters.
-- `docs/wiki/concepts/inventory.md:60` — `buildSlotGrid` return shape; `blocks`
+- `docs/codemap/concepts/inventory.md:60` — `buildSlotGrid` return shape; `blocks`
   entries now carry `inside`/`outside`.
-- `docs/wiki/concepts/inventory.md:163,182` — "the zero-slot band"; it is a
+- `docs/codemap/concepts/inventory.md:163,182` — "the zero-slot band"; it is a
   column in the paper-doll card now, not a band under the grid.
-- `docs/wiki/reference/ui-surfaces.md:19` — `item/parts/item-delete.hbs` is not
+- `docs/codemap/reference/ui-surfaces.md:19` — `item/parts/item-delete.hbs` is not
   registered in the template table; the paper-doll row's description predates
   the third column.
 - `docs/design/character-sheet-prd.md:103` — the Trageslots bullet restates both

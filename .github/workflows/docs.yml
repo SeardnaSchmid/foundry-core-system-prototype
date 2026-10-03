@@ -5,20 +5,20 @@ on:
     branches:
       - main
     paths:
-      - "docs/wiki/**"
+      - "docs/codemap/**"
       - "docs/design/**"
       - "module/**"
       - "template.json"
-      - "scripts/validate-wiki.mjs"
+      - "scripts/validate-codemap.mjs"
       - "scripts/validate-proofs.mjs"
       - "package.json"
   pull_request:
     paths:
-      - "docs/wiki/**"
+      - "docs/codemap/**"
       - "docs/design/**"
       - "module/**"
       - "template.json"
-      - "scripts/validate-wiki.mjs"
+      - "scripts/validate-codemap.mjs"
       - "scripts/validate-proofs.mjs"
       - "package.json"
 
@@ -38,5 +38,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Validate wiki
+      - name: Validate code map
         run: npm run docs:check

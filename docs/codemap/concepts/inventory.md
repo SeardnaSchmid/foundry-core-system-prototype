@@ -86,7 +86,7 @@ it is exact and never carries that prefix.
 
 ## Carrying
 
-`carrySlots = 2·base(str) + base(dex)`. Each stack costs `slots ×
+`carrySlots = 8 + 2·base(str) + base(dex)`. Each stack costs `slots ×
 quantity`, where `slots` runs 0–4 (0 = Geld/Papiere/Krimskrams, 4 =
 rucksackgroß; the per-value hints are `TNO.Inventory.SlotHint.*`).
 

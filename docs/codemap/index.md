@@ -1,17 +1,17 @@
 ---
 type: index
-title: TNO system wiki
-description: Entry point and reading order for the code-map wiki over the tno Foundry VTT system.
+title: TNO code map
+description: Entry point and reading order for the code map over the tno Foundry VTT system.
 tags: [index, overview]
 ---
 
-# TNO system wiki
+# TNO code map
 
 This is a **code map**, not a rulebook. Each page says what the code does,
 where it lives, and which functions implement it, then links out to the
 relevant PRD in [`docs/design/`](../design/) for the game-mechanics spec of
-record. Pages don't restate rules — if a rule and this wiki ever disagree,
-the PRD wins and this wiki is stale.
+record. Pages don't restate rules — if a rule and this code map ever disagree,
+the PRD wins and this code map is stale.
 
 Every page's frontmatter carries a `resource:` (and often `spec:`) pointer
 back to source. `npm run docs:check` fails the build if a pointer goes stale
@@ -66,7 +66,7 @@ New to the codebase? Read in this order:
 
 - [`docs/uiux-todo.md`](../uiux-todo.md) — the running list of interaction
   problems and the fixes discussed for each; not a code map, so it lives outside
-  the wiki
+  the code map
 
 ## Known tripwires
 

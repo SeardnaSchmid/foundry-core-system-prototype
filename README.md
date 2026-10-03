@@ -2,7 +2,7 @@
 foundry-core-system-prototype
 
 Für eine Architekturübersicht des Codes siehe
-[docs/wiki/index.md](docs/wiki/index.md).
+[docs/codemap/index.md](docs/codemap/index.md).
 
 ## Working title → finaler Name
 

@@ -1,7 +1,7 @@
 ---
 type: guide
 title: Build, test, and release
-description: The npm scripts for building CSS, running tests, validating the wiki, and cutting a release.
+description: The npm scripts for building CSS, running tests, validating the code map, and cutting a release.
 tags: [build, test, release, ci]
 ---
 
@@ -20,11 +20,11 @@ Command reference, CI wiring, and the full release procedure.
 | `npm test` | Runs the Vitest suite (`tests/{helpers,documents,packs}/**/*.test.js`) |
 | `npm run test:coverage` | Same, with v8 coverage (text + HTML + JSON summary) |
 | `npm run test:e2e` | Runs the Playwright suite against a disposable Foundry in Docker — see [e2e-testing.md](e2e-testing.md) |
-| `npm run docs:check` | Validates `docs/wiki/**` and the Proof citations in `docs/design/**` — see below |
+| `npm run docs:check` | Validates `docs/codemap/**` and the Proof citations in `docs/design/**` — see below |
 | `npm run css:check` | Fails if `css/tno.css` is not what `src/scss` currently compiles to — see below |
 | `npm run packs:check` | Fails if `src/packs/**` does not compile. Builds into a temp directory and discards it, so it never touches `packs/` and runs happily under a live Foundry — see below |
 | `npm run docs:odds` | Regenerates `docs/design/dice-odds.md` from the shipped dice helpers — see [dice-resolution.md](../concepts/dice-resolution.md) |
-| `npm run rules:fetch` | Refreshes the private rule mirror in the independent `rules/` Git repository |
+| `npm run rules:fetch` | Refreshes the private rule mirror in the independent `rules/` Git repository and summarizes rule changes into `rules/CHANGELOG.md` |
 | `npm run release` | Runs `release-it`: bumps version, updates `CHANGELOG.md`, tags, pushes |
 
 There is no bundler and no linter (`eslint`/`prettier`) in this repo —
@@ -42,8 +42,14 @@ its history are not published with the Foundry system. Every successful fetch
 automatically creates a commit scoped to `wiki/`, including an empty commit
 when the source did not change. Use `git -C rules diff HEAD^ HEAD -- wiki` to
 review the exact delta. Unchanged documents retain their existing `scraped:`
-value so the diff contains no daily timestamp churn. See `rules/README.md` for
-the short workflow.
+value so the diff contains no daily timestamp churn.
+
+When the text changed, the fetch also pipes that delta (minus `scraped:` lines)
+through the local `claude` CLI — headless, no tools — and prepends a
+plain-language German entry to `rules/CHANGELOG.md`, committed with the
+snapshot. A failed summary is recorded in the entry with the file list instead
+and never fails the fetch; `--no-summary` skips the step. See `rules/README.md`
+for the short workflow.
 
 ## Release procedure
 
@@ -69,7 +75,7 @@ Three GitHub Actions workflows:
   compendium packs, packages `system.zip` from an explicit file list, and
   publishes the GitHub release. It does not run Playwright e2e tests.
 - **`.github/workflows/docs.yml`** — triggers on push/PR touching
-  `docs/wiki/**`, `docs/design/**`, `module/**`, `template.json`, or either
+  `docs/codemap/**`, `docs/design/**`, `module/**`, `template.json`, or either
   validator. Runs `npm run docs:check`.
 - **`.github/workflows/e2e.yml`** — triggers on push to `main` and on pull
   requests from branches in this repository, for fast feedback while
@@ -78,7 +84,7 @@ Three GitHub Actions workflows:
   whose directory does not exist.
 
 `npm run docs:check` is also wired into `.release-it.json`'s `before:init`
-hook alongside `npm test`, so a release cannot ship with a stale wiki
+hook alongside `npm test`, so a release cannot ship with a stale code map
 pointer (`resource:`/`spec:` path that no longer exists, broken link, or
 orphaned page).
 
@@ -87,7 +93,7 @@ orphaned page).
 `css/tno.css` is **committed**, because Foundry loads it straight from the
 manifest and there is no bundler in front of it. Nothing else in the pipeline
 looks at it: `npm test` covers the pure helpers and `docs:check` reads the
-wiki, so a `.scss` edit committed without `npm run build` used to ship a
+code map, so a `.scss` edit committed without `npm run build` used to ship a
 stylesheet that silently did not match its source.
 
 `npm run css:check`
@@ -137,13 +143,13 @@ suite does not exercise is a rule nothing is holding in place.
 It matches `it(` and `test(` alike, so a Playwright spec satisfies a citation
 whether or not the e2e suite has been run.
 
-## Wiki validation details
+## Code-map validation details
 
-`scripts/validate-wiki.mjs` checks every page under `docs/wiki/`:
+`scripts/validate-codemap.mjs` checks every page under `docs/codemap/`:
 frontmatter parses and has the required keys (`type`, `title`,
 `description`, `tags`; `resource` for `concept`/`architecture`/`reference`
 pages), every `resource:`/`spec:` path exists on disk, every relative
 Markdown link resolves, every `related:` slug resolves to a real page, no
 duplicate titles, and every page is reachable from
-[`docs/wiki/index.md`](../index.md) via links or `related:` (the orphan
+[`docs/codemap/index.md`](../index.md) via links or `related:` (the orphan
 check).

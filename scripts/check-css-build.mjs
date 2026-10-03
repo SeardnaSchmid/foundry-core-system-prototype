@@ -6,7 +6,7 @@
  * from the manifest and there is no bundler in front of it — so a `.scss` edit
  * committed without `npm run build` ships a sheet that silently does not match
  * the source. Nothing else in the pipeline notices: `npm test` only covers the
- * pure helpers and `docs:check` only reads the wiki.
+ * pure helpers and `docs:check` only reads the code map.
  *
  * Compiles to a temporary file with the exact flags `npm run build` uses and
  * compares byte for byte, so this can never disagree with the real build.

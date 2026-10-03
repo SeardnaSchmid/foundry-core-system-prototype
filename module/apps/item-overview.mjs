@@ -13,7 +13,7 @@ import { inventoryArt } from '../helpers/items.mjs';
 
 // Namespaced rather than the bare `FormApplication` global, which is
 // deprecated. Still ApplicationV1, like the custom-skills overview it is
-// modelled on — see the V1 apps note in docs/wiki/reference/module-map.md.
+// modelled on — see the V1 apps note in docs/codemap/reference/module-map.md.
 const { FormApplication } = foundry.appv1.api;
 
 /**

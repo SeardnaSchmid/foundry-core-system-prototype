@@ -17,7 +17,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report",
-    "docs:check": "node scripts/validate-wiki.mjs && node scripts/validate-proofs.mjs",
+    "docs:check": "node scripts/validate-codemap.mjs && node scripts/validate-proofs.mjs",
     "docs:odds": "node scripts/dice-odds.mjs",
     "rules:fetch": "node scripts/scrape-wiki.mjs",
     "serve": "node scripts/serve-foundry.mjs",
