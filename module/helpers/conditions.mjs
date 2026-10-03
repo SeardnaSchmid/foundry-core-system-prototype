@@ -1,3 +1,5 @@
+import { CARRY_THRESHOLDS } from './inventory.mjs';
+
 /**
  * The six damage-derived condition lights in their fixed 3x2 raster order.
  * Rows are damage kinds (Wuchtschaden, Schaden); columns are the affected
@@ -99,7 +101,6 @@ export const CARRY_CONDITION_DEFINITION = Object.freeze({
   key: 'overloaded',
   source: 'carry',
   classification: 'negative',
-  reasonKey: 'TNO.Status.CarryLoad',
 });
 
 const CARRY_STATE_PRESENTATION = Object.freeze({
@@ -108,12 +109,14 @@ const CARRY_STATE_PRESENTATION = Object.freeze({
     tagKey: 'TNO.Status.Tag.Loaded',
     labelKey: 'TNO.Status.Loaded',
     effectKey: 'TNO.Status.Effect.Loaded',
+    reasonKey: 'TNO.Status.CarryHalf',
   }),
   crawlOnly: Object.freeze({
     tone: 'severe',
     tagKey: 'TNO.Status.Tag.Overloaded',
     labelKey: 'TNO.Status.Overloaded',
     effectKey: 'TNO.Status.Effect.Overloaded',
+    reasonKey: 'TNO.Status.CarryFull',
   }),
 });
 
@@ -269,9 +272,13 @@ export function resolveCarryCondition(carry = {}) {
     // Only an active load takes something away, so only an active one names a
     // consequence. An inactive entry with an effect would read as a threat.
     effectKey: presentation?.effectKey ?? null,
+    reasonKey: presentation?.reasonKey ?? null,
     carryState: carry?.state ?? 'ok',
     value: nonNegative(carry?.used),
     threshold: nonNegative(carry?.capacity),
+    // The slot count the state was crossed at, so the reason can say which
+    // line the load is past rather than only how full the budget is.
+    limit: presentation ? nonNegative(carry?.capacity) * CARRY_THRESHOLDS[carry.state] : null,
     derivedActive: active,
     override: null,
     manual: false,

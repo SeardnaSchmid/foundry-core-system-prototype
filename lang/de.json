@@ -261,10 +261,10 @@
       "BiomePlanetoids": "Planteoiden",
       "BiomeDryAsteroids": "Trockene Asteroiden",
       "BiomeWetAsteroids": "Feuchte Asteroiden",
-      "BiomeTouchedCubewano": "Berührte Asteroiden - Cubewanos",
-      "BiomeTouchedResonant": "Berührte Asteroiden - Resonantes Objekt",
-      "BiomeTouchedScattered": "Berührte Asteroiden - Streuscheiben Objekt",
-      "BiomeTouchedDetached": "Berührte Asteroiden - Gelöstes Objekt",
+      "BiomeTouchedCubewano": "Cubewanos",
+      "BiomeTouchedResonant": "Resonantes Objekt",
+      "BiomeTouchedScattered": "Streuscheiben Objekt",
+      "BiomeTouchedDetached": "Gelöstes Objekt",
       "BiomeAwakenedAsteroids": "Erwachte Asteroiden",
       "BiomeFreeSpace": "Freier Raum",
       "BiomeRelictoids": "Reliktoiden",
@@ -331,6 +331,10 @@
       "Cult": {
         "Name": "Kulturwissenschaften",
         "Badge": "KUL"
+      },
+      "Touched": {
+        "Name": "Berührte Asteroiden",
+        "Badge": "BER"
       }
     },
     "CustomSkill": {
@@ -572,10 +576,10 @@
       "DialogTitle": "Würfelwurf",
       "DialogTitleWithSubject": "{name}",
       "AttributeB": "Attribut/Fähigkeit 2",
-      "Bonus": "Modifikation",
+      "Bonus": "Situative Modifikation",
       "BonusReset": "Zurücksetzen",
-      "BonusResetLabel": "Modifikation {value} auf ±0 zurücksetzen",
-      "BonusStepLabel": "Modifikation {value}",
+      "BonusResetLabel": "Situative Modifikation {value} auf ±0 zurücksetzen",
+      "BonusStepLabel": "Situative Modifikation {value}",
       "Advantage": "Wurftyp",
       "AdvantageDefaultHint": "{label} (Standard)",
       "AdvantageDefault": "Standard",
@@ -656,6 +660,7 @@
       "RangeQuestion": "Auf welcher Distanz?",
       "DkDifference": "Reichweitenvorteil",
       "DkQuestion": "Hast du die längere Waffe?",
+      "DkNote": "Deine DK {dk}",
       "Reach": {
         "Longer": "Längere Waffe",
         "NotLonger": "Nicht länger"
@@ -667,8 +672,8 @@
       "FvMalus": "FV-Voraussetzung (Manöver)",
       "FvMalusHint": "Die Waffenfertigkeit unterschreitet die FV. Dieser Malus gilt, sobald der Wurf durch Ansage oder gezielte Stelle ein Manöver ist.",
       "AnsageCaption": "Manöver",
-      "Ansage": "Ansage",
-      "AnsageHint": "Wie weit du diesen Wurf erschwerst, um dafür etwas anderes zu erreichen. Wofür genau, klärt ihr am Tisch — hier steht nur die Zahl, und der Gegner bekommt sie in derselben Höhe.",
+      "Ansage": "Deine Ansage",
+      "AnsageHint": "Wie weit du diesen Wurf erschwerst, um dafür etwas anderes zu erreichen. Wofür genau, klärt ihr am Tisch — hier steht nur die Zahl, und der Gegner bekommt sie in derselben Höhe. Ein negativer Wert erleichtert den Wurf stattdessen, etwa wenn du einen früher angesagten Bonus einlöst; dem Gegner wird dann nichts angesagt.",
       "Zone": "Trefferzone",
       "ZoneQuestion": "Wohin zielst du?",
       "StanceLabel": "Haltung",
@@ -773,9 +778,10 @@
       "SharpArms": "Arme verkrüppelt",
       "Loaded": "Schwer beladen",
       "Overloaded": "Überlastet",
-      "CarryLoad": "{used} von {capacity} Inventarslots belegt",
+      "CarryHalf": "Ausgelöst: {used} von {capacity} Inventarslots belegt — ab der Hälfte ({limit}) fällt der Sprint weg.",
+      "CarryFull": "Ausgelöst: {used} von {capacity} Inventarslots belegt — ab {limit} bleibt nur noch Kriechen.",
       "ArmorTooHeavy": "Rüstung zu schwer",
-      "ArmorSvShort": "Stärke {str} < SV {sv}",
+      "ArmorSvShort": "Ausgelöst: Die getragene Rüstung verlangt zusammen Stärke {sv}, du hast {str}.",
       "NoDodge": "Ausweichen verwehrt",
       "Tag": {
         "BluntCore": "Hu",
@@ -789,7 +795,7 @@
         "ArmorTooHeavy": "Rs",
         "NoDodge": "Aw"
       },
-      "StanceBlocksDodge": "Haltung: {stance}",
+      "StanceBlocksDodge": "Ausgelöst durch die Haltung „{stance}“, die kein Ausweichen erlaubt.",
       "Effect": {
         "SharpCore": "Scheidet aus dem Kampf aus.",
         "SharpLegs": "Bewegt sich nur noch kriechend — im Kampf also nur in der Haltung „Vorsichtige Bewegung“.",
@@ -803,8 +809,10 @@
         "NoDodge": "Keine Verteidigung — weder Ausweichen noch Parade.",
         "NoDodgeParryLeft": "Kein Ausweichen — nur die Parade bleibt."
       },
-      "ThresholdReached": "{pool} {value} > {attribute} {threshold}",
-      "ThresholdPending": "{pool} {value} ≤ {attribute} {threshold}",
+      "ThresholdReached": "Ausgelöst: {pool} {value} übersteigt {attribute} {threshold}.",
+      "ThresholdPending": "Löst aus, sobald {pool} {attribute} {threshold} übersteigt — derzeit {value}.",
+      "ThresholdForced": "Von Hand gesetzt — {pool} {value} übersteigt {attribute} {threshold} noch nicht.",
+      "ThresholdSuppressed": "Von Hand negiert, obwohl {pool} {value} {attribute} {threshold} übersteigt.",
       "CycleHint": "Klick: automatisch → manuell gesetzt → manuell negiert",
       "State": {
         "inactive": "Inaktiv",

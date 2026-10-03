@@ -106,6 +106,12 @@ on opposite sides of that line.
     (`tests/documents/roll-dialog.test.js › carries a readout the choices are measured against`).
     A zero anchor is a real answer and is stated, not dropped
     (`tests/documents/roll-dialog.test.js › keeps a zero`).
+    A context may instead carry a `note` — one plain string, rendered small and
+    muted between the question and its answers (`.tno-context-note`). The melee
+    reach question on an attack or parry uses it for the weapon's own DK
+    (`dkNote` in `helpers/combat-actions.mjs`); the anchor stays reserved for a
+    number a ladder is measured against, which today is only the resistance
+    roll's RH.
   - `requiredValue` — one typed number, e.g. the announced Schadenswert. It
     opens at 0 and does **not** gate the roll: the field is edited, not filled
     from empty. Optionally `labels` (one per `preRollContext` choice key), a
@@ -131,7 +137,7 @@ on opposite sides of that line.
     `−` · value · `+` stepper frames the input: `.tno-ledger-stepper`, the one
     control **every** integer field in the ledger wears — this, the Ansage
     against you, the Ansage you declare — and it shares its look with the
-    Modifikation `±3`, so the dialog teaches the gesture once.
+    Situative Modifikation `±3`, so the dialog teaches the gesture once.
     `_stepValue` clamps it to the `min`/`max` **the input itself carries**
     rather than to any one workflow's spec, which is what lets a single handler
     serve them all; the reached bound is shown as a disabled button rather than
@@ -286,7 +292,7 @@ rather than a bordered block with a field sunk into it, which is what the
 announced-value field used to be.
 
 What differs is only the middle's payload, and only where it must. The
-Modifikation moves in Malusstufen and its middle is a **button**: it shows the
+Situative Modifikation moves in Malusstufen and its middle is a **button**: it shows the
 value, and clicking it resets to `±0`. A ledger value moves by one and its
 middle is the **input** you type the announced number into — transparent at rest
 so the two read alike, with a faint well on hover and focus, because a field you
@@ -297,8 +303,10 @@ takes the UA's pure black and an `<input>` the sheet's ink, which put the two at
 different darknesses side by side. Every stepped field also opens on a **value**
 rather than a placeholder, so nothing in the row renders grey where its
 neighbours render solid. The one glyph that still differs is deliberate — the
-Modifikation shows `±0` because it is a signed modifier that can go either way,
-while a value field shows `0` because it is a magnitude with a floor of 0.
+Situative Modifikation shows `±0` because it is a signed modifier that can go either way,
+while a value field shows `0` because it is a magnitude. Only the Ansage you
+declare has no floor: its input carries no `min`, and a negative entry eases the
+roll (`_ansageValue`) without counting as a Manöver in `_conditionalModifiers`.
 
 **One type size, and one checkbox, for a row.** Every line's *name* is set at
 13px/normal, whatever control the line carries — a `<label>` in front of a

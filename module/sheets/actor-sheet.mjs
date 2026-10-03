@@ -885,10 +885,13 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    */
   #conditionReason(condition) {
     switch (condition.source) {
+      // Only an active load has a line it crossed, so only it has a reason.
       case 'carry':
+        if (!condition.reasonKey) return '';
         return game.i18n.format(condition.reasonKey, {
-          used: condition.value,
-          capacity: condition.threshold,
+          used: this.#formatNumber(condition.value),
+          capacity: this.#formatNumber(condition.threshold),
+          limit: this.#formatNumber(condition.limit),
         });
       // The summed SV runs in quarter steps, so it needs the reader's own
       // decimal separator exactly as the paper doll's warning line does.
@@ -903,11 +906,18 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             ? game.i18n.localize(condition.stanceLabelKey)
             : '—',
         });
+      // A manual light says why it disagrees with the threshold, not only what
+      // the threshold reads — otherwise a forced-on light explains itself with
+      // a comparison that says it should be off.
       default:
         return game.i18n.format(
-          condition.derivedActive
-            ? 'TNO.Status.ThresholdReached'
-            : 'TNO.Status.ThresholdPending',
+          condition.state === 'manualActive' && !condition.derivedActive
+            ? 'TNO.Status.ThresholdForced'
+            : condition.state === 'suppressed' && condition.derivedActive
+              ? 'TNO.Status.ThresholdSuppressed'
+              : condition.derivedActive
+                ? 'TNO.Status.ThresholdReached'
+                : 'TNO.Status.ThresholdPending',
           {
             pool: game.i18n.localize(condition.poolLabelKey),
             value: condition.value,
@@ -2985,8 +2995,16 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         const starter = rowEl.dataset.starter === 'true';
         const custom = rowEl.dataset.custom === 'true';
         const alwaysVisible = rowEl.dataset.alwaysVisible === 'true';
+        // The searchable text is the name plus the subgroup label, because a
+        // badged family's shared prefix ("Berührte Asteroiden") is no longer
+        // part of the name it was factored out of — searching for it must
+        // still find the four skills that wear the badge.
+        const haystack = [
+          rowEl.querySelector('.skill-name-text')?.textContent ?? '',
+          rowEl.dataset.subgroupLabel ?? '',
+        ].join(' ');
         const visible = search
-          ? fuzzyMatch(search, rowEl.querySelector('.skill-name-text')?.textContent ?? '')
+          ? fuzzyMatch(search, haystack)
           : filter === 'all' ||
             alwaysVisible ||
             (filter === 'trained' && (rank !== 0 || custom || xp !== 0)) ||

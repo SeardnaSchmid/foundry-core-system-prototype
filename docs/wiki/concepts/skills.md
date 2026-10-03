@@ -27,10 +27,16 @@ dialog — any attribute can be swapped in via the dialog's chip picker, a
 skill is never bound to one fixed attribute.
 
 `subgroup` (`CONFIG.TNO.skillSubgroups`: `med`, `pilot`, `sci`, `hum`,
-`cult`) adds a small badge for skills that live inside a bundling category
+`cult`, `touched`) adds a small badge for a family of skills that would
+otherwise repeat one prefix in every label — either a bundling category
 (`technology` holds Tech/Medicine/Pilot side by side; `knowledge` holds
-Science/Humanities/Culture). Only the ambiguous domains get a badge — plain
-`technology` skills go unbadged.
+Science/Humanities/Culture) or a family inside an otherwise flat one
+(`touched` = the four Berührte Asteroiden within `biomes`). Only the
+ambiguous families get a badge — plain `technology` and plain `biomes`
+skills go unbadged. The label itself carries only the distinguishing part
+("Cubewanos", not "Berührte Asteroiden - Cubewanos"), so the sheet's skill
+search matches a row's name **and** its subgroup label, or the factored-out
+prefix would no longer find it (`_applySkillFilter`).
 
 `starter: true` flags entry-level skills shown during character creation.
 

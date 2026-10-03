@@ -130,6 +130,21 @@ describe('resolveCarryCondition', () => {
     });
   });
 
+  it('names the line each tier was crossed at, and gives no reason while inactive', () => {
+    expect(resolveCarryCondition({ state: 'noSprint', used: 5, capacity: 10 })).toMatchObject({
+      reasonKey: 'TNO.Status.CarryHalf',
+      limit: 5,
+    });
+    expect(resolveCarryCondition({ state: 'crawlOnly', used: 12, capacity: 10 })).toMatchObject({
+      reasonKey: 'TNO.Status.CarryFull',
+      limit: 10,
+    });
+    expect(resolveCarryCondition({ state: 'ok', used: 3, capacity: 10 })).toMatchObject({
+      reasonKey: null,
+      limit: null,
+    });
+  });
+
   it('is never overridable', () => {
     const entry = resolveCarryCondition({ state: 'crawlOnly', used: 12, capacity: 10 });
     expect(entry).toMatchObject({ override: null, manual: false, suppressed: false });

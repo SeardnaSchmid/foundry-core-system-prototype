@@ -108,7 +108,12 @@ describe('combat action builders', () => {
       // weapon rather than by re-reading every flavor line.
       img: 'icons/weapons/swords/machete.webp',
     });
-    expect(options.preRollContext).toMatchObject({ label: 'TNO.Combat.DkQuestion', control: 'toggle' });
+    expect(options.preRollContext).toMatchObject({
+      label: 'TNO.Combat.DkQuestion',
+      control: 'toggle',
+      // The weapon's own DK is said under the question it is compared against.
+      note: 'TNO.Combat.DkNote(4)',
+    });
     expect(options.preRollContext.choices.map((choice) => choice.value)).toEqual([0, 3]);
     expect(options.zonePicker).toMatchObject({
       label: 'TNO.Combat.ZoneQuestion',
@@ -124,6 +129,7 @@ describe('combat action builders', () => {
       weapon({ use: 'ranged', dk: null, rd: 3, range: { near: 0, mid: -3 } })
     );
     expect(options.preRollContext.label).toBe('TNO.Combat.RangeQuestion');
+    expect(options.preRollContext.note).toBeUndefined();
     expect(options.preRollContext.choices.map((choice) => [choice.key, choice.value])).toEqual([
       ['near', 0],
       ['mid', -3],
@@ -137,7 +143,11 @@ describe('combat action builders', () => {
       value: -1,
       hint: 'TNO.Combat.PassiveHandlingHint',
     }]);
-    expect(options.preRollContext).toMatchObject({ label: 'TNO.Combat.DkQuestion', control: 'toggle' });
+    expect(options.preRollContext).toMatchObject({
+      label: 'TNO.Combat.DkQuestion',
+      control: 'toggle',
+      note: 'TNO.Combat.DkNote(4)',
+    });
     expect(options.preRollContext.choices.map((choice) => choice.value)).toEqual([0, 3]);
     expect(options.img).toBe('icons/weapons/swords/machete.webp');
   });

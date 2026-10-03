@@ -5626,6 +5626,12 @@
   font-weight: bold;
   line-height: 1.25;
 }
+.tno .tno-roll-dialog .tno-ledger-row--picker .tno-context-note {
+  margin: -3px 0 5px;
+  color: rgba(25, 24, 19, 0.65);
+  font-size: var(--font-size-11, 11px);
+  line-height: 1.25;
+}
 .tno .tno-roll-dialog .tno-comparison-anchor {
   display: flex;
   flex-direction: column;

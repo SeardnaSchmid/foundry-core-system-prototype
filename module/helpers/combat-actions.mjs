@@ -135,8 +135,20 @@ function weaponContext(system) {
     placeholder: game.i18n.localize('TNO.Combat.ContextPlaceholder'),
     control: melee ? 'toggle' : 'tiles',
     tileColumns: melee ? 2 : 5,
+    ...(melee ? dkNote(system) : {}),
     choices: melee ? dkChoices() : rangeBandChoices(system),
   };
+}
+
+/**
+ * The weapon's own DK, as the quiet line between the reach question and its
+ * answers: question, what you need to answer it, then the answer.
+ * @param {Object} system  A weapon item's `system` data.
+ * @returns {{note?: string}}
+ */
+function dkNote(system) {
+  if (!isAuthoredNumber(system?.dk)) return {};
+  return { note: game.i18n.format('TNO.Combat.DkNote', { dk: Number(system.dk) }) };
 }
 
 /**
@@ -447,6 +459,7 @@ export function paradeOptions(actor, weapon) {
       placeholder: game.i18n.localize('TNO.Combat.ContextPlaceholder'),
       control: 'toggle',
         tileColumns: 2,
+      ...dkNote(weapon.system),
       choices: dkChoices(),
     },
     // A parry declares an amount but never a Stelle: the location is the

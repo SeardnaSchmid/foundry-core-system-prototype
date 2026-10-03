@@ -180,6 +180,7 @@ be renamed. --}}
           {{#if preRollContext.isTilePicker}}
           <fieldset class="tno-context-tile-field">
             <legend>{{preRollContext.label}}</legend>
+            {{#if preRollContext.note}}<p class="tno-context-note">{{preRollContext.note}}</p>{{/if}}
             <div class="tno-context-tile-grid tno-context-tile-grid-{{preRollContext.tileColumns}}">
               {{#each preRollContext.choices as |choice|}}
               <input id="{{../dialogId}}-context-choice-{{choice.key}}" class="tno-context-tile-input" type="radio" name="contextChoice" value="{{choice.key}}" required {{#if choice.selected}}checked{{/if}}>
@@ -199,6 +200,7 @@ be renamed. --}}
           {{else if preRollContext.isToggle}}
           <fieldset class="tno-context-toggle-field">
             <legend>{{preRollContext.label}}</legend>
+            {{#if preRollContext.note}}<p class="tno-context-note">{{preRollContext.note}}</p>{{/if}}
             <div class="tno-context-toggle-group">
               {{#each preRollContext.choices as |choice|}}
               <input id="{{../dialogId}}-context-toggle-{{choice.key}}" class="tno-context-tile-input" type="radio" name="contextChoice" value="{{choice.key}}" required {{#if choice.selected}}checked{{/if}}>
@@ -338,7 +340,7 @@ be renamed. --}}
           <span class="tno-ledger-stepper">
             <button type="button" class="tno-ledger-step" data-step="-1"
                     aria-label="{{localize 'TNO.Roll.ValueDecrease'}}">&minus;</button>
-          <input id="{{dialogId}}-ansage" type="number" name="ansage" min="0" step="1"
+          <input id="{{dialogId}}-ansage" type="number" name="ansage" step="1"
                  value="{{ansage.value}}" autocomplete="off">
             <button type="button" class="tno-ledger-step" data-step="1"
                     aria-label="{{localize 'TNO.Roll.ValueIncrease'}}">+</button>

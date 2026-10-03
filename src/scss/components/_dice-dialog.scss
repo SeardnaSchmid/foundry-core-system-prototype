@@ -349,6 +349,16 @@ $c-roll-negative: #c62828;
     line-height: 1.25;
   }
 
+  // What the reader needs to answer the question, between it and the answers:
+  // read second, so set smaller and lighter than the legend it follows and
+  // pulled up under it, leaving the legend's own gap below.
+  .tno-ledger-row--picker .tno-context-note {
+    margin: -3px 0 5px;
+    color: rgba($c-dark, 0.65);
+    font-size: var(--font-size-11, 11px);
+    line-height: 1.25;
+  }
+
   // The reader's own number: the same faint chip the base attribute wears, and
   // explicitly not a tile — no pointer, no hover, no selected state — because
   // the rungs beside it are clickable and this one is a fact.

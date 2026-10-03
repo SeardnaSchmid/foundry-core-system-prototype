@@ -54,7 +54,7 @@ export class TnoRollDialog extends FormApplication {
    * @param {{label: string, value: number, hint?: string}[]} [options.fixedModifiers]
    *   Immutable rule modifiers added to the threshold and shown separately
    *   from the editable situational bonus.
-   * @param {{label: string, placeholder: string, control?: 'select'|'tiles'|'toggle', tileColumns?: 1|2|3|5|7, anchor?: {label: string, value: number|string}, choices: Array<{key: string, label: string, value: number, componentLabel?: string}>}} [options.preRollContext]
+   * @param {{label: string, placeholder: string, control?: 'select'|'tiles'|'toggle', tileColumns?: 1|2|3|5|7, anchor?: {label: string, value: number|string}, note?: string, choices: Array<{key: string, label: string, value: number, componentLabel?: string}>}} [options.preRollContext]
    *   One optional required choice that must be made before rolling. Its
    *   selected value becomes an immutable threshold component.
    * @param {{label: string, placeholder?: string, componentLabel?: string, sign?: 1|-1, min?: number, max?: number}} [options.requiredValue]
@@ -174,7 +174,7 @@ export class TnoRollDialog extends FormApplication {
    * Keep the optional context interface safe for all existing roll callers:
    * malformed or empty contexts simply behave as though no context was given.
    * @param {*} context
-   * @returns {{label: string, placeholder: string, control: 'select'|'tiles'|'toggle', tileColumns: 1|2|3|5|7, anchor: ?{label: string, value: string}, choices: Array<{key: string, label: string, value: number, componentLabel?: string}>}|null}
+   * @returns {{label: string, placeholder: string, control: 'select'|'tiles'|'toggle', tileColumns: 1|2|3|5|7, anchor: ?{label: string, value: string}, note: string, choices: Array<{key: string, label: string, value: number, componentLabel?: string}>}|null}
    */
   _normalizePreRollContext(context) {
     if (!context?.label || !Array.isArray(context.choices)) return null;
@@ -213,6 +213,10 @@ export class TnoRollDialog extends FormApplication {
       anchor: context.anchor?.label && context.anchor?.value !== undefined
         ? { label: String(context.anchor.label), value: String(context.anchor.value) }
         : null,
+      // What the reader needs to answer the question, said under it and above
+      // the answers. Quieter than an anchor on purpose: an anchor is the column
+      // a ladder is measured against, this is a fact to glance at.
+      note: context.note ? String(context.note) : '',
       choices,
     };
   }
@@ -817,10 +821,12 @@ export class TnoRollDialog extends FormApplication {
     // a typed Ansage, and naming a Stelle other than the Torso — "Ansagen auf
     // Trefferzonen im Nahkampf, normale Ansageregeln gelten hier auf alles", so
     // an aimed attack is a Manöver as surely as a Finte is. The Torso alone is
-    // not, because that is where an attack that announced nothing lands.
+    // not, because that is where an attack that announced nothing lands — and
+    // neither is a negative Ansage, which collects on an earlier declaration
+    // rather than making one.
     // It stays its own component next to the armour step, never folded into it —
     // three requirements, three shapes.
-    const declared = this._ansageValue(data) || this._zoneComponent(data);
+    const declared = this._ansageValue(data) > 0 || this._zoneComponent(data);
     const fv = this.maneuverMalus && declared ? [this.maneuverMalus] : [];
     // A state the *other* side announced, which the player confirms rather than
     // computes — today only 'Rüstung umgehen'.
@@ -936,8 +942,9 @@ export class TnoRollDialog extends FormApplication {
   }
 
   /**
-   * The Ansage as typed: a plain magnitude, or 0 for a roll that declares
-   * nothing.
+   * The Ansage as typed: a signed whole number, or 0 for a roll that declares
+   * nothing. Positive worsens this roll; negative eases it — the other half of
+   * "erschwert einen deiner Würfe um einen anderen zu erleichtern".
    *
    * Nothing converts it. The rulebook's 1:1-up-to-the-rank / 2:1-past-it ladder
    * used to be applied here, and it isn't any more — not because the rule
@@ -949,7 +956,7 @@ export class TnoRollDialog extends FormApplication {
    */
   _ansageValue(data) {
     if (!this.ansage) return 0;
-    return Math.max(0, Math.trunc(Number(data?.ansage) || 0));
+    return Math.trunc(Number(data?.ansage) || 0);
   }
 
   /**

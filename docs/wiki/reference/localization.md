@@ -62,8 +62,8 @@ the spelled-out name; it is localized rather than sliced off the label because
 the German and English names abbreviate differently. The band itself names
 conditions in full. The
 three derived conditions add their names (`Loaded` / `Overloaded`,
-`ArmorTooHeavy`, `NoDodge`), one read-out each (`CarryLoad`, `ArmorSvShort`,
-`StanceBlocksDodge`) and their consequences (`OverloadEffect.*` keyed by
+`ArmorTooHeavy`, `NoDodge`), one reason each (`CarryHalf` / `CarryFull` keyed
+by `carryState`, `ArmorSvShort`, `StanceBlocksDodge`) and their consequences (`OverloadEffect.*` keyed by
 `carryState`, `ArmorEffect`, `DodgeEffect.*` keyed by whether a parry remains).
 The resolver names the key and the sheet only localizes it, which is what keeps
 `game.i18n` out of the condition rules.

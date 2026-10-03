@@ -353,9 +353,9 @@ magnitude, declared on the roll, taken at face value.**
 
 | | |
 |---|---|
-| Input | one optional integer, `0` = nothing declared |
+| Input | one optional signed integer, `0` = nothing declared |
 | Cost to the declaring roll | `−Betrag` |
-| What the defender is told | `Betrag` |
+| What the defender is told | `Betrag`, if positive |
 | Which of their rolls it lands on | not modelled — said out loud |
 | Which Manöver it is | not modelled — said out loud |
 
@@ -371,8 +371,17 @@ Ansagen are free integers, **not** multiples of a Malusstufe, and the field sits
 deliberately outside the situational `±30` clamp — that clamp bounds what a GM
 hands out unilaterally, and this is a number both sides already agreed on
 (`tests/documents/roll-dialog.test.js › leaves the declared amount outside the situational modifier clamp`).
-Blank, zero and negative all mean the same thing: a Standardangriff
-(`tests/documents/roll-dialog.test.js › reads a blank, negative or fractional field as nothing declared`).
+Blank and zero mean the same thing: a Standardangriff
+(`tests/documents/roll-dialog.test.js › reads a blank field as nothing declared and a fraction as its whole part`).
+
+**A negative Betrag is the other half of the bargain.** "Um einen anderen zu
+erleichtern" needs somewhere to land, and the roll being eased is as often an
+attack or parry as not — a Riposte pays on the parry and collects on the next
+attack. So the same field takes the collected amount with its sign flipped: `−2`
+eases this roll by 2. It is collecting, not declaring, so it is not a Manöver —
+no FV malus — and the card announces nothing to the defender
+(`tests/documents/roll-dialog.test.js › eases the roll by a negative Ansage without making it a Manöver`).
+What the amount was earned by is, like everything else here, agreed at the table.
 
 A parry gets the same field — a Riposte is declared on one — but never a Stelle,
 which is the attacker's to name
@@ -570,7 +579,7 @@ automated later — only the transport.
 
 Riposte is the one Ansage whose effect outlives its roll ("dein *nächster*
 Angriff gegen ihn"), so it needs actor-scoped state keyed by target and is not
-tracked. The seven `#TODO` Manöver categories — Fiese Tricks, Automatikfeuer,
+tracked — the player carries it over and enters it as a negative Ansage. The seven `#TODO` Manöver categories — Fiese Tricks, Automatikfeuer,
 Gun-Kata, Gruppenkampftaktik, Einzelkampftaktik, Psychologische Kriegsführung,
 Teamführung — are unwritten in the rulebook itself, not merely unimplemented.
 

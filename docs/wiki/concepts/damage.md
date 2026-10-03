@@ -118,9 +118,14 @@ than a state the character is in.
 
 Each source compares a different pair, so the panel's reason line is built per
 `source` in `TnoActorSheet#conditionReason()` rather than from one sentence
-that would have to fit all four badly. The armour reason runs its two numbers
-through the sheet's `#formatNumber`, because a summed SV is in quarter steps
-and wants the reader's own decimal separator.
+that would have to fit all four badly. Every reason is a sentence saying why
+the condition is on, not a bare comparison: a load names the line it crossed
+(`limit`, from `CARRY_THRESHOLDS`), and a damage light that was forced on or
+off says so instead of quoting a threshold that disagrees with it. The armour
+and load reasons run their numbers through the sheet's `#formatNumber`,
+because summed SV and slot footprints come in fractions and want the reader's
+own decimal separator. The same reason sits on each banner chip's tooltip, so
+the cause is readable without opening the panel.
 
 ## Consumers
 

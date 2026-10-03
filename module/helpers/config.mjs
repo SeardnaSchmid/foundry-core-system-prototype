@@ -101,12 +101,15 @@ TNO.skillCategories = {
 };
 
 /**
- * Sub-groupings shown as a small badge next to a skill's name when its
- * category bundles more than one distinct domain (e.g. "Technology" holds
- * Tech/Medicine/Pilot skills side by side). Skills in a category's dominant
- * domain (plain "Tech" within `technology`) go unbadged; only the domains
- * that would otherwise be ambiguous get one. Biomes and Milieus are each a
- * single domain already named by their category, so neither needs badges.
+ * Sub-groupings shown as a small badge next to a skill's name when a family
+ * of skills would otherwise repeat one prefix in every label — either because
+ * the category bundles more than one distinct domain ("Technology" holds
+ * Tech/Medicine/Pilot skills side by side) or because a family sits inside an
+ * otherwise flat category (`touched` within `biomes`). Skills in a category's
+ * dominant domain (plain "Tech" within `technology`, a plain biome within
+ * `biomes`) go unbadged; only the families that would otherwise be ambiguous
+ * get one. Milieus is a single domain already named by its category, so it
+ * needs no badges.
  * @type {Object}
  */
 TNO.skillSubgroups = {
@@ -115,6 +118,7 @@ TNO.skillSubgroups = {
   sci: { label: 'TNO.SkillSubgroup.Sci.Name', badge: 'TNO.SkillSubgroup.Sci.Badge' },
   hum: { label: 'TNO.SkillSubgroup.Hum.Name', badge: 'TNO.SkillSubgroup.Hum.Badge' },
   cult: { label: 'TNO.SkillSubgroup.Cult.Name', badge: 'TNO.SkillSubgroup.Cult.Badge' },
+  touched: { label: 'TNO.SkillSubgroup.Touched.Name', badge: 'TNO.SkillSubgroup.Touched.Badge' },
 };
 
 /**
@@ -179,10 +183,10 @@ TNO.skills = {
   biomePlanetoids: { label: 'TNO.Skill.BiomePlanetoids', category: 'biomes', attribute: 'inv' },
   biomeDryAsteroids: { label: 'TNO.Skill.BiomeDryAsteroids', category: 'biomes', attribute: 'inv' },
   biomeWetAsteroids: { label: 'TNO.Skill.BiomeWetAsteroids', category: 'biomes', attribute: 'inv' },
-  biomeTouchedCubewano: { label: 'TNO.Skill.BiomeTouchedCubewano', category: 'biomes', attribute: 'inv' },
-  biomeTouchedResonant: { label: 'TNO.Skill.BiomeTouchedResonant', category: 'biomes', attribute: 'inv' },
-  biomeTouchedScattered: { label: 'TNO.Skill.BiomeTouchedScattered', category: 'biomes', attribute: 'inv' },
-  biomeTouchedDetached: { label: 'TNO.Skill.BiomeTouchedDetached', category: 'biomes', attribute: 'inv' },
+  biomeTouchedCubewano: { label: 'TNO.Skill.BiomeTouchedCubewano', category: 'biomes', subgroup: 'touched', attribute: 'inv' },
+  biomeTouchedResonant: { label: 'TNO.Skill.BiomeTouchedResonant', category: 'biomes', subgroup: 'touched', attribute: 'inv' },
+  biomeTouchedScattered: { label: 'TNO.Skill.BiomeTouchedScattered', category: 'biomes', subgroup: 'touched', attribute: 'inv' },
+  biomeTouchedDetached: { label: 'TNO.Skill.BiomeTouchedDetached', category: 'biomes', subgroup: 'touched', attribute: 'inv' },
   biomeAwakenedAsteroids: { label: 'TNO.Skill.BiomeAwakenedAsteroids', category: 'biomes', attribute: 'inv' },
   biomeFreeSpace: { label: 'TNO.Skill.BiomeFreeSpace', category: 'biomes', attribute: 'inv' },
   biomeRelictoids: { label: 'TNO.Skill.BiomeRelictoids', category: 'biomes', attribute: 'inv' },

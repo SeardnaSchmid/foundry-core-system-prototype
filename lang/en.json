@@ -261,10 +261,10 @@
       "BiomePlanetoids": "Planetoids",
       "BiomeDryAsteroids": "Dry Asteroids",
       "BiomeWetAsteroids": "Wet Asteroids",
-      "BiomeTouchedCubewano": "Touched Asteroids - Cubewanos",
-      "BiomeTouchedResonant": "Touched Asteroids - Resonant Object",
-      "BiomeTouchedScattered": "Touched Asteroids - Scattered Disc Object",
-      "BiomeTouchedDetached": "Touched Asteroids - Detached Object",
+      "BiomeTouchedCubewano": "Cubewanos",
+      "BiomeTouchedResonant": "Resonant Object",
+      "BiomeTouchedScattered": "Scattered Disc Object",
+      "BiomeTouchedDetached": "Detached Object",
       "BiomeAwakenedAsteroids": "Awakened Asteroids",
       "BiomeFreeSpace": "Free Space",
       "BiomeRelictoids": "Relictoids",
@@ -331,6 +331,10 @@
       "Cult": {
         "Name": "Culture",
         "Badge": "CULT"
+      },
+      "Touched": {
+        "Name": "Touched Asteroids",
+        "Badge": "TCH"
       }
     },
     "CustomSkill": {
@@ -572,10 +576,10 @@
       "DialogTitle": "Dice Roll",
       "DialogTitleWithSubject": "{name}",
       "AttributeB": "Attribute/Skill 2",
-      "Bonus": "Modification",
+      "Bonus": "Situational modification",
       "BonusReset": "Reset",
-      "BonusResetLabel": "Reset modification {value} to ±0",
-      "BonusStepLabel": "Modification {value}",
+      "BonusResetLabel": "Reset situational modification {value} to ±0",
+      "BonusStepLabel": "Situational modification {value}",
       "Advantage": "Roll Type",
       "AdvantageDefaultHint": "{label} (default)",
       "AdvantageDefault": "Default",
@@ -656,6 +660,7 @@
       "RangeQuestion": "At what distance?",
       "DkDifference": "Reach advantage",
       "DkQuestion": "Do you have the longer weapon?",
+      "DkNote": "Your DK {dk}",
       "Reach": {
         "Longer": "Longer weapon",
         "NotLonger": "Not longer"
@@ -667,8 +672,8 @@
       "FvMalus": "FV requirement (manoeuvre)",
       "FvMalusHint": "The weapon skill falls short of its FV. This penalty applies once a declaration or aimed location makes the roll a manoeuvre.",
       "AnsageCaption": "Manoeuvres",
-      "Ansage": "Declaration",
-      "AnsageHint": "How far you worsen this roll in order to gain something else. What exactly is settled at the table — only the number lives here, and the opponent takes it at the same size.",
+      "Ansage": "Your declaration",
+      "AnsageHint": "How far you worsen this roll in order to gain something else. What exactly is settled at the table — only the number lives here, and the opponent takes it at the same size. A negative value eases the roll instead, for instance when you collect on an earlier declaration; nothing is announced to the opponent then.",
       "Zone": "Hit location",
       "ZoneQuestion": "Where are you aiming?",
       "StanceLabel": "Stance",
@@ -773,9 +778,10 @@
       "SharpArms": "Arms crippled",
       "Loaded": "Heavily loaded",
       "Overloaded": "Overloaded",
-      "CarryLoad": "{used} of {capacity} inventory slots used",
+      "CarryHalf": "Triggered: {used} of {capacity} inventory slots used — from half ({limit}) on, sprinting is gone.",
+      "CarryFull": "Triggered: {used} of {capacity} inventory slots used — from {limit} on, only crawling remains.",
       "ArmorTooHeavy": "Armour too heavy",
-      "ArmorSvShort": "Strength {str} < SV {sv}",
+      "ArmorSvShort": "Triggered: the worn armour needs Strength {sv} in total, you have {str}.",
       "NoDodge": "Dodge denied",
       "Tag": {
         "BluntCore": "Ua",
@@ -789,7 +795,7 @@
         "ArmorTooHeavy": "Ah",
         "NoDodge": "Dd"
       },
-      "StanceBlocksDodge": "Stance: {stance}",
+      "StanceBlocksDodge": "Triggered by the stance “{stance}”, which permits no dodge.",
       "Effect": {
         "SharpCore": "Drops out of the fight.",
         "SharpLegs": "Moves at a crawl only — in combat that means the “Vorsichtige Bewegung” stance alone.",
@@ -803,8 +809,10 @@
         "NoDodge": "No defence — neither dodge nor parry.",
         "NoDodgeParryLeft": "No dodge — only the parry remains."
       },
-      "ThresholdReached": "{pool} {value} > {attribute} {threshold}",
-      "ThresholdPending": "{pool} {value} ≤ {attribute} {threshold}",
+      "ThresholdReached": "Triggered: {pool} {value} exceeds {attribute} {threshold}.",
+      "ThresholdPending": "Triggers once {pool} exceeds {attribute} {threshold} — currently {value}.",
+      "ThresholdForced": "Set by hand — {pool} {value} does not exceed {attribute} {threshold} yet.",
+      "ThresholdSuppressed": "Negated by hand, although {pool} {value} exceeds {attribute} {threshold}.",
       "CycleHint": "Click: automatic → manually set → manually negated",
       "State": {
         "inactive": "Inactive",

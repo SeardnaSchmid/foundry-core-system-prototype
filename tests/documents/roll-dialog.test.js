@@ -364,13 +364,23 @@ describe('TnoRollDialog Ansagen', () => {
     expect(dialog._conditionalModifiers({ ...base, ansage: 0 })).toEqual([]);
   });
 
-  it('reads a blank, negative or fractional field as nothing declared', () => {
+  it('reads a blank field as nothing declared and a fraction as its whole part', () => {
     const dialog = attack();
     const base = form({ attributeA: 'str', contextChoice: '0' });
-    for (const ansage of ['', null, -4]) {
+    for (const ansage of ['', null, 0]) {
       expect(dialog._ansageComponent({ ...base, ansage })).toBeNull();
     }
     expect(dialog._ansageValue({ ...base, ansage: 2.9 })).toBe(2);
+  });
+
+  it('eases the roll by a negative Ansage without making it a Manöver', () => {
+    const dialog = attack();
+    const base = form({ attributeA: 'str', contextChoice: '0' });
+    expect(dialog._ansageComponent({ ...base, ansage: -2 }))
+      .toEqual({ label: 'Ansage', value: 2, display: '+2' });
+    expect(dialog._computeThreshold({ ...base, ansage: -2 }) - dialog._computeThreshold(base)).toBe(2);
+    // Collecting on an earlier declaration declares nothing new.
+    expect(dialog._conditionalModifiers({ ...base, ansage: -2 })).toEqual([]);
   });
 
   it('leaves the declared amount outside the situational modifier clamp', () => {

@@ -16,7 +16,11 @@ Ohne aktiven Zustand entfällt die Zeile ganz. Das Panel bleibt über die
 Schadensleisten und die Maluszelle erreichbar, die beide dieselbe Tür sind.
 
 Die Zeile behält das neutrale Glas des Bandes — die Einfärbung nach
-Klassifikation tragen erst die Kästen im Panel. --}}
+Klassifikation tragen erst die Kästen im Panel.
+
+Jeder Chip erklärt sich beim Überfahren selbst: Wirkung und warum er an ist.
+Wer nur wissen will, woher ein Zustand kommt, soll dafür das Panel nicht
+öffnen müssen. --}}
 {{#if conditions.hasActive}}
 <button type='button' class='banner-conditions chip-status'
         aria-haspopup='dialog' aria-expanded='false'
@@ -26,7 +30,11 @@ Klassifikation tragen erst die Kästen im Panel. --}}
 </dl>'
         data-tooltip-direction='DOWN'>
   {{#each conditions.shown as |condition|}}
-  <span class='condition-chip is-{{condition.classification}} is-{{condition.tone}}{{#if condition.manual}} is-manual{{/if}}'>{{condition.label}}</span>
+  <span class='condition-chip is-{{condition.classification}} is-{{condition.tone}}{{#if condition.manual}} is-manual{{/if}}'
+        data-tooltip-html='<dl class="tno-tooltip">
+<div class="tno-tooltip-row"><dt>{{condition.label}}</dt><dd>{{#if condition.effect}}{{condition.effect}}<br>{{/if}}{{condition.reason}}</dd></div>
+</dl>'
+        data-tooltip-direction='DOWN'>{{condition.label}}</span>
   {{/each}}
   {{#if conditions.hiddenCount}}
   <span class='condition-chip-more'>+{{conditions.hiddenCount}}</span>
