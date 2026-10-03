@@ -80,7 +80,10 @@ Threshold = Attribute + Ability + Modifier
 
 ### Difficulty Modifiers
 
-Modifiers are applied in **increments of ±3** only.
+Modifiers are applied in **increments of ±3** only. The roll dialog's
+situational field additionally steps by ±1 to fine-tune — for a bonus collected
+from an earlier Ansage, or a rule the dialog does not model yet; the GM's
+difficulty itself stays in 3er steps.
 
 | Modifier | Effect | Example |
 |----------|--------|---------|
@@ -378,7 +381,7 @@ function determineSuccess(countingDie, threshold, critical) {
 **Required Fields:**
 - Attribute selector (dropdown or preset)
 - Ability selector (dropdown or preset)
-- Bonus/Malus stepper (±3 increments)
+- Bonus/Malus stepper (±3 increments, ±1 to fine-tune)
 - Advantage selector (5 states)
 - Threshold display (auto-calculated)
 

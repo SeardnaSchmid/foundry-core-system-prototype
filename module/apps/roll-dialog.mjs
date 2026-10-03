@@ -1,23 +1,40 @@
 import { TNO_ADVANTAGE, describeAdvantage, rollTno } from '../helpers/dice.mjs';
 import { formatChance, oddsTooltipHtml, successChanceFor } from '../helpers/dice-odds.mjs';
-import { colorForValue } from '../helpers/heatmap.mjs';
-import { MALUS_STEP, armorSvMalus, isAuthoredNumber } from '../helpers/items.mjs';
+import { armorSvMalus, isAuthoredNumber } from '../helpers/items.mjs';
 import { DEFAULT_ZONE, ansageEnvelope } from '../helpers/maneuvers.mjs';
 import { advantageOptions, bindRadioGroup } from './roll-dialog-shared.mjs';
 
 // Namespaced rather than the bare `FormApplication` global, which is
 // deprecated. Still ApplicationV1 — see the V1 apps note in
-// docs/wiki/reference/module-map.md.
+// docs/codemap/reference/module-map.md.
 const { FormApplication } = foundry.appv1.api;
 
-/** Bounds and step for the situational modification value. */
+/** Bounds and steps for the situational modification value. */
 const BONUS_MIN = -30;
 const BONUS_MAX = 30;
 const BONUS_STEP = 3;
+const BONUS_FINE_STEP = 1;
 
 /** Bounds for the free skill value, matching regular skill ranks. */
 const FREE_SKILL_MIN = 0;
 const FREE_SKILL_MAX = 10;
+
+/**
+ * Where a threshold component comes from, in the order the Beleg lists them.
+ * The key is also the i18n suffix (`TNO.Roll.Origin.<Key>`) and the icon.
+ */
+const ORIGINS = [
+  { key: 'character', label: 'Character', icon: 'fa-user' },
+  { key: 'weapon', label: 'Weapon', icon: 'fa-sword' },
+  { key: 'armor', label: 'Armor', icon: 'fa-shield-halved' },
+  { key: 'attack', label: 'Attack', icon: 'fa-burst' },
+  { key: 'situation', label: 'Situation', icon: 'fa-eye' },
+  { key: 'choice', label: 'Choice', icon: 'fa-sliders' },
+];
+const ORIGIN_KEYS = ORIGINS.map((origin) => origin.key);
+
+/** The question numbers as the Beleg and the open-questions line print them. */
+const MARKS = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩'];
 
 /**
  * A small dialog for building a Tno roll. In "skill" mode the skill rank
@@ -30,6 +47,11 @@ const FREE_SKILL_MAX = 10;
  * fixed value (e.g. a derived value) with no attribute or skill involved at
  * all. Either way, the player also picks an advantage/disadvantage level,
  * then rolls.
+ *
+ * The form is laid out as numbered questions ("Zu klären") above a footer
+ * that holds the Schwelle. Facts the roller cannot change are not asked; they
+ * live in the Beleg, a drawer above the Schwelle that lists every component
+ * grouped by where it comes from.
  * @extends {FormApplication}
  */
 export class TnoRollDialog extends FormApplication {
@@ -41,9 +63,9 @@ export class TnoRollDialog extends FormApplication {
    *   than offering the normal skill-roll attribute picker.
    * @param {object} [options.skill]       Fixed skill component: { key, label, value }.
    *   When set, the dialog switches to "skill" mode: attributeA starts
-   *   preselected but is picked via an attribute chip grid, and its value
-   *   plus the skill's value form the threshold base, with the bonus field
-   *   layered on top as a modifier.
+   *   preselected but is picked via an attribute grid, and its value plus the
+   *   skill's value form the threshold base, with the bonus field layered on
+   *   top as a modifier.
    * @param {boolean} [options.freeSkill]  When true, the dialog switches to
    *   "free" mode: the player picks an attribute and enters a free skill
    *   value which together form the threshold base.
@@ -51,16 +73,26 @@ export class TnoRollDialog extends FormApplication {
    *   When set, the dialog switches to "fixed" mode: no attribute or skill
    *   is linked at all, the fixed value alone (plus the bonus field) forms
    *   the threshold.
-   * @param {{label: string, value: number, hint?: string}[]} [options.fixedModifiers]
-   *   Immutable rule modifiers added to the threshold and shown separately
-   *   from the editable situational bonus.
-   * @param {{label: string, placeholder: string, control?: 'select'|'tiles'|'toggle', tileColumns?: 1|2|3|5|7, anchor?: {label: string, value: number|string}, note?: string, choices: Array<{key: string, label: string, value: number, componentLabel?: string}>}} [options.preRollContext]
-   *   One optional required choice that must be made before rolling. Its
-   *   selected value becomes an immutable threshold component.
-   * @param {{label: string, placeholder?: string, componentLabel?: string, sign?: 1|-1, min?: number, max?: number}} [options.requiredValue]
-   *   One mandatory number the player types before rolling — a value only the
-   *   table knows, such as the Schadenswert an attacker announced. Orthogonal
-   *   to `preRollContext`, which is structurally "pick one of an authored list".
+   * @param {{label: string, value: number, hint?: string, origin?: string}[]} [options.fixedModifiers]
+   *   Immutable rule modifiers added to the threshold and shown in the Beleg
+   *   under their `origin` (default `character`).
+   * @param {object} [options.preRollContext]
+   *   One required answer that must be given before rolling. Its selected
+   *   value becomes an immutable threshold component. `{label, placeholder,
+   *   control: 'select'|'tiles'|'toggle'|'compare', tileColumns, note, ask,
+   *   hint, origin, choices}`. A `compare` control asks for a number instead
+   *   of a pick — `compare: {label, anchorLabel, anchor, derive(value) → key}`
+   *   — and derives the choice from it.
+   * @param {object} [options.requiredValue]
+   *   One number the player types — a value only the table knows, such as the
+   *   Schadenswert an attacker announced. `{label, componentLabel, labels,
+   *   toggleLabel, hint, ask, sign, min, max, required, lockedUntilContext,
+   *   origin}`. A `required` value starts blank and holds the roll back until
+   *   typed; `lockedUntilContext` keeps it closed until the context above it
+   *   is answered.
+   * @param {object} [options.phase]  `{label, detail}` for the strip at the top.
+   * @param {{weapon?: string, armor?: string}} [options.sources]
+   *   Names that complete a Beleg group heading ("Waffe · Kettensäge").
    * @param {string} [options.flavor]      Label shown as the roll's subject heading and chat flavor.
    * @param {string} [options.img]         Picture shown beside that heading on the chat card, e.g. the weapon's own art.
    * @param {{label: string, hint?: string}} [options.ansage]
@@ -71,7 +103,7 @@ export class TnoRollDialog extends FormApplication {
    * @param {{label: string, choices: Array<{key: string, label: string, caption?: string}>}} [options.zonePicker]
    *   The Stelle this attack names. A pick rather than part of the Ansage number
    *   because it is a location, not an amount: it decides the multiplier of a
-   *   failed resistance roll. Costs the threshold nothing on its own.
+   *   failed resistance roll.
    * @param {{from: string, penetration: number|null, sharp: number|null, blunt: number|null}} [options.envelope]
    *   The attacker's half of an exchange: who is attacking and what their weapon
    *   brings, to which the declared Ansage and the Stelle are added. Rendered on
@@ -81,43 +113,24 @@ export class TnoRollDialog extends FormApplication {
    *   A modifier that applies only while an Ansage is declared — the weapon's FV
    *   shortfall, which lands on "alle Manöver" and never on a Standardangriff.
    * @param {boolean|number} [options.opposingAnsage]
-   *   Offer a field for the Ansage the attacker announced against this roll. One
-   *   optional integer, taken as given: from this side a Finte and a Starker
-   *   Schwung are the same statement. Pass a number to start it filled in — but
-   *   the field is offered either way, so a defender who never touched a chat
-   *   card can always type what they were told.
-   * @param {{label: string, hint?: string, value: number}} [options.toggleModifier]
+   *   Offer a field for the Ansage the other side announced against this roll.
+   *   One optional integer, taken as given. Pass a number to start it filled in.
+   * @param {object} [options.toggleModifier]
    *   A modifier this player confirms rather than computes — today only
-   *   'Rüstung umgehen'. Its numeric part cancels the Stelle's padding; the
-   *   workflow separately resolves which damage value the confirmation selects.
-   *   Never pre-set from anything the other side sent: an attack card carries an
-   *   amount, not a reason.
+   *   'Rüstung umgehen', asked as a yes/no question. `{label, value, hint,
+   *   question, yesLabel, noLabel, waivesContext, origin}`. With
+   *   `waivesContext`, a yes makes the context question moot.
    * @param {(answers: {contextKey: string, value: number|null, toggleModifier: boolean}) => {label: string, text: string, note?: string, hint?: string}|null} [options.consequence]
    *   What this roll costs the roller if it fails, phrased by the workflow that
-   *   opened the dialog — the resistance roll's applied damage is the first.
-   *   Called with the answers that decide it, and rendered on the chat card only
-   *   once the dice have actually failed. It states; nothing here applies it.
+   *   opened the dialog. Rendered on the chat card only once the dice have
+   *   actually failed. It states; nothing here applies it.
    * @param {() => Promise<void>} [options.afterRoll]
    *   Run once the dice have actually been cast, never when the dialog is
-   *   cancelled. For state a workflow owes its own sheet — the repeated-defence
-   *   counter is the first — which must count rolls and not intentions.
+   *   cancelled — the repeated-defence counter must count rolls, not intentions.
    */
-  constructor(actor, { attributeA = '', lockAttribute = false, skill = null, freeSkill = false, fixedValue = null, fixedModifiers = [], preRollContext = null, requiredValue = null, ansage = null, zonePicker = null, maneuverMalus = null, envelope = null, opposingAnsage = false, toggleModifier = null, consequence = null, afterRoll = null, flavor = '', img = '', width = null } = {}) {
-    // `requiredValue` starts at 0. It used to start empty so that an untouched
-    // field and a typed zero could be told apart and only the latter could roll;
-    // that gate was dropped deliberately — the field opens on the value most
-    // announcements start from and the player edits it, and the penetration
-    // comparison is the one answer still holding the roll back.
-    //
-    // The two Ansage fields open at 0 for the look rather than the logic: both
-    // already read a blank field as 0 and neither ever gated, so this only stops
-    // them rendering a grey placeholder where every other stepper shows a real
-    // figure in the same weight.
-    // The default width fits every roll that is a column of questions. A
-    // workflow whose section is laid out as a table says so here rather than
-    // being squeezed into a width picked for a different shape.
+  constructor(actor, { attributeA = '', lockAttribute = false, skill = null, freeSkill = false, fixedValue = null, fixedModifiers = [], preRollContext = null, requiredValue = null, ansage = null, zonePicker = null, maneuverMalus = null, envelope = null, opposingAnsage = false, toggleModifier = null, consequence = null, afterRoll = null, phase = null, sources = null, flavor = '', img = '', width = null } = {}) {
     super(
-      { attributeA, attributeB: '', skillValue: 0, bonus: 0, advantage: TNO_ADVANTAGE.none, useIdea: false, contextChoice: '', requiredValue: 0, ansage: 0, zoneChoice: DEFAULT_ZONE, opposingAnsage: 0, toggleModifier: false },
+      { attributeA, attributeB: '', skillValue: 0, bonus: 0, advantage: TNO_ADVANTAGE.none, useIdea: false, contextChoice: '', compareValue: '', requiredValue: 0, ansage: 0, zoneChoice: DEFAULT_ZONE, opposingAnsage: 0, toggleModifier: false },
       Number.isFinite(Number(width)) && Number(width) > 0 ? { width: Number(width) } : {}
     );
     this.actor = actor;
@@ -131,9 +144,13 @@ export class TnoRollDialog extends FormApplication {
         label: String(modifier.label),
         value: Number(modifier.value),
         ...(modifier.hint ? { hint: String(modifier.hint) } : {}),
+        origin: TnoRollDialog._origin(modifier.origin, 'character'),
       }));
     this.preRollContext = this._normalizePreRollContext(preRollContext);
     this.requiredValue = this._normalizeRequiredValue(requiredValue);
+    // A required number has no answer until one is typed; any other one opens
+    // on 0, the value most announcements start from.
+    if (this.requiredValue?.required) this.object.requiredValue = '';
     this.ansage = ansage?.label ? { label: String(ansage.label), hint: String(ansage.hint ?? '') } : null;
     this.zonePicker = this._normalizeZonePicker(zonePicker);
     this.maneuverMalus = maneuverMalus?.label && Number.isFinite(Number(maneuverMalus.value))
@@ -144,8 +161,7 @@ export class TnoRollDialog extends FormApplication {
         }
       : null;
     this.envelope = envelope?.from ? envelope : null;
-    // `true` offers an empty field; a number offers it pre-filled. Both are only
-    // ever a head start — nothing about a defence depends on it.
+    // `true` offers the field at 0; a number offers it pre-filled.
     //
     // Typed, not coerced: `Number(false)` is 0 and 0 is finite, so testing the
     // default through `Number()` put the field on every roll in the system,
@@ -157,24 +173,43 @@ export class TnoRollDialog extends FormApplication {
     this.opposingAnsage = opposingAnsage === true || announced !== null;
     if (announced > 0) this.object.opposingAnsage = announced;
     this.toggleModifier = toggleModifier?.label && Number.isFinite(Number(toggleModifier.value))
-      ? { label: String(toggleModifier.label), hint: String(toggleModifier.hint ?? ''), value: Number(toggleModifier.value) }
+      ? {
+          label: String(toggleModifier.label),
+          hint: String(toggleModifier.hint ?? ''),
+          value: Number(toggleModifier.value),
+          question: String(toggleModifier.question || toggleModifier.label),
+          yesLabel: String(toggleModifier.yesLabel || game.i18n.localize('TNO.Roll.Yes')),
+          noLabel: String(toggleModifier.noLabel || game.i18n.localize('TNO.Roll.No')),
+          waivesContext: !!toggleModifier.waivesContext,
+          origin: TnoRollDialog._origin(toggleModifier.origin, 'armor'),
+        }
       : null;
     if (this.toggleModifier && toggleModifier.checked === true) this.object.toggleModifier = true;
     this.consequence = typeof consequence === 'function' ? consequence : null;
     this.afterRoll = typeof afterRoll === 'function' ? afterRoll : null;
+    this.phase = phase?.label ? { label: String(phase.label), detail: String(phase.detail ?? '') } : null;
+    this.sources = { weapon: sources?.weapon ? String(sources.weapon) : '', armor: sources?.armor ? String(sources.armor) : '' };
     this.flavor = flavor || game.i18n.localize('TNO.Roll.DialogTitle');
     // Decoration for the chat card only: which weapon this roll was made with,
-    // read at a glance in a scrolling log. Nothing computes with it, and a roll
-    // that has no object behind it — a bare attribute, a Ausweichen — leaves it
-    // empty rather than reaching for a placeholder.
+    // read at a glance in a scrolling log. Nothing computes with it.
     this.img = img;
+  }
+
+  /**
+   * One of the Beleg origins, or the fallback for anything else.
+   * @param {*} origin
+   * @param {string} fallback
+   * @returns {string}
+   */
+  static _origin(origin, fallback) {
+    return ORIGIN_KEYS.includes(origin) ? origin : fallback;
   }
 
   /**
    * Keep the optional context interface safe for all existing roll callers:
    * malformed or empty contexts simply behave as though no context was given.
    * @param {*} context
-   * @returns {{label: string, placeholder: string, control: 'select'|'tiles'|'toggle', tileColumns: 1|2|3|5|7, anchor: ?{label: string, value: string}, note: string, choices: Array<{key: string, label: string, value: number, componentLabel?: string}>}|null}
+   * @returns {object|null}
    */
   _normalizePreRollContext(context) {
     if (!context?.label || !Array.isArray(context.choices)) return null;
@@ -187,20 +222,29 @@ export class TnoRollDialog extends FormApplication {
         ...(choice.componentLabel ? { componentLabel: String(choice.componentLabel) } : {}),
         // The name of the answer, where the `label` is its *effect* rather
         // than its name — the penetration comparison names its rungs "> RH"
-        // and captions them "hält · Wuchtschaden". Must be carried through this
+        // and captions them with what follows. Must be carried through this
         // whitelist explicitly: without it that picker would be captioned by
         // its outcomes and named by nothing.
         ...(choice.headline ? { headline: String(choice.headline) } : {}),
         // A context may already provide the same outcome as the workflow's
         // separate confirmation toggle. Preserve that relationship so the
-        // generic dialog can disable the redundant control and, critically,
-        // never count its modifier twice.
+        // generic dialog never counts its modifier twice.
         ...(choice.suppressesToggleModifier ? { suppressesToggleModifier: true } : {}),
       }));
     if (!choices.length) return null;
-    const control = context.control === 'toggle'
-      ? choices.length === 2 ? 'toggle' : 'tiles'
-      : context.control === 'tiles' ? 'tiles' : 'select';
+    const compare = context.control === 'compare' && typeof context.compare?.derive === 'function'
+      ? {
+          label: String(context.compare.label ?? context.label),
+          anchorLabel: String(context.compare.anchorLabel ?? ''),
+          anchor: context.compare.anchor === undefined ? '' : String(context.compare.anchor),
+          derive: context.compare.derive,
+        }
+      : null;
+    const control = compare
+      ? 'compare'
+      : context.control === 'toggle'
+        ? choices.length === 2 ? 'toggle' : 'tiles'
+        : context.control === 'tiles' ? 'tiles' : 'select';
     return {
       label: String(context.label),
       placeholder: String(context.placeholder || game.i18n.localize('TNO.Roll.ContextPlaceholder')),
@@ -208,15 +252,17 @@ export class TnoRollDialog extends FormApplication {
       tileColumns: [1, 2, 3, 5, 7].includes(Number(context.tileColumns)) ? Number(context.tileColumns) : 7,
       // The reader's own half of a comparison: a number their sheet already
       // knows, shown beside the choices rather than folded into the question.
-      // It is a readout and never a choice, which is the whole reason it is a
-      // separate field instead of a fourth tile.
       anchor: context.anchor?.label && context.anchor?.value !== undefined
         ? { label: String(context.anchor.label), value: String(context.anchor.value) }
         : null,
-      // What the reader needs to answer the question, said under it and above
-      // the answers. Quieter than an anchor on purpose: an anchor is the column
-      // a ladder is measured against, this is a fact to glance at.
+      // What the reader needs to answer the question, said beside it — the
+      // weapon's own DK for the reach question.
       note: context.note ? String(context.note) : '',
+      // Who to ask, where the answer is the other side's ("Frag den Angreifer").
+      ask: context.ask ? String(context.ask) : '',
+      hint: context.hint ? String(context.hint) : '',
+      origin: TnoRollDialog._origin(context.origin, 'situation'),
+      compare,
       choices,
     };
   }
@@ -229,7 +275,7 @@ export class TnoRollDialog extends FormApplication {
    * Schadenswert is subtracted, and nothing yet adds one, but a number the
    * player states is a number either way.
    * @param {*} spec
-   * @returns {{label: string, placeholder: string, componentLabel: string, sign: 1|-1, min: number|null, max: number|null}|null}
+   * @returns {object|null}
    */
   _normalizeRequiredValue(spec) {
     if (!spec?.label) return null;
@@ -237,22 +283,18 @@ export class TnoRollDialog extends FormApplication {
       label: String(spec.label),
       placeholder: spec.placeholder ? String(spec.placeholder) : '',
       componentLabel: String(spec.componentLabel || spec.label),
-      // Where the number is to be read off, stated under the field. A player
-      // asked for a figure they cannot compute needs to be told where it is,
-      // and "on the attacker's card" is not something the form can imply.
       hint: spec.hint ? String(spec.hint) : '',
+      ask: spec.ask ? String(spec.ask) : '',
       // Which of the context choices renames this field, keyed by choice.
-      // The penetration comparison decides *which* of the two Schadenswerte on
-      // the attacker's card applies, so the field it feeds says which one to
-      // read rather than leaving that to the rulebook.
       labels: spec.labels && typeof spec.labels === 'object' ? { ...spec.labels } : null,
-      // Some announced states replace the context's ordinary value rather than
-      // merely modifying it. Rüstung umgehen is the first: it always asks for
-      // Schaden, whatever the penetration comparison would otherwise select.
+      // The name while the confirmed toggle decides it instead of the context.
       toggleLabel: spec.toggleLabel ? String(spec.toggleLabel) : '',
       sign: Number(spec.sign) === -1 ? -1 : 1,
       min: isAuthoredNumber(spec.min) ? Number(spec.min) : null,
       max: isAuthoredNumber(spec.max) ? Number(spec.max) : null,
+      required: !!spec.required,
+      lockedUntilContext: !!spec.lockedUntilContext,
+      origin: TnoRollDialog._origin(spec.origin, 'attack'),
     };
   }
 
@@ -269,6 +311,16 @@ export class TnoRollDialog extends FormApplication {
     }
     const key = this._contextChoice(data)?.key;
     return this.requiredValue.labels?.[key] || this.requiredValue.label;
+  }
+
+  /**
+   * Whether a confirmed toggle has made the context question moot — a bypassed
+   * armour has no penetration to compare.
+   * @param {object} data  Form data with toggleModifier.
+   * @returns {boolean}
+   */
+  _contextWaived(data) {
+    return !!(this.toggleModifier?.waivesContext && data?.toggleModifier);
   }
 
   /**
@@ -294,7 +346,7 @@ export class TnoRollDialog extends FormApplication {
   /**
    * One bound off a number input, or null where the field does not carry it.
    * Read from the element rather than from any one workflow's spec, which is
-   * what lets a single stepper serve every stepped field in the ledger.
+   * what lets a single stepper serve every stepped field.
    * @param {*} raw  An input's `min` or `max`.
    * @returns {number|null}
    */
@@ -306,18 +358,15 @@ export class TnoRollDialog extends FormApplication {
 
   /**
    * Nudge a stepped field by one, inside whatever bounds its own input carries.
-   *
-   * A blank field counts as zero here rather than staying blank: the stepper is
-   * an explicit click, and refusing to act on it would look broken. Everything
-   * else about blank-is-not-zero still holds — {@link _requiredValueEntry} keeps
-   * reading an untouched field as "nothing announced yet".
+   * A blank field counts as zero here: the stepper is an explicit click, and
+   * refusing to act on it would look broken.
    * @param {HTMLFormElement} form
    * @param {HTMLInputElement} input  The field this stepper frames.
    * @param {number} delta
    * @private
    */
   _stepValue(form, input, delta) {
-    if (!input) return;
+    if (!input || input.disabled) return;
     const min = TnoRollDialog._inputBound(input.min);
     const max = TnoRollDialog._inputBound(input.max);
     let next = (Number(input.value) || 0) + delta;
@@ -332,7 +381,7 @@ export class TnoRollDialog extends FormApplication {
    * are: anything malformed behaves as though no location was offered, and the
    * attack then lands where an unannounced one always does.
    * @param {*} picker
-   * @returns {{label: string, componentLabel?: string, choices: Array<{key: string, label: string, caption: string}>}|null}
+   * @returns {{label: string, componentLabel?: string, choices: Array<{key: string, label: string, caption: string, cost: number}>}|null}
    */
   _normalizeZonePicker(picker) {
     if (!picker?.label || !Array.isArray(picker.choices)) return null;
@@ -360,7 +409,7 @@ export class TnoRollDialog extends FormApplication {
     return foundry.utils.mergeObject(super.defaultOptions, {
       classes: ['tno', 'sheet'],
       template: 'systems/tno/templates/apps/roll-dialog.hbs',
-      width: 340,
+      width: 500,
       resizable: true,
       closeOnSubmit: true,
     });
@@ -377,40 +426,38 @@ export class TnoRollDialog extends FormApplication {
   }
 
   /**
-   * Derive the three ledger groups from the sections that actually render.
-   * Keeping this pure prevents the divider rules from drifting away from the
-   * section conditions they are meant to separate.
-   * @returns {object}
+   * The strip under the title: what is happening in the fiction. A workflow
+   * names it; an ordinary roll is named by its mode.
+   * @returns {{label: string, detail: string}}
    */
-  _sectionFlags() {
-    const hasIdeaOption = this.actor.type === 'character';
-    const isFixedMode = !!this.fixedValue;
-    const hasSituationSection = !!this.preRollContext || !!this.requiredValue;
-    const hasAgainstSection = this.opposingAnsage || !!this.toggleModifier;
-    const hasAttemptSection = !!this.ansage || !!this.zonePicker || !isFixedMode;
-    return {
-      hasIdeaOption,
-      hasSituationSection,
-      hasAgainstSection,
-      hasAttemptSection,
-      hasGivenGroup: hasSituationSection || hasAgainstSection,
-      hasChosenGroup: hasAttemptSection || hasIdeaOption || !isFixedMode,
-    };
+  _phase() {
+    if (this.phase) return this.phase;
+    const L = (key) => game.i18n.localize(key);
+    if (this.fixedValue) return { label: L('TNO.Roll.Phase.Fixed'), detail: this.fixedValue.label };
+    if (this.skill) {
+      return {
+        label: L('TNO.Roll.Phase.Skill'),
+        detail: game.i18n.format('TNO.Roll.Phase.SkillDetail', { skill: this.skill.label }),
+      };
+    }
+    if (this.freeSkill) return { label: L('TNO.Roll.Phase.Free'), detail: L('TNO.Roll.Phase.FreeDetail') };
+    return { label: L('TNO.Roll.Phase.Ability'), detail: L('TNO.Roll.Phase.AbilityDetail') };
   }
 
   /**
-   * One Δ-column cell: the signed contribution a line makes to the Schwelle.
+   * One delta readout: the signed contribution a line makes to the Schwelle.
    *
    * `pending` is a line whose answer is still missing — it shows `?` and the
-   * roll is blocked. `provisional` is a line that is set up but not armed (a
-   * bypass unticked, an unspent Idee) — it shows its amount in parentheses and
-   * is not summed until armed.
-   * @param {number} value
-   * @param {{pending?: boolean, provisional?: boolean}} [state]
+   * roll is blocked. `provisional` is a line set up but not armed (an unspent
+   * Idee) — its amount in parentheses, not summed. `struck` is a line that no
+   * longer applies (a comparison a bypass made moot).
+   * @param {number|null} value
+   * @param {{pending?: boolean, provisional?: boolean, struck?: boolean}} [state]
    * @returns {{display: string, cls: string}}
    */
-  _deltaCell(value, { pending = false, provisional = false } = {}) {
+  _deltaCell(value, { pending = false, provisional = false, struck = false } = {}) {
     if (pending) return { display: '?', cls: 'is-pending' };
+    if (struck) return { display: value === null || value === undefined ? '—' : `(${this._formatBonus(Number(value) || 0)})`, cls: 'is-struck' };
     const n = Number(value) || 0;
     const formatted = this._formatBonus(n);
     return {
@@ -430,30 +477,33 @@ export class TnoRollDialog extends FormApplication {
   }
 
   /**
-   * One ability as the shared heatmap readout used by selectable chips and by
-   * a workflow-locked combat attribute.
+   * One ability as a pickable tile.
    * @param {string} key
    * @returns {object|null}
    */
   _abilityCell(key) {
     const labelKey = CONFIG.TNO.abilities[key];
     if (!labelKey) return null;
-    const value = this.actor.system.abilities?.[key]?.base ?? 0;
-    const color = colorForValue(value);
     return {
       key,
       label: game.i18n.localize(labelKey),
       abbr: game.i18n.localize(labelKey.replace(/\.long$/, '.abbr')).toUpperCase(),
-      value,
-      cellBg: color.bg,
-      textColor: color.textColor,
+      value: this.actor.system.abilities?.[key]?.base ?? 0,
       active: key === this.object.attributeA,
     };
   }
 
-  /** @returns {Array<Array<object>>} */
-  _attributeGrid() {
-    return (CONFIG.TNO.attributeRows ?? []).map((row) => row.map((key) => this._abilityCell(key)).filter(Boolean));
+  /**
+   * The attribute picker as three columns — körperlich, sozial, geistig —
+   * read off `attributeRows`, whose rows hold one attribute of each.
+   * @returns {Array<{label: string, items: Array<object>}>}
+   */
+  _attributeColumns() {
+    const rows = CONFIG.TNO.attributeRows ?? [];
+    return ['Physical', 'Social', 'Mental'].map((category, index) => ({
+      label: game.i18n.localize(`TNO.AttributeCategory.${category}`),
+      items: rows.map((row) => this._abilityCell(row[index])).filter(Boolean),
+    }));
   }
 
   /** @param {number} value @returns {string} */
@@ -461,231 +511,275 @@ export class TnoRollDialog extends FormApplication {
     return game.i18n.format('TNO.Roll.BonusResetLabel', { value: this._formatBonus(value) });
   }
 
+  /**
+   * The questions this roll asks, in the order they are numbered. The single
+   * list behind the form, the Beleg's numbering, the open-questions line and
+   * the submit gate, so none of them can disagree about what is still open.
+   *
+   * A question is `pending` while it still needs an answer before the roll
+   * can be made, and `locked` while it cannot be answered yet or no longer
+   * applies.
+   * @param {object} data  Form data.
+   * @returns {Array<{key: string, title: string, num: number, mark: string, pending: boolean, locked: boolean}>}
+   */
+  _questions(data) {
+    const L = (key) => game.i18n.localize(key);
+    const list = [];
+    const push = (key, title, { pending = false, locked = false } = {}) => list.push({ key, title, pending, locked });
+
+    if (this.toggleModifier) push('toggle', this.toggleModifier.question);
+    if (this.preRollContext) {
+      const waived = this._contextWaived(data);
+      push('context', this.preRollContext.label, { pending: !waived && !this._contextChoice(data), locked: waived });
+    }
+    if (this.requiredValue) {
+      push('required', this._requiredValueLabel(data), {
+        pending: this._requiredValueEntry(data) === null,
+        locked: this._requiredValueLocked(data),
+      });
+    }
+    if (!this.fixedValue && !this.lockAttribute) {
+      push('attribute', this.skill
+        ? game.i18n.format('TNO.Roll.Question.Attribute', { skill: this.skill.label })
+        : L('TNO.Roll.ChooseAttribute'), { pending: !CONFIG.TNO.abilities[data?.attributeA] });
+      if (!this.skill && !this.freeSkill) push('attributeB', L('TNO.Roll.AttributeB'));
+      if (this.freeSkill) push('free', L('TNO.Roll.FreeSkillValue'));
+    }
+    if (this.zonePicker) push('zone', this.zonePicker.label);
+    if (this.ansage || this.opposingAnsage) push('ansagen', L('TNO.Roll.Question.Ansagen'));
+    if (!this.fixedValue) push('bonus', L('TNO.Roll.Bonus'));
+    if (this.actor.type === 'character') push('idea', L('TNO.Roll.Question.Idea'));
+
+    return list.map((question, index) => ({ ...question, num: index + 1, mark: MARKS[index] ?? `${index + 1}.` }));
+  }
+
+  /**
+   * Whether the required number cannot be answered yet: its name, and which of
+   * the attacker's values it is, depend on the context above it.
+   * @param {object} data
+   * @returns {boolean}
+   */
+  _requiredValueLocked(data) {
+    return !!(this.requiredValue?.lockedUntilContext && this.preRollContext
+      && !this._contextChoice(data) && !this._contextWaived(data));
+  }
+
   /** @override */
   getData() {
-    const sectionFlags = this._sectionFlags();
-    const { hasIdeaOption } = sectionFlags;
-    const bonus = Number(this.object.bonus) || 0;
-    const contextChoice = this._contextChoice(this.object);
-    const toggleModifierSuppressed = this._toggleModifierSuppressed(this.object);
-    const thresholdReadout = this._thresholdReadout(this.object);
-    // The armour step is data-dependent — the chosen attribute decides whether
-    // it applies — so its row is rendered once, up front, and only toggled
-    // afterwards; `_refresh` repaints values, never rows. A character who is
-    // not penalised at all gets no row and therefore never sees it.
-    const armorMalusLabel = game.i18n.localize('TNO.Combat.ArmorSvMalus');
-    const armorMalus = this.actor.system.derived?.armorSvPenalty
-      ? {
-          label: armorMalusLabel,
-          display: this._formatBonus(MALUS_STEP),
-          hint: game.i18n.localize('TNO.Combat.ArmorSvMalusHint'),
-          active: this._conditionalModifiers(this.object).some((modifier) => modifier.label === armorMalusLabel),
-        }
-      : null;
-    const actorModifier = this._actorModifiers()[0];
-    const damageMalus = actorModifier
-      ? {
-          ...actorModifier,
-          display: this._formatBonus(actorModifier.value),
-          hint: game.i18n.localize('TNO.Damage.RollMalusHint'),
-        }
-      : null;
+    const data = this.object;
+    const L = (key) => game.i18n.localize(key);
+    const questions = this._questions(data);
+    const contextMark = questions.find((question) => question.key === 'context')?.mark ?? '';
+    const bonus = Number(data.bonus) || 0;
+    const edgePool = this.actor.system.derived?.edgePool ?? 0;
+    const edgePoolMax = this.actor.system.derived?.edgePoolMax ?? 0;
+    const insight = this._ideaInsight();
 
-    const ansageComponent = this._ansageComponent(this.object);
-    const zoneChoice = this._zoneChoice(this.object);
-    const selectedAttribute = this._abilityCell(this.object.attributeA);
-
-    // Every dynamic Δ-column cell, precomputed here and repainted by
-    // `_repaintLedgerDeltas` on the same helpers. A line that is set up but
-    // not yet armed reads as provisional; one whose answer is missing reads
-    // as pending and blocks the roll.
-    const contextComponent = this._contextComponent(this.object);
-    const contextDelta = this.preRollContext
-      ? this._deltaCell(contextComponent?.value ?? 0, { pending: !contextChoice })
-      : null;
-    const requiredValueDelta = this.requiredValue
-      ? this._deltaCell(this._requiredValueComponent(this.object)?.value ?? 0)
-      : null;
-    const opposingAnsageDelta = this.opposingAnsage
-      ? this._deltaCell(this._opposingAnsageComponent(this.object)?.value ?? 0)
-      : null;
-    const toggleModifierDelta = this.toggleModifier
-      ? this._deltaCell(toggleModifierSuppressed ? 0 : this.toggleModifier.value, {
-          provisional: toggleModifierSuppressed || !this.object.toggleModifier,
-        })
-      : null;
-    const zoneDelta = this.zonePicker
-      ? this._deltaCell(this._zoneComponent(this.object)?.value ?? 0)
-      : null;
-    const ansageDelta = this.ansage
-      ? this._deltaCell(ansageComponent?.value ?? 0)
-      : null;
-    const bonusDelta = this._deltaCell(bonus);
-    const ideaDelta = this._deltaCell(this._ideaInsight(), { provisional: !this._ideaArmed(this.object) });
-    const attributeBKey = this.object.attributeB;
-    const attributeBRow = !this.skill && !this.freeSkill && attributeBKey && CONFIG.TNO.abilities[attributeBKey]
-      ? {
-          label: game.i18n.localize(CONFIG.TNO.abilities[attributeBKey]),
-          display: this._formatBonus(this.actor.system.abilities?.[attributeBKey]?.base ?? 0),
+    const view = questions.map((question) => {
+      const base = {
+        ...question,
+        open: question.pending && !question.locked,
+        ask: '',
+        info: '',
+        sub: '',
+        meta: '',
+      };
+      switch (question.key) {
+        case 'toggle':
+          return {
+            ...base,
+            isToggle: true,
+            info: this.toggleModifier.hint,
+            checked: !!data.toggleModifier,
+            yesLabel: this.toggleModifier.yesLabel,
+            noLabel: this.toggleModifier.noLabel,
+          };
+        case 'context': {
+          const context = this.preRollContext;
+          const chosen = this._contextChoice(data)?.key;
+          const choices = context.choices.map((choice) => ({
+            ...choice,
+            selected: choice.key === chosen,
+            // Every tile is read in the same three slots: what you are picking,
+            // what it is worth, and what it does to you. A choice that supplies
+            // its own name (`headline`) is one whose `label` is an effect, so
+            // that label drops to the third slot.
+            name: choice.headline || choice.label,
+            caption: choice.headline ? choice.label : '',
+            display: this._formatBonus(choice.value),
+            state: choice.value > 0 ? 'positive' : choice.value < 0 ? 'negative' : 'neutral',
+          }));
+          return {
+            ...base,
+            ask: context.ask,
+            info: context.hint,
+            meta: context.note,
+            sub: question.locked ? L('TNO.Roll.Waived') : '',
+            isCompare: context.control === 'compare',
+            isSelect: context.control === 'select',
+            isTiles: context.control === 'tiles' || context.control === 'toggle',
+            columns: context.control === 'toggle' ? 2 : context.tileColumns,
+            placeholder: context.placeholder,
+            anchor: context.anchor,
+            compare: context.compare && { ...context.compare, value: data.compareValue },
+            choices,
+          };
         }
-      : null;
-    const freeSkillDelta = this.freeSkill
-      ? this._deltaCell(this._freeSkillValue(this.object))
-      : null;
+        case 'required': {
+          const spec = this.requiredValue;
+          return {
+            ...base,
+            isRequired: true,
+            ask: spec.ask,
+            info: spec.hint,
+            sub: question.locked ? game.i18n.format('TNO.Roll.Locked', { mark: contextMark }) : '',
+            value: data.requiredValue,
+            min: spec.min,
+            max: spec.max,
+            hasMin: spec.min !== null,
+            hasMax: spec.max !== null,
+          };
+        }
+        case 'attribute':
+          return {
+            ...base,
+            isAttribute: true,
+            info: L('TNO.Roll.Info.Attribute'),
+            columns: this._attributeColumns(),
+            value: data.attributeA,
+          };
+        case 'attributeB':
+          return {
+            ...base,
+            isAttributeB: true,
+            options: Object.keys(CONFIG.TNO.abilities).map((key) => ({
+              ...this._abilityCell(key),
+              selected: key === data.attributeB,
+            })),
+          };
+        case 'free':
+          return { ...base, isFree: true, value: this._freeSkillValue(data), min: FREE_SKILL_MIN, max: FREE_SKILL_MAX };
+        case 'zone': {
+          const zone = this._zoneChoice(data);
+          return {
+            ...base,
+            isZone: true,
+            choices: this.zonePicker.choices.map((choice) => ({
+              ...choice,
+              selected: choice.key === zone,
+              // The free Stelle reads "±0" rather than being left blank: "the
+              // Torso is free" is the fact worth stating.
+              costDisplay: this._formatBonus(choice.cost),
+              state: choice.cost < 0 ? 'negative' : 'neutral',
+            })),
+          };
+        }
+        case 'ansagen': {
+          const sides = [];
+          if (this.ansage) {
+            sides.push({
+              name: 'ansage',
+              label: this.ansage.label,
+              value: data.ansage,
+              hasMin: false,
+              delta: this._deltaCell(this._ansageComponent(data)?.value ?? 0),
+            });
+          }
+          if (this.opposingAnsage) {
+            sides.push({
+              name: 'opposingAnsage',
+              label: L('TNO.Combat.OpposingAnsage'),
+              value: data.opposingAnsage,
+              hasMin: true,
+              delta: this._deltaCell(this._opposingAnsageComponent(data)?.value ?? 0),
+            });
+          }
+          return {
+            ...base,
+            isAnsagen: true,
+            info: this.ansage?.hint || L('TNO.Roll.Info.OpposingAnsage'),
+            columns: sides.length,
+            sides,
+          };
+        }
+        case 'bonus':
+          return {
+            ...base,
+            isBonus: true,
+            info: L('TNO.Roll.Info.Bonus'),
+            display: this._formatBonus(bonus),
+            signClass: this._bonusSignClass(bonus),
+            resetLabel: this._bonusResetLabel(bonus),
+            steps: [-BONUS_STEP, -BONUS_FINE_STEP, BONUS_FINE_STEP, BONUS_STEP].map((step) => ({
+              step,
+              label: this._formatBonus(step),
+              aria: game.i18n.format('TNO.Roll.BonusStepLabel', { value: this._formatBonus(step) }),
+              fine: Math.abs(step) === BONUS_FINE_STEP,
+              disabled: step < 0 ? bonus <= BONUS_MIN : bonus >= BONUS_MAX,
+              left: step < 0,
+            })),
+          };
+        case 'idea': {
+          const armed = this._ideaArmed(data);
+          // "Idee haben" is a pre-edge: only offered here, before the dice are
+          // cast. There is deliberately no way to apply it retroactively.
+          return {
+            ...base,
+            isIdea: true,
+            info: edgePool > 0
+              ? `${L('TNO.DerivedHint.Insight')} ${L('TNO.Notify.ProblemSolvingGate')}`
+              : L('TNO.Notify.NoReserve'),
+            checked: armed,
+            disabled: edgePool <= 0,
+            insight: this._formatBonus(insight),
+            ...this._ideaPips(edgePool, edgePoolMax, armed),
+          };
+        }
+        default:
+          return base;
+      }
+    });
 
-    const data = {
-      ...this.object,
+    const readout = this._thresholdReadout(data);
+    const options = advantageOptions().map((option) => ({ ...option, active: option.value === Number(data.advantage) }));
+    return {
+      ...data,
       dialogId: this.id,
-      abilityOptions: Object.keys(CONFIG.TNO.abilities).map((key) => ({
-        ...this._abilityCell(key),
-        selected: key === this.object.attributeB,
-      })),
-      attributeGrid: this._attributeGrid(),
-      advantageOptions: advantageOptions(),
-      advantageConsequence: describeAdvantage(this.object.advantage),
-      isSkillMode: !!this.skill,
-      isLockedAttribute: this.lockAttribute,
-      isFreeMode: this.freeSkill,
+      phase: this._phase(),
+      questions: view,
+      hasQuestions: view.length > 0,
       isFixedMode: !!this.fixedValue,
-      fixedModifiers: this._staticModifierComponents().map((modifier) => ({
-        ...modifier,
-        deltaClass: modifier.value > 0 ? 'is-positive' : modifier.value < 0 ? 'is-negative' : 'is-neutral',
-      })),
-      hasGearModifiers: this.fixedModifiers.length > 0 || !!damageMalus || !!armorMalus || !!this.maneuverMalus,
-      damageMalus,
-      armorMalus,
-      maneuverMalus: this.maneuverMalus && {
-        ...this.maneuverMalus,
-        display: this._formatBonus(this.maneuverMalus.value),
-        active: this._conditionalModifiers(this.object).includes(this.maneuverMalus),
-      },
-      hasPreRollContext: !!this.preRollContext,
-      hasRequiredValue: !!this.requiredValue,
-      ...sectionFlags,
-      requiredValue: this.requiredValue && {
-        ...this.requiredValue,
-        label: this._requiredValueLabel(this.object),
-        // Signed bounds of 0 are real bounds, so the template asks these rather
-        // than the numbers themselves, which would fail a truthiness test.
-        hasMin: this.requiredValue.min !== null,
-        hasMax: this.requiredValue.max !== null,
-        value: this.object.requiredValue,
-        // The field opens *on* a value now, so it can open already sitting at a
-        // bound. `_refresh` keeps these in step afterwards, but it has not run
-        // yet on the first paint — and a live `−` under a field at its floor is
-        // a button that promises something it will not do.
-        atMin: this.requiredValue.min !== null && Number(this.object.requiredValue) <= this.requiredValue.min,
-        atMax: this.requiredValue.max !== null && Number(this.object.requiredValue) >= this.requiredValue.max,
-      },
-      preRollContext: this.preRollContext && {
-        ...this.preRollContext,
-        choices: this.preRollContext.choices.map((choice) => ({
-          ...choice,
-          selected: choice.key === contextChoice?.key,
-          // Every tile in this dialog is read in the same three slots: what you
-          // are picking, what it is worth, and what it does to you. The middle
-          // slot is always the signed Δ, so the name on top can be the answer
-          // itself. A picker used to lead with the modifier and caption it with
-          // the answer, which meant "at what distance?" was answered by "−3".
-          //
-          // A choice that supplies its own name (`headline`) is one whose
-          // `label` is an effect rather than a name, so that label drops to the
-          // third slot; a choice that supplies none is named by its label and
-          // has no third slot to fill. Nothing else has to be declared.
-          name: choice.headline || choice.label,
-          caption: choice.headline ? choice.label : '',
-          display: this._formatBonus(choice.value),
-          state: choice.value > 0 ? 'positive' : choice.value < 0 ? 'negative' : 'neutral',
-        })),
-        isTilePicker: this.preRollContext.control === 'tiles',
-        isToggle: this.preRollContext.control === 'toggle',
-      },
-      contextSelected: !!contextChoice,
-      // Every picker resolves to one Δ on its own line; the question itself is
-      // the line's name, so there is nothing else to label.
-      contextDelta: contextDelta || { display: '', cls: 'is-neutral' },
-      hasAnsage: !!this.ansage,
-      ansage: this.ansage && {
-        ...this.ansage,
-        value: this.object.ansage,
-      },
-      ansageDelta: ansageDelta || { display: '', cls: 'is-neutral' },
-      zonePicker: this.zonePicker && {
-        ...this.zonePicker,
-        choices: this.zonePicker.choices.map((choice) => ({
-          ...choice,
-          selected: choice.key === zoneChoice,
-          // The free Stelle reads "±0" rather than being left blank: a tile
-          // with no price beside three that have one looks like an oversight,
-          // and "the Torso is free" is the fact worth stating.
-          costDisplay: this._formatBonus(Number(choice.cost) || 0),
-        })),
-      },
-      zoneDelta: zoneDelta || { display: '', cls: 'is-neutral' },
-      hasOpposingAnsage: this.opposingAnsage,
-      opposingAnsageDelta: opposingAnsageDelta || { display: '', cls: 'is-neutral' },
-      toggleModifier: this.toggleModifier && {
-        ...this.toggleModifier,
-        display: this._formatBonus(toggleModifierSuppressed ? 0 : this.toggleModifier.value),
-        checked: this._toggleModifierActive(this.object),
-        disabled: toggleModifierSuppressed,
-      },
-      toggleModifierDelta: toggleModifierDelta || { display: '', cls: 'is-neutral' },
-      requiredValueDelta: requiredValueDelta || { display: '', cls: 'is-neutral' },
-      attributeBRow,
-      freeSkillDelta: freeSkillDelta || { display: '', cls: 'is-neutral' },
-      bonusDelta,
-      ideaDelta,
-      ...thresholdReadout,
-      missingMessage: thresholdReadout.ready
-        ? ''
-        : game.i18n.format('TNO.Roll.Blocked.Missing', { label: thresholdReadout.missingLabel }),
-      bonusDisplay: this._formatBonus(bonus),
-      bonusSignClass: this._bonusSignClass(bonus),
-      bonusAtMin: bonus <= BONUS_MIN,
-      bonusAtMax: bonus >= BONUS_MAX,
-      bonusResetLabel: this._bonusResetLabel(bonus),
-      bonusDecrementLabel: game.i18n.format('TNO.Roll.BonusStepLabel', { value: '−3' }),
-      bonusIncrementLabel: game.i18n.format('TNO.Roll.BonusStepLabel', { value: '+3' }),
-      // "Idee haben" is a pre-edge: only offered here, in the roll dialog,
-      // before the dice are cast. There is deliberately no way to apply it
-      // retroactively to a roll already made (see problem-solving-prd.md).
-      hasIdeaOption,
-      insightValue: this.actor.system.derived?.insight ?? 0,
-      edgePool: this.actor.system.derived?.edgePool ?? 0,
-      edgePoolMax: this.actor.system.derived?.edgePoolMax ?? 0,
-      ideaDisabled: (this.actor.system.derived?.edgePool ?? 0) <= 0,
+      isLockedAttribute: this.lockAttribute,
+      advantageOptions: options,
+      modeLabel: this._modeLabel(data.advantage),
+      ...readout,
     };
+  }
 
-    if (hasIdeaOption) {
-      // A row of filled/empty pips makes the edge pool read as "N charges
-      // left" at a glance instead of a bare fraction the player has to parse.
-      data.hasIdeaPips = data.edgePoolMax > 0;
-      data.ideaPips = Array.from({ length: data.edgePoolMax }, (_, i) => ({ filled: i < data.edgePool }));
-    }
-
-    // Named in every mode, not just skill mode: a locked attribute is shown as
-    // a read-out wherever it occurs, and ability mode can lock one too.
-    const selectedAttributeDelta = this._deltaCell(selectedAttribute?.value ?? 0);
-    data.selectedAttribute = selectedAttribute && {
-      ...selectedAttribute,
-      deltaDisplay: selectedAttributeDelta.display,
-      deltaClass: selectedAttributeDelta.cls,
+  /**
+   * The Idee pool as pips: what is left once this roll's spend is counted.
+   * @param {number} pool
+   * @param {number} max
+   * @param {boolean} armed
+   * @returns {{pips: Array<{filled: boolean}>, chargesText: string}}
+   */
+  _ideaPips(pool, max, armed) {
+    const left = Math.max(0, pool - (armed ? 1 : 0));
+    return {
+      pips: Array.from({ length: Math.max(0, max) }, (_, i) => ({ filled: i < left })),
+      chargesText: game.i18n.format('TNO.Roll.IdeaCharges', { left, max }),
     };
-    data.selectedAttributeLabel = selectedAttribute?.label ?? '';
+  }
 
-    if (this.skill) {
-      const skillColor = colorForValue(this.skill.value);
-      data.skillLabel = this.skill.label;
-      data.skillValue = this.skill.value;
-      data.skillCellBg = skillColor.bg;
-      data.skillTextColor = skillColor.textColor;
-    } else if (this.fixedValue) {
-      data.fixedLabel = this.fixedValue.label;
-      data.fixedValueDisplay = this.fixedValue.value;
-    }
-
-    return data;
+  /**
+   * The roll type in words: its name and which die counts.
+   * @param {number|string} advantage
+   * @returns {string}
+   */
+  _modeLabel(advantage) {
+    const value = Number(advantage) || 0;
+    const option = advantageOptions().find((entry) => entry.value === value);
+    return `${option?.label ?? ''} · ${describeAdvantage(value)}`;
   }
 
   /**
@@ -713,8 +807,8 @@ export class TnoRollDialog extends FormApplication {
    * The fixed base components — the attribute plus the skill rank (skill
    * mode), a free skill value (free mode), or a second attribute (ability
    * mode); or the fixed value alone (fixed mode) — as { label, value } pairs.
-   * Shared by the threshold sum, the live breakdown preview, and the chat
-   * card's component list so all three can never disagree.
+   * Shared by the threshold sum, the Beleg, and the chat card's component list
+   * so all three can never disagree.
    * @param {object} data  Form data with attributeA/attributeB/skillValue.
    * @returns {Array<{label: string, value: number}>}
    */
@@ -740,14 +834,21 @@ export class TnoRollDialog extends FormApplication {
   }
 
   /**
-   * Resolve the selected optional pre-roll context from form data.
-   * @param {object} data Form data with contextChoice.
+   * Resolve the selected optional pre-roll context from form data. A compare
+   * control derives it from the typed number; a waived context has none.
+   * @param {object} data Form data with contextChoice / compareValue.
    * @returns {{key: string, label: string, value: number, componentLabel?: string}|null}
    */
   _contextChoice(data) {
-    if (!this.preRollContext) return null;
+    if (!this.preRollContext || this._contextWaived(data)) return null;
+    const { choices, compare } = this.preRollContext;
+    if (compare) {
+      if (!isAuthoredNumber(data?.compareValue)) return null;
+      const key = String(compare.derive(Number(data.compareValue)));
+      return choices.find((choice) => choice.key === key) ?? null;
+    }
     const key = String(data?.contextChoice ?? '');
-    return this.preRollContext.choices.find((choice) => choice.key === key) ?? null;
+    return choices.find((choice) => choice.key === key) ?? null;
   }
 
   /**
@@ -770,8 +871,8 @@ export class TnoRollDialog extends FormApplication {
   /**
    * What a failed roll costs, as the workflow that opened this dialog words it.
    *
-   * Read off the same two answers the threshold used, so the card cannot state
-   * one thing and the breakdown another. Whether it is shown at all is decided
+   * Read off the same answers the threshold used, so the card cannot state one
+   * thing and the breakdown another. Whether it is shown at all is decided
    * after the dice, in `rollTno` — this only says what the cost would be.
    * @param {object} data  Form data with contextChoice and requiredValue.
    * @returns {{label: string, text: string, note?: string, hint?: string}|null}
@@ -789,10 +890,10 @@ export class TnoRollDialog extends FormApplication {
    * Rule modifiers supplied by the workflow that opened this dialog. They
    * remain distinct from the user's situational bonus so authored weapon
    * handling cannot be reset or overwritten in the UI.
-   * @returns {Array<{label: string, value: number, display: string}>}
+   * @returns {Array<{label: string, value: number, display: string, origin: string}>}
    */
   _staticModifierComponents() {
-    return this.fixedModifiers.map((modifier) => ({
+    return this.fixedModifiers.map(({ origin, ...modifier }) => ({
       ...modifier,
       display: this._formatBonus(modifier.value),
     }));
@@ -806,8 +907,8 @@ export class TnoRollDialog extends FormApplication {
    * Beweglichkeitswürfe" is a statement about the attribute, so it belongs
    * to whichever roll is currently built on Beweglichkeit and not to any one
    * workflow. `attributeB` counts too — in ability mode the two slots are
-   * peers, and Stärke + Beweglichkeit is a Beweglichkeitswurf. Filling both
-   * slots with it still costs one step; the flatness lives in `armorSvMalus`.
+   * peers. Filling both slots with it still costs one step; the flatness lives
+   * in `armorSvMalus`.
    *
    * @param {object} data  Form data with attributeA/attributeB.
    * @returns {Array<{label: string, value: number}>}
@@ -830,7 +931,9 @@ export class TnoRollDialog extends FormApplication {
     const fv = this.maneuverMalus && declared ? [this.maneuverMalus] : [];
     // A state the *other* side announced, which the player confirms rather than
     // computes — today only 'Rüstung umgehen'.
-    const toggled = this._toggleModifierActive(data) ? [this.toggleModifier] : [];
+    const toggled = this._toggleModifierActive(data)
+      ? [{ label: this.toggleModifier.label, value: this.toggleModifier.value }]
+      : [];
     return [...armor, ...fv, ...toggled];
   }
 
@@ -839,9 +942,7 @@ export class TnoRollDialog extends FormApplication {
    * modifiers, these do not depend on any workflow or form choice.
    *
    * Labelled with the banner's own `Damage.Malus` — the same words the sheet
-   * puts on the same number one surface away. It used to say "Schaden" here,
-   * which in the resistance roll sat three rows above the *attacker's*
-   * Schadenswert and meant something else entirely.
+   * puts on the same number one surface away.
    * @returns {Array<{label: string, value: number}>}
    */
   _actorModifiers() {
@@ -852,10 +953,30 @@ export class TnoRollDialog extends FormApplication {
   }
 
   /**
+   * The same modifiers `_fixedModifierComponents` sums, each tagged with the
+   * Beleg group it belongs to. Kept off the components themselves, which go to
+   * the chat card and the flags as they are.
+   * @param {object} data  Form data.
+   * @returns {Array<{label: string, value: number, origin: string, toggled: boolean}>}
+   */
+  _belegModifiers(data) {
+    const toggleLabel = this.toggleModifier?.label;
+    return [
+      ...this._actorModifiers().map((modifier) => ({ ...modifier, origin: 'character', toggled: false })),
+      ...this.fixedModifiers.map((modifier) => ({ label: modifier.label, value: modifier.value, origin: modifier.origin, toggled: false })),
+      ...this._conditionalModifiers(data).map((modifier) => {
+        const toggled = !!toggleLabel && modifier.label === toggleLabel && modifier.value === this.toggleModifier.value;
+        const origin = modifier === this.maneuverMalus ? 'weapon' : toggled ? this.toggleModifier.origin : 'character';
+        return { label: modifier.label, value: modifier.value, origin, toggled };
+      }),
+    ];
+  }
+
+  /**
    * Every immutable modifier on this roll — actor state first, then the
    * workflow's own and the ones the form state brings in. The single list
-   * behind the threshold sum, the live breakdown, the chat card's components
-   * and the message flags, so none of the four can disagree with the others.
+   * behind the threshold sum, the Beleg, the chat card's components and the
+   * message flags, so none of the four can disagree with the others.
    * @param {object} data  Form data.
    * @returns {Array<{label: string, value: number, display: string}>}
    */
@@ -874,18 +995,15 @@ export class TnoRollDialog extends FormApplication {
   }
 
   /**
-   * The number in the field, with a cleared field reading as 0.
-   *
-   * Blank and zero were once different answers — only the typed one could roll —
-   * and are now the same one. The field opens at 0, so a player who clears it is
-   * emptying a box rather than declining to answer, and the roll is gated on the
-   * penetration comparison alone.
+   * The number in the field. A cleared field reads as 0 — unless the value is
+   * `required`, where blank is the unanswered state and reads as null.
    * @param {object} data  Form data with requiredValue.
-   * @returns {number|null}  null only where no value was ever asked for.
+   * @returns {number|null}  null where no value was asked for or none was typed.
    */
   _requiredValueEntry(data) {
     if (!this.requiredValue) return null;
-    const raw = isAuthoredNumber(data?.requiredValue) ? Number(data.requiredValue) : 0;
+    if (!isAuthoredNumber(data?.requiredValue)) return this.requiredValue.required ? null : 0;
+    const raw = Number(data.requiredValue);
     const { min, max } = this.requiredValue;
     return Math.min(max ?? Infinity, Math.max(min ?? -Infinity, raw));
   }
@@ -905,9 +1023,8 @@ export class TnoRollDialog extends FormApplication {
     // Guarded against -0, which formats as "−0" the moment an announced zero
     // reaches a signed read-out.
     const value = entry === 0 ? 0 : this.requiredValue.sign * entry;
-    // Named the same way the field that took it was named, so a breakdown
-    // reading "Schadenswert −4" says which of the attacker's two
-    // damage values this roll was resisting.
+    // Named the same way the field that took it was named, so a breakdown says
+    // which of the attacker's two damage values this roll was resisting.
     const label = this.requiredValue.labels
       ? this._requiredValueLabel(data)
       : this.requiredValue.componentLabel;
@@ -915,17 +1032,12 @@ export class TnoRollDialog extends FormApplication {
   }
 
   /**
-   * The Ansage the attacker announced against this roll, as a signed component.
-   *
-   * Optional and never gating: an attack with nothing declared on it is the
-   * common case, and a defender who was told nothing types nothing. Deliberately
-   * outside the `±30` clamp for the same reason the announced Schadenswert is —
-   * that clamp bounds what a GM hands out, while this is a number the table has
-   * already agreed on.
+   * The Ansage the other side announced against this roll, as a signed
+   * component. Optional and never gating, and outside the `±30` clamp for the
+   * same reason the announced Schadenswert is.
    *
    * This is the entire receiving end of the A→B channel. It takes an integer
-   * and asks nothing about where it came from: from here a Finte, a Starker
-   * Schwung and a Weiter Schwung are the same statement.
+   * and asks nothing about where it came from.
    * @param {object} data  Form data with opposingAnsage.
    * @returns {{label: string, value: number, display: string}|null}
    */
@@ -946,11 +1058,8 @@ export class TnoRollDialog extends FormApplication {
    * nothing. Positive worsens this roll; negative eases it — the other half of
    * "erschwert einen deiner Würfe um einen anderen zu erleichtern".
    *
-   * Nothing converts it. The rulebook's 1:1-up-to-the-rank / 2:1-past-it ladder
-   * used to be applied here, and it isn't any more — not because the rule
-   * changed, but because the declaration is now agreed at the table before the
-   * number is typed, so this figure is already the answer rather than an input
-   * to one.
+   * Nothing converts it: the declaration is agreed at the table before the
+   * number is typed, so this figure is already the answer.
    * @param {object} data  Form data with ansage.
    * @returns {number}
    */
@@ -960,11 +1069,8 @@ export class TnoRollDialog extends FormApplication {
   }
 
   /**
-   * The declared Ansage as a signed threshold component.
-   *
-   * Outside the `±30` clamp, like the announced Schadenswert and for the same
-   * reason: that clamp bounds what a GM hands out unilaterally, and this is a
-   * number the table has already agreed on.
+   * The declared Ansage as a signed threshold component, outside the `±30`
+   * clamp like the announced Schadenswert.
    * @param {object} data  Form data with ansage.
    * @returns {{label: string, value: number, display: string}|null}
    */
@@ -993,20 +1099,14 @@ export class TnoRollDialog extends FormApplication {
   /**
    * What that Stelle costs, as a signed threshold component.
    *
-   * Gezielte Angriffe prices every location — Arme and Beine "um eine Stufe,
-   * also -3", Kopf "um zwei Stufen, also -6" — so aiming is paid for on the
+   * Gezielte Angriffe prices every location, so aiming is paid for on the
    * attacker's own roll. The Torso yields no component at all rather than a
    * component worth zero: a standard attack should not carry a line saying it
    * was charged nothing.
    *
-   * **Kept separate from the Ansage rather than folded into it.** Both are
-   * Ansagen and both worsen this roll, but they are two decisions the player
-   * made, and a breakdown reading "Kopf −6 + Ansage −4" says where each figure
-   * came from where a single "Ansage −10" would not.
-   *
-   * It is also the reason the two must not be summed anywhere near the envelope:
-   * the −6 buys doubled damage, not a harder defence, so the Stelle crosses to
-   * the defender as a location and never as an amount aimed at their roll.
+   * **Kept separate from the Ansage rather than folded into it**, and never
+   * summed near the envelope: the price buys a location, not a harder defence,
+   * so the Stelle crosses to the defender as a location and never as an amount.
    * @param {object} data  Form data with zoneChoice.
    * @returns {{label: string, value: number, display: string}|null}
    */
@@ -1016,31 +1116,29 @@ export class TnoRollDialog extends FormApplication {
     const choice = this.zonePicker.choices.find((entry) => entry.key === key);
     const value = Number(choice?.cost) || 0;
     if (!value) return null;
-    const label = this.zonePicker.componentLabel
+    return { label: this._zoneLabel(choice), value, display: this._formatBonus(value) };
+  }
+
+  /** @param {{label: string}} choice @returns {string} */
+  _zoneLabel(choice) {
+    return this.zonePicker.componentLabel
       ? `${this.zonePicker.componentLabel}: ${choice.label}`
       : choice.label;
-    return { label, value, display: this._formatBonus(value) };
   }
 
   /**
-   * Whether the roll has everything it needs.
-   *
-   * The required *pick* is the only thing that gates: it decides which of the
-   * attacker's two damage values applies and whether the location's RW applies,
-   * and no default could stand in for it. The required *number* no longer gates —
-   * it opens at 0 and the player edits it.
+   * Whether the roll has everything it needs: no question still pending.
    * @param {object} data  Form data.
    * @returns {boolean}
    */
   _canSubmit(data) {
-    if (this.preRollContext && !this._contextChoice(data)) return false;
-    return true;
+    return !this._questions(data).some((question) => question.pending);
   }
 
   /**
    * Sum the fixed base with the bonus/malus and, if toggled, the "Idee haben"
-   * bonus.
-   * @param {object} data  Form data with attributeA/attributeB/skillValue/bonus/useIdea.
+   * bonus. Answers still missing count as nothing.
+   * @param {object} data  Form data.
    * @returns {number}
    */
   _computeThreshold(data) {
@@ -1073,15 +1171,14 @@ export class TnoRollDialog extends FormApplication {
    * @returns {string}
    */
   _bonusSignClass(n) {
-    if (n > 0) return 'tno-bonus-positive';
-    if (n < 0) return 'tno-bonus-negative';
+    if (n > 0) return 'is-positive';
+    if (n < 0) return 'is-negative';
     return '';
   }
 
   /**
-   * The signed parts that produce the threshold, in display order. This one
-   * list feeds both the compact chip row and the legacy text used by tests and
-   * chat-adjacent paths.
+   * The signed parts that produce the threshold, in display order, for the
+   * chat card and the message flags.
    * @param {object} data  Form data.
    * @returns {Array<{label: string, display: string, value: number}>}
    */
@@ -1121,14 +1218,126 @@ export class TnoRollDialog extends FormApplication {
   }
 
   /**
-   * Text form, for the chat card and the message flags. The dialog itself never
-   * prints this: the ledger *is* the breakdown, one line per part with its own
-   * signed Δ, so a recap strip under the total said the same list twice.
+   * Text form, for the chat card and the message flags.
    * @param {object} data  Form data.
    * @returns {string}
    */
   _breakdownText(data) {
     return this._breakdownParts(data).map((part) => `${part.label} ${part.display}`).join(' + ');
+  }
+
+  /**
+   * The Beleg: every line that moves the Schwelle, grouped by where it comes
+   * from, each in the state the questions above leave it in. Built from the
+   * same component helpers as `_computeThreshold`, so the counted rows always
+   * sum to the threshold.
+   * @param {object} data  Form data.
+   * @returns {Array<{key: string, label: string, short: string, icon: string, sum: number, pending: boolean, sumDisplay: string, rows: Array<object>}>}
+   */
+  _belegGroups(data) {
+    const L = (key) => game.i18n.localize(key);
+    const questions = Object.fromEntries(this._questions(data).map((question) => [question.key, question]));
+    const rows = [];
+    const row = (origin, label, value, state = 'fact', { mark = '', note = '' } = {}) => {
+      rows.push({ origin, label, value, state, mark, note });
+    };
+
+    // What the character brings.
+    const base = this._baseComponents(data);
+    if (this.fixedValue) {
+      row('character', base[0].label, base[0].value);
+    } else {
+      const attribute = questions.attribute;
+      let rest = base;
+      if (data.attributeA && CONFIG.TNO.abilities[data.attributeA]) {
+        row('character', base[0].label, base[0].value, attribute ? 'active' : 'fact', {
+          mark: attribute?.mark ?? '',
+          note: L('TNO.Roll.Note.Attribute'),
+        });
+        rest = base.slice(1);
+      } else if (attribute) {
+        row('character', attribute.title, null, 'pending', { mark: attribute.mark });
+      }
+      for (const component of rest) {
+        const chosen = this.freeSkill ? questions.free : !this.skill ? questions.attributeB : null;
+        row('character', component.label, component.value, chosen ? 'active' : 'fact', {
+          mark: chosen?.mark ?? '',
+          note: this.skill ? L('TNO.Roll.Note.Skill') : '',
+        });
+      }
+    }
+    for (const modifier of this._belegModifiers(data)) {
+      row(modifier.origin, modifier.label, modifier.value, modifier.toggled ? 'active' : 'fact', {
+        mark: modifier.toggled ? questions.toggle?.mark ?? '' : '',
+      });
+    }
+
+    // The answers to the questions.
+    if (this.preRollContext) {
+      const question = questions.context;
+      const component = this._contextComponent(data);
+      if (question.locked) row(this.preRollContext.origin, question.title, null, 'struck', { mark: question.mark, note: L('TNO.Roll.Waived') });
+      else if (!component) row(this.preRollContext.origin, question.title, null, 'pending', { mark: question.mark });
+      else row(this.preRollContext.origin, component.label, component.value, 'active', { mark: question.mark });
+    }
+    if (this.requiredValue) {
+      const question = questions.required;
+      const component = this._requiredValueComponent(data);
+      if (!component) row(this.requiredValue.origin, question.title, null, 'pending', { mark: question.mark });
+      else row(this.requiredValue.origin, component.label, component.value, 'active', { mark: question.mark });
+    }
+    if (this.zonePicker) {
+      const choice = this.zonePicker.choices.find((entry) => entry.key === this._zoneChoice(data));
+      row('choice', this._zoneLabel(choice), this._zoneComponent(data)?.value ?? 0, 'active', {
+        mark: questions.zone.mark,
+        note: choice.caption,
+      });
+    }
+    if (this.opposingAnsage) {
+      row('situation', L('TNO.Combat.OpposingAnsage'), this._opposingAnsageComponent(data)?.value ?? 0, 'active', {
+        mark: questions.ansagen.mark,
+      });
+    }
+    if (!this.fixedValue) {
+      row('situation', L('TNO.Roll.Bonus'), Number(data.bonus) || 0, 'active', { mark: questions.bonus.mark });
+    }
+    if (this.ansage) {
+      row('choice', this.ansage.label, this._ansageComponent(data)?.value ?? 0, 'active', { mark: questions.ansagen.mark });
+    }
+    if (questions.idea) {
+      row('choice', L('TNO.Roll.IdeaComponent'), this._ideaInsight(), this._ideaArmed(data) ? 'active' : 'provisional', {
+        mark: questions.idea.mark,
+      });
+    }
+
+    const counts = (entry) => entry.state === 'fact' || entry.state === 'active';
+    return ORIGINS
+      .map((origin) => {
+        const members = rows.filter((entry) => entry.origin === origin.key);
+        if (!members.length) return null;
+        const sum = members.reduce((total, entry) => total + (counts(entry) ? Number(entry.value) || 0 : 0), 0);
+        const pending = members.some((entry) => entry.state === 'pending');
+        const short = L(`TNO.Roll.Origin.${origin.label}`);
+        const source = origin.key === 'weapon' ? this.sources.weapon : origin.key === 'armor' ? this.sources.armor : '';
+        return {
+          key: origin.key,
+          icon: origin.icon,
+          short,
+          label: source ? game.i18n.format('TNO.Roll.Origin.Named', { origin: short, name: source }) : short,
+          sum,
+          pending,
+          sumDisplay: `${this._formatBonus(sum)}${pending ? ' + ?' : ''}`,
+          rows: members.map((entry) => ({
+            ...entry,
+            ...this._deltaCell(entry.value, {
+              pending: entry.state === 'pending',
+              provisional: entry.state === 'provisional',
+              struck: entry.state === 'struck',
+            }),
+          })),
+        };
+      })
+      .filter(Boolean);
   }
 
   /**
@@ -1143,238 +1352,230 @@ export class TnoRollDialog extends FormApplication {
     const { success } = successChanceFor(threshold, advantage);
     return {
       oddsLabel: formatChance(success),
-      // Rounded, since it only drives a bar's width — the exact figure is the
-      // label beside it.
+      // Rounded, since it only drives a bar's width.
       oddsPercent: Math.round(success * 100),
       oddsTooltip: oddsTooltipHtml(threshold, advantage),
     };
   }
 
   /**
-   * The unanswered required input, phrased with the label already visible in the
-   * form. Only the pick can be unanswered now.
+   * The questions still open, each as its mark and title.
    * @param {object} data
-   * @returns {string}
+   * @returns {Array<string>}
    */
-  _missingRequiredLabel(data) {
-    if (this.preRollContext && !this._contextChoice(data)) return this.preRollContext.label;
-    return '';
+  _missingLabels(data) {
+    return this._questions(data)
+      .filter((question) => question.pending)
+      .map((question) => `${question.mark} ${question.title}`);
   }
 
   /**
-   * The complete footer truth. No caller may independently combine readiness,
-   * threshold and odds, because doing so is how a partial resistance roll used
-   * to display a plausible but false target.
+   * The complete footer truth. While anything is open the Schwelle and the odds
+   * are still shown, but in parentheses: a figure that will move once the open
+   * answers are in, never one to roll against.
    * @param {object} data
-   * @returns {{ready: boolean, threshold: number|null, thresholdDisplay: string, oddsLabel: string, oddsPercent: number, oddsTooltip: string, missingLabel: string}}
+   * @returns {{ready: boolean, threshold: number, thresholdDisplay: string, oddsLabel: string, oddsPercent: number, oddsTooltip: string, missingLabel: string, missingLabels: Array<string>, todo: string}}
    */
   _thresholdReadout(data) {
     const ready = this._canSubmit(data);
-    if (!ready) {
-      return {
-        ready: false,
-        threshold: null,
-        thresholdDisplay: '—',
-        oddsLabel: '',
-        oddsPercent: 0,
-        oddsTooltip: '',
-        missingLabel: this._missingRequiredLabel(data),
-      };
-    }
     const threshold = this._computeThreshold(data);
+    const odds = this._oddsData(data);
+    const missingLabels = ready ? [] : this._missingLabels(data);
+    const value = threshold < 0 ? `−${Math.abs(threshold)}` : String(threshold);
     return {
-      ready: true,
+      ready,
       threshold,
-      thresholdDisplay: String(threshold),
-      ...this._oddsData(data),
-      missingLabel: '',
+      thresholdDisplay: ready ? `≤ ${value}` : `(≤ ${value})`,
+      oddsLabel: ready ? odds.oddsLabel : `(${odds.oddsLabel})`,
+      oddsPercent: odds.oddsPercent,
+      oddsTooltip: ready ? odds.oddsTooltip : '',
+      missingLabel: missingLabels[0] ?? '',
+      missingLabels,
+      todo: ready
+        ? game.i18n.localize('TNO.Roll.AllAnswered')
+        : game.i18n.format('TNO.Roll.Open', { list: missingLabels.join(' · ') }),
     };
   }
 
   /**
-   * Repaint the odds readout. Split out of {@link _refresh} because the
-   * roll-type picker also has to call it: the roll type leaves the threshold
-   * untouched but changes which dice are rolled, so the odds move while the
-   * number above them does not — and flashing that number would be a lie.
-   * @param {HTMLElement} root  The form, or any element containing it — the
-   *   roll-type picker hands over the dialog root rather than the form.
-   */
-  _refreshOdds(root) {
-    const form = root instanceof HTMLFormElement ? root : root.querySelector('form');
-    const odds = form?.querySelector('.tno-odds');
-    if (!odds) return;
-    const readout = this._thresholdReadout(new FormDataExtended(form).object);
-    odds.textContent = readout.oddsLabel;
-    form.querySelector('.tno-odds-fill').style.width = `${readout.oddsPercent}%`;
-    if (readout.ready) {
-      odds.tabIndex = 0;
-      odds.setAttribute('role', 'img');
-      odds.dataset.tooltipHtml = readout.oddsTooltip;
-      odds.setAttribute('aria-label', `${game.i18n.localize('TNO.Roll.Odds.InfoLabel')}: ${readout.oddsLabel}`);
-    } else {
-      odds.removeAttribute('tabindex');
-      odds.removeAttribute('role');
-      odds.removeAttribute('data-tooltip-html');
-      odds.removeAttribute('aria-label');
-    }
-  }
-
-  /**
-   * Repaint every dynamic Δ-column cell and the picker summary lines beside
-   * them, keyed by `data-role`. Values only — the controls in the left column
-   * keep their typed contents and focus. Static lines (the attribute in a
-   * locked roll, the skill rank, the gear requirements) carry no `data-role`
-   * and are painted once by the template.
+   * Rebuild the Beleg drawer and the group chips on the toggle that opens it.
+   * Built in script rather than template because it is repainted on every
+   * change; text only ever goes in through `textContent`.
    * @param {HTMLFormElement} form
-   * @param {object} data
+   * @param {Array<object>} groups
    */
-  _repaintLedgerDeltas(form, data) {
-    const paint = (role, cell) => {
-      const el = form.querySelector(`.tno-ledger-delta[data-role="${role}"]`);
-      if (!el || !cell) return;
-      el.textContent = cell.display;
-      el.classList.remove('is-positive', 'is-negative', 'is-neutral', 'is-provisional', 'is-pending');
-      el.classList.add(cell.cls);
+  _paintBeleg(form, groups) {
+    const node = (tag, cls, text) => {
+      const el = document.createElement(tag);
+      if (cls) el.className = cls;
+      if (text !== undefined) el.textContent = text;
+      return el;
     };
-    const relabel = (role, text) => {
-      const el = form.querySelector(`[data-role="${role}"]`);
-      if (el && text != null) el.textContent = text;
-    };
-
-    // ① base — only the picked-attribute lines move; a locked or fixed base does not.
-    if (!this.lockAttribute && !this.fixedValue && !this.skill && !this.freeSkill) {
-      paint('attributeA-delta', this._deltaCell(this._abilityCell(data.attributeA)?.value ?? 0));
-      const key = data.attributeB;
-      const known = key && CONFIG.TNO.abilities[key];
-      const row = form.querySelector('[data-row="attributeB"]');
-      if (row) row.hidden = !known;
-      if (known) {
-        relabel('attributeB-label', game.i18n.localize(CONFIG.TNO.abilities[key]));
-        paint('attributeB-delta', this._deltaCell(this.actor.system.abilities?.[key]?.base ?? 0));
-      }
-    }
-    if (this.freeSkill) paint('freeSkill-delta', this._deltaCell(this._freeSkillValue(data)));
-
-    // ② given
-    if (this.preRollContext) {
-      const picked = this._contextChoice(data);
-      paint('context-delta', this._deltaCell(this._contextComponent(data)?.value ?? 0, { pending: !picked }));
-    }
-    if (this.requiredValue) {
-      paint('requiredValue-delta', this._deltaCell(this._requiredValueComponent(data)?.value ?? 0));
-    }
-    if (this.opposingAnsage) {
-      paint('opposingAnsage-delta', this._deltaCell(this._opposingAnsageComponent(data)?.value ?? 0));
-    }
-    if (this.toggleModifier) {
-      const suppressed = this._toggleModifierSuppressed(data);
-      const checkbox = form.querySelector('input[name="toggleModifier"]');
-      if (checkbox) {
-        checkbox.disabled = suppressed;
-        if (suppressed) checkbox.checked = false;
-      }
-      if (suppressed) data.toggleModifier = false;
-      paint('toggleModifier-delta', this._deltaCell(suppressed ? 0 : this.toggleModifier.value, {
-        provisional: suppressed || !data.toggleModifier,
+    const list = form.querySelector('[data-role="beleg-groups"]');
+    if (list) {
+      list.replaceChildren(...groups.map((group) => {
+        const wrap = node('div', 'tno-beleg-group');
+        const head = node('div', 'tno-beleg-group-head');
+        const icon = node('i', `fa-solid ${group.icon}`);
+        icon.setAttribute('aria-hidden', 'true');
+        head.append(icon, node('strong', '', group.label), node('span', `tno-beleg-group-sum${group.pending ? ' is-pending' : ''}`, `(${group.sumDisplay})`));
+        wrap.append(head);
+        for (const entry of group.rows) {
+          const line = node('div', `tno-beleg-row is-${entry.state}`);
+          const label = node('span', 'tno-beleg-label', entry.mark ? `${entry.mark} ${entry.label}` : entry.label);
+          if (entry.note) label.append(' ', node('small', '', entry.note));
+          line.append(label, node('span', `tno-beleg-delta ${entry.cls}`, entry.display));
+          wrap.append(line);
+        }
+        return wrap;
       }));
     }
-
-    // ③ chosen
-    if (this.zonePicker) paint('zone-delta', this._deltaCell(this._zoneComponent(data)?.value ?? 0));
-    if (this.ansage) paint('ansage-delta', this._deltaCell(this._ansageComponent(data)?.value ?? 0));
-    if (!this.fixedValue) paint('bonus-delta', this._deltaCell(Number(data.bonus) || 0));
-    if (this.actor.type === 'character') {
-      paint('idea-delta', this._deltaCell(this._ideaInsight(), { provisional: !this._ideaArmed(data) }));
+    const chips = form.querySelector('[data-role="beleg-chips"]');
+    if (chips) {
+      chips.replaceChildren(...groups.map((group) => {
+        const chip = node('span', `tno-beleg-chip${group.pending ? ' is-pending' : ''}`, `${group.short} `);
+        chip.append(node('b', '', group.sumDisplay));
+        return chip;
+      }));
     }
   }
 
   /**
-   * Recompute and repaint everything downstream of a threshold-affecting
-   * change: the threshold number, its breakdown line, the roll button's
-   * echo, the odds readout, and a brief highlight so the change is noticed.
+   * Recompute and repaint everything downstream of a change: which questions
+   * are open or locked, the values inside them, the Beleg, the Schwelle, the
+   * odds, the open-questions line and the button.
    * @param {HTMLFormElement} form
    */
   _refresh(form) {
+    if (!form) return;
     const data = new FormDataExtended(form).object;
-    const readout = this._thresholdReadout(data);
-    form.querySelector('.tno-threshold-value').textContent = readout.thresholdDisplay;
-    const comparator = form.querySelector('.tno-threshold-comparator');
-    if (comparator) comparator.textContent = readout.ready ? '≤ ' : '';
-    const echo = form.querySelector('.tno-roll-submit-echo');
-    if (echo) {
-      echo.textContent = readout.ready
-        ? ''
-        : game.i18n.format('TNO.Roll.Blocked.Missing', { label: readout.missingLabel });
+    const questions = this._questions(data);
+    const contextMark = questions.find((question) => question.key === 'context')?.mark ?? '';
+
+    for (const question of questions) {
+      const el = form.querySelector(`.tno-q[data-q="${question.key}"]`);
+      if (!el) continue;
+      el.classList.toggle('is-open', question.pending && !question.locked);
+      el.classList.toggle('is-locked', question.locked);
+      if (!question.pending) el.classList.remove('is-rejected');
+      const title = el.querySelector('[data-role="q-title"]');
+      if (title) title.textContent = `${question.num} · ${question.title}`;
     }
-    this._refreshOdds(form);
-    // Every line's Δ cell, and the picker summary labels beside them.
-    this._repaintLedgerDeltas(form, data);
-    // The two conditional gear lines that come and go with the form state. They
-    // are rendered up front and only shown or hidden here.
-    const armorRow = form.querySelector('.tno-armor-malus');
-    if (armorRow) armorRow.hidden = !this._conditionalModifiers(data).some((modifier) => modifier.label === armorRow.dataset.modifierLabel);
-    const maneuverRow = form.querySelector('.tno-maneuver-malus');
-    if (maneuverRow) maneuverRow.hidden = !this._conditionalModifiers(data).some((modifier) => modifier.label === maneuverRow.dataset.modifierLabel);
-    // The required-value field renames itself when the context choice above it
-    // decides which number is being asked for. Scoped through the field's own
-    // input name so the opposing-Ansage row beside it is never renamed.
-    const requiredInput = form.querySelector('input[name="requiredValue"]');
-    const requiredLabel = requiredInput?.labels?.[0];
-    if (requiredLabel && this.requiredValue) requiredLabel.textContent = this._requiredValueLabel(data);
-    // A stepper that can be clicked past its own floor would write a value the
+
+    // The bypass question: yes/no buttons over a checkbox the form reads.
+    const toggle = form.querySelector('input[name="toggleModifier"]');
+    for (const button of form.querySelectorAll('.tno-q-bool')) {
+      button.setAttribute('aria-pressed', String((button.dataset.value === '1') === !!toggle?.checked));
+    }
+
+    // The context: a waived comparison is closed, and a typed one marks the
+    // verdict it derives.
+    const contextQ = questions.find((question) => question.key === 'context');
+    if (contextQ) {
+      const el = form.querySelector('.tno-q[data-q="context"]');
+      const chosen = this._contextChoice(data)?.key;
+      for (const verdict of el?.querySelectorAll('.tno-verdict') ?? []) {
+        verdict.classList.toggle('is-selected', verdict.dataset.key === chosen);
+      }
+      const compare = el?.querySelector('input[name="compareValue"]');
+      if (compare) compare.disabled = contextQ.locked;
+      const sub = el?.querySelector('[data-role="q-sub"]');
+      if (sub) sub.textContent = contextQ.locked ? game.i18n.localize('TNO.Roll.Waived') : '';
+    }
+
+    // The required number: closed until its context is answered.
+    const requiredQ = questions.find((question) => question.key === 'required');
+    if (requiredQ) {
+      const el = form.querySelector('.tno-q[data-q="required"]');
+      const input = el?.querySelector('input[name="requiredValue"]');
+      if (input) input.disabled = requiredQ.locked;
+      const sub = el?.querySelector('[data-role="q-sub"]');
+      if (sub) sub.textContent = requiredQ.locked ? game.i18n.format('TNO.Roll.Locked', { mark: contextMark }) : '';
+      const ask = el?.querySelector('[data-role="q-ask"]');
+      if (ask) ask.hidden = requiredQ.locked;
+    }
+
+    // The two Ansagen.
+    const paintDelta = (role, cell) => {
+      const el = form.querySelector(`[data-role="${role}"]`);
+      if (!el) return;
+      el.textContent = cell.display;
+      el.className = `tno-ansage-delta ${cell.cls}`;
+    };
+    if (this.ansage) paintDelta('ansage-delta', this._deltaCell(this._ansageComponent(data)?.value ?? 0));
+    if (this.opposingAnsage) paintDelta('opposingAnsage-delta', this._deltaCell(this._opposingAnsageComponent(data)?.value ?? 0));
+
+    // The Idee: pressed state and what is left of the pool.
+    const idea = form.querySelector('.tno-q-idea-toggle');
+    if (idea) {
+      const armed = this._ideaArmed(data);
+      idea.setAttribute('aria-pressed', String(armed));
+      const { pips, chargesText } = this._ideaPips(this.actor.system.derived?.edgePool ?? 0, this.actor.system.derived?.edgePoolMax ?? 0, armed);
+      form.querySelectorAll('.tno-idea-pip').forEach((pip, i) => pip.classList.toggle('filled', !!pips[i]?.filled));
+      const text = form.querySelector('[data-role="idea-charges"]');
+      if (text) text.textContent = chargesText;
+    }
+
+    // A stepper that can be clicked past its own bound would write a value the
     // field's own `min` rejects, so the caps are shown rather than enforced
-    // silently. Every stepped field is walked, and each reads its bounds off its
-    // own input — the announced Schadenswert is no longer the only one. A blank
-    // field is at no bound yet, so both its buttons stay live until something
-    // has been typed.
-    for (const group of form.querySelectorAll('.tno-ledger-stepper')) {
+    // silently. Each reads its bounds off its own input.
+    for (const group of form.querySelectorAll('.tno-stepper')) {
       const stepped = group.querySelector('input[type="number"]');
       if (!stepped) continue;
       const current = stepped.value === '' ? null : Number(stepped.value);
-      for (const button of group.querySelectorAll('.tno-ledger-step')) {
+      for (const button of group.querySelectorAll('.tno-step')) {
         const step = Number(button.dataset.step);
         const bound = TnoRollDialog._inputBound(step > 0 ? stepped.max : stepped.min);
-        button.disabled = current !== null && bound !== null
-          && (step > 0 ? current >= bound : current <= bound);
+        button.disabled = stepped.disabled || (current !== null && bound !== null
+          && (step > 0 ? current >= bound : current <= bound));
       }
     }
-    // The question that blocks the roll is marked where the answer goes, not
-    // only by the `?` in its Δ column and the sentence on the button. Blue
-    // rather than red: nothing is wrong yet, and red already means "this Δ
-    // costs you" three rows above. The two blues never coexist — this state
-    // exists only while nothing is checked, the chosen-tile blue only after.
-    const pickerRow = form.querySelector('.tno-ledger-row--picker[data-row="context"]');
-    if (pickerRow) {
-      const unanswered = !this._contextChoice(data);
-      pickerRow.classList.toggle('is-unanswered', unanswered);
-      // Answering clears a refusal outright. `animationend` does that too, but
-      // it never fires under `prefers-reduced-motion`, where the flash is a
-      // static red the pick has to be able to switch off.
-      if (!unanswered) pickerRow.classList.remove('tno-picker-reject');
+
+    this._paintBeleg(form, this._belegGroups(data));
+
+    const readout = this._thresholdReadout(data);
+    const set = (role, text) => {
+      const el = form.querySelector(`[data-role="${role}"]`);
+      if (el) el.textContent = text;
+    };
+    set('threshold', readout.thresholdDisplay);
+    set('odds', readout.oddsLabel);
+    set('mode-label', this._modeLabel(data.advantage));
+    set('todo', readout.todo);
+    const result = form.querySelector('.tno-wurf-result');
+    result?.classList.toggle('is-pending', !readout.ready);
+    const odds = form.querySelector('[data-role="odds"]');
+    if (odds) {
+      if (readout.ready) {
+        odds.tabIndex = 0;
+        odds.dataset.tooltipHtml = readout.oddsTooltip;
+      } else {
+        odds.removeAttribute('tabindex');
+        odds.removeAttribute('data-tooltip-html');
+      }
     }
-    // Not `disabled`: a disabled button swallows its own click, so the sentence
-    // naming the missing field would be a dead end. It stays clickable and
+    const fill = form.querySelector('.tno-odds-fill');
+    if (fill) fill.style.width = `${Math.max(readout.oddsPercent, 1)}%`;
+    form.querySelector('[data-role="todo"]')?.classList.toggle('is-open', !readout.ready);
+
+    // Not `disabled`: a disabled button swallows its own click, so the refusal
+    // naming the missing answer would be a dead end. It stays clickable and
     // refuses out loud — see {@link _rejectSubmit}.
     const submit = form.querySelector('button[type="submit"]');
     if (submit) {
       submit.classList.toggle('is-blocked', !readout.ready);
-      if (readout.ready) submit.removeAttribute('aria-disabled');
-      else submit.setAttribute('aria-disabled', 'true');
-    }
-    const box = form.querySelector('.tno-threshold-box');
-    if (box) {
-      box.classList.toggle('is-pending', !readout.ready);
-      box.classList.remove('tno-threshold-flash');
       if (readout.ready) {
-        void box.offsetWidth; // reflow so the animation restarts on rapid changes
-        box.classList.add('tno-threshold-flash');
+        submit.removeAttribute('aria-disabled');
+        set('submit-echo', '');
+      } else {
+        submit.setAttribute('aria-disabled', 'true');
       }
     }
   }
 
   /**
    * Set the bonus/malus to a clamped value and sync its display, sign colour,
-   * cap-disabled buttons, and the threshold preview.
+   * cap-disabled buttons, and the readout.
    * @param {HTMLFormElement} form
    * @param {number} next  The desired (pre-clamp) bonus value.
    */
@@ -1384,41 +1585,44 @@ export class TnoRollDialog extends FormApplication {
     const display = form.querySelector('.tno-bonus-value');
     display.textContent = this._formatBonus(value);
     display.setAttribute('aria-label', this._bonusResetLabel(value));
-    display.classList.toggle('tno-bonus-positive', value > 0);
-    display.classList.toggle('tno-bonus-negative', value < 0);
-    form.querySelector('.tno-bonus-stepper[data-action="decrement"]').disabled = value <= BONUS_MIN;
-    form.querySelector('.tno-bonus-stepper[data-action="increment"]').disabled = value >= BONUS_MAX;
+    display.classList.toggle('is-positive', value > 0);
+    display.classList.toggle('is-negative', value < 0);
+    for (const button of form.querySelectorAll('.tno-bonus-step')) {
+      button.disabled = Number(button.dataset.delta) < 0 ? value <= BONUS_MIN : value >= BONUS_MAX;
+    }
     this._refresh(form);
   }
 
   /**
-   * Refuse a roll that is still missing its required pick, and say so at the
-   * control rather than only at the button.
-   *
-   * This is the one moment red is honest here: it answers an action instead of
-   * describing an opening state, so it cannot be read as one more malus in a
-   * ledger whose maluses are also red. It is momentary, and the resting mark
-   * stays blue.
+   * Refuse a roll that still has an open question, and say so at the question
+   * rather than only at the button. Red is honest here: it answers an action
+   * instead of describing an opening state, and it is momentary.
    * @param {HTMLFormElement} form
    */
   _rejectSubmit(form) {
-    const row = form.querySelector('.tno-ledger-row--picker[data-row="context"]');
-    if (!row) return;
-    row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-    row.classList.remove('tno-picker-reject');
-    void row.offsetWidth; // reflow, so a second refused click replays the flash
-    row.classList.add('tno-picker-reject');
-    row.addEventListener('animationend', () => row.classList.remove('tno-picker-reject'), { once: true });
-    form.querySelector('[name="contextChoice"]')?.focus();
+    const data = new FormDataExtended(form).object;
+    const open = this._questions(data).find((question) => question.pending);
+    if (!open) return;
+    const echo = form.querySelector('[data-role="submit-echo"]');
+    if (echo) echo.textContent = game.i18n.format('TNO.Roll.Blocked.Missing', { label: `${open.mark} ${open.title}` });
+    // A locked question cannot be answered yet; the one that unlocks it can.
+    const target = open.locked
+      ? form.querySelector('.tno-q.is-open') ?? form.querySelector(`.tno-q[data-q="${open.key}"]`)
+      : form.querySelector(`.tno-q[data-q="${open.key}"]`);
+    if (!target) return;
+    target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    target.classList.remove('is-rejected');
+    void target.offsetWidth; // reflow, so a second refused click replays the flash
+    target.classList.add('is-rejected');
+    target.addEventListener('animationend', () => target.classList.remove('is-rejected'), { once: true });
+    target.querySelector('input:not([type="hidden"]):not(:disabled), button:not(:disabled), select')?.focus();
   }
 
   /**
    * @override
    * The gate is here rather than on the button's `disabled` attribute so that
    * both ways of committing — the click and the implicit Enter — land on the
-   * same refusal. The form is `novalidate` for the same reason: the radios keep
-   * their `required` for assistive tech, but the browser's own bubble would
-   * pre-empt the message this dialog already writes.
+   * same refusal. The form is `novalidate` for the same reason.
    */
   async _onSubmit(event, options = {}) {
     const form = this.form ?? event?.currentTarget;
@@ -1433,65 +1637,52 @@ export class TnoRollDialog extends FormApplication {
   /** @override */
   activateListeners(html) {
     super.activateListeners(html);
-
-    // Any threshold-affecting input (attribute selects, free skill value, the
-    // "Idee haben" toggle) repaints the preview.
-    html.on('change', 'select[name="attributeA"], select[name="attributeB"], select[name="contextChoice"], input[name="contextChoice"], input[name="zoneChoice"]', (ev) => this._refresh(ev.currentTarget.closest('form')));
-    html.on('change input', 'input[name="skillValue"], input[name="requiredValue"], input[name="opposingAnsage"], input[name="ansage"]', (ev) => this._refresh(ev.currentTarget.closest('form')));
-    html.on('change', 'input[name="toggleModifier"]', (ev) => this._refresh(ev.currentTarget.closest('form')));
-
-    html.on('change', 'input[name="useIdea"]', (ev) => {
-      ev.currentTarget.closest('.tno-idea-toggle')?.classList.toggle('active', ev.currentTarget.checked);
-      this._refresh(ev.currentTarget.closest('form'));
-    });
-
-    // Every selectable first attribute uses the same radiogroup behaviour as
-    // the roll-type picker. Locked combat attributes remain read-only rows.
     const root = html[0];
     const form = root.closest('form') ?? root.querySelector('form');
     if (!form) return;
+    const refresh = () => this._refresh(form);
+
+    html.on('change', 'select[name="attributeB"], select[name="contextChoice"], input[name="contextChoice"], input[name="zoneChoice"]', refresh);
+    html.on('change input', 'input[name="skillValue"], input[name="requiredValue"], input[name="opposingAnsage"], input[name="ansage"], input[name="compareValue"]', refresh);
+
+    // Yes/no: two buttons over the checkbox the form reads.
+    html.on('click', '.tno-q-bool', (ev) => {
+      ev.preventDefault();
+      const checkbox = form.querySelector('input[name="toggleModifier"]');
+      if (checkbox) checkbox.checked = ev.currentTarget.dataset.value === '1';
+      refresh();
+    });
+
+    // The Idee: one pressed button over the checkbox the form reads.
+    html.on('click', '.tno-q-idea-toggle', (ev) => {
+      ev.preventDefault();
+      if (ev.currentTarget.disabled) return;
+      const checkbox = form.querySelector('input[name="useIdea"]');
+      if (checkbox) checkbox.checked = !checkbox.checked;
+      refresh();
+    });
+
+    // Every selectable first attribute uses the same radiogroup behaviour as
+    // the roll-type picker. Locked combat attributes are not asked at all.
     bindRadioGroup({
-      group: form.querySelector('.tno-attribute-chip-grid'),
+      group: form.querySelector('.tno-attribute-grid'),
       input: form.querySelector('input[name="attributeA"]'),
-      onSelect: (value) => {
-        const chip = [...form.querySelectorAll('.tno-attribute-chip')]
-          .find((option) => option.dataset.value === value);
-        for (const name of form.querySelectorAll('.tno-attribute-selected-name, .tno-attribute-row-name')) {
-          name.textContent = chip?.title ?? '';
-        }
-        this._refresh(form);
-      },
+      onSelect: refresh,
     });
 
-    // Bonus stepper: ± in steps of 3, clamped, caps shown as disabled buttons.
-    html.on('click', '.tno-bonus-stepper', (ev) => {
+    // The situational modification: ±3 in Malusstufen, ±1 to fine-tune.
+    html.on('click', '.tno-bonus-step', (ev) => {
       ev.preventDefault();
       if (ev.currentTarget.disabled) return;
-      const form = ev.currentTarget.closest('form');
       const current = Number(form.querySelector('input[name="bonus"]').value) || 0;
-      const delta = ev.currentTarget.dataset.action === 'increment' ? BONUS_STEP : -BONUS_STEP;
-      this._setBonus(form, current + delta);
+      this._setBonus(form, current + Number(ev.currentTarget.dataset.delta));
     });
-
-    // Every stepped field in the ledger shares one gesture: ±1 around its own
-    // input, bounded by that input's own min/max. The button finds its field
-    // through the wrapper it sits in, so nothing here knows a field by name.
-    html.on('click', '.tno-ledger-step', (ev) => {
+    // The value doubles as a control: click resets it to zero, arrow keys step it.
+    html.on('click', '.tno-bonus-value', (ev) => {
       ev.preventDefault();
-      if (ev.currentTarget.disabled) return;
-      const group = ev.currentTarget.closest('.tno-ledger-stepper');
-      this._stepValue(
-        ev.currentTarget.closest('form'),
-        group?.querySelector('input[type="number"]'),
-        Number(ev.currentTarget.dataset.step)
-      );
+      this._setBonus(form, 0);
     });
-
-    // The bonus value doubles as a control: click resets it to zero, arrow
-    // keys step it, so it's usable without the mouse.
-    html.on('click', '.tno-bonus-value', (ev) => this._setBonus(ev.currentTarget.closest('form'), 0));
     html.on('keydown', '.tno-bonus-value', (ev) => {
-      const form = ev.currentTarget.closest('form');
       const current = Number(form.querySelector('input[name="bonus"]').value) || 0;
       if (ev.key === 'ArrowUp' || ev.key === 'ArrowRight') {
         ev.preventDefault();
@@ -1502,44 +1693,73 @@ export class TnoRollDialog extends FormApplication {
       }
     });
 
-    // Roll-type picker, shared with the base-dice dialog. It changes which
-    // dice are rolled, not the threshold — so the threshold preview stays put
-    // (no flash on a number that did not move) and only the odds are rebuilt.
-    const consequence = root.querySelector('.tno-advantage-effect');
-    bindRadioGroup({
-      group: root.querySelector('.tno-advantage-group'),
-      input: root.querySelector('input[name="advantage"]'),
-      onSelect: (value) => {
-        if (consequence) consequence.textContent = describeAdvantage(Number(value));
-        this._refreshOdds(root);
-      },
+    // Every stepped field shares one gesture: ±1 around its own input, bounded
+    // by that input's own min/max.
+    html.on('click', '.tno-step', (ev) => {
+      ev.preventDefault();
+      if (ev.currentTarget.disabled) return;
+      this._stepValue(form, ev.currentTarget.closest('.tno-stepper')?.querySelector('input[type="number"]'), Number(ev.currentTarget.dataset.step));
     });
 
-    // A required combat context must be answered before the commit button is
-    // useful; every other roll keeps the existing one-Enter default path. The
-    // typed value comes first where both are asked: it is the fact the player
-    // was just told, while the comparison is one they can work out themselves.
-    const contextFocus = this.preRollContext?.control !== 'select'
-      ? 'input[name="contextChoice"]:first'
-      : 'select[name="contextChoice"]';
-    // The pick leads: it is the only answer that can still block the roll, and
-    // the number beside it already carries a usable default.
-    const focus = this.preRollContext
-      ? contextFocus
-      : this.requiredValue
-        ? 'input[name="requiredValue"]'
-        : 'button[type="submit"]';
-    html.find(focus).trigger('focus');
+    // The roll type moves the odds, not the Schwelle.
+    bindRadioGroup({
+      group: form.querySelector('.tno-advantage-group'),
+      input: form.querySelector('input[name="advantage"]'),
+      onSelect: refresh,
+    });
+
+    // The Beleg drawer: opens on the toggle, closes once a click or the focus
+    // lands anywhere outside it.
+    const beleg = form.querySelector('.tno-beleg');
+    const setBeleg = (open) => {
+      if (!beleg || beleg.classList.contains('is-open') === open) return;
+      beleg.classList.toggle('is-open', open);
+      beleg.querySelector('.tno-beleg-toggle')?.setAttribute('aria-expanded', String(open));
+      const label = beleg.querySelector('[data-role="beleg-toggle-label"]');
+      if (label) label.textContent = game.i18n.localize(open ? 'TNO.Roll.Beleg.Close' : 'TNO.Roll.Beleg.Open');
+    };
+    html.on('click', '.tno-beleg-toggle', (ev) => {
+      ev.preventDefault();
+      setBeleg(!beleg?.classList.contains('is-open'));
+    });
+    html.on('focusout', '.tno-beleg', (ev) => {
+      if (ev.relatedTarget && !beleg?.contains(ev.relatedTarget)) setBeleg(false);
+    });
+    this._unbindBelegOutside();
+    this._onBelegOutside = (ev) => {
+      if (!beleg?.contains(ev.target)) setBeleg(false);
+    };
+    document.addEventListener('pointerdown', this._onBelegOutside, true);
+
+    refresh();
+
+    // Focus the first question still waiting for an answer, else the button.
+    const open = form.querySelector('.tno-q.is-open');
+    const target = open?.querySelector('input:not([type="hidden"]):not(:disabled), button:not(:disabled), select')
+      ?? form.querySelector('button[type="submit"]');
+    target?.focus();
+  }
+
+  /** Drop the document listener that closes the Beleg on an outside click. */
+  _unbindBelegOutside() {
+    if (this._onBelegOutside) document.removeEventListener('pointerdown', this._onBelegOutside, true);
+    this._onBelegOutside = null;
+  }
+
+  /** @override */
+  async close(options) {
+    this._unbindBelegOutside();
+    return super.close(options);
   }
 
   /** @override */
   async _updateObject(event, formData) {
     if (this.lockAttribute) formData.attributeA = this.object.attributeA;
-    const context = this._contextComponent(formData);
-    if (this.preRollContext && !context) {
+    if (!this._canSubmit(formData)) {
       ui.notifications.warn(game.i18n.localize('TNO.Roll.ContextRequired'));
       return;
     }
+    const context = this._contextComponent(formData);
     const required = this._requiredValueComponent(formData);
     const zoneComponent = this._zoneComponent(formData);
     const consequence = this._consequence(formData);

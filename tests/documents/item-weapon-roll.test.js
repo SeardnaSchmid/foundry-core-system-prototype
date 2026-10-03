@@ -103,7 +103,7 @@ describe('weapon roll requirement components', () => {
   it('sends the SV shortfall as one graded component', () => {
     // SV 6 against Strength 2 is 4 short: two steps.
     expect(attackRequirements(actor(), { fvRank: 8, sv: 6 })).toEqual([
-      { label: 'TNO.Combat.SvMalus(2)', value: -6, hint: 'TNO.Combat.SvMalusHint' },
+      { label: 'TNO.Combat.SvMalus(2)', value: -6, hint: 'TNO.Combat.SvMalusHint', origin: 'weapon' },
     ]);
   });
 
@@ -112,7 +112,7 @@ describe('weapon roll requirement components', () => {
     // the case that separates the ladder from the reading where the "weitere
     // Punkte" are counted from the requirement itself.
     expect(attackRequirements(actor(), { sv: 4 })).toEqual([
-      { label: 'TNO.Combat.SvMalus(1)', value: -3, hint: 'TNO.Combat.SvMalusHint' },
+      { label: 'TNO.Combat.SvMalus(1)', value: -3, hint: 'TNO.Combat.SvMalusHint', origin: 'weapon' },
     ]);
   });
 
@@ -120,8 +120,8 @@ describe('weapon roll requirement components', () => {
     opened = null;
     weapon(actor(), { fvRank: 8, sv: 6 }).openWeaponParry();
     expect(opened.fixedModifiers).toEqual([
-      { label: 'TNO.Combat.PassiveHandling', value: -1, hint: 'TNO.Combat.PassiveHandlingHint' },
-      { label: 'TNO.Combat.SvMalus(2)', value: -6, hint: 'TNO.Combat.SvMalusHint' },
+      { label: 'TNO.Combat.PassiveHandling', value: -1, hint: 'TNO.Combat.PassiveHandlingHint', origin: 'weapon' },
+      { label: 'TNO.Combat.SvMalus(2)', value: -6, hint: 'TNO.Combat.SvMalusHint', origin: 'weapon' },
     ]);
     // "Angriffe und Paraden sind um +3 erleichtert wenn man den längeren hat":
     // the parry asks for the same reach comparison an attack does.

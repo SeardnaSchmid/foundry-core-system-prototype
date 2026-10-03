@@ -460,20 +460,18 @@ export function armorPenetrationChoices() {
  * separately announced "Rüstung umgehen" maneuver are known.
  *
  * Bypassing armour makes the comparison immaterial: the hit uses Schaden and
- * the location's RW does not apply. A missing comparison remains unanswered
- * even when bypass was announced, because the resistance dialog still requires
- * the table row the players compared.
+ * the location's RW does not apply, so a bypass needs no comparison at all —
+ * the resistance dialog stops asking for one once the bypass is confirmed.
  *
  * @param {string} key  One of the keys returned by armorPenetrationChoices.
  * @param {{bypass?: boolean}} [options]
  * @returns {{damage: 'ss'|'ws', ignoresRw: boolean}|null}
  */
 export function resolveArmorInteraction(key, { bypass = false } = {}) {
+  if (bypass) return { damage: 'ss', ignoresRw: true };
   const choice = armorPenetrationChoices().find((entry) => entry.key === key);
   if (!choice) return null;
-  return bypass
-    ? { damage: 'ss', ignoresRw: true }
-    : { damage: choice.damage, ignoresRw: choice.ignoresRw };
+  return { damage: choice.damage, ignoresRw: choice.ignoresRw };
 }
 
 /**

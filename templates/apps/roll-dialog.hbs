@@ -1,441 +1,269 @@
-{{!-- The roll dialog as a bookkeeping ledger.
+{{!-- The roll dialog: numbered questions above, the Schwelle below.
 
-Every value that moves the Schwelle is one line: its name on the left, its
-signed contribution in the Δ column on the right. The lines are grouped by
-**who owns the answer** — what you bring, then what you are handed, then what
-you decide — and the space between the groups is the only thing that marks
-them: no rules, no captions. The Schwelle is the total closing the page, the
-sum of the Δ column above it, and it sits directly above the button that acts
-on it.
+Only what the roller has to answer is asked ("Zu klären"). Facts — the
+attribute a weapon locks, the skill rank, handling, armour — are not asked;
+they live in the Beleg, the drawer that opens above the Schwelle and lists
+every component grouped by where it comes from. `_refresh` fills the Beleg
+and repaints everything that moves.
 
-Provisional lines — a bypass not yet ticked, an unspent Idee — show their
-amount in parentheses and are not counted until armed. A line whose answer is
-still missing shows `?` in blue, blocks the roll, and wears that same blue as a
-dashed outline on the control the answer goes into. Red is not used for it:
-here red means a Δ that costs you, and it is kept for the refusal a pressed
-button earns. The button is `aria-disabled` rather than `disabled` so that
+A question still waiting for its answer wears a dashed blue outline
+(`.is-open`); one that cannot be answered yet, or no longer applies, is greyed
+(`.is-locked`). While anything is open the Schwelle and odds are shown in
+parentheses. Red is kept for a Δ that costs you and for the refusal a pressed
+button earns: the button is `aria-disabled` rather than `disabled` so that
 press can happen, and the form is `novalidate` so the browser's own bubble
-cannot pre-empt the message this dialog already writes.
+cannot pre-empt it.
 
-Every `name=` here is load-bearing: `_updateObject` reads the form by name, and
-`_refresh` repaints each Δ cell by its `data-role`. A control may move but not
-be renamed. --}}
+Every `name=` here is load-bearing: `_updateObject` reads the form by name. --}}
 
-<form class="tno-roll-dialog flexcol" novalidate>
-  <div class="tno-ledger">
-    <div class="tno-ledger-head" aria-hidden="true">
-      <span>{{localize "TNO.Roll.Ledger.Posten"}}</span>
-      <span>{{localize "TNO.Roll.Ledger.Delta"}}</span>
-    </div>
-
-    {{!-- ① What you bring. Read-only in every combat workflow: the attribute,
-          the skill rank, and the requirements your own gear imposes. Facts about
-          the character — a player cannot argue with them, so they lead and carry
-          no control. --}}
-    <div class="tno-ledger-group">
-      {{#if isFixedMode}}
-      <div class="tno-ledger-row" data-row="fixedValue">
-        <span class="tno-ledger-label">{{fixedLabel}}</span>
-        <span class="tno-ledger-delta is-positive">{{fixedValueDisplay}}</span>
-      </div>
-      {{else}}
-        {{#if isLockedAttribute}}
-        <input type="hidden" name="attributeA" value="{{attributeA}}"/>
-        {{else}}
-        <div class="tno-ledger-control tno-attribute-field">
-          <span class="tno-ledger-control-label">{{localize "TNO.Roll.ChooseAttribute"}}</span>
-          <div class="tno-attribute-chip-grid" role="radiogroup" aria-label="{{localize 'TNO.Roll.ChooseAttribute'}}">
-            <span class="tno-attribute-col-head" aria-hidden="true">{{localize "TNO.AttributeCategory.Physical"}}</span>
-            <span class="tno-attribute-col-head" aria-hidden="true">{{localize "TNO.AttributeCategory.Social"}}</span>
-            <span class="tno-attribute-col-head" aria-hidden="true">{{localize "TNO.AttributeCategory.Mental"}}</span>
-            {{#each attributeGrid as |row|}}
-            {{#each row as |chip|}}
-            <button type="button" class="tno-attribute-chip {{#if chip.active}}active{{/if}}" data-value="{{chip.key}}"
-              role="radio"
-              aria-checked="{{#if chip.active}}true{{else}}false{{/if}}"
-              tabindex="{{#if chip.active}}0{{else}}-1{{/if}}"
-              title="{{chip.label}}" style="background:{{chip.cellBg}}; color:{{chip.textColor}};">
-              <span class="tno-attribute-chip-abbr">{{chip.abbr}}</span>
-              <span class="tno-attribute-chip-value">{{chip.value}}</span>
-            </button>
-            {{/each}}
-            {{/each}}
-          </div>
-          <input type="hidden" name="attributeA" value="{{attributeA}}"/>
-          <div class="tno-attribute-selected"><span class="tno-attribute-selected-name">{{selectedAttributeLabel}}</span></div>
-        </div>
-        {{/if}}
-
-        <div class="tno-ledger-row" data-row="attributeA">
-          <span class="tno-ledger-label">
-            <span class="tno-attribute-row-name">{{selectedAttribute.label}}</span>
-            {{#if isLockedAttribute}}
-            <span class="tno-ledger-badge" style="background:{{selectedAttribute.cellBg}}; color:{{selectedAttribute.textColor}};">{{selectedAttribute.value}}</span>
-            {{/if}}
-          </span>
-          <span class="tno-ledger-delta {{selectedAttribute.deltaClass}}" data-role="attributeA-delta">{{selectedAttribute.deltaDisplay}}</span>
-        </div>
-
-        {{#if isSkillMode}}
-        <div class="tno-ledger-row" data-row="skill">
-          <span class="tno-ledger-label">
-            <span>{{skillLabel}}</span>
-            <span class="tno-ledger-badge" style="background:{{skillCellBg}}; color:{{skillTextColor}};">{{skillValue}}</span>
-          </span>
-          <span class="tno-ledger-delta is-positive">+{{skillValue}}</span>
-        </div>
-        {{else}}
-          {{#if isFreeMode}}
-          <div class="tno-ledger-control">
-            <label for="{{dialogId}}-free-skill">{{localize "TNO.Roll.FreeSkillValue"}}</label>
-            <input id="{{dialogId}}-free-skill" type="number" name="skillValue" value="{{skillValue}}" min="0" max="10" step="1"/>
-          </div>
-          <div class="tno-ledger-row" data-row="freeSkill">
-            <span class="tno-ledger-label">{{localize "TNO.Roll.FreeSkillValue"}}</span>
-            <span class="tno-ledger-delta {{freeSkillDelta.cls}}" data-role="freeSkill-delta">{{freeSkillDelta.display}}</span>
-          </div>
-          {{else}}
-            {{#unless isLockedAttribute}}
-            <div class="tno-ledger-control">
-              <label for="{{dialogId}}-attribute-b">{{localize "TNO.Roll.AttributeB"}}</label>
-              <select id="{{dialogId}}-attribute-b" name="attributeB">
-                <option value="">-</option>
-                {{#each abilityOptions as |ability|}}
-                <option value="{{ability.key}}" {{#if ability.selected}}selected{{/if}}>{{ability.label}} {{ability.value}}</option>
-                {{/each}}
-              </select>
-            </div>
-            <div class="tno-ledger-row" data-row="attributeB" {{#unless attributeBRow}}hidden{{/unless}}>
-              <span class="tno-ledger-label" data-role="attributeB-label">{{attributeBRow.label}}</span>
-              <span class="tno-ledger-delta is-positive" data-role="attributeB-delta">{{attributeBRow.display}}</span>
-            </div>
-            {{/unless}}
-          {{/if}}
-        {{/if}}
-      {{/if}}
-
-      {{!-- Immutable facts from the character: the global damage malus, then the
-            requirements their own gear imposes. --}}
-      {{#if hasGearModifiers}}
-      <div class="tno-roll-gear-modifiers">
-        {{#if damageMalus}}
-        <div class="tno-ledger-row tno-tooltip-hint" data-row="damageMalus"
-             data-tooltip-html='<dl class="tno-tooltip"><div class="tno-tooltip-row"><dt>{{damageMalus.label}}</dt><dd>{{damageMalus.hint}}</dd></div></dl>'>
-          <span class="tno-ledger-label">{{damageMalus.label}}</span>
-          <span class="tno-ledger-delta is-negative">{{damageMalus.display}}</span>
-        </div>
-        {{/if}}
-
-        {{#each fixedModifiers as |modifier|}}
-        <div class="tno-ledger-row {{#if modifier.hint}}tno-tooltip-hint{{/if}}" data-row="fixed-{{@index}}"
-             {{#if modifier.hint}}data-tooltip-html='<dl class="tno-tooltip"><div class="tno-tooltip-row"><dt>{{modifier.label}}</dt><dd>{{modifier.hint}}</dd></div></dl>'{{/if}}>
-          <span class="tno-ledger-label">{{modifier.label}}</span>
-          <span class="tno-ledger-delta {{modifier.deltaClass}}">{{modifier.display}}</span>
-        </div>
-        {{/each}}
-
-        {{#if armorMalus}}
-        <div class="tno-ledger-row tno-armor-malus tno-tooltip-hint" data-row="armorMalus" data-modifier-label="{{armorMalus.label}}"
-             data-tooltip-html='<dl class="tno-tooltip"><div class="tno-tooltip-row"><dt>{{armorMalus.label}}</dt><dd>{{armorMalus.hint}}</dd></div></dl>'
-             {{#unless armorMalus.active}}hidden{{/unless}}>
-          <span class="tno-ledger-label">{{armorMalus.label}}</span>
-          <span class="tno-ledger-delta is-negative">{{armorMalus.display}}</span>
-        </div>
-        {{/if}}
-
-        {{#if maneuverMalus}}
-        <div class="tno-ledger-row tno-maneuver-malus tno-tooltip-hint" data-row="maneuverMalus" data-modifier-label="{{maneuverMalus.label}}"
-             data-tooltip-html='<dl class="tno-tooltip"><div class="tno-tooltip-row"><dt>{{maneuverMalus.label}}</dt><dd>{{maneuverMalus.hint}}</dd></div></dl>'
-             {{#unless maneuverMalus.active}}hidden{{/unless}}>
-          <span class="tno-ledger-label">{{maneuverMalus.label}}</span>
-          <span class="tno-ledger-delta is-negative">{{maneuverMalus.display}}</span>
-        </div>
-        {{/if}}
-      </div>
-      {{/if}}
-    </div>
-
-    {{!-- ② What you are handed: a reach or penetration comparison, an announced
-          Schadenswert, an Ansage the attacker declared, a bypass they bought.
-          The comparison leads because a Schwelle without it would be a lie.
-
-          The group is marked by the space above it and nothing else. It used to
-          carry a labelled rule — "was dir gegeben wird" — which stated the
-          ownership split this file is organised by. True, and load-bearing for
-          the code, but at roll time nobody needs telling which numbers came
-          from the other side: a readout you cannot touch, a field you type
-          into and a box you tick already say it. --}}
-    {{#if hasGivenGroup}}
-    <div class="tno-ledger-group">
-
-      {{!-- ONE line per question: the question and its answers on the left, the
-            resolved Δ on the right, in the same column every other line uses.
-            The picker used to be a full-width block with a summary line under
-            it, which printed the same question twice until something was
-            picked. An `anchor` — the reader's own number — joins it as a second
-            column where a workflow supplies one. --}}
-      {{#if hasPreRollContext}}
-      <div class="tno-ledger-row tno-ledger-row--picker {{#unless contextSelected}}is-unanswered{{/unless}}" data-row="context">
-        <div class="tno-picker">
-          {{#if preRollContext.isTilePicker}}
-          <fieldset class="tno-context-tile-field">
-            <legend>{{preRollContext.label}}</legend>
-            {{#if preRollContext.note}}<p class="tno-context-note">{{preRollContext.note}}</p>{{/if}}
-            <div class="tno-context-tile-grid tno-context-tile-grid-{{preRollContext.tileColumns}}">
-              {{#each preRollContext.choices as |choice|}}
-              <input id="{{../dialogId}}-context-choice-{{choice.key}}" class="tno-context-tile-input" type="radio" name="contextChoice" value="{{choice.key}}" required {{#if choice.selected}}checked{{/if}}>
-              {{!-- Three slots, the same three every tile in this dialog uses:
-                    what you are picking, what it is worth, what it does. The
-                    third is filled only where the choice has an effect to state
-                    beyond its own Δ — a range band has none, so those tiles are
-                    two slots tall and no shorter than their content. --}}
-              <label class="tno-context-tile {{choice.state}} {{#if choice.caption}}has-caption{{/if}}" for="{{../dialogId}}-context-choice-{{choice.key}}" title="{{#if choice.caption}}{{choice.caption}}{{else}}{{choice.name}}{{/if}}">
-                <strong>{{choice.name}}</strong>
-                <span class="tno-context-tile-value">{{choice.display}}</span>
-                {{#if choice.caption}}<span class="tno-context-tile-caption">{{choice.caption}}</span>{{/if}}
-              </label>
-              {{/each}}
-            </div>
-          </fieldset>
-          {{else if preRollContext.isToggle}}
-          <fieldset class="tno-context-toggle-field">
-            <legend>{{preRollContext.label}}</legend>
-            {{#if preRollContext.note}}<p class="tno-context-note">{{preRollContext.note}}</p>{{/if}}
-            <div class="tno-context-toggle-group">
-              {{#each preRollContext.choices as |choice|}}
-              <input id="{{../dialogId}}-context-toggle-{{choice.key}}" class="tno-context-tile-input" type="radio" name="contextChoice" value="{{choice.key}}" required {{#if choice.selected}}checked{{/if}}>
-              <label class="tno-context-toggle {{choice.state}}" for="{{../dialogId}}-context-toggle-{{choice.key}}">
-                <span>{{choice.label}}</span>
-                <small>{{choice.display}}</small>
-              </label>
-              {{/each}}
-            </div>
-          </fieldset>
-          {{else}}
-          <div class="tno-picker-select">
-            <label for="{{dialogId}}-context-choice">{{preRollContext.label}}</label>
-            <select id="{{dialogId}}-context-choice" name="contextChoice" required>
-              <option value="" disabled {{#unless contextSelected}}selected{{/unless}}>{{preRollContext.placeholder}}</option>
-              {{#each preRollContext.choices as |choice|}}
-              <option value="{{choice.key}}" {{#if choice.selected}}selected{{/if}}>{{choice.label}} ({{choice.display}})</option>
-              {{/each}}
-            </select>
-          </div>
-          {{/if}}
-
-          {{!-- The reader's own half of a comparison: a readout, never a choice.
-                Deliberately not a further tile — it is the column the answers
-                are measured against. --}}
-          {{#if preRollContext.anchor}}
-          <div class="tno-comparison-anchor">
-            <span class="tno-comparison-anchor-caption">{{preRollContext.anchor.label}}</span>
-            <strong class="tno-comparison-anchor-value">{{preRollContext.anchor.value}}</strong>
-          </div>
-          {{/if}}
-        </div>
-        <span class="tno-ledger-delta {{contextDelta.cls}}" data-role="context-delta">{{contextDelta.display}}</span>
-      </div>
-      {{/if}}
-
-      {{#if hasRequiredValue}}
-      <div class="tno-ledger-row tno-ledger-row--input" data-row="requiredValue">
-        <span class="tno-ledger-label">
-          <label for="{{dialogId}}-required-value">{{requiredValue.label}}</label>
-          {{!-- Where the number is read off. A marker rather than a line of
-                prose under the row: the ledger is a column of rows, and a
-                paragraph wedged between two of them breaks the scan for a
-                sentence that is only needed once. --}}
-          {{#if requiredValue.hint}}
-          <span class="tno-ledger-info"
-                tabindex="0"
-                role="img"
-                aria-label="{{localize 'TNO.Roll.Ledger.InfoLabel'}}"
-                data-tooltip-html='<dl class="tno-tooltip"><div class="tno-tooltip-row"><dd>{{requiredValue.hint}}</dd></div></dl>'
-                data-tooltip-direction="UP"><i class="fa-solid fa-circle-info" aria-hidden="true"></i></span>
-          {{/if}}
-          {{!-- Decrement, value, increment — the shared `.tno-ledger-stepper`
-                every integer field in this ledger wears. `data-step` and the
-                wrapper are all `_stepValue` and the at-bounds disabling read,
-                and the bounds come off the input itself, so the order here is
-                free and nothing knows this field by name. --}}
-          <span class="tno-ledger-stepper">
-            <button type="button" class="tno-ledger-step" data-step="-1" {{#if requiredValue.atMin}}disabled{{/if}}
-                    aria-label="{{localize 'TNO.Roll.ValueDecrease'}}">&minus;</button>
-            <input id="{{dialogId}}-required-value" type="number" name="requiredValue" step="1"
-                   value="{{requiredValue.value}}" placeholder="{{requiredValue.placeholder}}"
-                   {{#if requiredValue.hasMin}}min="{{requiredValue.min}}"{{/if}}
-                   {{#if requiredValue.hasMax}}max="{{requiredValue.max}}"{{/if}}
-                   autocomplete="off"/>
-            <button type="button" class="tno-ledger-step" data-step="1" {{#if requiredValue.atMax}}disabled{{/if}}
-                    aria-label="{{localize 'TNO.Roll.ValueIncrease'}}">+</button>
-          </span>
-        </span>
-        <span class="tno-ledger-delta {{requiredValueDelta.cls}}" data-role="requiredValue-delta">{{requiredValueDelta.display}}</span>
-      </div>
-      {{/if}}
-
-      {{#if hasOpposingAnsage}}
-      <div class="tno-ledger-row tno-ledger-row--input" data-row="opposingAnsage">
-        <span class="tno-ledger-label">
-          <label for="{{dialogId}}-opposing-ansage">{{localize "TNO.Combat.OpposingAnsage"}}</label>
-          <span class="tno-ledger-stepper">
-            <button type="button" class="tno-ledger-step" data-step="-1"
-                    aria-label="{{localize 'TNO.Roll.ValueDecrease'}}">&minus;</button>
-          <input id="{{dialogId}}-opposing-ansage" type="number" name="opposingAnsage" min="0" step="1"
-                 value="{{opposingAnsage}}" autocomplete="off"/>
-            <button type="button" class="tno-ledger-step" data-step="1"
-                    aria-label="{{localize 'TNO.Roll.ValueIncrease'}}">+</button>
-          </span>
-        </span>
-        <span class="tno-ledger-delta {{opposingAnsageDelta.cls}}" data-role="opposingAnsage-delta">{{opposingAnsageDelta.display}}</span>
-      </div>
-      {{/if}}
-
-      {{#if toggleModifier}}
-      <div class="tno-ledger-row" data-row="toggleModifier">
-        <span class="tno-ledger-label tno-toggle-modifier">
-          <label for="{{dialogId}}-toggle-modifier" title="{{toggleModifier.hint}}">
-            <input id="{{dialogId}}-toggle-modifier" type="checkbox" name="toggleModifier"
-                   {{#if toggleModifier.checked}}checked{{/if}} {{#if toggleModifier.disabled}}disabled{{/if}}>
-            {{toggleModifier.label}}
-          </label>
-        </span>
-        <span class="tno-ledger-delta {{toggleModifierDelta.cls}}" data-role="toggleModifier-delta">{{toggleModifierDelta.display}}</span>
-      </div>
-      {{/if}}
-    </div>
-    {{/if}}
-
-    {{!-- ③ What you decide: the Stelle, a freely declared Ansage, the GM's ±3,
-          the Idee. Every line here is the player choosing rather than the sheet
-          stating. --}}
-    {{#if hasChosenGroup}}
-    <div class="tno-ledger-group">
-
-      {{#if zonePicker}}
-      <div class="tno-ledger-row tno-ledger-row--picker" data-row="zone">
-        <div class="tno-picker">
-          <fieldset class="tno-context-tile-field tno-zone-field">
-            <legend>{{zonePicker.label}}</legend>
-            <div class="tno-context-tile-grid tno-context-tile-grid-4">
-              {{#each zonePicker.choices as |choice|}}
-              <input id="{{../dialogId}}-zone-{{choice.key}}" class="tno-context-tile-input" type="radio" name="zoneChoice" value="{{choice.key}}" {{#if choice.selected}}checked{{/if}}>
-              <label class="tno-context-tile has-caption" for="{{../dialogId}}-zone-{{choice.key}}" title="{{choice.caption}}">
-                <strong>{{choice.label}}</strong>
-                <span class="tno-context-tile-value {{#unless choice.cost}}is-free{{/unless}}">{{choice.costDisplay}}</span>
-                <span class="tno-context-tile-caption">{{choice.caption}}</span>
-              </label>
-              {{/each}}
-            </div>
-          </fieldset>
-        </div>
-        <span class="tno-ledger-delta {{zoneDelta.cls}}" data-role="zone-delta">{{zoneDelta.display}}</span>
-      </div>
-      {{/if}}
-
-      {{#if hasAnsage}}
-      <div class="tno-ledger-row tno-ledger-row--input" data-row="ansage">
-        <span class="tno-ledger-label">
-          <label for="{{dialogId}}-ansage" title="{{ansage.hint}}">{{ansage.label}}</label>
-          <span class="tno-ledger-stepper">
-            <button type="button" class="tno-ledger-step" data-step="-1"
-                    aria-label="{{localize 'TNO.Roll.ValueDecrease'}}">&minus;</button>
-          <input id="{{dialogId}}-ansage" type="number" name="ansage" step="1"
-                 value="{{ansage.value}}" autocomplete="off">
-            <button type="button" class="tno-ledger-step" data-step="1"
-                    aria-label="{{localize 'TNO.Roll.ValueIncrease'}}">+</button>
-          </span>
-        </span>
-        <span class="tno-ledger-delta {{ansageDelta.cls}}" data-role="ansage-delta">{{ansageDelta.display}}</span>
-      </div>
-      {{/if}}
-
-      {{#unless isFixedMode}}
-      <div class="tno-ledger-row" data-row="bonus">
-        <span class="tno-ledger-label tno-bonus-field">
-          <span>{{localize "TNO.Roll.Bonus"}}</span>
-          <span class="tno-bonus-stepper-group flexrow flex-center">
-            <button type="button" class="tno-bonus-stepper" data-action="decrement" aria-label="{{bonusDecrementLabel}}" {{#if bonusAtMin}}disabled{{/if}}>−3</button>
-            <button type="button" class="tno-bonus-value {{bonusSignClass}}" title="{{localize 'TNO.Roll.BonusReset'}}" aria-label="{{bonusResetLabel}}">{{bonusDisplay}}</button>
-            <button type="button" class="tno-bonus-stepper" data-action="increment" aria-label="{{bonusIncrementLabel}}" {{#if bonusAtMax}}disabled{{/if}}>+3</button>
-          </span>
-          <input type="hidden" name="bonus" value="{{bonus}}"/>
-        </span>
-        <span class="tno-ledger-delta {{bonusDelta.cls}}" data-role="bonus-delta">{{bonusDelta.display}}</span>
-      </div>
-      {{/unless}}
-
-      {{#if hasIdeaOption}}
-      <div class="tno-ledger-row" data-row="idea">
-        <span class="tno-ledger-label tno-idea-field">
-          <label class="tno-idea-toggle {{#if useIdea}}active{{/if}} {{#if ideaDisabled}}tno-idea-disabled{{/if}}"
-                 data-tooltip-html='<dl class="tno-tooltip">
-{{#if ideaDisabled}}
-<div class="tno-tooltip-row"><dt>{{localize "TNO.Roll.IdeaToggle"}}</dt><dd>{{localize "TNO.Notify.NoReserve"}}</dd></div>
-{{else}}
-<div class="tno-tooltip-row"><dt>{{localize "TNO.Roll.IdeaToggle"}} <span class="tno-tooltip-value">+{{insightValue}}</span></dt><dd>{{localize "TNO.DerivedHint.Insight"}}</dd></div>
-<div class="tno-tooltip-row"><dd>{{localize "TNO.Notify.ProblemSolvingGate"}}</dd></div>
-{{/if}}
-</dl>'
-                 data-tooltip-direction='UP'>
-            <input type="checkbox" name="useIdea" {{#if useIdea}}checked{{/if}} {{#if ideaDisabled}}disabled{{/if}}/>
-            <i class="fas fa-lightbulb tno-idea-icon" aria-hidden="true"></i>
-            <span class="tno-idea-text">{{localize "TNO.Roll.IdeaToggle"}}</span>
-            <span class="tno-idea-reserve"
-                  data-tooltip-html='<dl class="tno-tooltip"><div class="tno-tooltip-row"><dt>{{localize "TNO.Roll.IdeaReserve"}} <span class="tno-tooltip-value">{{edgePool}}/{{edgePoolMax}}</span></dt></div></dl>'
-                  data-tooltip-direction='UP'>
-              {{#if hasIdeaPips}}
-              <span class="tno-idea-pips" aria-hidden="true">
-                {{#each ideaPips}}<span class="tno-idea-pip {{#if this.filled}}filled{{/if}}"></span>{{/each}}
-              </span>
-              {{else}}
-              <span class="tno-idea-reserve-text">{{localize "TNO.Roll.IdeaReserve"}} {{edgePool}}/{{edgePoolMax}}</span>
-              {{/if}}
-            </span>
-          </label>
-        </span>
-        <span class="tno-ledger-delta {{ideaDelta.cls}}" data-role="idea-delta">{{ideaDelta.display}}</span>
-      </div>
-      {{/if}}
-    </div>
-    {{/if}}
+<form class="tno-roll-dialog tno-wurf" novalidate>
+  <div class="tno-wurf-phase">
+    <span class="tno-wurf-phase-caption">{{localize "TNO.Roll.Phase.Caption"}}</span>
+    <strong>{{phase.label}}</strong>
+    {{#if phase.detail}}<span class="tno-wurf-phase-detail">{{phase.detail}}</span>{{/if}}
   </div>
 
-  {{!-- The foot of the sheet: the last input, then the total, then the trigger.
-        The total is the answer to every line above it and sits directly above
-        the button that acts on it, with nothing wedged between the number and
-        the gesture. A plain block rather than a strip floating over one. --}}
-  <footer class="tno-roll-footer">
-    {{!-- The roll type leads the footer: it is the last input, not a reading of
-          one. It carries no Δ and leaves the Schwelle untouched, but it does
-          move the odds printed inside the box below — so it sits above its own
-          readout rather than under it. --}}
-    {{#unless isFixedMode}}
-    <div class="tno-roll-rolltype">
-      {{> "systems/tno/templates/apps/parts/advantage-picker.hbs"}}
-    </div>
-    {{else}}
-    <input type="hidden" name="bonus" value="{{bonus}}"/>
-    <input type="hidden" name="advantage" value="{{advantage}}"/>
-    {{/unless}}
+  {{#if isLockedAttribute}}<input type="hidden" name="attributeA" value="{{attributeA}}"/>{{/if}}
+  {{#if isFixedMode}}<input type="hidden" name="bonus" value="{{bonus}}"/>{{/if}}
 
-    <div class="tno-roll-result tno-threshold-box {{#unless ready}}is-pending{{/unless}}" aria-live="polite">
-      <span class="tno-roll-result-label">{{localize "TNO.Roll.Threshold"}}</span>
-      <span class="tno-roll-result-value"><span class="tno-threshold-comparator">{{#if ready}}≤ {{/if}}</span><span class="tno-threshold-value">{{thresholdDisplay}}</span>
-        <span class="tno-odds tno-tooltip-hint"
-              {{#if ready}}
-              tabindex="0"
-              role="img"
-              aria-label="{{localize "TNO.Roll.Odds.InfoLabel"}}: {{oddsLabel}}"
-              data-tooltip-html="{{oddsTooltip}}"
-              {{/if}}>{{oddsLabel}}</span>
-      </span>
-      <span class="tno-odds-meter" aria-hidden="true"><span class="tno-odds-fill" style="width: {{oddsPercent}}%"></span></span>
+  {{#if hasQuestions}}
+  <section class="tno-wurf-questions">
+    <h3 class="tno-wurf-caption">{{localize "TNO.Roll.ToClarify"}}</h3>
+
+    {{#each questions as |q|}}
+    <div class="tno-q {{#if q.open}}is-open{{/if}} {{#if q.locked}}is-locked{{/if}}" data-q="{{q.key}}">
+      <div class="tno-q-head">
+        <div class="tno-q-text">
+          {{#if q.ask}}<div class="tno-q-ask" data-role="q-ask" {{#if q.locked}}hidden{{/if}}>{{q.ask}}</div>{{/if}}
+          <div class="tno-q-title">
+            <span data-role="q-title">{{q.num}} · {{q.title}}</span>
+            {{#if q.info}}
+            <button type="button" class="tno-q-info" tabindex="-1" data-tooltip="{{q.info}}" data-tooltip-direction="UP"
+                    aria-label="{{localize 'TNO.Roll.Ledger.InfoLabel'}}"><i class="fa-solid fa-circle-info" aria-hidden="true"></i></button>
+            {{/if}}
+          </div>
+          <div class="tno-q-sub" data-role="q-sub">{{q.sub}}</div>
+          {{#if q.isIdea}}
+          <div class="tno-idea-pool">
+            <span class="tno-idea-pips" aria-hidden="true">{{#each q.pips}}<span class="tno-idea-pip {{#if this.filled}}filled{{/if}}"></span>{{/each}}</span>
+            <span data-role="idea-charges">{{q.chargesText}}</span>
+          </div>
+          {{/if}}
+        </div>
+
+        {{!-- Controls that fit beside the question. --}}
+        {{#if q.meta}}<div class="tno-q-meta">{{q.meta}}</div>{{/if}}
+
+        {{#if q.isRequired}}
+        <span class="tno-stepper">
+          <button type="button" class="tno-step" data-step="-1" aria-label="{{localize 'TNO.Roll.ValueDecrease'}}">&minus;</button>
+          <input type="number" name="requiredValue" step="1" value="{{q.value}}" aria-label="{{q.title}}"
+                 {{#if q.hasMin}}min="{{q.min}}"{{/if}} {{#if q.hasMax}}max="{{q.max}}"{{/if}}
+                 {{#if q.locked}}disabled{{/if}} autocomplete="off"/>
+          <button type="button" class="tno-step" data-step="1" aria-label="{{localize 'TNO.Roll.ValueIncrease'}}">+</button>
+        </span>
+        {{/if}}
+
+        {{#if q.isFree}}
+        <span class="tno-stepper">
+          <button type="button" class="tno-step" data-step="-1" aria-label="{{localize 'TNO.Roll.ValueDecrease'}}">&minus;</button>
+          <input type="number" name="skillValue" step="1" value="{{q.value}}" min="{{q.min}}" max="{{q.max}}" aria-label="{{q.title}}" autocomplete="off"/>
+          <button type="button" class="tno-step" data-step="1" aria-label="{{localize 'TNO.Roll.ValueIncrease'}}">+</button>
+        </span>
+        {{/if}}
+
+        {{#if q.isAttributeB}}
+        <select name="attributeB" aria-label="{{q.title}}">
+          <option value="">–</option>
+          {{#each q.options as |ability|}}
+          <option value="{{ability.key}}" {{#if ability.selected}}selected{{/if}}>{{ability.label}} {{ability.value}}</option>
+          {{/each}}
+        </select>
+        {{/if}}
+
+        {{#if q.isBonus}}
+        <span class="tno-bonus-stepper">
+          {{#each q.steps as |s|}}{{#if s.left}}
+          <button type="button" class="tno-bonus-step {{#if s.fine}}is-fine{{/if}}" data-delta="{{s.step}}" aria-label="{{s.aria}}" {{#if s.disabled}}disabled{{/if}}>{{s.label}}</button>
+          {{/if}}{{/each}}
+          <button type="button" class="tno-bonus-value {{q.signClass}}" title="{{localize 'TNO.Roll.BonusReset'}}" aria-label="{{q.resetLabel}}">{{q.display}}</button>
+          {{#each q.steps as |s|}}{{#unless s.left}}
+          <button type="button" class="tno-bonus-step {{#if s.fine}}is-fine{{/if}}" data-delta="{{s.step}}" aria-label="{{s.aria}}" {{#if s.disabled}}disabled{{/if}}>{{s.label}}</button>
+          {{/unless}}{{/each}}
+        </span>
+        <input type="hidden" name="bonus" value="{{../bonus}}"/>
+        {{/if}}
+
+        {{#if q.isIdea}}
+        <button type="button" class="tno-q-idea-toggle" aria-pressed="{{#if q.checked}}true{{else}}false{{/if}}"
+                aria-label="{{q.title}}" {{#if q.disabled}}disabled{{/if}}>{{q.insight}}</button>
+        <input type="checkbox" name="useIdea" {{#if q.checked}}checked{{/if}} hidden/>
+        {{/if}}
+      </div>
+
+      {{!-- Controls that take the full width under the question. --}}
+      {{#if q.isToggle}}
+      <div class="tno-choice-grid tno-choice-grid-2">
+        <button type="button" class="tno-choice tno-q-bool" data-value="0" aria-pressed="{{#if q.checked}}false{{else}}true{{/if}}">{{q.noLabel}}</button>
+        <button type="button" class="tno-choice tno-q-bool" data-value="1" aria-pressed="{{#if q.checked}}true{{else}}false{{/if}}">{{q.yesLabel}}</button>
+      </div>
+      <input type="checkbox" name="toggleModifier" {{#if q.checked}}checked{{/if}} hidden/>
+      {{/if}}
+
+      {{#if q.isTiles}}
+      <div class="tno-choice-grid tno-choice-grid-{{q.columns}}" role="radiogroup" aria-label="{{q.title}}">
+        {{#each q.choices as |choice|}}
+        <input id="{{../../dialogId}}-context-{{choice.key}}" class="tno-choice-input" type="radio" name="contextChoice" value="{{choice.key}}" required {{#if choice.selected}}checked{{/if}}>
+        <label class="tno-choice" for="{{../../dialogId}}-context-{{choice.key}}" title="{{#if choice.caption}}{{choice.caption}}{{else}}{{choice.name}}{{/if}}">
+          <strong>{{choice.name}} <span class="tno-choice-delta is-{{choice.state}}">{{choice.display}}</span></strong>
+          {{#if choice.caption}}<small>{{choice.caption}}</small>{{/if}}
+        </label>
+        {{/each}}
+      </div>
+      {{/if}}
+
+      {{#if q.isSelect}}
+      <select name="contextChoice" required aria-label="{{q.title}}">
+        <option value="" disabled {{#if q.open}}selected{{/if}}>{{q.placeholder}}</option>
+        {{#each q.choices as |choice|}}
+        <option value="{{choice.key}}" {{#if choice.selected}}selected{{/if}}>{{choice.name}} ({{choice.display}})</option>
+        {{/each}}
+      </select>
+      {{/if}}
+
+      {{#if q.isCompare}}
+      <div class="tno-compare">
+        <div class="tno-compare-entry">
+          <span>{{q.compare.label}}</span>
+          <span class="tno-stepper">
+            <button type="button" class="tno-step" data-step="-1" aria-label="{{localize 'TNO.Roll.ValueDecrease'}}">&minus;</button>
+            <input type="number" name="compareValue" step="1" min="0" value="{{q.compare.value}}" placeholder="?"
+                   aria-label="{{q.compare.label}}" {{#if q.locked}}disabled{{/if}} autocomplete="off"/>
+            <button type="button" class="tno-step" data-step="1" aria-label="{{localize 'TNO.Roll.ValueIncrease'}}">+</button>
+          </span>
+        </div>
+        <div class="tno-compare-anchor">
+          <span>{{q.compare.anchorLabel}}</span>
+          <strong>{{q.compare.anchor}}</strong>
+        </div>
+      </div>
+      <div class="tno-choice-grid tno-choice-grid-3">
+        {{#each q.choices as |choice|}}
+        <div class="tno-verdict {{#if choice.selected}}is-selected{{/if}}" data-key="{{choice.key}}">
+          <span class="tno-verdict-head"><span>{{choice.name}}</span><span class="tno-choice-delta is-{{choice.state}}">{{choice.display}}</span></span>
+          <small>{{choice.caption}}</small>
+        </div>
+        {{/each}}
+      </div>
+      {{/if}}
+
+      {{#if q.isAttribute}}
+      <div class="tno-attribute-grid" role="radiogroup" aria-label="{{q.title}}">
+        {{#each q.columns as |column|}}
+        <div class="tno-attribute-column">
+          <span class="tno-attribute-column-head" aria-hidden="true">{{column.label}}</span>
+          {{#each column.items as |chip|}}
+          <button type="button" class="tno-choice tno-attribute-chip {{#if chip.active}}active{{/if}}" data-value="{{chip.key}}"
+                  role="radio" aria-checked="{{#if chip.active}}true{{else}}false{{/if}}" tabindex="{{#if chip.active}}0{{else}}-1{{/if}}"
+                  title="{{chip.label}}" aria-label="{{chip.label}} {{chip.value}}">
+            <strong>{{chip.abbr}}</strong>
+            <span class="tno-attribute-chip-value">{{chip.value}}</span>
+          </button>
+          {{/each}}
+        </div>
+        {{/each}}
+      </div>
+      <input type="hidden" name="attributeA" value="{{q.value}}"/>
+      {{/if}}
+
+      {{#if q.isZone}}
+      <div class="tno-choice-grid tno-choice-grid-4" role="radiogroup" aria-label="{{q.title}}">
+        {{#each q.choices as |choice|}}
+        <input id="{{../../dialogId}}-zone-{{choice.key}}" class="tno-choice-input" type="radio" name="zoneChoice" value="{{choice.key}}" {{#if choice.selected}}checked{{/if}}>
+        <label class="tno-choice" for="{{../../dialogId}}-zone-{{choice.key}}" title="{{choice.caption}}">
+          <strong>{{choice.label}} <span class="tno-choice-delta is-{{choice.state}}">{{choice.costDisplay}}</span></strong>
+          <small>{{choice.caption}}</small>
+        </label>
+        {{/each}}
+      </div>
+      {{/if}}
+
+      {{#if q.isAnsagen}}
+      <div class="tno-choice-grid tno-choice-grid-{{q.columns}}">
+        {{#each q.sides as |side|}}
+        <div class="tno-ansage">
+          <span class="tno-ansage-head">
+            <label for="{{../../dialogId}}-{{side.name}}">{{side.label}}</label>
+            <span class="tno-ansage-delta {{side.delta.cls}}" data-role="{{side.name}}-delta">{{side.delta.display}}</span>
+          </span>
+          <span class="tno-stepper">
+            <button type="button" class="tno-step" data-step="-1" aria-label="{{localize 'TNO.Roll.ValueDecrease'}}">&minus;</button>
+            <input id="{{../../dialogId}}-{{side.name}}" type="number" name="{{side.name}}" step="1" value="{{side.value}}"
+                   {{#if side.hasMin}}min="0"{{/if}} autocomplete="off"/>
+            <button type="button" class="tno-step" data-step="1" aria-label="{{localize 'TNO.Roll.ValueIncrease'}}">+</button>
+          </span>
+        </div>
+        {{/each}}
+      </div>
+      {{/if}}
+    </div>
+    {{/each}}
+  </section>
+  {{/if}}
+
+  {{!-- The Schwelle, with the Beleg drawer that opens over the questions. --}}
+  <div class="tno-beleg">
+    <div class="tno-beleg-drawer">
+      <div class="tno-beleg-drawer-head" aria-hidden="true">
+        <span>{{localize "TNO.Roll.Beleg.Head"}}</span>
+        <span>{{localize "TNO.Roll.Ledger.Delta"}}</span>
+      </div>
+      <div data-role="beleg-groups"></div>
     </div>
 
-    <button type="submit" class="tno-roll-submit {{#unless ready}}is-blocked{{/unless}}" {{#unless ready}}aria-disabled="true"{{/unless}}>
-      <span class="tno-roll-submit-main"><i class="fas fa-dice-d20"></i> {{localize "TNO.Roll.Submit"}}</span>
-      <span class="tno-roll-submit-echo">{{missingMessage}}</span>
-    </button>
-  </footer>
+    <div class="tno-wurf-card">
+      <button type="button" class="tno-beleg-toggle" aria-expanded="false">
+        <span class="tno-beleg-toggle-head">
+          <span><strong>{{localize "TNO.Roll.Beleg.Title"}}</strong> · {{localize "TNO.Roll.Beleg.Caption"}}</span>
+          <span class="tno-beleg-toggle-action">
+            <span data-role="beleg-toggle-label">{{localize "TNO.Roll.Beleg.Open"}}</span>
+            <i class="fa-solid fa-chevron-up" aria-hidden="true"></i>
+          </span>
+        </span>
+        <span class="tno-beleg-chips" data-role="beleg-chips"></span>
+      </button>
+
+      <div class="tno-wurf-result {{#unless ready}}is-pending{{/unless}}" aria-live="polite">
+        <div class="tno-wurf-threshold">
+          <span class="tno-wurf-caption">{{localize "TNO.Roll.Threshold"}}</span>
+          <span class="tno-wurf-threshold-value" data-role="threshold">{{thresholdDisplay}}</span>
+        </div>
+        <div class="tno-wurf-odds">
+          <div class="tno-wurf-odds-line">
+            <span data-role="mode-label">{{modeLabel}}</span>
+            <span class="tno-odds" data-role="odds" {{#if ready}}tabindex="0" data-tooltip-html="{{oddsTooltip}}"{{/if}}
+                  aria-label="{{localize 'TNO.Roll.Odds.InfoLabel'}}">{{oddsLabel}}</span>
+          </div>
+          <span class="tno-odds-meter" aria-hidden="true"><span class="tno-odds-fill" style="width: {{oddsPercent}}%"></span></span>
+          {{#unless isFixedMode}}
+          <div class="tno-advantage-group" role="radiogroup" aria-label="{{localize 'TNO.Roll.Advantage'}}">
+            {{#each advantageOptions as |option|}}
+            <button type="button" class="tno-wurf-mode {{#if option.active}}active{{/if}}" role="radio"
+                    aria-checked="{{#if option.active}}true{{else}}false{{/if}}" tabindex="{{#if option.active}}0{{else}}-1{{/if}}"
+                    data-value="{{option.value}}" title="{{option.label}}" aria-label="{{option.label}}">{{option.glyph}}</button>
+            {{/each}}
+          </div>
+          {{/unless}}
+          <input type="hidden" name="advantage" value="{{advantage}}"/>
+        </div>
+      </div>
+
+      <div class="tno-wurf-todo {{#unless ready}}is-open{{/unless}}" data-role="todo">{{todo}}</div>
+
+      <button type="submit" class="tno-roll-submit {{#unless ready}}is-blocked{{/unless}}" {{#unless ready}}aria-disabled="true"{{/unless}}>
+        <span class="tno-roll-submit-main"><i class="fas fa-dice-d20"></i> {{localize "TNO.Roll.Submit"}}</span>
+        <span class="tno-roll-submit-echo" data-role="submit-echo"></span>
+      </button>
+    </div>
+  </div>
 </form>

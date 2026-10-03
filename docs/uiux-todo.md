@@ -31,7 +31,9 @@ Neuer Eintrag: Überschrift mit laufender Nummer, dann **Wo**, **Problem**,
 - **Offen:** „Gegen dich angesagt" hat dasselbe Muster (`+` verschlechtert).
   Dort tippt man eine genannte Zahl ab — mit umdrehen oder als Betrag lassen?
 
-### 2 · Situative Modifikation kennt nur ±3
+## Erledigt
+
+### 2 · Situative Modifikation kennt nur ±3 — erledigt
 
 - **Wo:** Roll-Dialog, Zeile „Situative Modifikation" — `BONUS_STEP` in
   `module/apps/roll-dialog.mjs`, Knöpfe in `templates/apps/roll-dialog.hbs`.
@@ -45,7 +47,7 @@ Neuer Eintrag: Überschrift mit laufender Nummer, dann **Wo**, **Problem**,
 - **Offen:** Vier Knöpfe passen nicht mehr neben das Label (siehe 3). Vorschlag:
   Label in die erste Zeile, Stepper darunter.
 
-### 3 · „Situative Modifikation" ist lang für den schmalen Dialog
+### 3 · „Situative Modifikation" ist lang für den schmalen Dialog — erledigt
 
 - **Wo:** Roll-Dialog in Standardbreite (340 px), dieselbe Zeile wie 2.
 - **Problem:** Das Label wurde von „Modifikation" verlängert. Der Stepper kann
@@ -53,6 +55,7 @@ Neuer Eintrag: Überschrift mit laufender Nummer, dann **Wo**, **Problem**,
 - **Ideen:** Zusammen mit 2 lösen (Label oben, Stepper darunter), oder das Label
   im Dialog kürzen und nur auf der Chat-Karte ausschreiben.
 
-## Erledigt
-
-_Noch nichts._
+**Lösung (2 und 3):** Mit dem neuen Würfeldialog (Fragen oben, Beleg-Schublade
+über der Schwelle) ist jede Frage eine eigene Zeile: Titel links, Stepper
+rechts, `[−3] [−1] Wert [+1] [+3]`. Der Dialog ist 500 px breit. Das PRD hat den
+Zusatz zur Feinjustierung bekommen (`docs/design/dice-system-prd.md`).

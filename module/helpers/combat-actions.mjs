@@ -125,19 +125,38 @@ export function defenseMalus(actor, defense) {
 /**
  * A melee attack or parry needs the reach comparison; a ranged attack needs the
  * band it is fired at.
+ *
+ * Reach is a fact about the two weapons, so it sits with the weapon in the
+ * Beleg and names who to ask; the band is about where the target stands, so it
+ * sits with the situation.
  * @param {Object} system  A weapon item's `system` data.
- * @returns {{label: string, placeholder: string, control: 'toggle'|'tiles', tileColumns: 2|5, choices: Array<Object>}}
+ * @param {string} askKey  Who holds the other weapon: the defender or the attacker.
+ * @returns {Object}
  */
-function weaponContext(system) {
+function weaponContext(system, askKey) {
   const melee = usesMelee(system);
   return {
     label: game.i18n.localize(melee ? 'TNO.Combat.DkQuestion' : 'TNO.Combat.RangeQuestion'),
     placeholder: game.i18n.localize('TNO.Combat.ContextPlaceholder'),
     control: melee ? 'toggle' : 'tiles',
     tileColumns: melee ? 2 : 5,
-    ...(melee ? dkNote(system) : {}),
+    origin: melee ? 'weapon' : 'situation',
+    ...(melee
+      ? { ...dkNote(system), ask: game.i18n.localize(askKey), hint: game.i18n.localize('TNO.Combat.DkHint') }
+      : {}),
     choices: melee ? dkChoices() : rangeBandChoices(system),
   };
+}
+
+/**
+ * The fixed weapon components, filed under the weapon in the Beleg.
+ * @param {Actor} actor
+ * @param {Object} system
+ * @param {'active'|'passive'} handling
+ * @returns {Array<Object>}
+ */
+function weaponModifiers(actor, system, handling) {
+  return weaponFixedModifiers(actor, system, handling).map((modifier) => ({ ...modifier, origin: 'weapon' }));
 }
 
 /**
@@ -412,17 +431,21 @@ export function angriffOptions(actor, weapon) {
   return {
     attributeA: weaponAttribute(weapon.system),
     lockAttribute: true,
-    // The same width the resistance roll asks for: a picker now sits inside a
-    // ledger row beside its Δ column, and the class default of 340 was picked
-    // for a dialog whose pickers still had the full width to themselves.
-    width: 400,
     skill: { key, label: definition.label, value: weaponSkillRank(actor, weapon.system) },
-    fixedModifiers: weaponFixedModifiers(actor, weapon.system, 'active'),
-    preRollContext: weaponContext(weapon.system),
+    fixedModifiers: weaponModifiers(actor, weapon.system, 'active'),
+    preRollContext: weaponContext(weapon.system, 'TNO.Combat.AskDefender'),
     zonePicker: zonePicker(),
     ansage: ansageField(),
+    // An attack can be declared against too — the other side's earlier Ansage
+    // lands on whichever roll of yours it was aimed at.
+    opposingAnsage: true,
     maneuverMalus: maneuverFvMalus(actor, weapon.system),
     envelope: attackEnvelope(actor, weapon),
+    phase: {
+      label: game.i18n.localize('TNO.Combat.Phase.Attack'),
+      detail: game.i18n.format(usesMelee(weapon.system) ? 'TNO.Combat.Phase.MeleeDetail' : 'TNO.Combat.Phase.RangedDetail', { weapon: weapon.name }),
+    },
+    sources: { weapon: weapon.name },
     // The card says which weapon swung; the picture is the fastest read of that
     // in a scrolling log. Nothing downstream resolves it — it is the item's own
     // `img` string, passed through.
@@ -448,20 +471,24 @@ export function paradeOptions(actor, weapon) {
   return {
     attributeA: weaponAttribute(weapon.system),
     lockAttribute: true,
-    // The same width the resistance roll asks for: a picker now sits inside a
-    // ledger row beside its Δ column, and the class default of 340 was picked
-    // for a dialog whose pickers still had the full width to themselves.
-    width: 400,
     skill: { key, label: definition.label, value: weaponSkillRank(actor, weapon.system) },
-    fixedModifiers: [...weaponFixedModifiers(actor, weapon.system, 'passive'), ...repeatedDefense(actor, 'parry')],
+    fixedModifiers: [...weaponModifiers(actor, weapon.system, 'passive'), ...repeatedDefense(actor, 'parry')],
     preRollContext: {
       label: game.i18n.localize('TNO.Combat.DkQuestion'),
       placeholder: game.i18n.localize('TNO.Combat.ContextPlaceholder'),
       control: 'toggle',
-        tileColumns: 2,
+      tileColumns: 2,
+      origin: 'weapon',
+      ask: game.i18n.localize('TNO.Combat.AskAttacker'),
+      hint: game.i18n.localize('TNO.Combat.DkHint'),
       ...dkNote(weapon.system),
       choices: dkChoices(),
     },
+    phase: {
+      label: game.i18n.localize('TNO.Combat.Phase.Defend'),
+      detail: game.i18n.format('TNO.Combat.Phase.ParryDetail', { weapon: weapon.name }),
+    },
+    sources: { weapon: weapon.name },
     // A parry declares an amount but never a Stelle: the location is the
     // attacker's to name, and a Riposte — the one Manöver the rules put on a
     // parry — lands on your own next attack rather than anywhere on a body.
@@ -499,6 +526,10 @@ export function ausweichenOptions(actor) {
     },
     fixedModifiers: repeatedDefense(actor, 'dodge'),
     opposingAnsage: true,
+    phase: {
+      label: game.i18n.localize('TNO.Combat.Phase.Defend'),
+      detail: game.i18n.localize('TNO.Combat.Phase.DodgeDetail'),
+    },
     afterRoll: async () => {
       await countDefense(actor, 'dodge');
     },
@@ -521,6 +552,9 @@ function repeatedDefense(actor, defense) {
     label: game.i18n.format('TNO.Combat.RepeatedDefense', { count: used + 1 }),
     value,
     hint: game.i18n.localize('TNO.Combat.RepeatedDefenseHint'),
+    // Not the character and not the weapon: how often this Haltung has
+    // already defended is where the fight stands.
+    origin: 'situation',
   }];
 }
 
@@ -592,9 +626,9 @@ function wornArmorArt(actor, zone) {
  *
  * The defender's sheet knows no attacker, and this deliberately does not try to
  * become one: it neither determines the hit location — the player states it by
- * clicking one — nor applies any damage. The two numbers it cannot know are
- * asked for: the Schadenswert as a typed value, the RH-versus-RB/RD comparison
- * as a choice.
+ * clicking one — nor applies any damage. What it cannot know is asked for, as
+ * numbers the attacker reads off their own card: whether they bypassed the
+ * armour, their RB/RD, and their damage value.
  *
  * Stärke enters at its sole persisted `base` rating, the same reading
  * `derived.dodge` and regular attribute rolls use.
@@ -610,12 +644,11 @@ export function widerstandOptions(actor, zone) {
   if (!armor) return null;
 
   const zoneLabel = game.i18n.localize(CONFIG.TNO.armorZones[zone]);
+  const rh = Number(armor.rh) || 0;
+  const ask = game.i18n.localize('TNO.Combat.AskAttacker');
   return {
     attributeA: 'str',
     lockAttribute: true,
-    // As on the attack and parry: a picker sitting in a ledger row next to the
-    // Δ column needs more than the class default of 340.
-    width: 400,
     // Already summed over the Unterkleidung and this zone's addon by
     // `resolveArmor`, which is the value the paper doll shows.
     fixedModifiers: [
@@ -623,19 +656,18 @@ export function widerstandOptions(actor, zone) {
         label: game.i18n.format('TNO.Combat.ResistanceRw', { zone: zoneLabel }),
         value: armor.rw,
         hint: game.i18n.format('TNO.Combat.ResistanceRwHint', { zone: zoneLabel }),
+        origin: 'armor',
       },
     ],
     // The attacker's card prints two damage values, Schaden and Wuchtschaden,
     // and the comparison above decides which landed. So this field is named by
     // that pick rather than left as a bare "Schadenswert" the player has to map
-    // back to the right column of the card themselves.
+    // back to the right column of the card themselves. `componentLabel` stays
+    // the neutral noun.
     //
-    // Every one of those names leads with the Angreifer, the way the comparison
-    // line above it does ("Angreifer RB/RD"): this is the one row in the ledger
-    // asking for a figure that is not the defender's own, and a bare
-    // "Wucht (WS)" sitting between their RW and their Modifikation did not say
-    // so. `componentLabel` stays the neutral noun — the breakdown and the chat
-    // card are already the attacker's half by the time they print it.
+    // It starts blank and holds the roll until typed: a resistance roll against
+    // a damage value nobody entered resists nothing. It stays closed until the
+    // comparison has said which of the two values to ask for.
     requiredValue: {
       label: game.i18n.localize('TNO.Combat.DamageValueField'),
       componentLabel: game.i18n.localize('TNO.Combat.DamageValue'),
@@ -648,37 +680,36 @@ export function widerstandOptions(actor, zone) {
       // Rüstung umgehen makes the comparison's ordinary damage pool
       // irrelevant: without armour, the hit always uses Schaden.
       toggleLabel: game.i18n.localize('TNO.Combat.DamageSharp'),
-      // No placeholder: the hint directly under this row already says where the
-      // number is read off, in full, and a 3rem field only ever clipped it.
       hint: game.i18n.localize('TNO.Combat.DamageValueHint'),
+      ask,
       sign: -1,
       min: 0,
+      required: true,
+      lockedUntilContext: true,
+      origin: 'attack',
     },
-    // The one comparison the defender's sheet cannot make on its own, asked in
-    // the only terms it *can* state: it knows this location's RH and says so, so
-    // the player answers about the single unknown — where the weapon's
-    // Rüstungsbrechung or -durchdringung sat against that number. Each tile then
-    // spells out what its answer does, because "weicher · S" said neither whose
-    // armour was meant nor what followed from it, and the +3 on the third looked
-    // arbitrary.
-    //
-    // Laid out as a table: the three answers as a ladder, the defender's own RH
-    // beside them as a readout, and the number they were told last. The RH is
-    // the `anchor` rather than part of the question, because a value the reader
-    // has to hold in their head while choosing against it is a value they will
-    // choose against wrong.
-    //
-    // Both abbreviations are named. The rules table writes RB/RD throughout —
-    // Rüstungsbrechung in melee, -durchdringung at range — and the defender is
-    // told a number without being told which weapon produced it.
+    // The one comparison the defender's sheet cannot make on its own. The
+    // attacker reads their RB/RD off their weapon card; the defender types it,
+    // and the dialog compares it against this location's own RH — the number
+    // the defender would otherwise have to hold in their head while choosing.
+    // The three outcomes stay on show as readouts, so the consequence of each
+    // is visible before the number is in.
     preRollContext: {
-      label: game.i18n.localize('TNO.Combat.Penetration.Label'),
+      label: game.i18n.localize('TNO.Combat.Penetration.Question'),
       placeholder: game.i18n.localize('TNO.Combat.Penetration.Placeholder'),
-      control: 'tiles',
-        tileColumns: 1,
+      control: 'compare',
+      ask,
+      hint: game.i18n.localize('TNO.Combat.Penetration.Hint'),
+      origin: 'armor',
       anchor: {
         label: game.i18n.localize('TNO.Combat.Penetration.Anchor'),
-        value: armor.rh,
+        value: rh,
+      },
+      compare: {
+        label: game.i18n.localize('TNO.Combat.Penetration.Value'),
+        anchorLabel: game.i18n.format('TNO.Combat.Penetration.AnchorZone', { zone: zoneLabel }),
+        anchor: rh,
+        derive: (value) => (value > rh ? 'softer' : value === rh ? 'equal' : 'harder'),
       },
       choices: armorPenetrationChoices().map((choice) => {
         const suffix = `${choice.key.charAt(0).toUpperCase()}${choice.key.slice(1)}`;
@@ -690,39 +721,48 @@ export function widerstandOptions(actor, zone) {
           // The separate Rüstung-umgehen toggle would buy the same result and
           // must neither double-subtract RW nor pretend there is another effect.
           suppressesToggleModifier: choice.ignoresRw,
-          headline: game.i18n.format(`TNO.Combat.Penetration.${suffix}`, { rh: armor.rh }),
+          headline: game.i18n.format(`TNO.Combat.Penetration.${suffix}`, { rh }),
           label: game.i18n.localize(`TNO.Combat.Penetration.${suffix}Effect`),
-          componentLabel: game.i18n.format('TNO.Combat.Penetration.Component', { rh: armor.rh }),
+          componentLabel: game.i18n.format('TNO.Combat.Penetration.Component', { rh }),
         };
       }),
     },
     opposingAnsage: true,
     // "Erschwere deinen Angriff um die Rüstungsabdeckung der jeweiligen Stelle
     // und ignoriere sie dafür": the attacker paid this location's RA to make its
-    // armour not apply, so the padding comes back out of the threshold.
+    // armour not apply, so the padding comes back out of the threshold — and
+    // with the armour gone there is no RB/RD left to compare.
     //
-    // Entirely the defender's own control, and never pre-ticked. The attack card
-    // has no way to say a bypass was bought — it carries an amount, not a reason
-    // — so this is the defender acting on what they were told, which is how the
-    // rule was always meant to work: they name the RA, the attacker pays it.
+    // Asked first, and never pre-answered. The attack card has no way to say a
+    // bypass was bought — it carries an amount, not a reason — so this is the
+    // defender acting on what they were told.
     ...(armor.rw
       ? {
           toggleModifier: {
             label: game.i18n.localize('TNO.Combat.Envelope.BypassArmor'),
             hint: game.i18n.localize('TNO.Combat.BypassArmorHint'),
             value: -armor.rw,
+            question: game.i18n.format('TNO.Combat.BypassQuestion', { ra: Number(armor.ra) || 0 }),
+            yesLabel: game.i18n.localize('TNO.Combat.BypassYes'),
+            waivesContext: true,
+            origin: 'armor',
           },
         }
       : {}),
-    // The two answers above are also the two halves of the damage: which pool,
-    // and how much of it. Stated on the card, because a roll the player has to
-    // do arithmetic on afterwards is a roll they will get wrong at the table.
+    // The answers above are also the two halves of the damage: which pool, and
+    // how much of it. Stated on the card, because a roll the player has to do
+    // arithmetic on afterwards is a roll they will get wrong at the table.
     consequence: ({ contextKey, value, toggleModifier }) => resistanceConsequence(
       zone,
       contextKey,
       value,
       toggleModifier
     ),
+    phase: {
+      label: game.i18n.localize('TNO.Combat.Phase.Hit'),
+      detail: game.i18n.format('TNO.Combat.Phase.ResistanceDetail', { zone: zoneLabel }),
+    },
+    sources: { armor: zoneLabel },
     // The Stelle keeps only its multiplier. The resolved armour interaction
     // names whether the announced value enters Schaden or Wuchtschaden.
     img: wornArmorArt(actor, zone),

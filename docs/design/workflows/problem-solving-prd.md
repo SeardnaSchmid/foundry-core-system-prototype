@@ -198,8 +198,8 @@ Existing keys, present in both `lang/de.json` and `lang/en.json`:
 All keys below are present in both `lang/de.json` and `lang/en.json`. **Since v2.0** the value strings use the English mechanic names (German file translates each, per [Naming](#naming)), and the old `TNO.Dialog.Solve*` block was renamed to `TNO.Edge.*`.
 
 - `TNO.Derived.Insight` / `TrialError` / `EdgePool` / `PostMortem` / `Retry` (also under `DerivedShort` and `DerivedHint`) — derived-attribute labels/hints, used on the character sheet's edge tiles.
-- `TNO.Roll.IdeaToggle` / `IdeaComponent` — the dialog checkbox label and the roll-card component label for "Insight". (Key kept `Idea*` for compatibility; value is now "Insight".)
-- `TNO.Roll.IdeaReserve` — the reserve readout label beside the Insight toggle (value now "Edge").
+- `TNO.Roll.Question.Idea` / `IdeaComponent` — the dialog's question and the roll-card component label for "Insight". (Keys kept `Idea*` for compatibility.)
+- `TNO.Roll.IdeaCharges` — the reserve readout beside the Insight toggle ("{left} von {max} Edge übrig").
 - `TNO.Roll.FindFlawReroll` / `FindFlawSucceeded` / `FindFlawExhausted` — the tracker's reroll button (formatted with `{remaining}`) and its locked end state. (Keys under `Roll.FindFlaw*`/`NewAttemptCounts`/`XpClaimed` kept for compatibility; values updated to the new names.)
 - `TNO.Roll.NewAttemptCounts` — the caption on the inline Retry result block ("Retried — this result stands").
 - `TNO.Roll.XpClaimed` — the terminal "Lesson learned" stamp, formatted with `{label}`.

@@ -142,7 +142,9 @@ If 3 fails, the target takes the applicable damage value:
 
 The comparison needs one number from each side, and the direction it runs in is
 what keeps the armour private: **the attacker reads their weapon card out** —
-RB/RD, Schaden, Wucht — and the defender, who alone knows their RH, picks.
+RB/RD, Schaden, Wucht — and the defender, who alone knows their RH, types the
+RB/RD in; their own sheet compares it against the RH of the struck location.
+A confirmed Rüstung umgehen makes the comparison moot and is asked first.
 
 ### Damage pools and Stelle
 
@@ -282,7 +284,7 @@ component decided by form state.
 | **Attack** | WA + the actor's current FV-skill rank · HH active · SV malus | melee: DK modifier `+3 / 0` · ranged: one authored range band (each authored `−3 … +3`) · the Stelle, priced per [Gezielte Angriffe](#the-stelle) and free only at the Torso | `tests/documents/item-weapon-roll.test.js › offers a melee attack the two reach outcomes as its required context`<br>`tests/documents/item-weapon-roll.test.js › labels both reach-toggle answers rather than showing bare numbers`<br>`tests/helpers/items.test.js › offers only authored ranged bands and preserves their modifiers` |
 | **Parry** (melee) | WA + the actor's current FV-skill rank · HH passive · SV malus | DK modifier `+3 / 0`; no Stelle | `tests/documents/item-weapon-roll.test.js › gives a parry passive handling, the same SV malus, and a reach choice` |
 | **Dodge** | Beweglichkeit + Akrobatik · armour SV malus | — | `tests/e2e/specs/combat-dodge.spec.mjs › a dodge is Beweglichkeit plus Akrobatik, less the armour step` |
-| **Resistance** | Stärke (locked) · RW(Stelle), unless penetration or Rüstung umgehen ignores it | the penetration comparison `softer / equal / harder`; the announced Schadenswert opens at 0 and is edited, not required | `tests/documents/actor-resistance-roll.test.js › requires the penetration comparison, and defaults the announced damage`<br>`tests/documents/roll-dialog.test.js › opens the announced value at zero and never blocks the roll on it` |
+| **Resistance** | Stärke (locked) · RW(Stelle), unless penetration or Rüstung umgehen ignores it | Rüstung umgehen yes/no; unless bypassed, the attacker's RB/RD, compared against the RH into `softer / equal / harder`; the announced Schadenswert, required, and asked only once the comparison or the bypass has said which value applies | `tests/documents/actor-resistance-roll.test.js › requires the RB/RD and the damage, unless a bypass makes the comparison moot`<br>`tests/documents/actor-resistance-roll.test.js › derives the penetration outcome from the RB/RD typed against the RH of the struck location`<br>`tests/documents/actor-resistance-roll.test.js › keeps the damage question closed until the comparison or a bypass names it` |
 | **Haltung** | — | which defence is possible at all, and what the next one costs | `tests/helpers/combat-actions.test.js › lets the Haltung decide which defence is possible at all`<br>`tests/helpers/combat-actions.test.js › leaves the first defence unmodified and sums a step onto every one after` |
 
 **Manöver are not a workflow.** A Manöver is not a roll of its own — "alles das
@@ -292,7 +294,7 @@ declared is one number and, on an attack, one Stelle. See [Ansagen](#ansagen).
 
 The FV rank authored on a weapon is a requirement only; what is *added* is the
 character's current rank. SV comparisons use **base** Strength. All four rolls
-keep the situational modifier (`±3` steps), the advantage/disadvantage picker
+keep the situational modifier (`±3` steps, `±1` to fine-tune), the advantage/disadvantage picker
 and the Idea option; the chosen context is a signed immutable component in the
 threshold, the chat breakdown and the message flags. An announced value is the
 one component deliberately outside the situational `±30` clamp — that clamp
@@ -527,7 +529,8 @@ list from growing when Manöver are added — and it can no longer say the armou
 was bypassed, because that is the defender's own checkbox
 (`tests/helpers/dice.test.js › never claims the armour was bypassed, since that is the defenders own call`).
 
-The receiving end is one optional integer on each defence roll, taken as given
+The receiving end is one optional integer on each defence roll — and on the
+attack, where an earlier Ansage may land — taken as given
 and outside the `±30` clamp
 (`tests/documents/roll-dialog.test.js › subtracts an announced Ansage from a defence without ever gating it`).
 

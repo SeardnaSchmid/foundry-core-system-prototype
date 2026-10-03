@@ -142,6 +142,7 @@ describe('combat action builders', () => {
       label: 'TNO.Combat.PassiveHandling',
       value: -1,
       hint: 'TNO.Combat.PassiveHandlingHint',
+      origin: 'weapon',
     }]);
     expect(options.preRollContext).toMatchObject({
       label: 'TNO.Combat.DkQuestion',
@@ -419,6 +420,7 @@ describe('Haltung and repeated defences', () => {
         label: 'TNO.Combat.RepeatedDefense(3)',
         value: -6,
         hint: 'TNO.Combat.RepeatedDefenseHint',
+        origin: 'situation',
       },
     ]);
     // And it refuses outright where the Haltung allows no dodge at all.
@@ -454,11 +456,15 @@ describe('what a defence takes from the other side', () => {
   // defender ticks it on being told, which is how the rule reads anyway: they
   // name the RA, the attacker pays it.
   it('never pre-ticks the armour bypass', () => {
-    expect(widerstandOptions(defender(), 'torso').toggleModifier).toEqual({
+    const toggle = widerstandOptions(defender(), 'torso').toggleModifier;
+    expect(toggle).toMatchObject({
       label: 'TNO.Combat.Envelope.BypassArmor',
       hint: 'TNO.Combat.BypassArmorHint',
       value: -2,
+      // Asked as a question naming the RA the attacker would have paid.
+      question: 'TNO.Combat.BypassQuestion(3)',
     });
+    expect(toggle.checked).toBeUndefined();
   });
 
   it('writes nothing but the defence count when the roll is made', async () => {

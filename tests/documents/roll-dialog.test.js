@@ -152,7 +152,7 @@ describe('TnoRollDialog pre-roll context', () => {
     const tiles = (choices) => new TnoRollDialog(actor, {
       fixedValue: { label: 'Base', value: 8 },
       preRollContext: { label: 'Range', control: 'tiles', tileColumns: 5, choices },
-    }).getData().preRollContext.choices;
+    }).getData().questions.find((question) => question.key === 'context').choices;
 
     const [band] = tiles([{ key: 'near', label: 'Near', value: -3 }]);
     expect(band).toMatchObject({ name: 'Near', display: '−3', caption: '', state: 'negative' });
@@ -627,7 +627,7 @@ describe('TnoRollDialog required value', () => {
     expect(resistance()._computeThreshold(form({ attributeA: 'str', requiredValue: 40 }))).toBe(-32);
   });
 
-  it('shows no threshold or odds until every required answer is present', () => {
+  it('shows the Schwelle in parentheses until every required answer is present', () => {
     const dialog = new TnoRollDialog(armoured(false), {
       attributeA: 'str',
       lockAttribute: true,
@@ -648,19 +648,21 @@ describe('TnoRollDialog required value', () => {
       },
     });
 
-    // The pick is the only answer that can hold the roll back, so it is the only
-    // one the footer can be waiting on — with or without a typed number.
-    expect(dialog._thresholdReadout(form({ attributeA: 'str' }))).toEqual({
+    // The pick is the only answer that can hold this roll back. Until it is in,
+    // the figure stands in parentheses — it will still move — and the open
+    // question is named by its number.
+    const pending = dialog._thresholdReadout(form({ attributeA: 'str' }));
+    expect(pending).toMatchObject({
       ready: false,
-      threshold: null,
-      thresholdDisplay: '—',
-      oddsLabel: '',
-      oddsPercent: 0,
+      threshold: 8,
+      thresholdDisplay: '(≤ 8)',
       oddsTooltip: '',
-      missingLabel: 'Durchdringung?',
+      missingLabel: '① Durchdringung?',
+      missingLabels: ['① Durchdringung?'],
     });
+    expect(pending.oddsLabel).toMatch(/^\(.*\)$/);
     expect(dialog._thresholdReadout(form({ attributeA: 'str', requiredValue: 7 })))
-      .toMatchObject({ ready: false, thresholdDisplay: '—', missingLabel: 'Durchdringung?' });
+      .toMatchObject({ ready: false, thresholdDisplay: '(≤ 1)', missingLabel: '① Durchdringung?' });
     expect(dialog._thresholdReadout(form({ attributeA: 'str', contextChoice: 'harder' })))
       .toMatchObject({ ready: true, missingLabel: '' });
 
@@ -669,7 +671,7 @@ describe('TnoRollDialog required value', () => {
       contextChoice: 'harder',
       requiredValue: 7,
     }));
-    expect(ready).toMatchObject({ ready: true, threshold: 4, thresholdDisplay: '4', missingLabel: '' });
+    expect(ready).toMatchObject({ ready: true, threshold: 4, thresholdDisplay: '≤ 4', missingLabel: '' });
     expect(ready.oddsLabel).not.toBe('');
     expect(ready.oddsPercent).toBeGreaterThan(0);
   });
@@ -746,24 +748,59 @@ describe('TnoRollDialog presentation helpers', () => {
     expect(dialog._breakdownText(data)).toBe(parts.map((part) => `${part.label} ${part.display}`).join(' + '));
   });
 
-  it('derives a group from the sections inside it and nothing else', () => {
-    const combat = new TnoRollDialog(armoured(false), {
+  // Only what the roller has to answer is asked; the rest is a fact in the
+  // Beleg. The numbering is shared by the form, the Beleg and the open line.
+  it('asks only what the roller answers, numbered in one order', () => {
+    const attack = new TnoRollDialog(armoured(false), {
       attributeA: 'str',
-      preRollContext: {
-        label: 'Distanz?',
-        choices: [{ key: 'near', label: 'Nah', value: 0 }],
-      },
+      lockAttribute: true,
+      skill: { key: 'swords', label: 'Schwerter', value: 4 },
+      preRollContext: { label: 'Länger?', control: 'toggle', choices: [{ key: 'no', label: 'Nein', value: 0 }, { key: 'yes', label: 'Ja', value: 3 }] },
+      zonePicker: { label: 'Wohin?', choices: [{ key: 'torso', label: 'Torso' }] },
       ansage: { label: 'Ansage' },
+      opposingAnsage: true,
     });
     const skill = new TnoRollDialog(armoured(false), {
       attributeA: 'str',
       skill: { key: 'swords', label: 'Schwerter', value: 4 },
     });
     const fixed = new TnoRollDialog(armoured(false), { fixedValue: { label: 'Fest', value: 8 } });
+    const keys = (dialog, data) => dialog._questions(form(data)).map((question) => `${question.mark} ${question.key}`);
 
-    expect(combat._sectionFlags()).toMatchObject({ hasGivenGroup: true, hasChosenGroup: true });
-    expect(skill._sectionFlags()).toMatchObject({ hasGivenGroup: false, hasChosenGroup: true });
-    expect(fixed._sectionFlags()).toMatchObject({ hasGivenGroup: false, hasChosenGroup: false });
+    expect(keys(attack, { attributeA: 'str' })).toEqual(['① context', '② zone', '③ ansagen', '④ bonus']);
+    // A preselected attribute is an answer, not an open question.
+    expect(keys(skill, { attributeA: 'str' })).toEqual(['① attribute', '② bonus']);
+    expect(skill._canSubmit(form({ attributeA: 'str' }))).toBe(true);
+    expect(skill._canSubmit(form({ attributeA: '' }))).toBe(false);
+    expect(keys(fixed, {})).toEqual([]);
+  });
+
+  // The Beleg is the breakdown the dialog shows, so what it counts must be the
+  // Schwelle — pending and provisional lines included as nothing.
+  it('sums the Beleg to the Schwelle, grouped by where each line comes from', () => {
+    const dialog = new TnoRollDialog(armoured(true, -3), {
+      attributeA: 'dex',
+      lockAttribute: true,
+      skill: { key: 'swords', label: 'Schwerter', value: 4 },
+      fixedModifiers: [{ label: 'Handhabung', value: -1, origin: 'weapon' }],
+      preRollContext: { label: 'Länger?', control: 'toggle', origin: 'weapon', choices: [{ key: 'no', label: 'Nein', value: 0 }, { key: 'yes', label: 'Ja', value: 3 }] },
+      ansage: { label: 'Ansage' },
+      opposingAnsage: true,
+      maneuverMalus: { label: 'FV', value: -3 },
+      sources: { weapon: 'Säbel' },
+    });
+    for (const data of [
+      form({ attributeA: 'dex' }),
+      form({ attributeA: 'dex', contextChoice: 'yes', ansage: 2, opposingAnsage: 1, bonus: -3 }),
+    ]) {
+      const groups = dialog._belegGroups(data);
+      expect(groups.reduce((sum, group) => sum + group.sum, 0)).toBe(dialog._computeThreshold(data));
+    }
+    const groups = dialog._belegGroups(form({ attributeA: 'dex' }));
+    expect(groups.map((group) => group.key)).toEqual(['character', 'weapon', 'situation', 'choice']);
+    expect(groups.find((group) => group.key === 'weapon')).toMatchObject({ label: 'TNO.Roll.Origin.Named(TNO.Roll.Origin.Weapon,Säbel)', pending: true });
+    // The armour step and the damage malus are the character's own.
+    expect(groups[0].rows.map((row) => row.label)).toEqual(['TNO.Ability.Dex.long', 'Schwerter', 'TNO.Damage.Malus', 'TNO.Combat.ArmorSvMalus']);
   });
 
   it('reads a line still awaiting its answer as pending, and an unarmed one as provisional', () => {

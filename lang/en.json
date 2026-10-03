@@ -603,21 +603,18 @@
         "Missing": "Still missing: {label}"
       },
       "Ledger": {
-        "Posten": "Line item",
         "Delta": "Δ threshold",
         "InfoLabel": "Show hint"
       },
       "ContextPlaceholder": "Choose context",
       "ValueIncrease": "Increase value",
       "ValueDecrease": "Decrease value",
-      "ContextRequired": "Choose a combat context before rolling.",
+      "ContextRequired": "Answer every open question before rolling.",
       "ChooseAttribute": "Attribute",
       "FreeTitle": "Free Roll",
       "FreeHint": "Roll a selectable attribute plus a free skill value",
       "FreeSkillValue": "Skill Value",
-      "IdeaToggle": "Bright Idea",
       "IdeaComponent": "Bright Idea",
-      "IdeaReserve": "Edge",
       "FindFlawReroll": "Reroll ({remaining} left)",
       "FindFlawRemaining": "{remaining} of {max} rerolls left",
       "FindFlawSucceeded": "Success!",
@@ -626,7 +623,55 @@
       "XpClaimed": "Lesson learned: {label} +1",
       "BaseDiceTitle": "Base Dice",
       "BaseDiceFlavor": "Base Dice",
-      "BaseDiceButton": "Roll base dice"
+      "BaseDiceButton": "Roll base dice",
+      "Yes": "Yes",
+      "No": "No",
+      "ToClarify": "To settle",
+      "Phase": {
+        "Caption": "Phase",
+        "Skill": "Skill check",
+        "SkillDetail": "{skill} + an attribute of your choice",
+        "Ability": "Attribute check",
+        "AbilityDetail": "one or two attributes of your choice",
+        "Free": "Free roll",
+        "FreeDetail": "an attribute + a free skill value",
+        "Fixed": "Roll against a fixed value"
+      },
+      "Question": {
+        "Attribute": "Which attribute goes with {skill}?",
+        "Ansagen": "Declarations",
+        "Idea": "Spend the idea bonus?"
+      },
+      "Info": {
+        "Attribute": "A skill is always combined with an attribute. Usually you pick it; sometimes the GM decides.",
+        "Bonus": "The modifier the GM calls for the situation — normally in steps of ±3. The small ±1 buttons are for fine-tuning.",
+        "OpposingAnsage": "What the other side declared against this roll. The number is on their roll card."
+      },
+      "IdeaCharges": "{left} of {max} edge left",
+      "Waived": "Moot — the bypass applies.",
+      "Locked": "Settle {mark} first.",
+      "Note": {
+        "Attribute": "attribute",
+        "Skill": "skill"
+      },
+      "Origin": {
+        "Character": "Character",
+        "Weapon": "Weapon",
+        "Armor": "Armour",
+        "Attack": "Attack on you",
+        "Situation": "Situation",
+        "Choice": "Your choice",
+        "Named": "{origin} · {name}"
+      },
+      "Beleg": {
+        "Title": "Breakdown",
+        "Caption": "what your threshold is made of",
+        "Open": "expand",
+        "Close": "collapse",
+        "Head": "Breakdown · where it comes from"
+      },
+      "Open": "Still open: {list}",
+      "AllAnswered": "Everything answered ✓"
     },
     "Combat": {
       "Attack": "Attack",
@@ -724,7 +769,11 @@
         "Equal": "= {rh}",
         "EqualEffect": "damage, RW applies",
         "Harder": "< {rh}",
-        "HarderEffect": "holds · blunt damage"
+        "HarderEffect": "holds · blunt damage",
+        "Question": "What RB/RD does the attacker have?",
+        "Value": "Attacker's RB/RD",
+        "AnchorZone": "your RH {zone}",
+        "Hint": "The attacker's armour breaking (RB) or penetration (RD), compared with your armour hardness (RH) at the struck location."
       },
       "OpposingAnsage": "Announced against you",
       "Envelope": {
@@ -743,7 +792,22 @@
         "Interrupt": "Activate now (interrupt)",
         "Activated": "Already activated this round",
         "AlreadyActivated": "{name} has already activated this round."
-      }
+      },
+      "AskDefender": "Ask the defender",
+      "AskAttacker": "Ask the attacker",
+      "DkHint": "Ask for the reach class (DK) of the other weapon and compare it with yours.",
+      "Phase": {
+        "Attack": "You attack",
+        "Defend": "You defend",
+        "Hit": "You are hit",
+        "MeleeDetail": "Melee with {weapon}",
+        "RangedDetail": "Ranged with {weapon}",
+        "ParryDetail": "Parry with {weapon}",
+        "DodgeDetail": "Dodge",
+        "ResistanceDetail": "Hit: {zone}"
+      },
+      "BypassQuestion": "Did the attacker declare “bypass armour” (RA {ra})?",
+      "BypassYes": "Yes, bypassed"
     },
     "Damage": {
       "Pool": "Damage pool",

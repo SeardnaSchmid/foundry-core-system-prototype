@@ -47,11 +47,10 @@ test('a dodge is Beweglichkeit plus Akrobatik, less the armour step', async ({ w
   await expect(dialog).toBeVisible();
 
   // The step is a line of its own, not folded into Akrobatik or the bonus.
-  const armorRow = dialog.locator('.tno-roll-gear-modifiers .tno-armor-malus');
-  await expect(armorRow).toBeVisible();
-  await expect(armorRow).toContainText(label);
+  const armorRow = dialog.locator('.tno-beleg-row').filter({ hasText: label });
+  await expect(armorRow).toHaveCount(1);
   await expect(armorRow).toContainText('−3');
-  await expect(dialog.locator('.tno-threshold-value')).toHaveText(String(DODGE.threshold));
+  await expect(dialog.locator('[data-role="threshold"]')).toHaveText(`≤ ${DODGE.threshold}`);
 
   await dialog.locator('button[type="submit"]').click();
   await expect(dialog).toBeHidden();

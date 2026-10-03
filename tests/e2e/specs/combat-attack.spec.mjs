@@ -76,26 +76,25 @@ test('a weapon attack carries its requirement maluses from dialog to chat card',
   // `filter` scopes to the row, so the label and its delta are asserted together
   // without building a regex out of a localized string — "SV requirement (2×)"
   // carries parentheses, which a regex would read as a capture group.
-  const modifiers = dialog.locator('.tno-roll-gear-modifiers .tno-ledger-row');
-  await expect(modifiers.filter({ hasText: labels.sv })).toContainText('−6');
-  // `:visible`, because the FV row is in the DOM from the start and only
-  // unhides once something is declared — an unfiltered count would see three.
-  const visibleModifiers = dialog.locator('.tno-roll-gear-modifiers .tno-ledger-row:visible');
-  await expect(visibleModifiers).toHaveCount(2); // Handhabung and the SV malus, nothing else.
+  // The Beleg lists the weapon's own lines: Handhabung and the SV malus. The
+  // reach answer joins that group once it is given.
+  const weaponRows = dialog.locator('.tno-beleg-group').filter({ has: dialog.locator('.fa-sword') }).locator('.tno-beleg-row');
+  await expect(weaponRows.filter({ hasText: labels.sv })).toContainText('−6');
+  await expect(weaponRows.filter({ hasNot: dialog.locator('.is-pending') })).toHaveCount(2);
 
   // 2. A melee attack requires the reach comparison: until it is answered there
   // is nothing to roll, and the dialog must say so by refusing to submit. Only
   // the two outcomes the rule can produce are on offer — it grants `+3` to the
   // longer weapon and says nothing about the shorter one.
   const submit = dialog.locator('button[type="submit"]');
-  await expect(submit).toBeDisabled();
+  await expect(submit).toHaveAttribute('aria-disabled', 'true');
   await expect(dialog.locator('input[name="contextChoice"]')).toHaveCount(2);
 
   await dialog.locator(`input[name="contextChoice"][value="${ATTACK.reach}"]`).evaluate((input) => input.click());
-  await expect(submit).toBeEnabled();
+  await expect(submit).not.toHaveAttribute('aria-disabled', 'true');
 
   // 3b. The number the player decides on is the sum of the parts shown to them.
-  await expect(dialog.locator('.tno-threshold-value')).toHaveText(String(ATTACK.threshold));
+  await expect(dialog.locator('[data-role="threshold"]')).toHaveText(`≤ ${ATTACK.threshold}`);
 
   await submit.click();
   await expect(dialog).toBeHidden();

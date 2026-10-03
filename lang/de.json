@@ -603,21 +603,18 @@
         "Missing": "Fehlt noch: {label}"
       },
       "Ledger": {
-        "Posten": "Posten",
         "Delta": "Δ Schwelle",
         "InfoLabel": "Hinweis anzeigen"
       },
       "ContextPlaceholder": "Kontext wählen",
       "ValueIncrease": "Wert erhöhen",
       "ValueDecrease": "Wert verringern",
-      "ContextRequired": "Vor dem Würfeln einen Kampfkontext wählen.",
+      "ContextRequired": "Vor dem Würfeln alle offenen Fragen beantworten.",
       "ChooseAttribute": "Attribut",
       "FreeTitle": "Freier Wurf",
       "FreeHint": "Ein wählbares Attribut plus einen freien Fähigkeitswert würfeln",
       "FreeSkillValue": "Fähigkeitswert",
-      "IdeaToggle": "Ideen Bonus",
       "IdeaComponent": "Ideen Bonus",
-      "IdeaReserve": "Edge",
       "FindFlawReroll": "Nochmal würfeln ({remaining} übrig)",
       "FindFlawRemaining": "Noch {remaining} von {max} Wiederholungen übrig",
       "FindFlawSucceeded": "Erfolg!",
@@ -626,7 +623,55 @@
       "XpClaimed": "Lehrgeld: {label} +1",
       "BaseDiceTitle": "Basiswürfel",
       "BaseDiceFlavor": "Basiswürfel",
-      "BaseDiceButton": "Basiswürfel würfeln"
+      "BaseDiceButton": "Basiswürfel würfeln",
+      "Yes": "Ja",
+      "No": "Nein",
+      "ToClarify": "Zu klären",
+      "Phase": {
+        "Caption": "Phase",
+        "Skill": "Fertigkeitswurf",
+        "SkillDetail": "{skill} + ein Attribut deiner Wahl",
+        "Ability": "Attributwurf",
+        "AbilityDetail": "ein oder zwei Attribute deiner Wahl",
+        "Free": "Freier Wurf",
+        "FreeDetail": "ein Attribut + ein freier Fähigkeitswert",
+        "Fixed": "Wurf auf festen Wert"
+      },
+      "Question": {
+        "Attribute": "Womit kombinierst du {skill}?",
+        "Ansagen": "Ansagen",
+        "Idea": "Ideen Bonus einsetzen?"
+      },
+      "Info": {
+        "Attribute": "Eine Fertigkeit wird immer mit einem Attribut kombiniert. Meist wählst du es selbst, manchmal gibt die SL es vor.",
+        "Bonus": "Modifikation, die die SL für die Situation ansagt — normal in Schritten von ±3. Die kleinen ±1 sind zum Feinjustieren.",
+        "OpposingAnsage": "Was die Gegenseite gegen diesen Wurf angesagt hat. Die Zahl steht auf ihrer Wurfkarte."
+      },
+      "IdeaCharges": "{left} von {max} Edge übrig",
+      "Waived": "Entfällt, die Umgehung gilt.",
+      "Locked": "Erst {mark} klären.",
+      "Note": {
+        "Attribute": "Attribut",
+        "Skill": "Fertigkeit"
+      },
+      "Origin": {
+        "Character": "Charakter",
+        "Weapon": "Waffe",
+        "Armor": "Rüstung",
+        "Attack": "Angriff gegen dich",
+        "Situation": "Lage",
+        "Choice": "Deine Wahl",
+        "Named": "{origin} · {name}"
+      },
+      "Beleg": {
+        "Title": "Beleg",
+        "Caption": "woraus sich deine Schwelle zusammensetzt",
+        "Open": "aufklappen",
+        "Close": "zuklappen",
+        "Head": "Beleg · woher kommt was"
+      },
+      "Open": "Noch offen: {list}",
+      "AllAnswered": "Alles beantwortet ✓"
     },
     "Combat": {
       "Attack": "Angriff",
@@ -724,7 +769,11 @@
         "Equal": "= {rh}",
         "EqualEffect": "Schaden, RW gilt",
         "Harder": "< {rh}",
-        "HarderEffect": "hält · Wuchtschaden"
+        "HarderEffect": "hält · Wuchtschaden",
+        "Question": "Was hat der Angreifer an RB/RD?",
+        "Value": "RB/RD des Angreifers",
+        "AnchorZone": "deine RH {zone}",
+        "Hint": "RB = Rüstungsbrechung, RD = Rüstungsdurchdringung des Angreifers, verglichen mit deiner Rüsthärte (RH) an der getroffenen Stelle."
       },
       "OpposingAnsage": "Gegen dich angesagt",
       "Envelope": {
@@ -743,7 +792,22 @@
         "Interrupt": "Jetzt aktivieren (Interrupt)",
         "Activated": "In dieser Runde bereits aktiviert",
         "AlreadyActivated": "{name} hat sich in dieser Runde bereits aktiviert."
-      }
+      },
+      "AskDefender": "Frag den Verteidiger",
+      "AskAttacker": "Frag den Angreifer",
+      "DkHint": "Frag nach der Distanzklasse (DK) der anderen Waffe und vergleiche sie mit deiner.",
+      "Phase": {
+        "Attack": "Du greifst an",
+        "Defend": "Du verteidigst",
+        "Hit": "Du wirst getroffen",
+        "MeleeDetail": "Nahkampf mit {weapon}",
+        "RangedDetail": "Fernkampf mit {weapon}",
+        "ParryDetail": "Parade mit {weapon}",
+        "DodgeDetail": "Ausweichen",
+        "ResistanceDetail": "Treffer: {zone}"
+      },
+      "BypassQuestion": "Hat der Angreifer „Rüstung umgehen“ angesagt (RA {ra})?",
+      "BypassYes": "Ja, umgangen"
     },
     "Damage": {
       "Pool": "Schadenspool",
