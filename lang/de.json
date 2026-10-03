@@ -425,7 +425,7 @@
       "MovementWalk": "Beweglichkeit",
       "MovementSprint": "3×Beweglichkeit",
       "MovementCrawl": "Beweglichkeit/3 (aufgerundet)",
-      "CarrySlots": "2×Stärke+Beweglichkeit",
+      "CarrySlots": "8+2×Stärke+Beweglichkeit",
       "NoSprint": "Kein Sprint — mindestens die Hälfte der Inventarslots ist belegt.",
       "CrawlOnly": "Nur noch Kriechen — alle Inventarslots sind belegt.",
       "SixthSense": "(Sinnesschärfe+Menschenkenntnis+Untersuchen)/3",

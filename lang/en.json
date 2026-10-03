@@ -425,7 +425,7 @@
       "MovementWalk": "Agility",
       "MovementSprint": "3×Agility",
       "MovementCrawl": "Agility/3 (rounded up)",
-      "CarrySlots": "2×Strength+Agility",
+      "CarrySlots": "8+2×Strength+Agility",
       "NoSprint": "No sprinting — at least half the inventory slots are in use.",
       "CrawlOnly": "Crawling only — every carry slot is in use.",
       "SixthSense": "(Perception+Empathy+Investigation)/3",

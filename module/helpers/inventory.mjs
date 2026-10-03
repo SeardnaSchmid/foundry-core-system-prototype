@@ -144,7 +144,7 @@ export function itemSlotCost(item) {
  * @param {Array<Object>} items  All of the actor's items.
  * @param {Object} equipment  actor.system.equipment.
  * @param {boolean} hasContainer  Whether the character carries a bag/backpack.
- * @param {number} capacity  carrySlots, i.e. 2*Stärke + Beweglichkeit.
+ * @param {number} capacity  carrySlots, i.e. 8 + 2*Stärke + Beweglichkeit.
  * @returns {{used: number, worn: number, carried: number, capacity: number, state: 'ok'|'noSprint'|'crawlOnly', noContainer: boolean}}
  */
 export function computeCarry(items, equipment, hasContainer, capacity) {

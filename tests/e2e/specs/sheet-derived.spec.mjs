@@ -29,7 +29,7 @@ const EXPECTED = {
   movementSprint: 21, // 3 * dex
   movementCrawl: 1,   // constant
   canSprint: true,    // the empty slot budget permits sprinting
-  carrySlots: 17,     // 2*5 + 7
+  carrySlots: 25,     // 8 + 2*5 + 7
   carrySlotsUsed: 0,  // no items worn or carried
   carryWorn: 0,
   carryCarried: 0,
@@ -75,7 +75,7 @@ test('the character sheet renders the derived values', async ({ world }) => {
   await expect(sheet.locator('.sheet-banner .rollable')).toHaveCount(0);
 
   // Carry capacity is the Trageslots header's read-out, not a chip of its own.
-  await expect(sheet.locator('.slot-grid-count')).toHaveText('0/17');
+  await expect(sheet.locator('.slot-grid-count')).toHaveText('0/25');
 
   // The edge pool is a pip per point of the max, filled up to what is left.
   await expect(sheet.locator('.edge-pip')).toHaveCount(7);
@@ -134,16 +134,16 @@ test('carried items consume slots by slot cost times quantity', async ({ world }
   const { derived } = await createCharacter(world.page, {
     abilities: ABILITIES,
     items: [
-      gear({ name: 'Crate', slots: 3, quantity: 2 }),
+      gear({ name: 'Crate', slots: 3, quantity: 3 }),
       gear({ name: 'Toolkit', slots: 4 }),
       // A feature is not carried gear, so it must not consume slots.
       { name: 'Steady Hands', type: 'feature', system: {} },
     ],
   });
 
-  expect(derived.carrySlotsUsed).toBe(10); // 3*2 + 4*1
-  expect(derived.carrySlots).toBe(17);
-  // 10 of 17 is past half, which by the Inventarregeln already costs sprinting.
+  expect(derived.carrySlotsUsed).toBe(13); // 3*3 + 4*1
+  expect(derived.carrySlots).toBe(EXPECTED.carrySlots);
+  // 13 of 25 is past half, which by the Inventarregeln already costs sprinting.
   expect(derived.carryState).toBe('noSprint');
   expect(derived.canSprint).toBe(false);
 });
@@ -197,14 +197,14 @@ test('the Unterkleidung layers under every zone without granting hardness', asyn
 });
 
 test('exceeding the slot budget drops the character to crawling', async ({ world }) => {
-  // 20 slots against a budget of 17 — over capacity is legal, it just costs
+  // 28 slots against a budget of 25 — over capacity is legal, it just costs
   // movement, so the item is created rather than refused.
   const { derived } = await createCharacter(world.page, {
     abilities: ABILITIES,
-    items: [gear({ name: 'Cargo', slots: 4, quantity: 5 })],
+    items: [gear({ name: 'Cargo', slots: 4, quantity: 7 })],
   });
 
-  expect(derived.carrySlotsUsed).toBe(20);
+  expect(derived.carrySlotsUsed).toBe(28);
   expect(derived.carryState).toBe('crawlOnly');
   expect(derived.canSprint).toBe(false);
 });

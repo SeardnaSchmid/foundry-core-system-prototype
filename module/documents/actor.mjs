@@ -74,7 +74,7 @@ export class TnoActor extends Actor {
 
     // Worn and carried gear share the slot budget, while only the carried half
     // depends on a container. Armour still resolves zone-by-zone separately.
-    const carrySlots = 2 * base('str') + base('dex');
+    const carrySlots = 8 + 2 * base('str') + base('dex');
     const carry = computeCarry(
       actorData.items,
       systemData.equipment,
