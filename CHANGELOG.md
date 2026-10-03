@@ -1,5 +1,14 @@
 # Changelog
 
+# [0.47.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.46.2...v0.47.0) (2026-10-03)
+
+
+### Features
+
+* carry slots start at 8 ([6e36112](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/6e3611206d6805a05677d86083b7b24bfa4b1efd))
+* negative Ansage, DK note, spelled-out condition reasons ([7fbe750](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/7fbe750d93d33f86cf54a97c9fcc1a193ecd3c6d))
+* **roll-dialog:** questions, Beleg drawer and Schwelle card ([59a274f](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/59a274f82f3edd3738ec9772a6350e9ebed7d201))
+
 ## [0.46.2](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.46.1...v0.46.2) (2026-09-17)
 
 
