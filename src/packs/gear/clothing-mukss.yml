@@ -12,9 +12,7 @@ system:
   description: >-
     <p>Magnetisch-Unterdruck-Kontakt-Sohlen.</p><p>Lassen dich quasi auf jeder
     Oberfläche laufen.</p>
-  fv:
-    skill: ''
-    rank: 0
+  wf: ''
   roles:
     weapon: false
     armor: false

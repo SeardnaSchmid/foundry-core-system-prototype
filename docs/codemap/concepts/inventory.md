@@ -391,8 +391,7 @@ to be read as "that group is gone" instead.
 
 - A column the row cannot be *asked* is `applies: false`, painted as a hatched
   `n/a`. Three rules produce it: the column belongs to a role the piece has not
-  taken on; DK and RB are melee questions and RD a ranged one, so only the use
-  the weapon has answers them; the Unterkleidung has no Rüstungshärte and covers
+  taken on; DK is a melee question, so only a melee weapon answers it; the Unterkleidung has no Rüstungshärte and covers
   no single location, so RH and RA are values a suit cannot have (the same
   exception `missingRequired` makes).
 - A column it could answer that nobody filled in is `value: null`, painted as a

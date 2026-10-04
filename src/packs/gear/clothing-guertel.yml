@@ -15,9 +15,7 @@ system:
     obligatorisches Kleidungsstück, von Kuipern oft durch Wickel
     ersetzt.</p><p>Du kannst kleine Gegenstände mit dir führen, ohne sie ständig
     in der Hand zu halten.</p>
-  fv:
-    skill: ''
-    rank: 0
+  wf: ''
   roles:
     weapon: false
     armor: false

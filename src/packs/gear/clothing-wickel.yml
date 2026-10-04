@@ -14,9 +14,7 @@ system:
     oft bestickt, welche als Lendenschurz, Gesichtsmaske, Hand- oder Fußwickel
     getragen werden um ein Minimum an Schutz zu gewährleisten, Nackheit stört
     Kuiper nicht.</p><p>Preis: 1-5 je nach Anpassung</p>
-  fv:
-    skill: ''
-    rank: 0
+  wf: ''
   roles:
     weapon: false
     armor: false

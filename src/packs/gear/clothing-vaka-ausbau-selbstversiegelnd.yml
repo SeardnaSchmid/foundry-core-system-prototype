@@ -13,9 +13,7 @@ system:
     <p>Verbesserung für VakAs. Jetzt mit Micromeshing für Kampfeinsätze oder
     gefährliche Arbeiten.</p><p>Versiegelt den Anzug innerhalb von Millisekunden
     wieder nach einer Beschädigung.</p><p>Preis: +2000</p><p>Verbreitung: +1</p>
-  fv:
-    skill: ''
-    rank: 0
+  wf: ''
   roles:
     weapon: false
     armor: false

@@ -13,9 +13,7 @@ system:
     <p>Verbesserung für VakAs, Robust für den Einsatz im Umfeld von gefährlichen
     Umwelteinflüssen oder im Kampf.</p><p>Siehe Rüstung.</p><p>Preis:
     +1000</p><p>Verbreitung: +1</p>
-  fv:
-    skill: ''
-    rank: 0
+  wf: ''
   roles:
     weapon: false
     armor: false

@@ -10,9 +10,7 @@ system:
   price: null
   availability: null
   description: <p>kombiniert</p>
-  fv:
-    skill: ''
-    rank: 0
+  wf: ''
   roles:
     weapon: false
     armor: true

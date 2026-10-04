@@ -14,9 +14,7 @@ system:
     Sauerstoff und können mit Nanotholin betrieben werden.</p><p>Vakuumsustained
     auf unbegrenzt, solange Erwachtes Tholin aufgenommen wird.</p><p>Preis:
     +2000</p><p>Verbreitung: +2</p>
-  fv:
-    skill: ''
-    rank: 0
+  wf: ''
   roles:
     weapon: false
     armor: false

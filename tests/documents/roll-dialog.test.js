@@ -241,26 +241,6 @@ describe('TnoRollDialog armour SV step', () => {
     // The parts must add up to the number that was rolled against.
     expect(rolled.payload.components.reduce((sum, part) => sum + part.value, 0)).toBe(1);
   });
-
-  // Two independent requirements, two labels, two components: "SV and FV are
-  // separate requirements and their maluses add".
-  it('adds the armour step and the weapon FV step separately, never as one', async () => {
-    const dialog = new TnoRollDialog(armoured(true), {
-      attributeA: 'dex',
-      skill: { key: 'acrobatics', label: 'Akrobatik', value: 2 },
-      maneuverMalus: { label: 'TNO.Combat.FvMalus', value: -3 },
-      ansage: { label: 'Ansage' },
-    });
-    const data = form({ attributeA: 'dex', ansage: 2 });
-    // 4 (Bew) + 2 (Akrobatik) − 3 (armour) − 3 (FV) − 2 (the Ansage).
-    expect(dialog._computeThreshold(data)).toBe(-2);
-
-    await dialog._updateObject(null, data);
-    expect(rolled.payload.components).toEqual(expect.arrayContaining([
-      { label: 'TNO.Combat.ArmorSvMalus', value: -3, display: '−3' },
-      { label: 'TNO.Combat.FvMalus', value: -3, display: '−3' },
-    ]));
-  });
 });
 
 describe('TnoRollDialog global damage malus', () => {
@@ -304,9 +284,6 @@ describe('TnoRollDialog global damage malus', () => {
   });
 });
 
-// "Würfelt er alle Manöver mit einem Malus" — and a Standardangriff is not a
-// Manöver, so what makes this roll one is whether anything was declared on it.
-//
 // The Ansage is one free magnitude with no rank behind it: the player and the GM
 // agree the number out loud, including what it is *for*, and only the figure
 // reaches the form. Nothing here prices, caps or gates it.
@@ -315,7 +292,6 @@ describe('TnoRollDialog Ansagen', () => {
     attributeA: 'str',
     lockAttribute: true,
     skill: { key: 'swords', label: 'Schwerter', value: 4 },
-    maneuverMalus: { label: 'TNO.Combat.FvMalus', value: -3 },
     preRollContext: {
       label: 'Reichweite',
       control: 'tiles',
@@ -334,22 +310,10 @@ describe('TnoRollDialog Ansagen', () => {
     const base = form({ attributeA: 'str', contextChoice: '0' });
     expect(dialog._computeThreshold(base)).toBe(9);
     // A 3er Ansage costs this roll 3, whatever any Manöverfertigkeit stands at:
-    // the 1:1/2:1 conversion is arithmetic the table did before typing. The
-    // extra −3 is the FV step a declaration brings with it.
-    expect(dialog._computeThreshold({ ...base, ansage: 3 })).toBe(9 - 3 - 3);
+    // the 1:1/2:1 conversion is arithmetic the table did before typing.
+    expect(dialog._computeThreshold({ ...base, ansage: 3 })).toBe(9 - 3);
     expect(dialog._ansageComponent({ ...base, ansage: 3 }))
       .toEqual({ label: 'Ansage', value: -3, display: '−3' });
-  });
-
-  it('leaves a standard attack free of the FV malus and charges a declared one', () => {
-    const dialog = attack();
-    const base = form({ attributeA: 'str', contextChoice: '0' });
-    expect(dialog._conditionalModifiers(base)).toEqual([]);
-    expect(dialog._conditionalModifiers({ ...base, ansage: 1 })).toEqual([
-      { label: 'TNO.Combat.FvMalus', value: -3 },
-    ]);
-    // Zero is not a declaration, so it does not make the attack a Manöver.
-    expect(dialog._conditionalModifiers({ ...base, ansage: 0 })).toEqual([]);
   });
 
   it('reads a blank field as nothing declared and a fraction as its whole part', () => {
@@ -361,14 +325,12 @@ describe('TnoRollDialog Ansagen', () => {
     expect(dialog._ansageValue({ ...base, ansage: 2.9 })).toBe(2);
   });
 
-  it('eases the roll by a negative Ansage without making it a Manöver', () => {
+  it('eases the roll by a negative Ansage', () => {
     const dialog = attack();
     const base = form({ attributeA: 'str', contextChoice: '0' });
     expect(dialog._ansageComponent({ ...base, ansage: -2 }))
       .toEqual({ label: 'Ansage', value: 2, display: '+2' });
     expect(dialog._computeThreshold({ ...base, ansage: -2 }) - dialog._computeThreshold(base)).toBe(2);
-    // Collecting on an earlier declaration declares nothing new.
-    expect(dialog._conditionalModifiers({ ...base, ansage: -2 })).toEqual([]);
   });
 
   it('leaves the declared amount outside the situational modifier clamp', () => {
@@ -376,7 +338,7 @@ describe('TnoRollDialog Ansagen', () => {
     // what a GM hands out unilaterally, and this is a number the table agreed on.
     const dialog = attack();
     const base = form({ attributeA: 'str', contextChoice: '0' });
-    expect(dialog._computeThreshold({ ...base, ansage: 40 })).toBe(9 - 40 - 3);
+    expect(dialog._computeThreshold({ ...base, ansage: 40 })).toBe(9 - 40);
   });
 
   it('emits the envelope with the amount and no target location', async () => {
@@ -609,7 +571,6 @@ describe('TnoRollDialog presentation helpers', () => {
       fixedModifiers: [{ label: 'Handhabung', value: -1, origin: 'weapon' }],
       preRollContext: { label: 'Länger?', control: 'toggle', origin: 'weapon', choices: [{ key: 'no', label: 'Nein', value: 0 }, { key: 'yes', label: 'Ja', value: 3 }] },
       ansage: { label: 'Ansage' },
-      maneuverMalus: { label: 'FV', value: -3 },
       sources: { weapon: 'Säbel' },
     });
     for (const data of [

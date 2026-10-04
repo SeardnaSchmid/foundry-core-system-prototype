@@ -210,11 +210,6 @@ function rangeBandChoices(system) {
  * Angriff" — so it applies whether or not anything is declared. It is labelled
  * with its Malusstufen, because the ladder is what lets it exceed the −3 the
  * dice system otherwise moves in.
- *
- * The FV malus is not: "würfelt er alle Manöver mit einem Malus", and a
- * Standardangriff is not a Manöver. It cannot be resolved here, because whether
- * this roll is a Manöver is decided in the dialog by what the player declares —
- * so it is handed over as a rule the Ansage block applies.
  * @param {Actor} actor
  * @param {Object} system              A weapon item's `system` data.
  * @param {'active'|'passive'} handling
@@ -238,25 +233,6 @@ function weaponFixedModifiers(actor, system, handling) {
         }]
       : []),
   ];
-}
-
-/**
- * The FV shortfall, as the surcharge a *declared* Manöver carries.
- *
- * One flat step however far short the rank is, unlike the graded SV ladder, and
- * absent entirely from a Standardangriff.
- * @param {Actor} actor
- * @param {Object} system  A weapon item's `system` data.
- * @returns {{label: string, value: number}|null}
- */
-function maneuverFvMalus(actor, system) {
-  const { fvMalus } = weaponRequirementStatus(actor, system);
-  if (!fvMalus) return null;
-  return {
-    label: game.i18n.localize('TNO.Combat.FvMalus'),
-    value: fvMalus,
-    hint: game.i18n.localize('TNO.Combat.FvMalusHint'),
-  };
 }
 
 /**
@@ -381,7 +357,7 @@ function ansageField() {
  * @returns {{key: string, definition: Object}|null}
  */
 function weaponSkill(actor, weapon, canRoll) {
-  const key = weapon?.system?.fv?.skill;
+  const key = weapon?.system?.wf;
   const definition = actor ? getSkillDefinitions(actor)[key] : null;
   if (!actor?.isOwner || !hasRole(weapon, 'weapon')) return null;
   // A weapon left behind is not in hand.
@@ -408,7 +384,6 @@ export function angriffOptions(actor, weapon) {
     fixedModifiers: weaponModifiers(actor, weapon.system, 'active'),
     preRollContext: weaponContext(weapon.system, 'TNO.Combat.AskDefender'),
     ansage: ansageField(),
-    maneuverMalus: maneuverFvMalus(actor, weapon.system),
     envelope: attackEnvelope(actor, weapon),
     phase: {
       label: game.i18n.localize('TNO.Combat.Phase.Attack'),
@@ -462,7 +437,6 @@ export function paradeOptions(actor, weapon) {
     // on the defender's paper doll when resistance is opened; a Riposte — the
     // one Manöver the rules put on a parry — lands on your own next attack.
     ansage: ansageField(),
-    maneuverMalus: maneuverFvMalus(actor, weapon.system),
     afterRoll: async () => {
       await countDefense(actor, 'parry');
     },

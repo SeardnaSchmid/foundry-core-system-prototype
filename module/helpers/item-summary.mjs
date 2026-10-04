@@ -34,16 +34,16 @@ export function localizeGearSummary(item) {
 
   let probe = null;
   if (summary.probe) {
-    const definition = definitions[summary.probe.fv.value?.skillKey];
+    const definition = definitions[summary.probe.skill.skillKey];
     probe = {
       attribute: {
         labelKey: summary.probe.attribute.labelKey,
         display: summary.probe.attribute.valueKey ? loc(summary.probe.attribute.valueKey) : absent(),
         missing: !summary.probe.attribute.valueKey,
       },
-      fv: {
-        labelKey: summary.probe.fv.labelKey,
-        display: definition ? `${definition.label} ${summary.probe.fv.value.rank}` : absent(),
+      skill: {
+        labelKey: summary.probe.skill.labelKey,
+        display: definition ? definition.label : absent(),
         missing: !definition,
       },
     };

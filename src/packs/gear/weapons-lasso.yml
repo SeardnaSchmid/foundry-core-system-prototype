@@ -10,9 +10,7 @@ system:
   price: null
   availability: null
   description: <p>Zweihändig, Ringen</p>
-  fv:
-    skill: flexibleWeapons
-    rank: 3
+  wf: flexibleWeapons
   roles:
     weapon: true
     armor: false

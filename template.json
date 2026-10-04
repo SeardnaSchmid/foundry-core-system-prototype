@@ -215,7 +215,7 @@
         "sv": 0,
         "price": null,
         "availability": null,
-        "fv": { "skill": "", "rank": 0 },
+        "wf": "",
         "roles": { "weapon": false, "armor": false, "consumable": false },
         "use": "melee",
         "wa": "str",

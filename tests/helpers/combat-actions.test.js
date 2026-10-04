@@ -86,7 +86,7 @@ describe('combat action builders', () => {
     system: {
       roles: { weapon: true },
       use: 'melee',
-      fv: { skill: 'swords', rank: 0 },
+      wf: 'swords',
       sv: 0,
       wa: 'str',
       dk: 4,
@@ -358,7 +358,7 @@ describe('Haltung and repeated defences', () => {
       system: {
         roles: { weapon: true },
         use: 'melee',
-        fv: { skill: 'swords', rank: 0 },
+        wf: 'swords',
         sv: 0,
         wa: 'str',
         dk: 4,

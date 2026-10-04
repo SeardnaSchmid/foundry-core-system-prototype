@@ -13,9 +13,7 @@ system:
     <p>Rucksack aus Stoff nach kaiserlicher Mode. Das oder Beutel hat quasi
     jeder dabei.</p><p>Du kannst große Gegenstände mit dir führen, ohne sie
     ständig in der Hand zu halten.</p>
-  fv:
-    skill: ''
-    rank: 0
+  wf: ''
   roles:
     weapon: false
     armor: false

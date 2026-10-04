@@ -1,34 +1,24 @@
 /**
- * The FV malus finding its consumer, per
- * `docs/design/workflows/combat-workflow-prd.md`.
- *
- * The rule that separates the two cases is a single sentence — "würfelt er alle
- * Manöver mit einem Malus", and a Standardangriff is not a Manöver — so this
- * spec asserts exactly that difference on one character, one weapon and one
- * dialog: with nothing declared the attack refuses the shortfall, and the first
- * Ansage turns the same roll into a Manöver and brings it in.
- *
- * It also pins what the Ansage field is now: a free magnitude, taken at face
- * value. The rulebook's 1:1-to-the-rank / 2:1-past-it conversion is arithmetic
+ * The Ansage on a weapon attack, per
+ * `docs/design/workflows/combat-workflow-prd.md`: a free magnitude, taken at
+ * face value. The rulebook's 1:1-to-the-rank / 2:1-past-it conversion is arithmetic
  * the player and the GM do out loud before typing, so a declared 3 costs the
  * roll 3 and reaches the defender as 3 — no Manöverfertigkeit is consulted, and
  * no rank appears anywhere in this path.
  *
- * Fingerfertigkeit 4 + Schwerter 5 = 9, less 3 for the Ansage and 3 for the FV
- * shortfall.
+ * Fingerfertigkeit 4 + Schwerter 5 = 9, less 3 for the Ansage.
  */
-import { test, expect, createCharacter, lastMessage, localize, openSheet, weapon } from '../fixtures.mjs';
+import { test, expect, createCharacter, lastMessage, openSheet, weapon } from '../fixtures.mjs';
 
 const MANEUVER = {
   fin: 4,
   swords: 5,
-  fvRank: 9,
   ansage: 3,
   standardThreshold: 9,
-  maneuverThreshold: 3,
+  maneuverThreshold: 6,
 };
 
-test('an Ansage turns an attack into a Manöver and brings the FV malus with it', async ({ world }) => {
+test('an Ansage costs a weapon attack exactly its amount', async ({ world }) => {
   const { page } = world;
 
   const { id, items } = await createCharacter(page, {
@@ -37,17 +27,14 @@ test('an Ansage turns an attack into a Manöver and brings the FV malus with it'
     items: [weapon({
       name: 'Demanding Blade',
       wa: 'fin',
-      // Asks for a rank the character does not have, and for no Strength at
-      // all: the SV must stay out of what this spec is about.
-      fv: { skill: 'swords', rank: MANEUVER.fvRank },
+      // Asks for no Strength at all: the SV must stay out of what this spec
+      // is about.
+      wf: 'swords',
       rb: 3,
       ss: { count: 2 },
     })],
   });
   const itemId = items['Demanding Blade'];
-
-
-  const labels = await localize(page, { fv: 'TNO.Combat.FvMalus' });
 
   const sheet = await openSheet(page, id);
 
@@ -58,14 +45,11 @@ test('an Ansage turns an attack into a Manöver and brings the FV malus with it'
   const dialog = page.locator('form.tno-roll-dialog');
   await expect(dialog).toBeVisible();
 
-  // 1. Nothing declared: Handhabung alone among the gear rows, and no FV step —
-  //    this is a Standardangriff and a Standardangriff is not a Manöver.
+  // 1. Nothing declared.
   const threshold = dialog.locator('[data-role="threshold"]');
-  const fvRow = dialog.locator('.tno-beleg-row').filter({ hasText: labels.fv });
   await expect(threshold).toHaveText(`(≤ ${MANEUVER.standardThreshold})`);
-  await expect(fvRow).toHaveCount(0);
 
-  // 2. Declaring an amount turns the attack into a Manöver.
+  // 2. Declaring an amount costs exactly that amount.
   const ansage = dialog.locator('input[name="ansage"]');
   await expect(ansage).toBeVisible();
   await ansage.fill(String(MANEUVER.ansage));
@@ -84,14 +68,10 @@ test('an Ansage turns an attack into a Manöver and brings the FV malus with it'
   await expect(dialog).toBeHidden();
 
   const flags = await lastMessage(page);
-  // The FV step reached the roll as its own component, never folded into another.
-  expect(flags.components).toEqual(expect.arrayContaining([
-    expect.objectContaining({ label: labels.fv, value: -3 }),
-  ]));
   expect(flags.components.reduce((sum, part) => sum + part.value, 0)).toBe(MANEUVER.maneuverThreshold);
 
   // What crosses to the defender is only the amount at face value.
   expect(flags.envelope).toEqual({ ansage: MANEUVER.ansage });
 
-  expect(world.errors, 'no uncaught page errors during a Manöver').toEqual([]);
+  expect(world.errors, 'no uncaught page errors during an Ansage').toEqual([]);
 });

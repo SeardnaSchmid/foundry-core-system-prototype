@@ -9,9 +9,10 @@ tags: [index, overview]
 
 This is a **code map**, not a rulebook. Each page says what the code does,
 where it lives, and which functions implement it, then links out to the
-relevant PRD in [`docs/design/`](../design/) for the game-mechanics spec of
-record. Pages don't restate rules — if a rule and this code map ever disagree,
-the PRD wins and this code map is stale.
+relevant PRD in [`docs/design/`](../design/) for how a rule is realised. The
+rules themselves live in the wiki mirror `rules/wiki/`. Pages don't restate
+rules — if a rule and this code map ever disagree, the wiki wins and this code
+map is stale.
 
 Every page's frontmatter carries a `resource:` (and often `spec:`) pointer
 back to source. `npm run docs:check` fails the build if a pointer goes stale

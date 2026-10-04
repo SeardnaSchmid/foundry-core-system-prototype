@@ -72,7 +72,7 @@ describe('item presentation', () => {
       use: 'melee',
       quantity: 2,
       wa: 'dex',
-      fv: { skill: 'brawling', rank: 4 },
+      wf: 'brawling',
       dk: 3,
       rb: 2,
       ss: { count: 3 },
@@ -86,7 +86,7 @@ describe('item presentation', () => {
     expect(summary.quantity).toBe(2);
     expect(summary.probe).toEqual({
       attribute: { labelKey: 'TNO.Item.Summary.Attribute', valueKey: 'TNO.Ability.Dex.long' },
-      fv: { labelKey: 'TNO.Item.Summary.Skill', value: { skillKey: 'brawling', rank: 4 } },
+      skill: { labelKey: 'TNO.Item.Summary.Skill', skillKey: 'brawling' },
     });
     expect(summary.tiles).toEqual([
       { key: 'dk', labelKey: 'TNO.Item.Summary.Dk', titleKey: 'TNO.Weapons.Dk', value: '3', state: 'value' },
@@ -108,7 +108,7 @@ describe('item presentation', () => {
       ss: { count: 2 },
       ws: { count: 1 },
       hh: { active: 0 },
-      fv: { skill: 'rifles', rank: 3 },
+      wf: 'rifles',
     }));
 
     expect(summary.tiles.map((tile) => [tile.key, tile.value])).toEqual([
@@ -174,8 +174,8 @@ describe('item presentation', () => {
 
   it('reads the Strength shortfall off the owning character', () => {
     const actor = { system: { abilities: { str: { base: 4 } }, derived: {}, equipment: {} } };
-    const short = buildGearSummary({ ...weapon({ sv: 5, dk: 1, rb: 0, ss: { count: 1 }, fv: { skill: 'blades' } }), actor });
-    const met = buildGearSummary({ ...weapon({ sv: 4, dk: 1, rb: 0, ss: { count: 1 }, fv: { skill: 'blades' } }), actor });
+    const short = buildGearSummary({ ...weapon({ sv: 5, dk: 1, rb: 0, ss: { count: 1 }, wf: 'blades' }), actor });
+    const met = buildGearSummary({ ...weapon({ sv: 4, dk: 1, rb: 0, ss: { count: 1 }, wf: 'blades' }), actor });
 
     expect(short.rows.at(-1).note)
       .toEqual({ labelKey: 'TNO.Item.Summary.RequirementShort', params: { delta: -1 }, state: 'warning' });

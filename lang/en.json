@@ -548,7 +548,6 @@
       "Summary": {
         "Stock": "Stock",
         "Dk": "DK",
-        "SkillRequirement": "Skill requirement",
         "Na": "n/a",
         "Missing": "missing",
         "RequirementShort": "{delta} not met",
@@ -573,7 +572,7 @@
       "Cap": {
         "Slots": "SLT",
         "Sv": "SV",
-        "Fv": "FV",
+        "Wf": "WF",
         "Price": "Base price",
         "Quantity": "Qty",
         "Availability": "Avl",
@@ -732,8 +731,6 @@
       "RepeatedDefenseHint": "Each further parry or dodge in the same stance grows harder by steps; matching skills can skip repeats.",
       "RepeatedDefenseLabel": "Repeated defence",
       "NextDefenseMalus": "Next defence: {value}",
-      "FvMalus": "FV requirement (manoeuvre)",
-      "FvMalusHint": "The weapon skill falls short of its FV. This penalty applies once a declaration makes the roll a manoeuvre.",
       "AnsageCaption": "Manoeuvres",
       "Ansage": "Your declaration",
       "AnsageHint": "How far you worsen this roll in order to gain something else. What exactly is settled at the table — only the number lives here. A negative value eases the roll instead, for instance when you collect on an earlier declaration.",
@@ -1087,7 +1084,7 @@
       "RangeCycleHint": "Click: — → −3 → 0 → +3. Shift-click cycles backwards.",
       "RangeVisualHint": "The line shows the modifier: red and low = −3 penalty · middle = 0 · green and high = +3 bonus · dashed = no attack.",
       "DamageHint": "SS and WS are plain damage values from 0 upward, not counts of dice. Armour resolution decides which value applies.",
-      "FvHint": "The weapon's skill and rank. Attack value is Attribute + weapon skill. Below this rank, every Manöver is rolled with one Malusstufe (−3); a standard attack is unaffected.",
+      "WfHint": "Weapon skill (WF): the skill the weapon is wielded with. Attack and parry value are weapon attribute + weapon skill.",
       "BandsShort": "SN·NEAR·MID·FAR·SF",
       "Use": {
         "Label": "Use",

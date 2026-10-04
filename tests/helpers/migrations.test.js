@@ -560,6 +560,43 @@ describe('migrateRdToRb (0.48.0)', () => {
 
 /* -------------------------------------------------------------------------- */
 
+describe('migrateFvToWf (0.52.0)', () => {
+  it('keeps the skill as the WF and drops the rank, on world and embedded gear', async () => {
+    const worldItem = makeItem({ system: { roles: { weapon: true }, fv: { skill: 'swords', rank: 3 } } });
+    const embedded = makeItem({ type: 'weapon', system: { fv: { skill: 'brawling', rank: 1 } } });
+    stubFoundry({ items: [worldItem], actors: [makeActor({ items: [embedded] })] });
+
+    await step('0.52.0')();
+
+    expect(worldItem.system).toMatchObject({ wf: 'swords' });
+    expect(embedded.system).toMatchObject({ wf: 'brawling' });
+    expect(worldItem.system).not.toHaveProperty('fv');
+    expect(embedded.system).not.toHaveProperty('fv');
+  });
+
+  it('keeps an authored WF and still drops the FV', async () => {
+    const item = makeItem({ system: { wf: 'shooting', fv: { skill: 'swords', rank: 2 } } });
+    stubFoundry({ items: [item] });
+
+    await step('0.52.0')();
+
+    expect(item.system.wf).toBe('shooting');
+    expect(item.system).not.toHaveProperty('fv');
+  });
+
+  it('is idempotent after the legacy key is gone', async () => {
+    const item = makeItem({ system: { fv: { skill: 'swords', rank: 2 } } });
+    stubFoundry({ items: [item] });
+
+    await step('0.52.0')();
+    await step('0.52.0')();
+
+    expect(item.updates).toHaveLength(1);
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+
 describe('migrateWorld', () => {
   it('does nothing at all for a non-GM', async () => {
     const item = makeItem({ system: { weight: 2 } });
@@ -587,7 +624,7 @@ describe('migrateWorld', () => {
 
   it('runs nothing once the stored version covers every step', async () => {
     const item = makeItem({ type: 'weapon', system: { weight: 2 } });
-    stubFoundry({ items: [item], stored: '0.48.0' });
+    stubFoundry({ items: [item], stored: '0.52.0' });
 
     await migrateWorld();
 
@@ -606,7 +643,7 @@ describe('migrateWorld', () => {
 
     await migrateWorld();
 
-    expect(pinned).toBe('0.48.0');
+    expect(pinned).toBe('0.52.0');
     expect(notifications).toHaveLength(0);
   });
 

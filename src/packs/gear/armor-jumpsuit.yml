@@ -13,9 +13,7 @@ system:
     <p>siehe Kleidung</p><p>Standardkleidung des Imperiums, funktional und
     robust. Zahllose Designs für Uniformen, Rangabzeichen und
     Optik.</p><p>Preis: 50-100 je nach Anpassungen</p>
-  fv:
-    skill: ''
-    rank: 0
+  wf: ''
   roles:
     weapon: false
     armor: true

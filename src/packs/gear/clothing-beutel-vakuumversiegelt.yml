@@ -15,9 +15,7 @@ system:
     ständig in der Hand zu halten. Dinge, für die das Vakuum gefährlich wäre,
     nehmen hier keinen Schaden, aber du kannst ihn im Vakuum natürlich nicht
     öffnen.</p>
-  fv:
-    skill: ''
-    rank: 0
+  wf: ''
   roles:
     weapon: false
     armor: false

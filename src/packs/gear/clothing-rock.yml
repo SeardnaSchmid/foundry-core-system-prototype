@@ -10,9 +10,7 @@ system:
   price: null
   availability: null
   description: <p>Wird über Rüstung etc. getragen.</p>
-  fv:
-    skill: ''
-    rank: 0
+  wf: ''
   roles:
     weapon: false
     armor: false

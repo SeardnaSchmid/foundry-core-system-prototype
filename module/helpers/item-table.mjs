@@ -111,7 +111,7 @@ export const ITEM_TABLE_COLUMNS = [
 
   { key: 'use', section: 'weapon', labelKey: 'TNO.Weapons.Use.Label', hintKey: 'TNO.Weapons.Use.Label', kind: CELL_KINDS.CHOICE, appliesTo: 'weapon', numeric: false },
   { key: 'wa', section: 'weapon', labelKey: 'TNO.Weapons.AttributeShort', hintKey: 'TNO.Weapons.Attribute', kind: CELL_KINDS.CHOICE, appliesTo: 'weapon', numeric: false },
-  { key: 'fv', section: 'weapon', labelKey: 'TNO.Item.Cap.Fv', hintKey: 'TNO.Item.Summary.SkillRequirement', kind: CELL_KINDS.NUMBER, appliesTo: 'weapon', numeric: true },
+  { key: 'wf', section: 'weapon', labelKey: 'TNO.Item.Cap.Wf', hintKey: 'TNO.Weapons.WfHint', kind: CELL_KINDS.CHOICE, appliesTo: 'weapon', numeric: false },
   { key: 'dk', section: 'weapon', labelKey: 'TNO.Item.Summary.Dk', hintKey: 'TNO.Weapons.Dk', kind: CELL_KINDS.NUMBER, appliesTo: 'weapon', numeric: true },
   { key: 'rb', section: 'weapon', labelKey: 'TNO.Weapons.Rb', hintKey: 'TNO.Weapons.RbHint', kind: CELL_KINDS.NUMBER, appliesTo: 'weapon', numeric: true },
   { key: 'ss', section: 'weapon', labelKey: 'TNO.Weapons.Ss', hintKey: 'TNO.Weapons.SsHint', kind: CELL_KINDS.NUMBER, appliesTo: 'weapon', numeric: true },
@@ -300,11 +300,8 @@ function readValue(item, system, key, worn) {
       return weaponUse(system);
     case 'wa':
       return weaponAttribute(system);
-    case 'fv':
-      // The rank is the requirement; which skill it is asked of goes into the
-      // cell's tooltip, where a machine key can be localized without needing a
-      // column of its own.
-      return system.fv?.skill ? { rank: authored(system.fv?.rank) ?? 0, skill: system.fv.skill } : null;
+    case 'wf':
+      return String(system.wf ?? '').trim() || null;
     case 'zone':
       return armorZones(item)[0] ?? null;
     case 'ss':
@@ -324,7 +321,6 @@ function readValue(item, system, key, worn) {
 function sortValue(key, value) {
   if (value === null || value === undefined) return null;
   if (key === 'incomplete') return value.length;
-  if (key === 'fv') return value.rank;
   if (key === 'hh') return value.active;
   return value;
 }

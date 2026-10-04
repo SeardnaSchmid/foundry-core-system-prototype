@@ -48,7 +48,7 @@ related: [reference/module-map, concepts/combat-turn-order]
 | `item/item-gear-sheet.hbs` | `TnoGearSheet` — the row editor for every physical item, see [item-roles.md](../concepts/item-roles.md) |
 | `item/parts/item-gear-summary.hbs` | The shared view-mode card — header with kind line and status pill, value tiles, stock row, warning banner, detail rows, a plain item's description — used by the actor-sheet popover and chat item cards |
 | `item/parts/item-role-weapon.hbs`, `item-role-armor.hbs`, `item-role-consumable.hbs` | Included by `item-gear-sheet.hbs`, one per role the item has switched on |
-| `item/parts/item-scale.hbs` | The click-scale control (DK, RD, RH, RW). Called with `{{> item-scale cells=scales.dk key='dk'}}` |
+| `item/parts/item-scale.hbs` | The click-scale control (DK, RB, RH, RW). Called with `{{> item-scale cells=scales.dk key='dk'}}` |
 | `item/item-sheet.hbs`, `item-feature-sheet.hbs`, `item-spell-sheet.hbs` | `TnoItemSheet`, resolved per item type — only `feature` and `spell` reach it now |
 | `item/parts/item-delete.hbs` | Delete action included by all item sheet templates; item sheets intentionally expose no Foundry Active Effect UI |
 | `item/parts/item-post.hbs` | "Show in chat" action in the gear dialog's footer, beside delete. The V1 feature/spell sheets get the same action from `TnoItemSheet#_getHeaderButtons` instead, since their footer is inside a tab |

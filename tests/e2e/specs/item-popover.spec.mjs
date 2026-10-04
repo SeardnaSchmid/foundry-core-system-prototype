@@ -7,7 +7,7 @@ test('carry-cell popover stays open across actions and opens the editor directly
       name: 'Popover Carbine',
       use: 'ranged',
       slots: 2,
-      fv: { skill: 'shooting', rank: 3 },
+      wf: 'shooting',
       rb: 4,
       ss: { count: 3 },
     })],

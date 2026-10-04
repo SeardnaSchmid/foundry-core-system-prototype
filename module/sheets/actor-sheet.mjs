@@ -874,13 +874,6 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         };
       }
       default:
-        if (column.key === 'fv') {
-          const skill = getSkillDefinition(this.actor, value.skill);
-          return {
-            text: String(value.rank),
-            title: skill ? `${skill.label} ${value.rank}` : String(value.rank),
-          };
-        }
         return { text: this.#formatNumber(value) };
     }
   }
@@ -952,6 +945,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     }
     if (key === 'use') return game.i18n.localize(CONFIG.TNO.weaponUses[value] ?? value);
     if (key === 'zone') return game.i18n.localize(CONFIG.TNO.armorZones[value] ?? value);
+    if (key === 'wf') return getSkillDefinition(this.actor, value)?.label ?? String(value);
     if (key === 'wa') {
       // The attribute map holds the long names; the short form is the same key
       // with a different leaf, so the abbreviation needs no second table.
@@ -1648,7 +1642,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   async #itemPopoverContext(item) {
     const base = await prepareGearSummaryContext(item);
     const { roles, stock } = base;
-    const skill = getSkillDefinitions(item.actor)[item.system.fv?.skill];
+    const skill = getSkillDefinitions(item.actor)[item.system.wf];
     const canEdit = this.isEditable;
     const parryMalus = Number(item.actor?.system?.derived?.defenses?.parry?.malus) || 0;
     // A piece left behind is not in hand: it keeps its card but offers no

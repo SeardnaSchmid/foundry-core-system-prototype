@@ -33,9 +33,9 @@ paths `actor.system.*`.
 | Fingerfertigkeit | `abilities.fin.base` | Dexterity |
 | Akrobatik | `skills.acrobatics.value` | Acrobatics |
 | Raufen | `skills.brawling.value` | Brawling |
-| **FV** Fertigkeitsvorraussetzung | `fv.skill`, `fv.rank` | which skill the weapon needs, at which rank |
 | **SV** Stärkevorraussetzung | `sv` | Strength the weapon or armour piece needs |
 | **WA** Waffenattribut | `wa` | the attribute this weapon rolls from |
+| **WF** Waffenfertigkeit | `wf` | the skill this weapon rolls with |
 | **DK** Distanzklasse | `dk` (melee), `range.{sn,near,mid,far,sf}` (ranged) | reach class 0–6 / the five range bands |
 | **HH** Handhabung | `hh.active`, `hh.passive` | base modifier, attack / parry |
 | **RB** Rüstungsbrechung | `rb` | armour ignored up to this hardness, for melee and ranged weapons alike |
@@ -95,7 +95,6 @@ other's.
 | Malus | Trigger | Steps | To the threshold | Applies to | Proof |
 |---|---|---|---|---|---|
 | **SV weapon** | base Stärke < SV | `ceil((SV − Stärke) / 2)`, uncapped | `steps × (−3)` | every attack / parry with this weapon | `tests/helpers/items.test.js › grades a shortfall one step per two points, rounded up`<br>`tests/documents/item-weapon-roll.test.js › sends the SV shortfall as one graded component` |
-| **FV weapon** | skill rank < FV rank | 1, flat | `−3` | Manöver only — **not** a standard attack | `tests/helpers/items.test.js › reports FV and SV separately, and never grades FV`<br>`tests/documents/item-weapon-roll.test.js › keeps the FV shortfall out of a standard attack`<br>consumer: `tests/documents/roll-dialog.test.js › leaves a standard attack free of the FV malus and charges a declared one` |
 | **SV armour** | base Stärke < Σ SV of everything worn | 1, flat | `−3` | every Beweglichkeit roll | `tests/helpers/inventory.test.js › sums the strength requirement over every worn piece`<br>`tests/helpers/items.test.js › costs one flat step on a Beweglichkeit roll and nothing on any other attribute`<br>`tests/documents/roll-dialog.test.js › sends the armour step into the breakdown, the roll components and the message flags` |
 | **Damage** | every raw point in either damage pool | 1 point, flat | `−(sharp + blunt)` | every roll, including Resistance | `tests/helpers/damage.test.js › accumulates both raw pools and applies one malus per point`<br>`tests/documents/roll-dialog.test.js › applies to every roll and reaches the breakdown, components and flags`<br>`tests/documents/actor-resistance-roll.test.js › includes the always-on damage malus on the resistance roll` |
 
@@ -106,24 +105,14 @@ SV weapon, worked out:
 | Steps | 1 | 1 | 2 | 2 | 3 | 3 | | 5 |
 | **To the threshold** | `−3` | `−3` | `−6` | `−6` | `−9` | `−9` | | `−15` |
 
-SV and FV are separate requirements and their maluses add; exceeding a
-requirement buys nothing. A melee weapon may be rolled with Raufen instead of
-its authored skill, and then always carries the FV malus.
-
-Whether an attack is a Manöver — and so whether the FV malus applies at all — is
-decided **in the dialog, by what the player declares**. An attack with no Ansage
-on it is a Standardangriff and takes no FV step; the first declaration turns the
-same roll into a Manöver and the step appears. The SV malus does not move with
-it: "jede Angriff/Parade mit dieser Waffe" covers both, because a Manöver is an
-attack ("alles das läuft aber unter Angriff").
+Exceeding a requirement buys nothing. The SV malus lands on a declared Manöver
+as much as on a Standardangriff, because a Manöver is an attack ("alles das
+läuft aber unter Angriff").
 
 The armour SV attaches to the **attribute**, not to a workflow: any roll built
 on Beweglichkeit takes the step, Dodge and a dex-attributed roll alike. Two
 Beweglichkeit slots on one roll are still one step
 (`tests/helpers/items.test.js › costs the same one step however many Beweglichkeit slots a roll fills`).
-Where both requirements meet — a dex roll declaring a Manöver with a weapon whose
-FV is missed — they stay two components:
-`tests/documents/roll-dialog.test.js › adds the armour step and the weapon FV step separately, never as one`.
 
 ## The attack roll
 
@@ -282,8 +271,8 @@ component decided by form state.
 
 | Workflow | Fixed components | Required context | Proof |
 |---|---|---|---|
-| **Attack** | WA + the actor's current FV-skill rank · HH active · SV malus | own Ansage first; then melee DK modifier `+3 / 0` or one authored ranged band; then the situational modifier | `tests/documents/roll-dialog.test.js › asks only what the roller answers, numbered in one order`<br>`tests/documents/item-weapon-roll.test.js › offers a melee attack the two reach outcomes as its required context`<br>`tests/helpers/items.test.js › offers only authored ranged bands and preserves their modifiers` |
-| **Parry** (melee) | WA + the actor's current FV-skill rank · HH passive · SV malus | own Ansage · DK modifier `+3 / 0` | `tests/documents/item-weapon-roll.test.js › gives a parry passive handling, the same SV malus, and a reach choice` |
+| **Attack** | WA + the actor's current WF rank · HH active · SV malus | own Ansage first; then melee DK modifier `+3 / 0` or one authored ranged band; then the situational modifier | `tests/documents/roll-dialog.test.js › asks only what the roller answers, numbered in one order`<br>`tests/documents/item-weapon-roll.test.js › offers a melee attack the two reach outcomes as its required context`<br>`tests/helpers/items.test.js › offers only authored ranged bands and preserves their modifiers` |
+| **Parry** (melee) | WA + the actor's current WF rank · HH passive · SV malus | own Ansage · DK modifier `+3 / 0` | `tests/documents/item-weapon-roll.test.js › gives a parry passive handling, the same SV malus, and a reach choice` |
 | **Dodge** | Beweglichkeit + Akrobatik · armour SV malus | — | `tests/e2e/specs/combat-dodge.spec.mjs › a dodge is Beweglichkeit plus Akrobatik, less the armour step` |
 | **Resistance** | Stärke (locked) · RW(Stelle); penetration removes all RW, Rüstung umgehen only `rwAddon` | Rüstung umgehen yes/no against private RA; unless bypassed, the attacker's RB compared against RH into `softer / equal / harder`; the announced Schadenswert, required, and asked only once the comparison or bypass has named the applicable value | `tests/documents/actor-resistance-roll.test.js › requires the RB and the damage, unless a bypass makes the comparison moot`<br>`tests/documents/actor-resistance-roll.test.js › derives the penetration outcome from the RB typed against the RH of the struck location`<br>`tests/documents/actor-resistance-roll.test.js › keeps the damage question closed until the comparison or a bypass names it` |
 | **Haltung** | — | which defence is possible at all, and what the next one costs | `tests/helpers/combat-actions.test.js › lets the Haltung decide which defence is possible at all`<br>`tests/helpers/combat-actions.test.js › leaves the first defence unmodified and sums a step onto every one after` |
@@ -293,8 +282,7 @@ läuft aber unter Angriff" — so it is declared *inside* the attack or parry it
 modifies, where the weapon already supplies WA, HH, DK and the SV malus. What is
 declared is one number. See [Ansagen](#ansagen).
 
-The FV rank authored on a weapon is a requirement only; what is *added* is the
-character's current rank. SV comparisons use **base** Strength. All four rolls
+SV comparisons use **base** Strength. All four rolls
 keep the situational modifier (`±3` steps, `±1` to fine-tune), the advantage/disadvantage picker
 and the Idea option; the chosen context is a signed immutable component in the
 threshold, the chat breakdown and the message flags. An announced value is the
@@ -381,9 +369,8 @@ Blank and zero mean the same thing: a Standardangriff
 erleichtern" needs somewhere to land, and the roll being eased is as often an
 attack or parry as not — a Riposte pays on the parry and collects on the next
 attack. So the same field takes the collected amount with its sign flipped: `−2`
-eases this roll by 2. It is collecting, not declaring, so it is not a Manöver —
-no FV malus — and the card announces nothing to the defender
-(`tests/documents/roll-dialog.test.js › eases the roll by a negative Ansage without making it a Manöver`).
+eases this roll by 2. It is collecting, not declaring, so the card announces nothing to the
+defender (`tests/documents/roll-dialog.test.js › eases the roll by a negative Ansage`).
 What the amount was earned by is, like everything else here, agreed at the table.
 
 A parry gets the same field — a Riposte is declared on one

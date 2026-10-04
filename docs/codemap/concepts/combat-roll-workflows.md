@@ -49,10 +49,8 @@ on opposite sides of that line.
 - [`helpers/items.mjs`](../../../module/helpers/items.mjs) contains the pure
   weapon-profile, requirement, handling, range-band, and DK-choice helpers.
   `requirementMalusSteps` grades an **SV** shortfall into Malusstufen;
-  `weaponRequirementStatus` reports it alongside the flat one-step FV shortfall.
-  The SV malus reaches every attack and parry; the FV one is a Manöver rule and
-  is handed to the dialog as `maneuverMalus`, which applies it only once a
-  positive Ansage has been declared. `armorSvMalus` answers the third, differently shaped
+  `weaponRequirementStatus` reports it for a weapon, and the SV malus reaches
+  every attack and parry. `armorSvMalus` answers the second, differently shaped
   requirement — the armour SV — for a given set of attributes, and
   `armorPenetrationChoices` returns the damage table's three outcomes with the
   pool and whether RW survives. A separately confirmed `Rüstung umgehen`
@@ -130,7 +128,7 @@ on opposite sides of that line.
   `combat-actions.mjs` tag theirs. The dialog also owns an actor-state bucket:
   `_actorModifiers` reads the damage malus for every roll, and
   `_conditionalModifiers` adds the armour SV step to any roll built on
-  Beweglichkeit and the FV step to a positive Ansage.
+  Beweglichkeit.
 - [`roll-card.hbs`](../../../templates/chat/roll-card.hbs) renders the envelope
   as plain text under the outcome — always visible, never inside the collapsible
   tooltip, because the card is the only record of what was announced. Above it

@@ -2937,16 +2937,12 @@
 .tno.gear-dialog .field.field-wide input {
   text-align: left;
 }
-.tno.gear-dialog .field.field-fv {
+.tno.gear-dialog .field.field-wf {
   flex: 2.8;
   max-width: none;
 }
-.tno.gear-dialog .field.field-fv select {
+.tno.gear-dialog .field.field-wf select {
   flex: 1;
-}
-.tno.gear-dialog .field.field-fv .rank {
-  flex: 0 0 28px;
-  text-align: center;
 }
 .tno.gear-dialog .field.field-wa {
   flex: 1.1;

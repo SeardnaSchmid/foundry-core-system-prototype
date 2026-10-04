@@ -10,9 +10,7 @@ system:
   price: null
   availability: null
   description: '<p>Munition: VA</p>'
-  fv:
-    skill: heavyRanged
-    rank: 0
+  wf: heavyRanged
   roles:
     weapon: true
     armor: false

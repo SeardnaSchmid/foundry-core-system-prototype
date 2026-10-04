@@ -64,16 +64,16 @@ export function buildGearSummary(item) {
 
   // The two components an Angriffswurf is built from, shown together because
   // neither is meaningful alone and the roll dialog fixes both.
-  const skillKey = String(system.fv?.skill ?? '').trim();
+  const skillKey = String(system.wf ?? '').trim();
   const probe = roles.weapon
     ? {
         attribute: {
           labelKey: 'TNO.Item.Summary.Attribute',
           valueKey: WEAPON_ATTRIBUTES.includes(system.wa) ? TNO.abilities[weaponAttribute(system)] : null,
         },
-        fv: {
+        skill: {
           labelKey: 'TNO.Item.Summary.Skill',
-          value: skillKey ? { skillKey, rank: Number(system.fv?.rank) || 0 } : null,
+          skillKey: skillKey || null,
         },
       }
     : null;

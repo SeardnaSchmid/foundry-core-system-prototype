@@ -10,9 +10,7 @@ system:
   price: null
   availability: null
   description: ''
-  fv:
-    skill: brawling
-    rank: 1
+  wf: brawling
   roles:
     weapon: true
     armor: false

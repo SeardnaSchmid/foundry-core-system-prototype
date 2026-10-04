@@ -112,6 +112,10 @@ system version has advanced past what a world last recorded.
   embedded actor items. An already-authored RB wins when both exist; otherwise
   the old RD value is copied, then `rd` is removed. Skipping documents without
   their own `rd` key makes the step idempotent.
+- **`0.52.0` — `migrateFvToWf`**: replaces the weapon's `system.fv: {skill,
+  rank}` with `system.wf`, the skill alone, on world items and embedded actor
+  items. An already-authored `wf` wins; the rank is dropped. Skipping
+  documents without their own `fv` key makes the step idempotent.
 
 ## Adding a new step
 

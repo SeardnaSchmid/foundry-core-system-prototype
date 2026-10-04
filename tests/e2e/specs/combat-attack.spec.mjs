@@ -14,17 +14,15 @@
  *  4. those same components survive into the chat card and the message flags —
  *     the PRD's "live threshold, chat breakdown, and message flags" claim.
  *
- * Strength 2, Swords 5, a weapon asking FV 8 / SV 6 with active Handhabung +1,
- * swung with the reach advantage. SV is 4 short, so two Malusstufen; the FV
- * shortfall deliberately costs nothing, because that malus is a Manöver rule
- * and a standard attack is not a Manöver. Threshold: 2 + 5 + 1 − 6 + 3 = 5.
+ * Strength 2, Swords 5, a weapon asking SV 6 with active Handhabung +1, swung
+ * with the reach advantage. SV is 4 short, so two Malusstufen. Threshold:
+ * 2 + 5 + 1 − 6 + 3 = 5.
  */
 import { test, expect, createCharacter, lastMessage, localize, openSheet, weapon } from '../fixtures.mjs';
 
 const ATTACK = {
   strength: 2,
   skillRank: 5,
-  fvRank: 8,
   sv: 6,
   handling: 1,
   reach: 3,
@@ -40,7 +38,7 @@ test('a weapon attack carries its requirement maluses from dialog to chat card',
     items: [weapon({
       name: 'Requirement Blade',
       wa: 'str',
-      fv: { skill: 'swords', rank: ATTACK.fvRank },
+      wf: 'swords',
       sv: ATTACK.sv,
       hh: { active: ATTACK.handling, passive: -1 },
     })],
@@ -71,8 +69,7 @@ test('a weapon attack carries its requirement maluses from dialog to chat card',
   const dialog = page.locator('form.tno-roll-dialog');
   await expect(dialog).toBeVisible();
 
-  // 3a. The SV shortfall reaches the dialog as its own line, and the FV
-  // shortfall reaches it not at all.
+  // 3a. The SV shortfall reaches the dialog as its own line.
   // `filter` scopes to the row, so the label and its delta are asserted together
   // without building a regex out of a localized string — "SV requirement (2×)"
   // carries parentheses, which a regex would read as a capture group.

@@ -330,7 +330,7 @@ $gear-value-max: 200px;
     // A box holding one short number stops here rather than running to the end
     // of the row. Rows that carry several fields are unaffected — they were
     // already sharing the width — and the two that name their own width,
-    // `.field-fv` and `.field-wide`, lift it again below.
+    // `.field-wf` and `.field-wide`, lift it again below.
     max-width: $gear-value-max;
     display: flex;
     align-items: center;
@@ -431,21 +431,15 @@ $gear-value-max: 200px;
       }
     }
 
-    // The Fertigkeitswert: a skill and the rank in it, which is one value in
-    // two parts, so it shares a box rather than splitting into two fields.
-    &.field-fv {
+    // The Waffenfertigkeit: a skill name, not a short number — "Schwere
+    // Nahkampfwaffen" needs every pixel it can get and truncates the moment it
+    // is capped.
+    &.field-wf {
       flex: 2.8;
-      // A skill name, not a short number: "Combat · Heavy Melee Weapons" needs
-      // every pixel it can get and truncates the moment it is capped.
       max-width: none;
 
       select {
         flex: 1;
-      }
-
-      .rank {
-        flex: 0 0 28px;
-        text-align: center;
       }
     }
 

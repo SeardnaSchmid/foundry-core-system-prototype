@@ -13,23 +13,6 @@ ranged profile into a second, incomplete weapon profile. --}}
   </div>
 </div>
 
-<div class='gear-row {{#if missing.fv}}is-missing{{/if}}' data-row='fv'>
-  <span class='gear-label' title='{{localize "TNO.Weapons.FvHint"}}'>{{localize 'TNO.Item.Cap.Fv'}}</span>
-  <div class='gear-ctl'>
-    <label class='field field-fv' title='{{localize "TNO.Weapons.FvHint"}}'>
-      <select name='system.fv.skill'>
-        <option value=''>—</option>
-        {{#each skills}}
-          <option value='{{this.key}}' {{#ifEquals this.key ../system.fv.skill}}selected{{/ifEquals}}>
-            {{this.label}}
-          </option>
-        {{/each}}
-      </select>
-      <input class='rank' type='number' name='system.fv.rank' value='{{system.fv.rank}}' min='0' step='1' />
-    </label>
-  </div>
-</div>
-
 <div class='gear-row {{#if missing.wa}}is-missing{{/if}}' data-row='wa'>
   <span class='gear-label' title='{{localize "TNO.Weapons.AttributeHint"}}'>{{localize 'TNO.Weapons.Attribute'}}</span>
   <div class='gear-ctl'>
@@ -38,6 +21,22 @@ ranged profile into a second, incomplete weapon profile. --}}
         <option value=''>—</option>
         {{#each weaponAttributeOptions}}
           <option value='{{this.key}}' {{#if this.on}}selected{{/if}}>{{localize this.label}}</option>
+        {{/each}}
+      </select>
+    </label>
+  </div>
+</div>
+
+<div class='gear-row {{#if missing.wf}}is-missing{{/if}}' data-row='wf'>
+  <span class='gear-label' title='{{localize "TNO.Weapons.WfHint"}}'>{{localize 'TNO.Item.Cap.Wf'}}</span>
+  <div class='gear-ctl'>
+    <label class='field field-wf' title='{{localize "TNO.Weapons.WfHint"}}'>
+      <select name='system.wf'>
+        <option value=''>—</option>
+        {{#each skills}}
+          <option value='{{this.key}}' {{#ifEquals this.key ../system.wf}}selected{{/ifEquals}}>
+            {{this.label}}
+          </option>
         {{/each}}
       </select>
     </label>

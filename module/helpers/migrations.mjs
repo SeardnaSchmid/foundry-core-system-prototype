@@ -19,6 +19,7 @@ export const MIGRATIONS = [
   { version: '0.35.0', migrate: migrateDropPendingAnsage },
   { version: '0.36.0', migrate: migrateDropTemporaryAttributeValues },
   { version: '0.48.0', migrate: migrateRdToRb },
+  { version: '0.52.0', migrate: migrateFvToWf },
 ];
 
 /**
@@ -305,6 +306,32 @@ async function migrateRdToRb() {
     if (rbBlank && system.rd !== null && system.rd !== undefined && system.rd !== '') {
       update['system.rb'] = system.rd;
     }
+    await item.update(update);
+  };
+
+  for (const item of game.items) await migrate(item);
+  for (const actor of game.actors) {
+    for (const item of actor.items) await migrate(item);
+  }
+}
+
+/**
+ * Replace the weapon's Fertigkeitsvoraussetzung `fv: {skill, rank}` with its
+ * Waffenfertigkeit `wf`. The skill carries over; the rank was a requirement
+ * the rules no longer have, so it goes. An already authored `wf` wins.
+ *
+ * Reads `_source` so a schema default cannot masquerade as stored data, and is
+ * idempotent because an item without its own `fv` key is skipped.
+ */
+async function migrateFvToWf() {
+  const migrate = async (item) => {
+    if (!GEAR_TYPES.includes(item.type)) return;
+    const system = item._source?.system;
+    if (!system || !Object.hasOwn(system, 'fv')) return;
+
+    const update = { 'system.-=fv': null };
+    const skill = String(system.fv?.skill ?? '').trim();
+    if (skill && !String(system.wf ?? '').trim()) update['system.wf'] = skill;
     await item.update(update);
   };
 

@@ -8,7 +8,7 @@ const CARBINE = weapon({
   price: 40,
   availability: 2,
   sv: 5,
-  fv: { skill: 'shooting', rank: 3 },
+  wf: 'shooting',
   dk: 2,
   range: { sn: null, near: -3, mid: 0, far: 3, sf: 0 },
   rb: 5,

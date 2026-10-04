@@ -108,7 +108,6 @@ export const GEAR_NUMBER_BOUNDS = {
   'system.slots': { min: 0, max: 4 },
   'system.sv': { min: 0 },
   'system.price': { min: 0 },
-  'system.fv.rank': { min: 0 },
   'system.ss.count': { min: 0 },
   'system.ws.count': { min: 0 },
   'system.hh.active': { min: -3, max: 3 },
@@ -279,14 +278,13 @@ export function weaponAttribute(system) {
 }
 
 /**
- * Read the actor's current rank in the skill authored on a weapon profile.
- * Weapon FV rank is a requirement, never the contribution to an actual roll.
+ * Read the actor's current rank in the weapon's Waffenfertigkeit (WF).
  * @param {Object} actor  An actor document (or plain actor data).
  * @param {Object} system An item's `system` data.
  * @returns {number}
  */
 export function weaponSkillRank(actor, system) {
-  const key = system?.fv?.skill;
+  const key = system?.wf;
   const value = actor?.system?.skills?.[key]?.value;
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
@@ -344,10 +342,7 @@ export const BONUS_STEP = 3;
  * character that far under the requirement is meant to be unable to use the
  * weapon rather than merely bad with it — SV 10 at Strength 1 is five steps.
  *
- * **Only SV grades.** The FV rule is a flat "würfelt er alle Manöver mit einem
- * Malus", so it never reaches this function.
- *
- * @param {number} value  What the character brings — skill rank, or Strength.
+ * @param {number} value  What the character brings — Strength.
  * @param {number} required  What the weapon asks for.
  * @returns {number}  Malusstufen, 0 when the requirement is met.
  */
@@ -358,48 +353,26 @@ export function requirementMalusSteps(value, required) {
 }
 
 /**
- * Read the two weapon requirements and what each of them costs. FV and SV are
- * *separate* requirements and their maluses add: they are two different things
- * the character cannot do with this weapon, and one covering for the other
- * would make the second requirement free whenever the first is already missed.
- *
- * They are shaped differently, and the difference is the whole point:
- *
- *  - **SV** grades with the shortfall and lands on every Angriff and Parade.
- *  - **FV** is a flat single step and lands on **Manöver only** — "würfelt er
- *    alle Manöver mit einem Malus", and the Manöver chapter is explicit that a
- *    Standardangriff is not a Manöver. Whether a given attack is one is decided
- *    in the roll dialog by what the player declares, so `fvMalus` reaches a roll
- *    only once an Ansage is on it.
- *
- * Both are unlike the *armour* SV, which is a single Malusstufe on every
- * Beweglichkeitswurf however far short the character falls. Three rules, three
- * shapes, and none of them may be folded into another.
+ * Read the weapon's Stärkevoraussetzung and what missing it costs. It grades
+ * with the shortfall and lands on every Angriff and Parade — unlike the
+ * *armour* SV, a single Malusstufe on every Beweglichkeitswurf however far
+ * short the character falls.
  *
  * @param {Object} actor  An actor document (or plain actor data).
  * @param {Object} system An item's `system` data.
- * @returns {{skillRank: number, strength: number, fvMet: boolean, svMet: boolean,
- *   fvSteps: number, svSteps: number, fvMalus: number, svMalus: number}}
+ * @returns {{strength: number, svMet: boolean, svSteps: number, svMalus: number}}
  */
 export function weaponRequirementStatus(actor, system) {
-  const skillRank = weaponSkillRank(actor, system);
   const strength = weaponBaseStrength(actor);
-  const fvRequired = isAuthoredNumber(system?.fv?.rank) ? Number(system.fv.rank) : 0;
   const svRequired = isAuthoredNumber(system?.sv) ? Number(system.sv) : 0;
-  const fvSteps = skillRank >= fvRequired ? 0 : 1;
   const svSteps = requirementMalusSteps(strength, svRequired);
-  // Guarded against -0: `0 * -3` is negative zero, which formats as "−0" the
-  // moment a requirement that costs nothing reaches a signed read-out.
-  const malusFor = (steps) => (steps === 0 ? 0 : steps * MALUS_STEP);
   return {
-    skillRank,
     strength,
-    fvMet: fvSteps === 0,
     svMet: svSteps === 0,
-    fvSteps,
     svSteps,
-    fvMalus: malusFor(fvSteps),
-    svMalus: malusFor(svSteps),
+    // Guarded against -0: `0 * -3` is negative zero, which formats as "−0" the
+    // moment a requirement that costs nothing reaches a signed read-out.
+    svMalus: svSteps === 0 ? 0 : svSteps * MALUS_STEP,
   };
 }
 
@@ -517,6 +490,11 @@ export function weaponDkDifferenceChoices() {
   return [0, 3].map((value) => ({ key: String(value), value }));
 }
 
+/** Whether a weapon names its Waffenfertigkeit. */
+function hasWeaponSkill(system) {
+  return typeof system?.wf === 'string' && system.wf.trim().length > 0;
+}
+
 /**
  * Whether this authored weapon data can form an attack roll. Requirement
  * shortfalls do not make the profile invalid; they merely produce its -3.
@@ -525,8 +503,7 @@ export function weaponDkDifferenceChoices() {
  * @returns {boolean}
  */
 export function canWeaponAttack(system, { skillDefined = true } = {}) {
-  const hasFv = typeof system?.fv?.skill === 'string' && system.fv.skill.trim().length > 0;
-  const basics = skillDefined && hasFv && WEAPON_ATTRIBUTES.includes(system?.wa);
+  const basics = skillDefined && hasWeaponSkill(system) && WEAPON_ATTRIBUTES.includes(system?.wa);
   if (!basics) return false;
   if (usesMelee(system)) return isAuthoredNumber(system?.dk);
   return weaponRangeChoices(system).length > 0;
@@ -540,8 +517,7 @@ export function canWeaponAttack(system, { skillDefined = true } = {}) {
  * @returns {boolean}
  */
 export function canWeaponParry(system, { skillDefined = true } = {}) {
-  const hasFv = typeof system?.fv?.skill === 'string' && system.fv.skill.trim().length > 0;
-  return usesMelee(system) && skillDefined && hasFv && WEAPON_ATTRIBUTES.includes(system?.wa);
+  return usesMelee(system) && skillDefined && hasWeaponSkill(system) && WEAPON_ATTRIBUTES.includes(system?.wa);
 }
 
 /**
@@ -686,7 +662,7 @@ export function toggleZone(current, zone) {
 export const MISSING_FIELD_LABELS = {
   name: 'Name',
   slots: 'TNO.Inventory.Slots',
-  fv: 'TNO.Item.Cap.Fv',
+  wf: 'TNO.Item.Cap.Wf',
   wa: 'TNO.Weapons.Attribute',
   dk: 'TNO.Weapons.Dk',
   range: 'TNO.Weapons.Range',
@@ -720,7 +696,7 @@ export function missingRequired(item) {
   if (blank(system.slots)) missing.push('slots');
 
   if (roles.weapon) {
-    if (blank(system.fv?.skill)) missing.push('fv');
+    if (blank(system.wf)) missing.push('wf');
     if (!WEAPON_ATTRIBUTES.includes(system.wa)) missing.push('wa');
     if (blank(system.rb)) missing.push('rb');
     if (!Number(system.ss?.count)) missing.push('ss');

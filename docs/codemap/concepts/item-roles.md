@@ -101,7 +101,7 @@ always did.
 | Group | Fields |
 | --- | --- |
 | Every item | `quantity`, `slots`, `sv`, `price`, `availability`, `description` |
-| Weapon role | `use` (`melee`/`ranged`), `fv: {skill, rank}`, `wa` (one primary-attribute key), `dk`, `range: {sn, near, mid, far, sf}`, `ss: {count}`, `ws: {count}`, `hh: {active, passive}`, `rb` |
+| Weapon role | `use` (`melee`/`ranged`), `wa` (one primary-attribute key), `wf` (one skill key), `dk`, `range: {sn, near, mid, far, sf}`, `ss: {count}`, `ws: {count}`, `hh: {active, passive}`, `rb` |
 | Armour role | `zone`, `rh`, `rw`, `ra` |
 | Consumable role | `consumableEffects: [{id, text}]`; its remaining stock is the shared `quantity` |
 
@@ -152,7 +152,7 @@ the actor sheet's item popover and in chat; it is rendered from the shared
 the pure presentation data, while
 [`item-summary.mjs`](../../../module/helpers/item-summary.mjs) adds
 localization and the live actor context for the compact summary. Together they
-keep slot footprint, FV, armour values and carried/worn state out of templates.
+keep slot footprint, weapon skill, armour values and carried/worn state out of templates.
 
 Three properties of the layout are deliberate and easy to undo by accident:
 
@@ -363,8 +363,8 @@ description it has always been.
   used as improvised melee weapons under the combat rules, but that does not
   create a second authored profile; the removed `both` value could not store
   separate SS/WS/HH values truthfully. The item popover can
-  open its FV check, but the PRD still defines no readied-weapon state or
-  complete RD/RH → SS/WS workflow. The compact summary therefore shows the
+  open its weapon check, but the PRD still defines no readied-weapon state or
+  complete RB/RH → SS/WS workflow. The compact summary therefore shows the
   threshold neutrally instead of assigning an outcome the model cannot prove.
 
 ## What went away

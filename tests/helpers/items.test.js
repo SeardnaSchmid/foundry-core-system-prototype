@@ -169,7 +169,7 @@ describe('weapon roll helpers', () => {
   });
   const system = (overrides = {}) => ({
     use: 'melee',
-    fv: { skill: 'swords', rank: 2 },
+    wf: 'swords',
     wa: 'fin',
     sv: 4,
     dk: 3,
@@ -178,8 +178,8 @@ describe('weapon roll helpers', () => {
     ...overrides,
   });
 
-  it('uses the actor skill rank, not the item FV requirement', () => {
-    expect(weaponSkillRank(actor({ skill: 5 }), system({ fv: { skill: 'swords', rank: 1 } }))).toBe(5);
+  it('reads the actor rank in the weapon skill', () => {
+    expect(weaponSkillRank(actor({ skill: 5 }), system())).toBe(5);
   });
 
   // "eine Malusstufe … und eine weitere für je 2 weitere Punkte darunter": the
@@ -197,19 +197,12 @@ describe('weapon roll helpers', () => {
     expect(requirementMalusSteps(1, 10)).toBe(5);
   });
 
-  it('reports FV and SV separately, and never grades FV', () => {
-    // FV 2 / SV 4. Rank 0 is 2 short and Strength 0 is 4 short, but only SV
-    // climbs: "alle Manöver mit einem Malus" is one step however far under.
+  it('reports the SV shortfall graded, and the skill rank not at all', () => {
+    // SV 4: Strength 0 is 4 short, two steps. The weapon skill asks no rank.
     expect(weaponRequirementStatus(actor({ skill: 0, strength: 0 }), system()))
-      .toMatchObject({ fvSteps: 1, svSteps: 2, fvMalus: -3, svMalus: -6 });
-
-    // Each requirement stands alone: missing one says nothing about the other.
-    expect(weaponRequirementStatus(actor({ skill: 1, strength: 5 }), system()))
-      .toMatchObject({ fvSteps: 1, svSteps: 0, svMalus: 0 });
-    expect(weaponRequirementStatus(actor({ skill: 2, strength: 3 }), system()))
-      .toMatchObject({ fvSteps: 0, svSteps: 1, fvMalus: 0 });
-    expect(weaponRequirementStatus(actor({ skill: 2, strength: 4 }), system()))
-      .toMatchObject({ fvSteps: 0, svSteps: 0, fvMalus: 0, svMalus: 0 });
+      .toEqual({ strength: 0, svMet: false, svSteps: 2, svMalus: -6 });
+    expect(weaponRequirementStatus(actor({ skill: 0, strength: 4 }), system()))
+      .toEqual({ strength: 4, svMet: true, svSteps: 0, svMalus: 0 });
   });
 
   it('checks weapon SV against Strength', () => {
@@ -390,12 +383,12 @@ describe('missingRequired', () => {
 
   it('asks a weapon only for the values its use has', () => {
     const melee = missingRequired(
-      item({ weapon: true }, { ...complete, use: 'melee', fv: { skill: 'brawling', rank: 0 }, wa: 'str', rb: 3, ss: { count: 2 }, dk: 2 })
+      item({ weapon: true }, { ...complete, use: 'melee', wf: 'brawling', wa: 'str', rb: 3, ss: { count: 2 }, dk: 2 })
     );
     expect(melee).toEqual([]);
 
     const ranged = missingRequired(
-      item({ weapon: true }, { ...complete, use: 'ranged', fv: { skill: 'shooting', rank: 0 }, wa: 'per', rb: 3, ss: { count: 2 } })
+      item({ weapon: true }, { ...complete, use: 'ranged', wf: 'shooting', wa: 'per', rb: 3, ss: { count: 2 } })
     );
     // No DK is asked of a rifle; a band is.
     expect(ranged).toEqual(['range']);
@@ -405,7 +398,7 @@ describe('missingRequired', () => {
     const system = {
       ...complete,
       use: 'ranged',
-      fv: { skill: 'shooting', rank: 0 },
+      wf: 'shooting',
       wa: 'per',
       rb: 3,
       ss: { count: 2 },
@@ -414,10 +407,10 @@ describe('missingRequired', () => {
     expect(missingRequired(item({ weapon: true }, system))).toEqual([]);
   });
 
-  it('requires both FV and WA for a weapon', () => {
+  it('requires both WF and WA for a weapon', () => {
     const profile = { ...complete, use: 'melee', rb: 3, ss: { count: 2 }, dk: 2 };
-    expect(missingRequired(item({ weapon: true }, profile)).sort()).toEqual(['fv', 'wa']);
-    expect(missingRequired(item({ weapon: true }, { ...profile, fv: { skill: 'brawling', rank: 0 }, wa: 'str' }))).toEqual([]);
+    expect(missingRequired(item({ weapon: true }, profile)).sort()).toEqual(['wa', 'wf']);
+    expect(missingRequired(item({ weapon: true }, { ...profile, wf: 'brawling', wa: 'str' }))).toEqual([]);
   });
 
   it('asks armour for a location, hardness and coverage', () => {

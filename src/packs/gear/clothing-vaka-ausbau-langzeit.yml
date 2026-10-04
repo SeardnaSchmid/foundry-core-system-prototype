@@ -14,9 +14,7 @@ system:
     zuzufügen und auch wieder loszuwerden und auch CO2/O2
     Tauscher.</p><p>Vakuumsustained für solange die Batterie reicht
     (20h)</p><p>Preis: +500</p><p>Verbreitung: +1</p>
-  fv:
-    skill: ''
-    rank: 0
+  wf: ''
   roles:
     weapon: false
     armor: false

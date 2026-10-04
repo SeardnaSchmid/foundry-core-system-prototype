@@ -10,9 +10,7 @@ system:
   price: null
   availability: null
   description: <p>Zweihändig</p>
-  fv:
-    skill: heavyMelee
-    rank: 1
+  wf: heavyMelee
   roles:
     weapon: true
     armor: false

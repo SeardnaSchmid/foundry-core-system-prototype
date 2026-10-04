@@ -105,9 +105,6 @@ export class TnoRollDialog extends FormApplication {
    *   brings, to which the declared Ansage is added. Rendered on
    *   the chat card as plain text — there is no targeting and no second document
    *   — so the defender reads it and enters what applies.
-   * @param {{label: string, value: number, hint?: string}} [options.maneuverMalus]
-   *   A modifier that applies only while an Ansage is declared — the weapon's FV
-   *   shortfall, which lands on "alle Manöver" and never on a Standardangriff.
    * @param {object} [options.toggleModifier]
    *   A modifier this player confirms rather than computes — today only
    *   'Rüstung umgehen', asked as a yes/no question. `{label, value, hint,
@@ -121,7 +118,7 @@ export class TnoRollDialog extends FormApplication {
    *   Run once the dice have actually been cast, never when the dialog is
    *   cancelled — the repeated-defence counter must count rolls, not intentions.
    */
-  constructor(actor, { attributeA = '', lockAttribute = false, skill = null, freeSkill = false, fixedValue = null, fixedModifiers = [], preRollContext = null, requiredValue = null, ansage = null, maneuverMalus = null, envelope = null, toggleModifier = null, consequence = null, afterRoll = null, phase = null, sources = null, flavor = '', img = '', width = null } = {}) {
+  constructor(actor, { attributeA = '', lockAttribute = false, skill = null, freeSkill = false, fixedValue = null, fixedModifiers = [], preRollContext = null, requiredValue = null, ansage = null, envelope = null, toggleModifier = null, consequence = null, afterRoll = null, phase = null, sources = null, flavor = '', img = '', width = null } = {}) {
     super(
       { attributeA, attributeB: '', skillValue: 0, bonus: 0, advantage: TNO_ADVANTAGE.none, useIdea: false, contextChoice: '', compareValue: '', requiredValue: 0, ansage: 0, toggleModifier: false },
       Number.isFinite(Number(width)) && Number(width) > 0 ? { width: Number(width) } : {}
@@ -145,13 +142,6 @@ export class TnoRollDialog extends FormApplication {
     // on 0, the value most announcements start from.
     if (this.requiredValue?.required) this.object.requiredValue = '';
     this.ansage = ansage?.label ? { label: String(ansage.label), hint: String(ansage.hint ?? '') } : null;
-    this.maneuverMalus = maneuverMalus?.label && Number.isFinite(Number(maneuverMalus.value))
-      ? {
-          label: String(maneuverMalus.label),
-          value: Number(maneuverMalus.value),
-          ...(maneuverMalus.hint ? { hint: String(maneuverMalus.hint) } : {}),
-        }
-      : null;
     this.envelope = envelope?.from ? envelope : null;
     this.toggleModifier = toggleModifier?.label && Number.isFinite(Number(toggleModifier.value))
       ? {
@@ -834,21 +824,12 @@ export class TnoRollDialog extends FormApplication {
   _conditionalModifiers(data) {
     const value = armorSvMalus(this.actor, [data?.attributeA, data?.attributeB].filter(Boolean));
     const armor = value ? [{ label: game.i18n.localize('TNO.Combat.ArmorSvMalus'), value }] : [];
-    // The FV shortfall is the other rule the form state decides: it lands on
-    // "alle Manöver" and on nothing else, so it appears the moment something is
-    // declared and vanishes again when it is cleared. A positive typed Ansage
-    // declares a Manöver; a negative Ansage eases the roll but does not create
-    // one by itself.
-    // It stays its own component next to the armour step, never folded into it —
-    // three requirements, three shapes.
-    const declared = this._ansageValue(data) > 0;
-    const fv = this.maneuverMalus && declared ? [this.maneuverMalus] : [];
     // A state the *other* side announced, which the player confirms rather than
     // computes — today only 'Rüstung umgehen'.
     const toggled = this._toggleModifierActive(data)
       ? [{ label: this.toggleModifier.label, value: this.toggleModifier.value }]
       : [];
-    return [...armor, ...fv, ...toggled];
+    return [...armor, ...toggled];
   }
 
   /**
@@ -885,10 +866,8 @@ export class TnoRollDialog extends FormApplication {
       ...this.fixedModifiers.map((modifier) => ({ label: modifier.label, value: modifier.value, hint: modifier.hint, origin: modifier.origin, toggled: false })),
       ...this._conditionalModifiers(data).map((modifier) => {
         const toggled = !!toggleLabel && modifier.label === toggleLabel && modifier.value === this.toggleModifier.value;
-        const origin = modifier === this.maneuverMalus ? 'weapon' : toggled ? this.toggleModifier.origin : 'character';
-        const hint = modifier === this.maneuverMalus ? modifier.hint
-          : toggled ? this.toggleModifier.hint
-            : game.i18n.localize('TNO.Combat.ArmorSvMalusHint');
+        const origin = toggled ? this.toggleModifier.origin : 'character';
+        const hint = toggled ? this.toggleModifier.hint : game.i18n.localize('TNO.Combat.ArmorSvMalusHint');
         return { label: modifier.label, value: modifier.value, hint, origin, toggled };
       }),
     ];

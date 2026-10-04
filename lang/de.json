@@ -548,7 +548,6 @@
       "Summary": {
         "Stock": "Bestand",
         "Dk": "DK",
-        "SkillRequirement": "Fertigkeitsvoraussetzung",
         "Na": "n/a",
         "Missing": "fehlt",
         "RequirementShort": "{delta} nicht erfüllt",
@@ -573,7 +572,7 @@
       "Cap": {
         "Slots": "SLT",
         "Sv": "SV",
-        "Fv": "FV",
+        "Wf": "WF",
         "Price": "Grundpreis",
         "Quantity": "Mng",
         "Availability": "Vfb",
@@ -732,8 +731,6 @@
       "RepeatedDefenseHint": "Jede weitere Parade oder jedes weitere Ausweichen in derselben Haltung wird stufenweise schwerer; passende Fertigkeiten können Wiederholungen auslassen.",
       "RepeatedDefenseLabel": "Wiederholte Verteidigung",
       "NextDefenseMalus": "Nächste Verteidigung: {value}",
-      "FvMalus": "FV-Voraussetzung (Manöver)",
-      "FvMalusHint": "Die Waffenfertigkeit unterschreitet die FV. Dieser Malus gilt, sobald der Wurf durch eine Ansage zum Manöver wird.",
       "AnsageCaption": "Manöver",
       "Ansage": "Deine Ansage",
       "AnsageHint": "Wie weit du diesen Wurf erschwerst, um dafür etwas anderes zu erreichen. Wofür genau, klärt ihr am Tisch — hier steht nur die Zahl. Ein negativer Wert erleichtert den Wurf stattdessen, etwa wenn du einen früher angesagten Bonus einlöst.",
@@ -1087,7 +1084,7 @@
       "RangeCycleHint": "Klicken: — → −3 → 0 → +3. Umschalt-Klick geht rückwärts.",
       "RangeVisualHint": "Die Linie zeigt den Modifikator: rot und unten = −3 Malus · Mitte = 0 · grün und oben = +3 Bonus · gestrichelt = kein Angriff.",
       "DamageHint": "SS und WS sind einfache Schadenswerte ab 0, keine Würfelanzahl. Welcher Wert zählt, entscheidet die Rüstungsauflösung.",
-      "FvHint": "Fertigkeit und Stufe der Waffe. Der Angriffswert ist Attribut + Waffenfertigkeit. Liegt der Rang darunter, werden alle Manöver mit einer Malusstufe (−3) gewürfelt — der Standardangriff bleibt unberührt.",
+      "WfHint": "Waffenfertigkeit (WF): die Fertigkeit, mit der die Waffe geführt wird. Angriffs- und Paradewert sind Waffenattribut + Waffenfertigkeit.",
       "BandsShort": "SN·NAH·MIT·WEIT·SW",
       "Use": {
         "Label": "Einsatz",

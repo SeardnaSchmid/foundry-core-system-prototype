@@ -52,8 +52,8 @@ describe('weapon roll requirement components', () => {
   });
 
   // A melee weapon that clears every gate on `canWeaponAttack`, so the only
-  // thing varying between cases is the pair of requirements under test.
-  const weapon = (actorData, { fvRank = 0, sv = 0 } = {}) => {
+  // thing varying between cases is the requirement under test.
+  const weapon = (actorData, { sv = 0 } = {}) => {
     // Constructed, not `Object.create`d: `#weaponFixedModifiers` is a private
     // method, and only a real construction installs the brand it checks for.
     const item = Object.assign(new TnoItem(), {
@@ -64,7 +64,7 @@ describe('weapon roll requirement components', () => {
         roles: { weapon: true },
         use: 'melee',
         wa: 'str',
-        fv: { skill: 'swords', rank: fvRank },
+        wf: 'swords',
         sv,
         dk: 3,
         hh: { active: 1, passive: -1 },
@@ -86,15 +86,9 @@ describe('weapon roll requirement components', () => {
     expect(attackRequirements(actor(), { sv: 2 })).toEqual([]);
   });
 
-  it('keeps the FV shortfall out of a standard attack', () => {
-    // Rank 5 against FV 8 is three short, and costs nothing here: the FV malus
-    // is a Manöver rule, and a Standardangriff is not a Manöver.
-    expect(attackRequirements(actor(), { fvRank: 8 })).toEqual([]);
-  });
-
   it('sends the SV shortfall as one graded component', () => {
     // SV 6 against Strength 2 is 4 short: two steps.
-    expect(attackRequirements(actor(), { fvRank: 8, sv: 6 })).toEqual([
+    expect(attackRequirements(actor(), { sv: 6 })).toEqual([
       { label: 'TNO.Combat.SvMalus(2)', value: -6, hint: 'TNO.Combat.SvMalusHint', origin: 'weapon' },
     ]);
   });
@@ -110,7 +104,7 @@ describe('weapon roll requirement components', () => {
 
   it('gives a parry passive handling, the same SV malus, and a reach choice', () => {
     opened = null;
-    weapon(actor(), { fvRank: 8, sv: 6 }).openWeaponParry();
+    weapon(actor(), { sv: 6 }).openWeaponParry();
     expect(opened.fixedModifiers).toEqual([
       { label: 'TNO.Combat.PassiveHandling', value: -1, hint: 'TNO.Combat.PassiveHandlingHint', origin: 'weapon' },
       { label: 'TNO.Combat.SvMalus(2)', value: -6, hint: 'TNO.Combat.SvMalusHint', origin: 'weapon' },
