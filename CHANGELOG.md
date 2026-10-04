@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.55.1](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.55.0...v0.55.1) (2026-10-04)
+
+
+### Performance Improvements
+
+* **sheet:** lay out the Beziehungen graph only while its tab is in front ([0a4ef81](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/0a4ef81dd3db12f37f0f0306ed38704d17e09486))
+
 # [0.55.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.54.0...v0.55.0) (2026-10-04)
 
 
