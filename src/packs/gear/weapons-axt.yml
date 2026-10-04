@@ -9,7 +9,7 @@ system:
   sv: 4
   price: null
   availability: null
-  description: <p>Zweihändig</p>
+  description: ''
   wf: brawling
   twoHanded: true
   roles:

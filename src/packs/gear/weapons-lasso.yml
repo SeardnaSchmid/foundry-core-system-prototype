@@ -9,7 +9,7 @@ system:
   sv: 4
   price: null
   availability: null
-  description: <p>Zweihändig, Ringen</p>
+  description: '<p>Eigenschaft: Ringen</p>'
   wf: flexibleWeapons
   twoHanded: true
   roles:

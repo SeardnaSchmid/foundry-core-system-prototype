@@ -9,7 +9,7 @@ system:
   sv: 3
   price: null
   availability: null
-  description: <p>siehe Kleidung</p>
+  description: '<p>Einfacher Vakuumanzug. Batteriebetrieben, mit Sauerstoffflasche und CO2-Filter. Für kurze EVAs, für Notfälle oder kurze Wegstrecken.</p><p>Vakuumsustained für 1h, länger bei Flaschen- und Batterie- wechsel, dann aber mit Malusstufe für >1h, t, >2t dann Sense</p><p>Mit dem Ausbau Gepanzert: robust für den Einsatz im Umfeld von gefährlichen Umwelteinflüssen oder im Kampf.</p>'
   wf: ''
   roles:
     weapon: false

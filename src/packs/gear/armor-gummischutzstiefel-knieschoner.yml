@@ -9,7 +9,7 @@ system:
   sv: 0.5
   price: null
   availability: null
-  description: <p>kombiniert</p>
+  description: '<p>Kombiniert aus Gummischutzstiefeln und Gummischutzknieschonern.</p>'
   wf: ''
   roles:
     weapon: false

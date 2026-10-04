@@ -9,7 +9,7 @@ system:
   sv: 6
   price: null
   availability: null
-  description: <p>Zweihändig</p>
+  description: ''
   wf: heavyMelee
   twoHanded: true
   roles:

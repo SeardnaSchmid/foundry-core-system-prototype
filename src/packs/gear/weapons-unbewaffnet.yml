@@ -9,7 +9,7 @@ system:
   sv: 2
   price: null
   availability: null
-  description: ''
+  description: '<p>Unbewaffnete Paraden sind nur gegen unbewaffnete Angriffe uneingeschränkt möglich. Andere Waffen behandeln stattdessen einen unbewaffnet parierten Angriff als Treffer auf die Arme.</p>'
   wf: brawling
   roles:
     weapon: true
