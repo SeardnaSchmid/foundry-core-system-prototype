@@ -7,7 +7,11 @@
       "runtimeArgs": ["run", "serve"],
       "port": 30000,
       "autoPort": false
+    },
+    {
+      "name": "foundry-attach",
+      "url": "http://localhost:30000"
     }
   ],
-  "autoVerify": false
+  "autoVerify": true
 }
