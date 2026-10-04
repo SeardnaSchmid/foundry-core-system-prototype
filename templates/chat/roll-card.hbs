@@ -34,8 +34,10 @@
     eingetragen wird. Steht nur auf gescheiterten Würfen und trägt selbst nichts
     ein: Schaden bucht der Besitzer des Bogens, wie überall sonst auch. --}}
     {{#if consequence}}
-    <div class="tno-roll-consequence" {{#if consequence.hint}}data-tooltip="{{consequence.hint}}"{{/if}}>
-      <span class="tno-consequence-label">{{consequence.label}}</span>
+    <div class="tno-roll-consequence">
+      <span class="tno-consequence-label">{{consequence.label}}
+        {{#if consequence.hint}}<i class="fa-solid fa-circle-info tno-consequence-info" data-tooltip="{{consequence.hint}}"
+           data-tooltip-direction="UP" aria-label="{{consequence.hint}}"></i>{{/if}}</span>
       <span class="tno-consequence-value">{{consequence.text}}</span>
       {{#if consequence.note}}
       <span class="tno-consequence-note">{{consequence.note}}</span>

@@ -195,8 +195,9 @@ Wahl) with a state — `fact`, `active`, `pending` (`?`), `provisional`
 built from the same component helpers as `_computeThreshold`, and its counted
 rows sum to the threshold
 (`tests/documents/roll-dialog.test.js › sums the Beleg to the Schwelle, grouped by where each line comes from`).
-`_belegModifiers` tags the modifiers with their origin without putting `origin`
-on the components that go to the chat card. The drawer opens upward over the
+`_belegModifiers` tags the modifiers with their origin and their `hint`
+without putting either on the components that go to the chat card; a row with
+a hint gets an ⓘ tooltip in the drawer. The drawer opens upward over the
 questions so the Schwelle never moves; `_paintBeleg` rebuilds it (and the
 chips) on every `_refresh`, and its open state is kept for the session.
 

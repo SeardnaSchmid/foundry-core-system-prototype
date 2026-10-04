@@ -596,7 +596,7 @@ export class TnoRollDialog extends FormApplication {
           return {
             ...base,
             isAttribute: true,
-            info: L('TNO.Roll.Info.Attribute'),
+            info: L(this.skill || this.freeSkill ? 'TNO.Roll.Info.Attribute' : 'TNO.Roll.Info.Ability'),
             columns: this._attributeColumns(),
             value: data.attributeA,
           };
@@ -604,13 +604,14 @@ export class TnoRollDialog extends FormApplication {
           return {
             ...base,
             isAttributeB: true,
+            info: L('TNO.Roll.Info.AttributeB'),
             options: Object.keys(CONFIG.TNO.abilities).map((key) => ({
               ...this._abilityCell(key),
               selected: key === data.attributeB,
             })),
           };
         case 'free':
-          return { ...base, isFree: true, value: this._freeSkillValue(data), min: FREE_SKILL_MIN, max: FREE_SKILL_MAX };
+          return { ...base, isFree: true, info: L('TNO.Roll.Info.Free'), value: this._freeSkillValue(data), min: FREE_SKILL_MIN, max: FREE_SKILL_MAX };
         case 'ansage':
           return {
             ...base,
@@ -875,12 +876,20 @@ export class TnoRollDialog extends FormApplication {
   _belegModifiers(data) {
     const toggleLabel = this.toggleModifier?.label;
     return [
-      ...this._actorModifiers().map((modifier) => ({ ...modifier, origin: 'character', toggled: false })),
-      ...this.fixedModifiers.map((modifier) => ({ label: modifier.label, value: modifier.value, origin: modifier.origin, toggled: false })),
+      ...this._actorModifiers().map((modifier) => ({
+        ...modifier,
+        hint: game.i18n.localize('TNO.Damage.RollMalusHint'),
+        origin: 'character',
+        toggled: false,
+      })),
+      ...this.fixedModifiers.map((modifier) => ({ label: modifier.label, value: modifier.value, hint: modifier.hint, origin: modifier.origin, toggled: false })),
       ...this._conditionalModifiers(data).map((modifier) => {
         const toggled = !!toggleLabel && modifier.label === toggleLabel && modifier.value === this.toggleModifier.value;
         const origin = modifier === this.maneuverMalus ? 'weapon' : toggled ? this.toggleModifier.origin : 'character';
-        return { label: modifier.label, value: modifier.value, origin, toggled };
+        const hint = modifier === this.maneuverMalus ? modifier.hint
+          : toggled ? this.toggleModifier.hint
+            : game.i18n.localize('TNO.Combat.ArmorSvMalusHint');
+        return { label: modifier.label, value: modifier.value, hint, origin, toggled };
       }),
     ];
   }
@@ -1081,8 +1090,8 @@ export class TnoRollDialog extends FormApplication {
     const L = (key) => game.i18n.localize(key);
     const questions = Object.fromEntries(this._questions(data).map((question) => [question.key, question]));
     const rows = [];
-    const row = (origin, label, value, state = 'fact', { mark = '', note = '' } = {}) => {
-      rows.push({ origin, label, value, state, mark, note });
+    const row = (origin, label, value, state = 'fact', { mark = '', note = '', hint = '' } = {}) => {
+      rows.push({ origin, label, value, state, mark, note, hint });
     };
 
     // What the character brings.
@@ -1112,6 +1121,7 @@ export class TnoRollDialog extends FormApplication {
     for (const modifier of this._belegModifiers(data)) {
       row(modifier.origin, modifier.label, modifier.value, modifier.toggled ? 'active' : 'fact', {
         mark: modifier.toggled ? questions.toggle?.mark ?? '' : '',
+        hint: modifier.hint ?? '',
       });
     }
 
@@ -1255,6 +1265,16 @@ export class TnoRollDialog extends FormApplication {
           const line = node('div', `tno-beleg-row is-${entry.state}`);
           const label = node('span', 'tno-beleg-label', entry.mark ? `${entry.mark} ${entry.label}` : entry.label);
           if (entry.note) label.append(' ', node('small', '', entry.note));
+          if (entry.hint) {
+            const info = node('span', 'tno-q-info tno-beleg-info');
+            info.dataset.tooltip = entry.hint;
+            info.dataset.tooltipDirection = 'UP';
+            info.setAttribute('aria-label', game.i18n.localize('TNO.Roll.Ledger.InfoLabel'));
+            const glyph = node('i', 'fa-solid fa-circle-info');
+            glyph.setAttribute('aria-hidden', 'true');
+            info.append(glyph);
+            label.append(' ', info);
+          }
           line.append(label, node('span', `tno-beleg-delta ${entry.cls}`, entry.display));
           wrap.append(line);
         }
@@ -1369,7 +1389,7 @@ export class TnoRollDialog extends FormApplication {
       if (el) el.textContent = text;
     };
     set('threshold', readout.thresholdDisplay);
-    set('odds', readout.oddsLabel);
+    set('odds-label', readout.oddsLabel);
     set('mode-label', this._modeLabel(data.advantage));
     set('todo', readout.todo);
     const result = form.querySelector('.tno-wurf-result');

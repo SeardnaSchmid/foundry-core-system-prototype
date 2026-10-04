@@ -143,7 +143,7 @@ function weaponContext(system, askKey) {
     origin: melee ? 'weapon' : 'situation',
     ...(melee
       ? { ...dkNote(system), ask: game.i18n.localize(askKey), hint: game.i18n.localize('TNO.Combat.DkHint') }
-      : {}),
+      : { hint: game.i18n.localize('TNO.Combat.RangeHint') }),
     choices: melee ? dkChoices() : rangeBandChoices(system),
   };
 }

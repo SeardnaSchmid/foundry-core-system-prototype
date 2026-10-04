@@ -643,7 +643,10 @@
       },
       "Info": {
         "Attribute": "Eine Fertigkeit wird immer mit einem Attribut kombiniert. Meist wählst du es selbst, manchmal gibt die SL es vor.",
-        "Bonus": "Modifikation, die die SL für die Situation ansagt — normal in Schritten von ±3. Die kleinen ±1 sind zum Feinjustieren."
+        "Bonus": "Modifikation, die die SL für die Situation ansagt — normal in Schritten von ±3. Die kleinen ±1 sind zum Feinjustieren.",
+        "Ability": "Ein Attributswurf kombiniert zwei Attribute. Das erste ist das, das du angeklickt hast; du kannst es hier noch wechseln.",
+        "AttributeB": "Das zweite Attribut dieses Wurfs. Es darf auch dasselbe sein wie das erste.",
+        "Free": "Ein Fertigkeitswert, der nicht auf deinem Bogen steht — etwa für eine Fertigkeit, die die SL spontan festlegt. Er zählt wie eine Fertigkeit zum gewählten Attribut."
       },
       "IdeaCharges": "{left} von {max} Edge übrig",
       "Waived": "Entfällt, die Umgehung gilt.",
@@ -701,6 +704,7 @@
       "ArmorSvMalusHint": "Die Basis-Stärke unterschreitet die SV der getragenen Rüstung. Beweglichkeitswürfe werden um 3 erschwert.",
       "RangeBand": "Reichweitenband",
       "RangeQuestion": "Auf welcher Distanz?",
+      "RangeHint": "Wähle das Reichweitenband, in dem das Ziel steht. Die Werte kommen aus den Reichweitenangaben deiner Waffe.",
       "DkDifference": "Reichweitenvorteil",
       "DkQuestion": "Hast du die längere Waffe?",
       "DkNote": "Deine Distanzklasse (DK) {dk}",

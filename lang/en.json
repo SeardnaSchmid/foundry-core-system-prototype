@@ -643,7 +643,10 @@
       },
       "Info": {
         "Attribute": "A skill is always combined with an attribute. Usually you pick it; sometimes the GM decides.",
-        "Bonus": "The modifier the GM calls for the situation — normally in steps of ±3. The small ±1 buttons are for fine-tuning."
+        "Bonus": "The modifier the GM calls for the situation — normally in steps of ±3. The small ±1 buttons are for fine-tuning.",
+        "Ability": "An ability roll combines two attributes. The first is the one you clicked; you can still switch it here.",
+        "AttributeB": "The second attribute of this roll. It may be the same as the first.",
+        "Free": "A skill value that is not on your sheet — for a skill the GM sets on the spot. It counts like a skill added to the chosen attribute."
       },
       "IdeaCharges": "{left} of {max} edge left",
       "Waived": "Moot — the bypass applies.",
@@ -701,6 +704,7 @@
       "ArmorSvMalusHint": "Base Strength falls short of the worn armour's SV. Dexterity rolls take a penalty of 3.",
       "RangeBand": "Range band",
       "RangeQuestion": "At what distance?",
+      "RangeHint": "Pick the range band the target is in. The values come from your weapon's range entries.",
       "DkDifference": "Reach advantage",
       "DkQuestion": "Do you have the longer weapon?",
       "DkNote": "Your range class (DK) {dk}",

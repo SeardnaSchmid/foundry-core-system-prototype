@@ -224,7 +224,8 @@ Every `name=` here is load-bearing: `_updateObject` reads the form by name. --}}
           <div class="tno-wurf-odds-line">
             <span data-role="mode-label">{{modeLabel}}</span>
             <span class="tno-odds" data-role="odds" {{#if ready}}tabindex="0" data-tooltip-html="{{oddsTooltip}}"{{/if}}
-                  aria-label="{{localize 'TNO.Roll.Odds.InfoLabel'}}">{{oddsLabel}}</span>
+                  aria-label="{{localize 'TNO.Roll.Odds.InfoLabel'}}"><span data-role="odds-label">{{oddsLabel}}</span>
+              <i class="fa-solid fa-circle-info tno-odds-info" aria-hidden="true"></i></span>
           </div>
           <span class="tno-odds-meter" aria-hidden="true"><span class="tno-odds-fill" style="width: {{oddsPercent}}%"></span></span>
           {{#unless isFixedMode}}

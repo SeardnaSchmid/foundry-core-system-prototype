@@ -898,6 +898,14 @@ $w-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monos
     }
   }
 
+  .tno-beleg-info {
+    display: inline-flex;
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+    font-size: 12px;
+  }
+
   .tno-beleg-delta {
     font-family: $w-mono;
     text-align: right;
@@ -1022,12 +1030,25 @@ $w-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monos
   }
 
   .tno-odds {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     flex: none;
     font-family: $w-mono;
     font-size: 15px;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
     color: $w-ink;
+  }
+
+  .tno-odds-info {
+    font-size: 12px;
+    color: #8a8882;
+    cursor: help;
+  }
+
+  .tno-odds:not([data-tooltip-html]) .tno-odds-info {
+    display: none;
   }
 
   .tno-odds-meter {

@@ -6161,6 +6161,13 @@
   color: #a3a19b;
   text-decoration: line-through;
 }
+.tno .tno-roll-dialog.tno-wurf .tno-beleg-info {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+  font-size: 12px;
+}
 .tno .tno-roll-dialog.tno-wurf .tno-beleg-delta {
   font-family: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
   text-align: right;
@@ -6263,12 +6270,23 @@
   color: #6b6b66;
 }
 .tno .tno-roll-dialog.tno-wurf .tno-odds {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   flex: none;
   font-family: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
   font-size: 15px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: #1d1d1b;
+}
+.tno .tno-roll-dialog.tno-wurf .tno-odds-info {
+  font-size: 12px;
+  color: #8a8882;
+  cursor: help;
+}
+.tno .tno-roll-dialog.tno-wurf .tno-odds:not([data-tooltip-html]) .tno-odds-info {
+  display: none;
 }
 .tno .tno-roll-dialog.tno-wurf .tno-odds-meter {
   display: block;
@@ -7043,6 +7061,10 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #444;
+}
+.tno-roll-card .tno-consequence-info {
+  margin-left: 3px;
+  cursor: help;
 }
 .tno-roll-card .tno-consequence-value {
   font-weight: bold;
