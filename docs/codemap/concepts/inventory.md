@@ -263,14 +263,14 @@ changes state**:
   (`_sortItemToEnd`) — dropping into the tail of the grid has no neighbour to
   sort against, and "after the last one" is the only reading that leaves the
   rest of the arrangement alone.
-- **Cell onto a paper doll zone** wears the piece. A zone only takes armour
-  authored for that Stelle; a mismatch says which Stellen the piece does belong
-  to rather than failing silently. A piece has one authored `system.zone`, so
-  putting it on fills that target and taking it off empties it. While
-  a piece is in flight its zone lights up — the row as
-  `armor-drop-target` and the silhouette's shapes as `zone-drop-target`, both
-  set in `_onDragStart` — so the targets are visible before the player lets go,
-  and the shape under the pointer goes solid (`drop-onto`).
+- **Cell onto the paper doll** wears the piece. The whole doll block takes the
+  drop: a piece has one authored `system.zone`, so where on the block it lands
+  cannot change where it goes — putting it on fills that target and taking it
+  off empties it. While a packed piece is in flight the block lights up as an
+  area (`worn-drop-target`, mirroring the grid's `carry-drop-target`), and its
+  zone — row and silhouette shapes, via `#zoneSelector` — is marked stronger
+  inside it (`zone-drop-target`), all set in `_onDragStart`. Once the pointer
+  is anywhere on the block that zone goes solid (`drop-onto`).
 - **A worn row back onto the slot grid** takes the piece off: the mirror of the
   gesture that put it on, so the way back is not a different kind of act. The
   unequip lands before any sort; dropped on the free tail it also sorts to the

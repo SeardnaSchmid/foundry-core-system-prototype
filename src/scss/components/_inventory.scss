@@ -40,6 +40,10 @@ $c-zone-suited-stroke: $c-worn-stroke;
   // Stretch rather than centre, so the figure column is as tall as the stack
   // of zone rows beside it and the silhouette can scale to match.
   align-items: stretch;
+  // Room for the drop outline (`worn-drop-target`) to sit inside the block:
+  // the gear column scrolls, so anything drawn past its edge is clipped.
+  padding: 4px;
+  border-radius: 4px;
 }
 
 .paperdoll-figure-column {
@@ -113,24 +117,24 @@ $c-zone-suited-stroke: $c-worn-stroke;
     }
 
     // "This piece goes here", while a piece that fits is in flight. The same
-    // gold and the same dashes as the zone row's `armor-drop-target`, because
-    // the row and the shape are two views of one target and a second colour
-    // here would read as a second kind of invitation. Last of the paint states
-    // so it overrides whichever one the zone was in — during a drag the
-    // question is "can I drop this", not "what is worn".
+    // gold as the zone row's `zone-drop-target`, because the row and the shape
+    // are two views of one target and a second colour here would read as a
+    // second kind of invitation. Last of the paint states so it overrides
+    // whichever one the zone was in — during a drag the question is "can I
+    // drop this", not "what is worn".
     &.zone-drop-target .zone-base,
     &.zone-drop-target .zone-plate {
-      fill: rgba($c-advance, 0.18);
+      fill: rgba($c-advance, 0.35);
       stroke: $c-advance;
       stroke-width: 2;
       stroke-dasharray: 4 3;
     }
 
-    // The pointer is on this zone now. The dashes close and the wash deepens:
+    // The pointer is on the doll now. The dashes close and the wash deepens:
     // dashed says "this is where it goes", solid says "let go and it lands".
     &.drop-onto .zone-base,
     &.drop-onto .zone-plate {
-      fill: rgba($c-advance, 0.4);
+      fill: rgba($c-advance, 0.55);
       stroke: $c-advance;
       stroke-width: 2.5;
       stroke-dasharray: none;
@@ -195,7 +199,7 @@ $c-zone-suited-stroke: $c-worn-stroke;
 
   // An empty zone is a drop target, not a button — no pointer cursor, since
   // there is nothing to click. It only lights up while a piece of armour that
-  // belongs here is actually in flight (`armor-drop-target`, set on dragstart),
+  // belongs here is actually in flight (`zone-drop-target`, set on dragstart),
   // so the invitation appears exactly when it can be taken up.
   &.armor-empty {
     border-style: dashed;
@@ -208,19 +212,24 @@ $c-zone-suited-stroke: $c-worn-stroke;
     }
   }
 
-  &.armor-drop-target {
+  // The zone the piece in flight belongs to — a step stronger than the
+  // block's own wash around it, so the area says "drop here" and the row says
+  // where it will land.
+  &.zone-drop-target {
     border-style: dashed;
     border-color: $c-advance;
-    background: rgba($c-advance, 0.1);
+    background: rgba($c-advance, 0.22);
+    box-shadow: 0 0 6px rgba($c-advance, 0.45);
     color: $c-dark;
   }
 
   // Same two steps as the silhouette's zones: dashed while the piece is merely
-  // in flight, solid once the pointer is actually on the row.
+  // in flight, solid once the pointer is on the doll and letting go lands it.
   &.drop-onto {
     border-style: solid;
     border-color: $c-advance;
-    background: rgba($c-advance, 0.25);
+    background: rgba($c-advance, 0.35);
+    box-shadow: 0 0 8px rgba($c-advance, 0.6);
     color: $c-dark;
   }
 
@@ -540,6 +549,15 @@ $c-zone-suited-stroke: $c-worn-stroke;
     outline-offset: -4px;
     background: rgba($c-advance, 0.07);
   }
+}
+
+// The way on is the mirror of the way off: while a packed piece of armour is in
+// flight the whole worn block takes the drop and lights up the same way, and
+// the one zone it belongs to is marked stronger inside it.
+.paperdoll.worn-drop-target {
+  outline: 2px dashed $c-advance;
+  outline-offset: -2px;
+  background: rgba($c-advance, 0.07);
 }
 
 // Used over capacity, in the Inventar tab's label. The used count is the

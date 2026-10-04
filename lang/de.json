@@ -919,7 +919,6 @@
       "Resist": "Widerstandswurf für diese Stelle",
       "DropHint": "Rüstung aus den Inventarslots hierher ziehen, um sie anzulegen.",
       "WornHint": "Klicken zum Öffnen · in die Inventarslots ziehen, um es abzulegen",
-      "WrongZone": "{item} ist Rüstung für die Stelle {zone}.",
       "Sv": "Stärkevoraussetzung (SV)",
       "SvShort": "SV",
       "SvHint": "Zählt zur Summe aller getragenen Teile — Unterkleidung in ganzen, Addons in Viertelschritten. Unter der Gesamt-SV erhält jeder Beweglichkeitswurf eine Malusstufe.",

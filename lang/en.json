@@ -919,7 +919,6 @@
       "Resist": "Resistance roll for this location",
       "DropHint": "Drag a piece of armour here from the slot grid to wear it.",
       "WornHint": "Click to open · drag into the slot grid to take it off",
-      "WrongZone": "{item} is armour for the {zone} location.",
       "Sv": "Strength Req. (SV)",
       "SvShort": "SV",
       "SvHint": "Counts towards the sum of every worn piece — whole values for the base layer, quarter steps for addons. Below the total SV, every Agility roll takes one penalty step.",

@@ -3641,6 +3641,8 @@
   flex: 0 0 auto;
   gap: 12px;
   align-items: stretch;
+  padding: 4px;
+  border-radius: 4px;
 }
 .tno .paperdoll-figure-column {
   order: 2;
@@ -3687,13 +3689,13 @@
   stroke-width: 1;
 }
 .tno .paperdoll-figure .zone.zone-drop-target .zone-base, .tno .paperdoll-figure .zone.zone-drop-target .zone-plate {
-  fill: rgba(184, 134, 11, 0.18);
+  fill: rgba(184, 134, 11, 0.35);
   stroke: #b8860b;
   stroke-width: 2;
   stroke-dasharray: 4 3;
 }
 .tno .paperdoll-figure .zone.drop-onto .zone-base, .tno .paperdoll-figure .zone.drop-onto .zone-plate {
-  fill: rgba(184, 134, 11, 0.4);
+  fill: rgba(184, 134, 11, 0.55);
   stroke: #b8860b;
   stroke-width: 2.5;
   stroke-dasharray: none;
@@ -3738,16 +3740,18 @@
 .tno .armor-row.armor-empty .armor-name {
   font-weight: normal;
 }
-.tno .armor-row.armor-drop-target {
+.tno .armor-row.zone-drop-target {
   border-style: dashed;
   border-color: #b8860b;
-  background: rgba(184, 134, 11, 0.1);
+  background: rgba(184, 134, 11, 0.22);
+  box-shadow: 0 0 6px rgba(184, 134, 11, 0.45);
   color: #22262b;
 }
 .tno .armor-row.drop-onto {
   border-style: solid;
   border-color: #b8860b;
-  background: rgba(184, 134, 11, 0.25);
+  background: rgba(184, 134, 11, 0.35);
+  box-shadow: 0 0 8px rgba(184, 134, 11, 0.6);
   color: #22262b;
 }
 .tno .armor-row.draggable {
@@ -3952,6 +3956,11 @@
 .tno .slot-grid-block.carry-drop-target {
   outline: 2px dashed #b8860b;
   outline-offset: -4px;
+  background: rgba(184, 134, 11, 0.07);
+}
+.tno .paperdoll.worn-drop-target {
+  outline: 2px dashed #b8860b;
+  outline-offset: -2px;
   background: rgba(184, 134, 11, 0.07);
 }
 .tno .slot-grid-count {

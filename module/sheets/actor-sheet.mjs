@@ -2479,20 +2479,22 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       editable
     );
 
-    // The doll's half of the same question. `armor-drop-target` from dragstart
-    // says which zone *could* take the piece; this says the pointer is on it
-    // now, so releasing here does something. Both halves of the doll answer —
-    // the shapes carry `data-zone` as well as the rows, and `closest` walks a
-    // limb's rect up to the group that holds the zone.
+    // The doll's half of the same question. The whole block takes the drop
+    // (see `_onDrop`), so wherever the pointer is on it, the zone the piece
+    // will land in goes solid — row and shape together — as "let go and it
+    // lands here". A piece already worn has nowhere new to go on the body.
     this.#delegate(
       'dragover',
-      '.paperdoll [data-zone]',
+      '.paperdoll',
       (event, target) => {
         event.preventDefault();
         this.#clearDropMarkers();
         const source = this.#dragging;
-        if (!armorZones(source).includes(target.dataset.zone)) return;
-        target.classList.add('drop-onto');
+        const [zone] = armorZones(source);
+        if (!zone || this.#wornZone(source.id)) return;
+        for (const el of target.querySelectorAll(this.#zoneSelector(zone))) {
+          el.classList.add('drop-onto');
+        }
       },
       editable
     );
@@ -2733,9 +2735,9 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    * @override
    * Route drops that land on one of the sheet's own equipment surfaces:
    *
-   *  - **A paper doll zone** equips armour authored for that Stelle. This is
-   *    the only way to put a piece on — a zone is a drop target, never a
-   *    create button — so a piece the actor does not own yet is created first,
+   *  - **The paper doll** equips armour into the Stelle it was authored for,
+   *    wherever on the block it lands. This is the only way to put a piece
+   *    on — a zone is a drop target, never a create button — so a piece the actor does not own yet is created first,
    *    which is what makes dragging from a compendium work.
    *  - **A free carry cell** moves an item to the end of the list, so gear can
    *    be dragged into the gap at the end of the grid and not just onto
@@ -2750,12 +2752,13 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const data = foundry.applications.ux.TextEditor.implementation.getDragEventData(event);
     if (data?.type !== 'Item') return super._onDrop(event);
 
-    // Both the zone rows and the silhouette's shapes carry `data-zone`, so
-    // either half of the doll takes the drop.
-    const zoneEl = event.target?.closest?.('[data-zone]');
+    // The whole doll takes the drop, not just the row: a piece has exactly one
+    // authored Stelle, so where on the block it lands cannot change where it
+    // goes — and the block is what lights up while it is in flight.
+    const doll = event.target?.closest?.('.paperdoll');
     const carryArea = event.target?.closest?.('.slot-grid, .slot-trinkets, .items-list');
     const emptyCell = event.target?.closest?.('.slot-empty');
-    if (!zoneEl && !carryArea) return super._onDrop(event);
+    if (!doll && !carryArea) return super._onDrop(event);
 
     const item = await Item.implementation.fromDropData(data);
     if (!item) return;
@@ -2766,7 +2769,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // has no reason to expect the way back to be a different gesture. The
     // unequip has to land before sorting so the body assignment and slot-band
     // assignment describe the same state.
-    if (!zoneEl) {
+    if (!doll) {
       if (item.parent !== this.actor) return super._onDrop(event);
       const wornZone = this.#wornZone(item.id);
       if (wornZone) await this._setEquippedArmor(wornZone, null);
@@ -2778,22 +2781,8 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       return wornZone ? undefined : super._onDrop(event);
     }
 
-    const zone = zoneEl.dataset.zone;
-    const covered = armorZones(item);
-    if (!covered.length) return;
-    // The Rüstungen table binds each piece to the Stellen it was made for, so a
-    // zone only takes what covers it. Silently ignoring the drop would read as
-    // the doll being broken, so say where the piece does belong instead.
-    if (!covered.includes(zone)) {
-      return ui.notifications.warn(
-        game.i18n.format('TNO.Armor.WrongZone', {
-          item: item.name,
-          zone: covered
-            .map((key) => game.i18n.localize(CONFIG.TNO.armorZones[key] ?? key))
-            .join(', '),
-        })
-      );
-    }
+    const [zone] = armorZones(item);
+    if (!zone) return;
 
     // Dropping armour the actor does not own yet has to create it first;
     // `parent` being this actor is what distinguishes the two cases.
@@ -2932,35 +2921,27 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // once would offer the player a move they cannot make in that direction.
     const worn = this.#wornZone(item.id);
     const zones = worn ? [] : armorZones(item);
-    const rows = zones.flatMap((zone) => [
-      ...this.element.querySelectorAll(`.armor-row[data-zone="${zone}"]`),
+    // The whole worn block lights up the way the grid block does for the way
+    // back, so the target reads as an area; inside it, the one zone the piece
+    // belongs to — row and silhouette shape — is marked stronger, since that
+    // is where it will actually land.
+    const doll = zones.length ? this.element.querySelector('.paperdoll') : null;
+    doll?.classList.add('worn-drop-target');
+    const targets = zones.flatMap((zone) => [
+      ...this.element.querySelectorAll(this.#zoneSelector(zone)),
     ]);
-    for (const row of rows) row.classList.add('armor-drop-target');
+    for (const el of targets) el.classList.add('zone-drop-target');
 
     const grid = worn ? this.element.querySelector('.slot-grid-block') : null;
     grid?.classList.add('carry-drop-target');
-
-    // The same invitation on the silhouette. The row says which zone in words;
-    // the figure says where it is on the body, and the piece is dragged towards
-    // the picture as often as towards the row. The Unterkleidung is not a hit
-    // location — it covers all four at once — so it lights every shape rather
-    // than looking for a `suit` shape that does not exist.
-    const shapes = zones.flatMap((zone) => [
-      ...this.element.querySelectorAll(
-        zone === 'suit'
-          ? '.paperdoll-figure .zone'
-          : `.paperdoll-figure .zone[data-zone="${zone}"]`
-      ),
-    ]);
-    for (const shape of shapes) shape.classList.add('zone-drop-target');
 
     dragged.addEventListener(
       'dragend',
       () => {
         this.#dragging = null;
-        for (const row of rows) row.classList.remove('armor-drop-target');
+        doll?.classList.remove('worn-drop-target');
         grid?.classList.remove('carry-drop-target');
-        for (const shape of shapes) shape.classList.remove('zone-drop-target');
+        for (const el of targets) el.classList.remove('zone-drop-target');
         this.element.classList.remove('dragging-item');
         this.#clearDropMarkers();
         for (const el of this.element.querySelectorAll('.slot-dragging')) {
@@ -2969,6 +2950,20 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       },
       { once: true }
     );
+  }
+
+  /**
+   * The row and the silhouette shapes that stand for one zone. The
+   * Unterkleidung is not a hit location — it covers all four at once — so it
+   * answers with every shape rather than looking for a `suit` shape that does
+   * not exist.
+   * @param {string} zone
+   * @returns {string}
+   * @private
+   */
+  #zoneSelector(zone) {
+    const shapes = zone === 'suit' ? '.paperdoll-figure .zone' : `.paperdoll-figure .zone[data-zone="${zone}"]`;
+    return `.armor-row[data-zone="${zone}"], ${shapes}`;
   }
 
   /**
