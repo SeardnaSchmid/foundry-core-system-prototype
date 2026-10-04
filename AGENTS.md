@@ -15,8 +15,18 @@ Handlebars in `templates/`, Sass in `src/scss/` → `css/`. No bundler, no linte
    `description`) tells you which page; its `resource:` / `spec:` keys tell you
    where the code and the spec live.
 
-The code map is not a rulebook. Game mechanics live in `docs/design/*.md`
-and the PRD always wins — never restate rules in code comments or code-map prose.
+## Rules
+
+The game rules live in `rules/wiki/`, a mirror of the live wiki (an independent
+Git repo, ignored here; `npm run rules:fetch` creates or refreshes it). On game
+mechanics the wiki always wins. `docs/design/*.md` only decides what the wiki
+leaves open and how a rule is realised in Foundry (workflow, UI, data). Never
+restate a rule — not in a PRD, a code comment or the code map; point at the
+wiki page instead.
+
+After every rules fetch, before any other work, sync the new
+`rules/CHANGELOG.md` entries as [`docs/design/rules-sync.md`](docs/design/rules-sync.md)
+describes.
 
 ## Before you commit
 

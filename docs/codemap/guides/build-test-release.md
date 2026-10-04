@@ -44,6 +44,10 @@ when the source did not change. Use `git -C rules diff HEAD^ HEAD -- wiki` to
 review the exact delta. Unchanged documents retain their existing `scraped:`
 value so the diff contains no daily timestamp churn.
 
+A fetch that changed the rules is followed by a sync: the new
+`rules/CHANGELOG.md` entries are checked against the system and their open
+differences recorded in [`docs/design/rules-sync.md`](../../design/rules-sync.md).
+
 When the text changed, the fetch also pipes that delta (minus `scraped:` lines)
 through the local `claude` CLI — headless, no tools — and prepends a
 plain-language German entry to `rules/CHANGELOG.md`, committed with the
