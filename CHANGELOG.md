@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.55.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.54.0...v0.55.0) (2026-10-04)
+
+
+### Features
+
+* **advance:** redesign the Steigern dialog after the mockup ([aac6611](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/aac6611b9587ab5454f353a66300101f52a427e1))
+
 # [0.54.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.53.0...v0.54.0) (2026-10-04)
 
 
