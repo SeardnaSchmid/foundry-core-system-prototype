@@ -297,7 +297,15 @@ Handlebars.registerHelper('ifEquals', function (a, b, options) {
 /*  Ready Hook                                  */
 /* -------------------------------------------- */
 
-Hooks.once('ready', function () {
+Hooks.once('ready', async function () {
+  // TNO is played in German. A client that has never chosen a language is
+  // switched to German once and reloaded; a client that chose one — English
+  // included — keeps it, because only an explicit choice is in localStorage.
+  if (localStorage.getItem('core.language') === null && game.i18n.lang !== 'de') {
+    await game.settings.set('core', 'language', 'de');
+    return foundry.utils.debouncedReload();
+  }
+
   // Wait to register hotbar drop hook on ready so that modules could register earlier if they want to
   Hooks.on('hotbarDrop', (bar, data, slot) => createItemMacro(data, slot));
 

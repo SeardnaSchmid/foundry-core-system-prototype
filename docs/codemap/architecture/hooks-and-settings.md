@@ -15,7 +15,7 @@ related: [architecture/bootstrap, concepts/combat-turn-order]
 | --- | --- | --- |
 | `Hooks.once('init')` | [`tno.mjs:30`](../../../module/tno.mjs) | Bootstrap — see [bootstrap.md](bootstrap.md) |
 | `Hooks.once('setup')` | [`tno.mjs:263`](../../../module/tno.mjs) | Default a fresh client's `core.uiConfig` colour scheme to light |
-| `Hooks.once('ready')` | [`tno.mjs:285`](../../../module/tno.mjs) | Register `hotbarDrop`, start the combat socket, run migrations |
+| `Hooks.once('ready')` | [`tno.mjs:300`](../../../module/tno.mjs) | Switch a client that never chose a language to German (and reload), register `hotbarDrop`, start the combat socket, run migrations |
 | `Hooks.on('updateActor')` | [`tno.mjs:204`](../../../module/tno.mjs) | Re-render the combat tracker when a combatant's `system.combat.stance` changes. Nothing in core re-renders it on an actor update, so a row's Haltung would otherwise stay on whatever it was when the row was last drawn — see [combat-turn-order.md](../concepts/combat-turn-order.md) |
 | `Hooks.on('renderChatInput')` | [`tno.mjs:214`](../../../module/tno.mjs) | Inject "Basiswürfel" button into the chat controls |
 | `Hooks.on('hotbarDrop')` | [`tno.mjs:282`](../../../module/tno.mjs) | Create/reuse an item macro on hotbar drop |

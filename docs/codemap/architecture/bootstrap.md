@@ -59,9 +59,13 @@ Runs once, before any world data loads. In order:
 Full detail on hooks/settings/menus: see
 [hooks-and-settings.md](hooks-and-settings.md).
 
-## `ready` (line 285)
+## `ready` (line 300)
 
-Runs once, after world data is loaded. Registers the `hotbarDrop` hook
+Runs once, after world data is loaded. First it prefers German: a client with
+no `core.language` entry in `localStorage` — one that has never chosen a
+language — is set to `de` and reloaded, and nothing else in the hook runs on
+that pass. A client that chose a language, English included, keeps it. Then it
+registers the `hotbarDrop` hook
 (deliberately deferred to `ready` so other modules can register their own
 handler first), calls `registerCombatSocket()` (line 291) to start listening
 for interrupt requests — see
