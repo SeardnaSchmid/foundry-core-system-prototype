@@ -1,5 +1,19 @@
 # Changelog
 
+# [0.49.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.48.0...v0.49.0) (2026-10-04)
+
+
+### Bug Fixes
+
+* **sheet:** size slot-card art to its box ([556a224](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/556a224f9c31c49338556aec40af4d1d797cba31))
+
+
+### Features
+
+* **roll-dialog:** info tooltips on questions, Beleg rows and consequences ([75cd1d6](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/75cd1d61567f6ebf93a02c612b1a52384929a57c))
+* **sheet:** apply "Kompakt · Matrix E" redesign ([94773d4](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/94773d4b69857ea693ffc4f56ac5ddf5348c8a2d))
+* **sheet:** light the whole paper doll as the armour drop area ([dca9743](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/dca97433dc1da59accce38f1dc65a0c042acc08e))
+
 # [0.48.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.47.0...v0.48.0) (2026-10-03)
 
 
