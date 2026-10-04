@@ -1,5 +1,13 @@
 # Changelog
 
+# [0.50.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.49.0...v0.50.0) (2026-10-04)
+
+
+### Features
+
+* **i18n:** default a client that never chose a language to German ([1d656c5](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/1d656c55dfbfe0293e91e8b8ab2a771fad937bfe))
+* **inventory:** leave gear behind in a Zurückgelassen pile ([9fd9114](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/9fd9114de83084bfafc416ef931e620bedd82564))
+
 # [0.49.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.48.0...v0.49.0) (2026-10-04)
 
 
