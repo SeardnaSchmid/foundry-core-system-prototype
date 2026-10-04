@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.51.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.50.0...v0.51.0) (2026-10-04)
+
+
+### Features
+
+* **items:** redesign the item popover after the Item-Popups mockup ([ce402ee](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/ce402eeac4061a984b15f2be4276a0f52ae02ad9))
+
 # [0.50.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.49.0...v0.50.0) (2026-10-04)
 
 
