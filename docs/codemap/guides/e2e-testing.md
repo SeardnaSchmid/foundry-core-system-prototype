@@ -29,7 +29,11 @@ Playwright at it. It never touches your own Foundry install or worlds.
    stores and auto-creates a **passwordless Gamemaster**. That is why there is
    no world-creation UI to automate and no world fixture in the repository.
 3. `tests/e2e/global-setup.mjs` joins as that Gamemaster and saves the session
-   to `storageState`, so specs start already inside the world.
+   to `storageState`, so specs start already inside the world. Before the join
+   it seeds the client settings `core.noCanvas` and `core.language` (English)
+   into `localStorage`; without an explicit language TNO's `ready` hook
+   switches the client to German and reloads, and the specs assert English
+   strings.
 4. The world is wiped and rebuilt on every run, so specs can assume a clean
    slate instead of cleaning up after each other.
 

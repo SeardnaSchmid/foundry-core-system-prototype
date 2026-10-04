@@ -51,13 +51,19 @@ async function joinAsGamemaster() {
   const context = await browser.newContext();
 
   // Seeded *before* the first navigation, so even this join boots without a
-  // canvas — see `prepareClient` for why that matters. `core.noCanvas` is a
-  // client-scoped setting, and Foundry stores those in `localStorage` under
-  // `<namespace>.<key>` with a JSON value, so it can be written before any
-  // Foundry code has run.
+  // canvas — see `prepareClient` for why that matters. `core.noCanvas` and
+  // `core.language` are client-scoped settings, and Foundry stores those in
+  // `localStorage` under `<namespace>.<key>` with a JSON value, so they can be
+  // written before any Foundry code has run.
+  //
+  // The language must be an explicit choice: TNO's `ready` hook switches a
+  // client with no stored language to German and reloads it, which would tear
+  // down the page under `prepareClient`. English keeps the specs' asserted
+  // strings as written.
   await context.addInitScript(() => {
     try {
       window.localStorage.setItem('core.noCanvas', 'true');
+      window.localStorage.setItem('core.language', '"en"');
     } catch {
       // A context without storage access still runs; it just pays for the canvas.
     }
