@@ -5594,6 +5594,8 @@
   white-space: nowrap;
 }
 .tno.item-popover.money-popover .money-editor-rows {
+  display: flex;
+  flex-direction: column;
   margin: 4px 12px 10px;
 }
 .tno.item-popover.money-popover .money-editor-row {

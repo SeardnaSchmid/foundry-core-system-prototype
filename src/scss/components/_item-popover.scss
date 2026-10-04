@@ -1148,7 +1148,12 @@
     }
   }
 
+  // One currency per line. The shared `.item-popover-rows` is a two-column
+  // dt/dd grid; inherited here it dealt the rows out alternately into a 96px
+  // column and the rest, and the two halves overlapped.
   .money-editor-rows {
+    display: flex;
+    flex-direction: column;
     margin: 4px 12px 10px;
   }
 
