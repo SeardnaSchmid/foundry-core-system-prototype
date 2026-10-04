@@ -30,7 +30,12 @@ become a relationship graph). --}}
 </div>
 
 {{#ifEquals connections.view 'graph'}}
-  {{> 'systems/tno/templates/actor/parts/actor-connections-graph.hbs' graph=connections.graph}}
+  {{#if connections.graph}}
+    {{> 'systems/tno/templates/actor/parts/actor-connections-graph.hbs' graph=connections.graph}}
+  {{else}}
+    {{!-- Rendered behind another tab: drawn once the tab is opened. --}}
+    <div class='connections-graph-pending'></div>
+  {{/if}}
 {{else}}
 <div class='connections-table' role='table' aria-label='{{localize "TNO.Connections.Title"}}'>
   <div class='connection-head' role='row'>

@@ -504,9 +504,13 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     context.connections = {
       search: this._connectionSearch,
       view: this._connectionView,
-      // Laid out only while it is shown: the force layout is the one costly
-      // thing on this tab.
-      graph: this._connectionView === 'graph' ? this.#connectionGraphContext() : null,
+      // Laid out only while it is shown — graph view on the Beziehungen tab
+      // in front: the force layout is the one costly thing on this tab, and
+      // every change to the actor renders the whole sheet. Opening the tab
+      // later renders it then (see the tab click).
+      graph: this._connectionView === 'graph' && this.tabGroups?.primary === 'connections'
+        ? this.#connectionGraphContext()
+        : null,
       rows: normalizeConnections(this.actor.system.connections).map((entry) => ({
         ...entry,
         searchText: connectionSearchText(entry),
@@ -2966,6 +2970,8 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // Likewise the graph: a hidden tab has no size to lay it out in, so it
     // starts once the Beziehungen tab is showing.
     this.#delegate('click', '.sheet-tabs [data-tab="connections"]', () => {
+      // Rendered while another tab was in front: the graph was left out.
+      if (this.element.querySelector('.connections-graph-pending')) return this.render();
       requestAnimationFrame(() => {
         // Never started (the tab was hidden at render), or stopped while
         // out of sight: pick up where it was.
