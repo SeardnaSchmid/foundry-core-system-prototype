@@ -1,5 +1,4 @@
 import { getSkillDefinitions } from '../helpers/skills.mjs';
-import { itemSlotCost } from '../helpers/inventory.mjs';
 import {
   ARMOR_SUIT_ZONE,
   ARMOR_ZONES,
@@ -23,29 +22,35 @@ import {
 } from '../helpers/items.mjs';
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
+
+/**
+ * Which required fields each section's head counts. The keys are those of
+ * `missingRequired`; `name` is the identity's own and counted only in the foot.
+ */
+const SECTION_FIELDS = {
+  weapon: ['wa', 'wf', 'dk', 'range', 'rb', 'ss'],
+  armor: ['zone', 'rh', 'ra'],
+  consumable: ['effects'],
+  inventory: ['slots'],
+};
 const { ItemSheetV2 } = foundry.applications.sheets;
 
 /**
- * The gear dialog: one row editor for every physical item, whatever roles it
- * has taken on.
+ * The item editor: one column for every physical item, whatever role it has,
+ * laid out after the 2026-10 "Item-Editor" mockup.
  *
- * Two things about it are deliberate and easy to undo by accident.
+ * **No tabs.** Everything is on one page, top to bottom in authoring order:
+ * identity, the role's values, Inventar, then Handel and Beschreibung folded
+ * away. Tabbing would hide exactly the fields a player is comparing; folding
+ * hides only what is filled once and then read, and its summary line still
+ * says what is in it. Which folds are open is remembered for the life of the
+ * window (`#openFolds`), since every change re-renders the form.
  *
- * **No tabs.** Everything is on one scrolling page, because the dialog is a
- * data-entry form and tabbing hides exactly the fields a player is comparing.
- * The page is a rail beside a band, then one full-width column: the picture and
- * the two whole-item acts down the left, the rows every item has beside them,
- * and past the rail's height the description and the role blocks with the whole
- * sheet to spend. The rows keep the `label | control` grammar, stay in the same
- * order and stay the same height, so muscle memory survives a change of role.
- *
- * **Nothing is hidden, only disabled.** A field that does not apply to the
- * current role or use — the Distanzklasse of a rifle, the Fertigkeitswert of a
- * breastplate — stays in place as a struck-through `n/a` cell rather than
- * disappearing. Collapsing the row would move every row below it, so switching
- * a weapon from melee to ranged would make the dialog jump under the cursor.
- * Whole role blocks are the one exception: a role that is off is not an
- * inapplicable field, it is a section the item does not have.
+ * **Only what applies is shown.** A ranged weapon is asked for its range bands
+ * where a melee one is asked for DK, and the Unterkleidung for RW alone. The
+ * earlier sheet hatched such rows as `n/a` so nothing moved; the redesign
+ * trades that for a shorter form, and the rows that change sit at the end of
+ * their section or swap one for one, so a switch moves little.
  *
  * @extends {ItemSheetV2}
  */
@@ -53,16 +58,10 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   /** @override */
   static DEFAULT_OPTIONS = {
     classes: ['tno', 'sheet', 'item', 'gear-dialog'],
-    // An addition rather than a judgement, and it is the *narrower* half that
-    // sets it now. Beside the rail sits Availability's ten cells at
-    // $gear-scale-cell — 427 — plus the label column's 106 and the rail's 190,
-    // which is 723. Below the rail the widest row is RB's eleven cells, 470,
-    // plus the same 106: only 576, because that half spends nothing on a
-    // picture. Under about 760 the ten-cell scale wraps to a second line rather
-    // than shrinking, which is the one thing the cells were made a fixed size to
-    // avoid. Height still follows the roles that are switched on, which is
-    // anywhere between four rows and twenty.
-    position: { width: 760, height: 'auto' },
+    // The mockup's 720: RB's eleven cells beside the 130px label column, with
+    // the section padding either side, and the four role segments in the head.
+    // Height follows the role and the folds that are open.
+    position: { width: 720, height: 'auto' },
     window: { resizable: true },
     // The sheet edits a live document that the paper doll and the slot grid
     // render at the same time, and Foundry has no rollback to hang a Cancel
@@ -76,6 +75,18 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   static PARTS = {
     body: { template: 'systems/tno/templates/item/item-gear-sheet.hbs', root: true },
   };
+
+  /**
+   * The folds the reader has opened in this window. Every change re-renders
+   * the whole form, so the `<details>` state has to outlive the DOM it is in.
+   * @type {Set<string>}
+   */
+  #openFolds = new Set();
+
+  /** @override */
+  get title() {
+    return game.i18n.format('TNO.Item.Editor.Title', { name: this.document.name });
+  }
 
   /* -------------------------------------------- */
 
@@ -92,14 +103,16 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     context.roles = roles;
     context.canEdit = this.isEditable;
 
-    // Three chip/segment rows of the same shape, differing only in how many
-    // cells may be on at once: the role is exclusive and clearable; armour
-    // location and weapon use are exclusive selections.
-    context.roleChips = ITEM_ROLES.map((key) => ({
-      key,
-      label: CONFIG.TNO.itemRoles[key],
-      on: roles[key],
-    }));
+    // Three segment rows of the same shape: the role (with "Gegenstand" for
+    // none), the armour location and the weapon use, each one exclusive.
+    context.roleChips = [
+      { key: 'plain', label: 'TNO.Item.Role.Plain', on: !ITEM_ROLES.some((key) => roles[key]) },
+      ...ITEM_ROLES.map((key) => ({
+        key,
+        label: CONFIG.TNO.itemRoles[key],
+        on: roles[key],
+      })),
+    ];
     const selectedArmorZone = item.system.zone ?? item.system.zones?.[0] ?? null;
     context.zoneChips = ARMOR_ZONES.map((zone) => ({
       zone,
@@ -107,8 +120,8 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
       on: selectedArmorZone === zone,
     }));
     // The base layer has no hit location, so its RH is the fixed 0 the table
-    // gives it and its RA does not exist. Both rows drop their scale rather
-    // than disappearing — the same treatment a ranged weapon's DK gets.
+    // gives it and its RA does not exist. Both rows are left out, and a note
+    // says why.
     context.armorSuit = selectedArmorZone === ARMOR_SUIT_ZONE;
     context.useSegments = WEAPON_USES.map((use) => ({
       use,
@@ -172,13 +185,31 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
       field,
       label: MISSING_FIELD_LABELS[field] ?? field,
     }));
+    // Each section with required fields says in its head whether they are set.
+    context.sections = Object.fromEntries(
+      Object.entries(SECTION_FIELDS).map(([section, fields]) => {
+        const count = missing.filter((field) => fields.includes(field)).length;
+        const label = count === 0
+          ? game.i18n.localize('TNO.Item.Editor.SectionDone')
+          : game.i18n.format(count === 1 ? 'TNO.Item.Editor.SectionOpenOne' : 'TNO.Item.Editor.SectionOpenMany', { count });
+        return [section, { count, label }];
+      })
+    );
+    // Inventar has one required field, and it is rarely blank — only say so
+    // when it is.
+    if (!context.sections.inventory.count) context.sections.inventory = null;
 
-    // The Richtwert tier the authored slot count falls into, so the header can
-    // say "mittel" next to the number the player typed.
-    const cost = itemSlotCost(item);
-    const tier = CONFIG.TNO.slotCostHints.find((hint) => hint.slots === Number(system.slots));
-    context.slotTier = tier?.hint ?? null;
-    context.slotCost = cost;
+    context.folds = { trade: this.#openFolds.has('trade'), description: this.#openFolds.has('description') };
+    const dash = '–';
+    context.tradeSummary = game.i18n.format('TNO.Item.Editor.TradeSummary', {
+      quantity: system.quantity ?? 1,
+      price: system.price == null || system.price === '' ? dash : `${system.price} €`,
+      availability: system.availability ?? dash,
+    });
+    const text = String(system.description ?? '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    context.descriptionSummary = text
+      ? (text.length > 60 ? `${text.slice(0, 60)}…` : text)
+      : game.i18n.localize('TNO.Item.Editor.DescriptionEmpty');
 
     // Worn gear holds back its own delete button: the actor's
     // `system.equipment` addresses the piece by id, and deleting it out from
@@ -213,10 +244,14 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
       // only touches what is inside `.window-content` while the sheet is framed.
       const content = this.element.querySelector('.window-content') ?? this.element;
       for (const control of content.querySelectorAll('input, select, textarea, button, prose-mirror')) {
+        if (control.matches('.item-post-chat')) continue;
         control.setAttribute('disabled', '');
       }
+      this.#trackFolds();
       return;
     }
+
+    this.#trackFolds();
 
     this.#delegate('click', '.role-chip', (event, target) => {
       this.#pickRole(target.dataset.role);
@@ -270,9 +305,13 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         event.preventDefault();
         event.stopImmediatePropagation();
         const id = effectInput.closest('.consumable-effect')?.dataset.effectId;
-        const effects = normalizeConsumableEffects(this.item.system).map((effect) =>
-          effect.id === id ? { ...effect, text: effectInput.value } : effect
-        );
+        // The empty box of a consumable without effects has no entry behind
+        // it yet; typing into it is what creates the first one.
+        const effects = id
+          ? normalizeConsumableEffects(this.item.system).map((effect) =>
+            effect.id === id ? { ...effect, text: effectInput.value } : effect
+          )
+          : [{ id: foundry.utils.randomID(), text: effectInput.value }];
         this.item.update({ 'system.consumableEffects': effects });
         return;
       }
@@ -326,7 +365,22 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   /* -------------------------------------------- */
 
   /**
-   * Pick the item's role, or clear it by clicking the one that is already on.
+   * Remember which folds are open across re-renders. `toggle` does not bubble,
+   * so it is caught on the way down.
+   * @private
+   */
+  #trackFolds() {
+    this.element.addEventListener('toggle', (event) => {
+      const fold = event.target?.dataset?.fold;
+      if (!fold) return;
+      if (event.target.open) this.#openFolds.add(fold);
+      else this.#openFolds.delete(fold);
+    }, { capture: true, signal: this._listenerAbort.signal });
+  }
+
+  /**
+   * Pick the item's role. A radiogroup: clicking the one already on changes
+   * nothing, and "Gegenstand" (`plain`) is the explicit way to have none.
    *
    * Switching roles keeps the values of the one being left behind: the fields
    * are all still in the schema, the block simply stops rendering, so a player
@@ -334,11 +388,16 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
    * Discarding on the way out would make that undo impossible — and because the
    * roles are exclusive, a mis-click now costs a whole block rather than
    * flipping one extra section on.
-   * @param {string} role  One of ITEM_ROLES.
+   * @param {string} role  One of ITEM_ROLES, or `plain`.
    * @private
    */
   #pickRole(role) {
-    if (!ITEM_ROLES.includes(role)) return;
+    const roles = itemRoles(this.item);
+    if (role === 'plain') {
+      if (!ITEM_ROLES.some((key) => roles[key])) return;
+      return this.item.update({ 'system.roles': Object.fromEntries(ITEM_ROLES.map((key) => [key, false])) });
+    }
+    if (!ITEM_ROLES.includes(role) || roles[role]) return;
     return this.item.update({ 'system.roles': selectRole(itemRoles(this.item), role) });
   }
 
@@ -374,10 +433,9 @@ export class TnoGearSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 
   /** Focus the first control belonging to one missing-field marker. */
   #focusMissing(field) {
-    if (field === 'rb') field = 'penetration';
-    const container = field === 'name'
-      ? this.element.querySelector('.gear-name')
-      : this.element.querySelector(`[data-row="${CSS.escape(field)}"]`);
+    const key = CSS.escape(field);
+    const container = this.element.querySelector(`[data-field="${key}"]`)
+      ?? this.element.querySelector(`[data-row="${key}"]`);
     const focusable = container?.matches?.('input, select, button, [tabindex="0"]')
       ? container
       : container?.querySelector?.('input, select, button, [tabindex="0"]');

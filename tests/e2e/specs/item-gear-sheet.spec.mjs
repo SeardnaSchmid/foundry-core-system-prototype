@@ -47,12 +47,14 @@ test('gear sheet opens directly as a bounded editor', async ({ world }) => {
   await expect(sheet.locator('input[name="system.hh.active"]')).toHaveAttribute('max', '3');
   await expect(sheet.locator('.role-chip').first()).toHaveJSProperty('tagName', 'BUTTON');
   await expect(sheet.locator('.range-cycle .range-visual')).toHaveCount(5);
-  await expect(sheet.locator('.gear-section-divider').filter({ hasText: /^Weapon Values$/ })).toBeVisible();
+  await expect(sheet.locator('.gear-section-title').filter({ hasText: /^Weapon Values$/i })).toBeVisible();
+  await expect(sheet.locator('.role-chip')).toHaveCount(4);
+  await expect(sheet.locator('.gear-fold')).toHaveCount(2);
   await expect(sheet.locator('.effect-control')).toHaveCount(0);
 
   // Switching role re-renders the armour partial; this pins the template parse
   // regression that previously made the whole item window disappear.
   await sheet.getByRole('radio', { name: 'Armour' }).evaluate((button) => button.click());
   await expect(sheet.locator('.zone-chip')).toHaveCount(5);
-  await expect(sheet.locator('.gear-section-divider')).toContainText('Armour Values');
+  await expect(sheet.locator('[data-section="armor"] .gear-section-title')).toContainText(/Armour Values/i);
 });

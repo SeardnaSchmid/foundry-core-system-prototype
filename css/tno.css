@@ -2640,444 +2640,404 @@
   height: 13px;
   margin: 0;
 }
-.tno.gear-dialog .chip,
+.tno.gear-dialog .role-chip,
+.tno.gear-dialog .zone-chip,
 .tno.gear-dialog .use-segment,
 .tno.gear-dialog .scale-cell,
+.tno.gear-dialog .range-band,
 .tno.gear-dialog .stepper-button,
-.tno.gear-dialog [data-missing-field] {
+.tno.gear-dialog .gear-missing-link,
+.tno.gear-dialog .gear-foot-action,
+.tno.gear-dialog .gear-foot-delete,
+.tno.gear-dialog .consumable-effect-add,
+.tno.gear-dialog .consumable-effect-remove {
   width: auto;
   min-height: 0;
   margin: 0;
   font-family: inherit;
+  line-height: normal;
   box-shadow: none;
 }
 .tno.gear-dialog .window-content {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  padding: 0;
+  background: #e9e6df;
   overflow-y: auto;
-}
-.tno.gear-dialog {
-  /* ---------------------------------------------- Rail and column */
-}
-.tno.gear-dialog .gear-body {
-  display: grid;
-  grid-template-columns: 180px minmax(0, 1fr);
-  gap: 10px;
-  align-items: start;
-}
-.tno.gear-dialog .gear-wide {
-  margin-top: 10px;
-}
-.tno.gear-dialog .gear-rail {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-}
-.tno.gear-dialog .gear-rail-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding-top: 2px;
-  border-top: 1px solid rgba(201, 196, 184, 0.6);
-}
-.tno.gear-dialog .gear-rail-actions .item-post-row,
-.tno.gear-dialog .gear-rail-actions .item-delete-row {
-  margin: 0;
-}
-.tno.gear-dialog .gear-rail-actions .item-post-chat,
-.tno.gear-dialog .gear-rail-actions .item-self-delete {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px 2px;
-  font-size: 11px;
-}
-.tno.gear-dialog .gear-rail-actions .item-delete-hint {
-  margin: 2px 0 0;
-  font-size: 10px;
-  line-height: 1.35;
-  text-wrap: pretty;
-}
-.tno.gear-dialog .gear-art .profile-img[data-action=editImage] {
-  cursor: pointer;
-}
-.tno.gear-dialog .gear-art .profile-img[data-action=editImage]:hover {
-  border-color: #22262b;
-}
-.tno.gear-dialog .gear-art .profile-img[data-action=editImage]:focus-visible {
-  outline: 2px solid #2f5fd0;
-  outline-offset: 1px;
-}
-.tno.gear-dialog .gear-art .profile-img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 1;
-  object-fit: contain;
-  background: rgba(201, 196, 184, 0.18);
-  border: 1px solid #c9c4b8;
-  border-radius: 4px;
-}
-.tno.gear-dialog {
-  /* ---------------------------------------------- Head */
-}
-.tno.gear-dialog .gear-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding-bottom: 8px;
-  border-bottom: 2px solid #22262b;
-}
-.tno.gear-dialog .gear-head .gear-name {
-  flex: 1;
-  height: 28px;
-  min-width: 0;
-  padding: 0 2px;
-  border: none;
-  background: transparent;
-  font-family: "IBM Plex Sans", sans-serif;
-  font-size: 16px;
-  font-weight: bold;
-  transition: box-shadow 0.15s ease;
-}
-.tno.gear-dialog .gear-head .gear-name:hover {
-  box-shadow: inset 0 -1px 0 #c9c4b8;
-}
-.tno.gear-dialog .gear-head .gear-name:focus {
-  box-shadow: inset 0 -2px 0 #5a5f66;
-  outline: none;
-}
-.tno.gear-dialog .gear-head .gear-name.is-missing {
-  box-shadow: inset 0 -2px 0 #8e2a2a;
-}
-.tno.gear-dialog .gear-head .gear-keyhint {
-  flex: none;
-  font-size: 9px;
-  color: rgba(34, 38, 43, 0.5);
-  white-space: nowrap;
-}
-.tno.gear-dialog .gear-head .gear-title {
-  flex: 1;
-  min-width: 0;
-  margin: 0;
-  overflow: hidden;
-  font-size: 18px;
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.tno.gear-dialog {
-  /* ---------------------------------------------- Rows */
 }
 .tno.gear-dialog .gear-rows {
   display: flex;
   flex-direction: column;
+  font-size: var(--font-size-13, 13px);
+  color: #22262b;
 }
-.tno.gear-dialog .gear-row {
+.tno.gear-dialog {
+  /* ---------------------------------------------- Identity */
+}
+.tno.gear-dialog .gear-identity {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(201, 196, 184, 0.6);
+  gap: 14px;
+  padding: 16px;
+  border-bottom: 1px solid #d3cec3;
 }
-.tno.gear-dialog .gear-row:last-child {
-  border-bottom: none;
+.tno.gear-dialog .gear-art {
+  flex: none;
+  width: 72px;
+  height: 72px;
+  border: 0;
+  border-radius: 6px;
+  background: #5a5f66;
+  object-fit: cover;
 }
-.tno.gear-dialog .gear-row.gear-row-top {
-  align-items: flex-start;
+.tno.gear-dialog .gear-art[data-action=editImage] {
+  cursor: pointer;
 }
-.tno.gear-dialog .gear-row.gear-row-top .gear-label {
-  padding-top: 4px;
-}
-.tno.gear-dialog .gear-row.is-missing > .gear-label {
-  color: #8e2a2a;
-}
-.tno.gear-dialog .gear-label {
-  flex: 0 0 96px;
-  width: 96px;
-  font-size: 10px;
-  line-height: 1.2;
-  color: rgba(34, 38, 43, 0.6);
-}
-.tno.gear-dialog .gear-label.gear-label-help {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-.tno.gear-dialog .gear-info {
-  display: inline-grid;
-  flex: 0 0 14px;
-  width: 14px;
-  height: 14px;
-  place-items: center;
-  font-size: 13px;
-  line-height: 1;
-  color: rgba(34, 38, 43, 0.65);
-  cursor: default;
-}
-.tno.gear-dialog .gear-info:hover {
-  color: #2f5fd0;
-}
-.tno.gear-dialog .gear-info:focus-visible {
-  border-radius: 50%;
-  color: #2f5fd0;
-  outline: 1px solid #2f5fd0;
+.tno.gear-dialog .gear-art[data-action=editImage]:hover, .tno.gear-dialog .gear-art[data-action=editImage]:focus-visible {
+  outline: 2px solid #22262b;
   outline-offset: 2px;
 }
-.tno.gear-dialog .gear-info i {
-  pointer-events: none;
+.tno.gear-dialog .gear-identity-fields {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tno.gear-dialog .gear-name {
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: #22262b;
+  font-variant-numeric: tabular-nums;
+}
+.tno.gear-dialog .gear-name[type=number] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.tno.gear-dialog .gear-name[type=number]::-webkit-inner-spin-button, .tno.gear-dialog .gear-name[type=number]::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+.tno.gear-dialog .gear-name:focus {
+  outline: none;
+  box-shadow: none;
+}
+.tno.gear-dialog .gear-name {
+  height: 36px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  border: 1px solid #c9c4b8;
+  border-radius: 5px;
+  background: #fff;
+  font-family: inherit;
+  font-size: 18px;
+  font-weight: 700;
+}
+.tno.gear-dialog .gear-name:focus {
+  border-color: #22262b;
+}
+.tno.gear-dialog .gear-name.is-missing {
+  border: 1.5px solid #d9a93a;
+  background: #fff9ea;
+}
+.tno.gear-dialog .gear-title {
+  margin: 0;
+  border: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+.tno.gear-dialog {
+  /* ---------------------------------------------- Segments
+     One joined strip of buttons, the selected one filled with the ink: the
+     role, the weapon use and the armour location. */
+}
+.tno.gear-dialog .segments {
+  display: flex;
+  flex-wrap: wrap;
+  align-self: flex-start;
+  justify-self: start;
+  border: 1px solid #c9c4b8;
+  border-radius: 5px;
+  overflow: hidden;
+}
+.tno.gear-dialog .segments > button {
+  height: 28px;
+  padding: 0 14px;
+  border: 0;
+  border-right: 1px solid #c9c4b8;
+  border-radius: 0;
+  background: #fff;
+  color: #22262b;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.tno.gear-dialog .segments > button:last-child {
+  border-right: 0;
+}
+.tno.gear-dialog .segments > button:hover {
+  background: #f4f2ec;
+}
+.tno.gear-dialog .segments > button:focus-visible {
+  outline: 2px solid #2f5fd0;
+  outline-offset: -2px;
+}
+.tno.gear-dialog .segments > button[aria-checked=true], .tno.gear-dialog .segments > button[aria-pressed=true] {
+  background: #22262b;
+  color: #fff;
+}
+.tno.gear-dialog .segments .use-segment {
+  padding: 0 24px;
+}
+.tno.gear-dialog .gear-row.is-missing .segments {
+  border: 1.5px solid #d9a93a;
+  background: #fff9ea;
+}
+.tno.gear-dialog {
+  /* ---------------------------------------------- Sections */
+}
+.tno.gear-dialog .gear-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #d3cec3;
+}
+.tno.gear-dialog .gear-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 2px;
+}
+.tno.gear-dialog .gear-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #22262b;
+}
+.tno.gear-dialog .gear-section-status {
+  font-size: 11px;
+  font-weight: 600;
+}
+.tno.gear-dialog .gear-section-status.is-missing {
+  color: #8a6a1e;
+}
+.tno.gear-dialog .gear-section-status.is-done {
+  color: #3f5f33;
+}
+.tno.gear-dialog .gear-note,
+.tno.gear-dialog .gear-help {
+  margin: 0;
+  font-size: 11px;
+  color: #6a6f75;
+}
+.tno.gear-dialog {
+  /* ---------------------------------------------- Rows */
+}
+.tno.gear-dialog .gear-row {
+  display: grid;
+  grid-template-columns: 130px minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: center;
+  min-height: 30px;
+}
+.tno.gear-dialog .gear-row.gear-row-top {
+  align-items: start;
+}
+.tno.gear-dialog .gear-row.gear-row-top > .gear-label {
+  padding-top: 6px;
+}
+.tno.gear-dialog .gear-row.is-missing > .gear-label {
+  color: #8a6a1e;
+  font-weight: 600;
+}
+.tno.gear-dialog .gear-row.is-missing > .gear-label .gear-sublabel {
+  color: #8a6a1e;
+}
+.tno.gear-dialog .gear-label {
+  color: #3b4047;
+}
+.tno.gear-dialog .gear-sublabel {
+  font-weight: 400;
+  color: #6a6f75;
 }
 .tno.gear-dialog .gear-ctl {
-  flex: 1;
   display: flex;
   align-items: center;
-  gap: 6px;
   min-width: 0;
+}
+.tno.gear-dialog .gear-ctl-inline {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.tno.gear-dialog .gear-ctl-pair {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 6px;
+}
+.tno.gear-dialog .gear-ctl-quad {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
 }
 .tno.gear-dialog {
   /* ---------------------------------------------- Fields */
 }
-.tno.gear-dialog .field {
+.tno.gear-dialog select {
+  height: 30px;
+  min-width: 0;
+  padding: 0 8px;
+  border: 1px solid #c9c4b8;
+  border-radius: 5px;
+  background: #fff;
+  color: #22262b;
+  font-family: inherit;
+  font-size: 13px;
+}
+.tno.gear-dialog select:focus {
+  border-color: #22262b;
+  outline: none;
+  box-shadow: none;
+}
+.tno.gear-dialog select.is-missing {
+  border: 1.5px solid #d9a93a;
+  background: #fff9ea;
+  color: #8a6a1e;
+}
+.tno.gear-dialog .gear-field {
+  display: flex;
+  align-items: center;
+  height: 30px;
+  box-sizing: border-box;
+  min-width: 0;
+  padding-left: 8px;
+  border: 1px solid #c9c4b8;
+  border-radius: 5px;
+  background: #fff;
+}
+.tno.gear-dialog .gear-field .cap {
+  flex: none;
+  font-size: 10px;
+  font-weight: 600;
+  color: #5a5f66;
+  white-space: nowrap;
+}
+.tno.gear-dialog .gear-field input {
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: #22262b;
+  font-variant-numeric: tabular-nums;
+}
+.tno.gear-dialog .gear-field input[type=number] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.tno.gear-dialog .gear-field input[type=number]::-webkit-inner-spin-button, .tno.gear-dialog .gear-field input[type=number]::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+.tno.gear-dialog .gear-field input:focus {
+  outline: none;
+  box-shadow: none;
+}
+.tno.gear-dialog .gear-field input {
   flex: 1;
-  max-width: 200px;
+  width: 100%;
+  height: 100%;
+  padding: 0 8px 0 4px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
+}
+.tno.gear-dialog .gear-field:focus-within {
+  border-color: #22262b;
+}
+.tno.gear-dialog .gear-field.is-missing {
+  border: 1.5px solid #d9a93a;
+  background: #fff9ea;
+}
+.tno.gear-dialog .gear-field-short {
+  width: 96px;
+}
+.tno.gear-dialog .gear-field-price {
+  width: 140px;
+}
+.tno.gear-dialog .gear-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.tno.gear-dialog .gear-check input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #22262b;
+}
+.tno.gear-dialog .scale {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  justify-self: start;
+  padding: 2px;
+  border: 1.5px solid transparent;
+  border-radius: 6px;
+}
+.tno.gear-dialog .gear-ctl-inline > .scale {
+  padding: 0;
+  border: 0;
+}
+.tno.gear-dialog .gear-row.is-missing .scale {
+  border: 1.5px solid #d9a93a;
+  background: #fff9ea;
+}
+.tno.gear-dialog .scale-cell {
+  width: 28px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid #ddd8cd;
+  border-radius: 4px;
+  background: #fff;
+  color: #22262b;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.tno.gear-dialog .scale-cell:hover {
+  border-color: #22262b;
+}
+.tno.gear-dialog .scale-cell:focus-visible {
+  outline: 2px solid #2f5fd0;
+  outline-offset: 1px;
+}
+.tno.gear-dialog .scale-cell[aria-checked=true] {
+  border-color: #22262b;
+  background: #22262b;
+  color: #fff;
+  font-weight: 600;
+}
+.tno.gear-dialog .stepper {
   display: flex;
   align-items: center;
   gap: 4px;
-  min-width: 0;
-  height: 24px;
-  padding: 0 6px;
-  border: 1px solid #22262b;
-  border-radius: 4px;
-  background: #fff;
-  overflow: hidden;
-}
-.tno.gear-dialog .field .cap {
-  flex: 0 1 auto;
-  font-size: 8px;
-  letter-spacing: 0.04em;
-  color: rgba(34, 38, 43, 0.55);
-  text-transform: uppercase;
-  white-space: nowrap;
-  overflow: hidden;
-}
-.tno.gear-dialog .field .val {
-  flex: 1;
-  min-width: 0;
-  font-size: 11px;
-  text-align: right;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.tno.gear-dialog .field .unit {
-  flex: none;
-  padding: 0 6px 0 3px;
-  font-size: 10px;
-  color: rgba(34, 38, 43, 0.65);
-}
-.tno.gear-dialog .field input,
-.tno.gear-dialog .field select {
-  min-width: 0;
-  margin: 0;
-  border-radius: 0;
-  box-shadow: none;
-  color: #22262b;
-  font-variant-numeric: tabular-nums;
-}
-.tno.gear-dialog .field input[type=number],
-.tno.gear-dialog .field select[type=number] {
-  appearance: textfield;
-  -moz-appearance: textfield;
-}
-.tno.gear-dialog .field input[type=number]::-webkit-inner-spin-button, .tno.gear-dialog .field input[type=number]::-webkit-outer-spin-button,
-.tno.gear-dialog .field select[type=number]::-webkit-inner-spin-button,
-.tno.gear-dialog .field select[type=number]::-webkit-outer-spin-button {
-  margin: 0;
-  appearance: none;
-}
-.tno.gear-dialog .field input,
-.tno.gear-dialog .field select {
-  flex: 1;
-  height: 100%;
-  padding: 0;
-  border: none;
-  background: transparent;
-  font-size: 12px;
-  text-align: right;
-}
-.tno.gear-dialog .field input:focus,
-.tno.gear-dialog .field select:focus {
-  outline: none;
-  box-shadow: inset 0 -2px 0 #5a5f66;
-}
-.tno.gear-dialog .field > .cap + input,
-.tno.gear-dialog .field > .cap + select,
-.tno.gear-dialog .field > select + input {
-  border-left: 1px solid rgba(201, 196, 184, 0.55);
-  padding-left: 5px;
-}
-.tno.gear-dialog .field > input:focus,
-.tno.gear-dialog .field > select:focus {
-  background: rgba(47, 95, 208, 0.06);
-}
-.tno.gear-dialog .field select {
-  text-align: left;
-}
-.tno.gear-dialog .field:focus-within {
-  border-color: #2f5fd0;
-}
-.tno.gear-dialog .field.is-missing {
-  border-color: #8e2a2a;
-}
-.tno.gear-dialog .field.field-wide {
-  flex: 2;
-  max-width: none;
-}
-.tno.gear-dialog .field.field-wide input {
-  text-align: left;
-}
-.tno.gear-dialog .field.field-wf {
-  flex: 2.8;
-  max-width: none;
-}
-.tno.gear-dialog .field.field-wf select {
-  flex: 1;
-}
-.tno.gear-dialog .field.field-wa {
-  flex: 1.1;
-}
-.tno.gear-dialog .field.field-check {
-  flex: none;
-  max-width: none;
-  cursor: pointer;
-}
-.tno.gear-dialog .field.field-check .cap {
-  flex: none;
-}
-.tno.gear-dialog .field.field-check input {
-  flex: none;
-  width: 14px;
-  height: 14px;
-  margin: 0;
-  accent-color: #22262b;
-  cursor: pointer;
-}
-.tno.gear-dialog .field.field-check > .cap + input {
-  border-left: 0;
-  padding-left: 0;
-}
-.tno.gear-dialog .field.na {
-  border-style: dashed;
-  border-color: #c9c4b8;
-  background: repeating-linear-gradient(45deg, rgba(201, 196, 184, 0.25) 0 5px, transparent 5px 10px);
-}
-.tno.gear-dialog .field.na .val {
-  font-size: 10px;
-  font-style: italic;
-  color: rgba(34, 38, 43, 0.45);
-}
-.tno.gear-dialog .field.slot-readout .val {
-  font-style: normal;
-}
-.tno.gear-dialog .split {
-  flex: 1;
-  max-width: 200px;
-  display: flex;
-  align-items: center;
-  min-width: 0;
-  height: 24px;
-  border: 1px solid #22262b;
-  border-radius: 4px;
-  background: #fff;
-  overflow: hidden;
-}
-.tno.gear-dialog .split .cap {
-  flex: none;
-  padding: 0 5px;
-  font-size: 8px;
-  color: rgba(34, 38, 43, 0.55);
-  text-transform: uppercase;
-}
-.tno.gear-dialog .split .unit {
-  flex: none;
-  padding: 0 7px;
-  border-left: 1px solid rgba(201, 196, 184, 0.8);
-  font-size: 10px;
-  color: rgba(34, 38, 43, 0.65);
-}
-.tno.gear-dialog .split input,
-.tno.gear-dialog .split select {
-  min-width: 0;
-  margin: 0;
-  border-radius: 0;
-  box-shadow: none;
-  color: #22262b;
-  font-variant-numeric: tabular-nums;
-}
-.tno.gear-dialog .split input[type=number],
-.tno.gear-dialog .split select[type=number] {
-  appearance: textfield;
-  -moz-appearance: textfield;
-}
-.tno.gear-dialog .split input[type=number]::-webkit-inner-spin-button, .tno.gear-dialog .split input[type=number]::-webkit-outer-spin-button,
-.tno.gear-dialog .split select[type=number]::-webkit-inner-spin-button,
-.tno.gear-dialog .split select[type=number]::-webkit-outer-spin-button {
-  margin: 0;
-  appearance: none;
-}
-.tno.gear-dialog .split input,
-.tno.gear-dialog .split select {
-  flex: 1;
-  height: 100%;
-  padding: 0 4px;
-  border: none;
-  border-left: 1px solid rgba(201, 196, 184, 0.8);
-  background: transparent;
-  font-size: 12px;
-  text-align: center;
-}
-.tno.gear-dialog .split input:focus,
-.tno.gear-dialog .split select:focus {
-  outline: none;
-  background: rgba(47, 95, 208, 0.06);
-}
-.tno.gear-dialog .split:focus-within {
-  border-color: #2f5fd0;
-}
-.tno.gear-dialog .split.is-disabled {
-  border-color: #c9c4b8;
-  background: repeating-linear-gradient(45deg, rgba(201, 196, 184, 0.25) 0 5px, transparent 5px 10px);
-}
-.tno.gear-dialog .split.is-disabled .cap,
-.tno.gear-dialog .split.is-disabled input {
-  color: rgba(34, 38, 43, 0.45);
-}
-.tno.gear-dialog .split.is-disabled input {
-  cursor: not-allowed;
-}
-.tno.gear-dialog .stepper {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  min-width: 0;
-  height: 24px;
-  border: 1px solid #22262b;
-  border-radius: 4px;
-  background: #fff;
-  overflow: hidden;
-}
-.tno.gear-dialog .stepper .cap {
-  flex: none;
-  padding: 0 5px;
-  font-size: 8px;
-  color: rgba(34, 38, 43, 0.55);
-  text-transform: uppercase;
 }
 .tno.gear-dialog .stepper input {
   min-width: 0;
   margin: 0;
+  border: 0;
   border-radius: 0;
+  background: none;
   box-shadow: none;
   color: #22262b;
   font-variant-numeric: tabular-nums;
@@ -3090,324 +3050,90 @@
   margin: 0;
   appearance: none;
 }
-.tno.gear-dialog .stepper input {
-  flex: 1;
-  height: 100%;
-  padding: 0;
-  border: none;
-  background: transparent;
-  font-size: 12px;
-  text-align: center;
-}
 .tno.gear-dialog .stepper input:focus {
   outline: none;
-  background: rgba(47, 95, 208, 0.06);
-}
-.tno.gear-dialog .stepper .stepper-button {
-  flex: 0 0 20px;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-left: 1px solid rgba(201, 196, 184, 0.8);
-  font-size: 12px;
-  line-height: 1;
-  color: rgba(34, 38, 43, 0.7);
-  cursor: pointer;
-}
-.tno.gear-dialog .stepper .stepper-button:first-child {
-  border-left: none;
-  border-right: 1px solid rgba(201, 196, 184, 0.8);
-}
-.tno.gear-dialog .stepper .stepper-button:hover {
-  background: rgba(201, 196, 184, 0.4);
-  color: #22262b;
-}
-.tno.gear-dialog .stepper:focus-within {
-  border-color: #2f5fd0;
-}
-.tno.gear-dialog {
-  /* ---------------------------------------------- Choices */
-}
-.tno.gear-dialog .chips {
-  flex-wrap: wrap;
-  gap: 4px;
-}
-.tno.gear-dialog .chip {
-  background: transparent;
-  padding: 4px 9px;
-  border: 1px solid #c9c4b8;
-  border-radius: 20px;
-  font-size: 10px;
-  line-height: 1;
-  color: rgba(34, 38, 43, 0.6);
-  cursor: pointer;
-  white-space: nowrap;
-}
-.tno.gear-dialog .chip:hover {
-  border-color: #22262b;
-  color: #22262b;
-}
-.tno.gear-dialog .chip[aria-pressed=true], .tno.gear-dialog .chip[aria-checked=true] {
-  border-color: #22262b;
-  background: #22262b;
-  color: #fff;
-}
-.tno.gear-dialog .segments {
-  display: flex;
-  max-width: 260px;
-  border: 1px solid #22262b;
-  border-radius: 5px;
-  overflow: hidden;
-}
-.tno.gear-dialog .segments .use-segment {
-  flex: 1;
-  padding: 4px 0;
-  border-left: 1px solid #22262b;
-  font-size: 10px;
-  line-height: 1.4;
-  text-align: center;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-.tno.gear-dialog .segments .use-segment:first-child {
-  border-left: none;
-}
-.tno.gear-dialog .segments .use-segment:hover {
-  background: rgba(201, 196, 184, 0.4);
-}
-.tno.gear-dialog .segments .use-segment[aria-checked=true] {
-  background: #22262b;
-  color: #fff;
-}
-.tno.gear-dialog .scale {
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  gap: 3px;
-}
-.tno.gear-dialog .scale .scale-cell {
-  flex: 0 0 40px;
-  min-width: 0;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #22262b;
-  border-radius: 4px;
-  background: #fff;
-  font-size: 10px;
-  cursor: pointer;
-}
-.tno.gear-dialog .scale .scale-cell:hover {
-  background: rgba(201, 196, 184, 0.4);
-}
-.tno.gear-dialog .scale .scale-cell[aria-checked=true] {
-  background: #22262b;
-  color: #fff;
-}
-.tno.gear-dialog .scale .scale-cell:focus-visible {
-  outline: 2px solid #2f5fd0;
-  outline-offset: 1px;
-}
-.tno.gear-dialog .stack {
-  gap: 4px;
-}
-.tno.gear-dialog .stack .stack-field {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  min-width: 0;
-}
-.tno.gear-dialog .stack .stack-field input {
-  min-width: 0;
-  margin: 0;
-  border-radius: 0;
   box-shadow: none;
-  color: #22262b;
-  font-variant-numeric: tabular-nums;
 }
-.tno.gear-dialog .stack .stack-field input[type=number] {
-  appearance: textfield;
-  -moz-appearance: textfield;
-}
-.tno.gear-dialog .stack .stack-field input[type=number]::-webkit-inner-spin-button, .tno.gear-dialog .stack .stack-field input[type=number]::-webkit-outer-spin-button {
-  margin: 0;
-  appearance: none;
-}
-.tno.gear-dialog .stack .stack-field input {
-  width: 100%;
-  height: 24px;
-  padding: 0;
-  border: 1px solid #22262b;
-  border-radius: 4px;
-  background: #fff;
-  font-size: 11px;
+.tno.gear-dialog .stepper input {
+  width: 36px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
   text-align: center;
 }
-.tno.gear-dialog .stack .stack-field input:focus {
-  border-color: #2f5fd0;
-  background: rgba(47, 95, 208, 0.06);
-  outline: none;
-}
-.tno.gear-dialog .stack .stack-field .cap {
-  font-size: 8px;
-  color: rgba(34, 38, 43, 0.55);
-  text-transform: uppercase;
-}
-.tno.gear-dialog {
-  /* ---------------------------------------------- Blocks */
-}
-.tno.gear-dialog .memo-wrap {
-  flex: 1;
-  min-width: 0;
-}
-.tno.gear-dialog .memo {
-  display: flex;
-  flex-direction: column;
-  min-height: 200px;
-  height: 240px;
-  max-height: 70vh;
+.tno.gear-dialog .stepper-button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
   border: 1px solid #c9c4b8;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.9);
-  overflow: hidden;
-  resize: vertical;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  background: #f4f2ec;
+  color: #22262b;
+  cursor: pointer;
 }
-.tno.gear-dialog .memo:hover {
-  border-color: rgba(34, 38, 43, 0.65);
+.tno.gear-dialog .stepper-button:hover {
+  border-color: #22262b;
 }
-.tno.gear-dialog .memo:focus-within {
-  border-color: #2f5fd0;
-  box-shadow: 0 0 0 1px rgba(47, 95, 208, 0.18);
-}
-.tno.gear-dialog .memo .editor-menu {
-  flex: 0 0 auto;
-  min-height: 32px;
-  padding: 3px 7px;
-  border-bottom: 1px solid rgba(201, 196, 184, 0.65);
-  background: rgba(201, 196, 184, 0.18);
-}
-.tno.gear-dialog .memo .editor-content {
-  flex: 1;
-  min-height: 150px;
-  padding: 9px 11px;
-  background: rgba(255, 255, 255, 0.72);
-  line-height: 1.45;
-  cursor: text;
-  overflow-y: auto;
-}
-.tno.gear-dialog .memo .ProseMirror {
-  min-height: 142px;
-}
-.tno.gear-dialog .memo .ProseMirror:focus {
-  outline: none;
-}
-.tno.gear-dialog .memo-help {
-  display: flex;
-  align-items: baseline;
-  gap: 5px;
-  margin: 5px 2px 0;
-  font-size: 9px;
-  line-height: 1.35;
-  color: rgba(34, 38, 43, 0.5);
-}
-.tno.gear-dialog .memo-help i {
-  flex: none;
-  font-size: 9px;
-}
-.tno.gear-dialog .gear-section-divider {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 8px;
-  color: rgba(34, 38, 43, 0.55);
-  font-size: 9px;
-  font-weight: bold;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.tno.gear-dialog .gear-section-divider::before, .tno.gear-dialog .gear-section-divider::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: rgba(34, 38, 43, 0.28);
-}
-.tno.gear-dialog .gear-property-group {
-  display: flex;
-  flex-direction: column;
-  margin: 8px 0;
-  padding: 0 10px 2px;
-  border: 1px solid rgba(201, 196, 184, 0.72);
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.2);
-}
-.tno.gear-dialog .gear-property-group .gear-section-divider {
-  margin-top: -6px;
-}
-.tno.gear-dialog .gear-property-group .gear-section-divider span {
-  padding: 0 7px;
-  background: #fff;
-}
-.tno.gear-dialog .gear-property-group .gear-row:last-child {
-  border-bottom: none;
-}
-.tno.gear-dialog .gear-property-group .field-price {
-  flex: 0 1 180px;
+.tno.gear-dialog {
+  /* ---------------------------------------------- Range bands
+     A ranged weapon's five bands, each cycled through −3 / 0 / +3 / none. */
 }
 .tno.gear-dialog .range-cycle {
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 4px;
 }
-.tno.gear-dialog .range-cycle > .range-band {
-  flex: 1;
-  min-width: 0;
-  height: 62px;
+.tno.gear-dialog .gear-row.is-missing .range-cycle {
+  padding: 2px;
+  border-radius: 6px;
+  border: 1.5px solid #d9a93a;
+  background: #fff9ea;
+}
+.tno.gear-dialog .range-band {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 2px;
-  margin: 0;
-  border: 1px solid rgba(34, 38, 43, 0.35);
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.7);
-  box-shadow: none;
+  height: 56px;
+  padding: 0;
+  border: 1px solid #c9c4b8;
+  border-radius: 5px;
+  background: #fff;
+  cursor: pointer;
 }
-.tno.gear-dialog .range-cycle > .range-band strong {
+.tno.gear-dialog .range-band strong {
   font-size: 12px;
   line-height: 1;
 }
-.tno.gear-dialog .range-cycle > .range-band > span:last-child {
+.tno.gear-dialog .range-band > span:last-child {
   font-size: 9px;
-  color: rgba(34, 38, 43, 0.65);
+  color: #5a5f66;
 }
-.tno.gear-dialog .range-cycle > .range-band.negative {
+.tno.gear-dialog .range-band.negative {
   color: #8e2a2a;
   background: rgba(142, 42, 42, 0.08);
 }
-.tno.gear-dialog .range-cycle > .range-band.positive {
+.tno.gear-dialog .range-band.positive {
   color: #2f5fd0;
   background: rgba(47, 95, 208, 0.1);
 }
-.tno.gear-dialog .range-cycle > .range-band.unavailable {
+.tno.gear-dialog .range-band.unavailable {
   color: rgba(34, 38, 43, 0.45);
-  background: rgba(34, 38, 43, 0.06);
+  background: rgba(34, 38, 43, 0.04);
 }
-.tno.gear-dialog .range-cycle > .range-band .range-visual {
+.tno.gear-dialog .range-band .range-visual {
   position: relative;
   width: 70%;
-  height: 18px;
+  height: 16px;
 }
-.tno.gear-dialog .range-cycle > .range-band .range-visual::before {
+.tno.gear-dialog .range-band .range-visual::before {
   content: "";
   position: absolute;
   inset: 50% 0 auto;
   border-top: 1px solid rgba(34, 38, 43, 0.25);
 }
-.tno.gear-dialog .range-cycle > .range-band .range-visual i {
+.tno.gear-dialog .range-band .range-visual i {
   position: absolute;
   left: 12%;
   right: 12%;
@@ -3415,24 +3141,20 @@
   border-top: 3px solid rgba(34, 38, 43, 0.65);
   transform: translateY(-50%);
 }
-.tno.gear-dialog .range-cycle > .range-band.negative .range-visual i {
+.tno.gear-dialog .range-band.negative .range-visual i {
   top: 82%;
   border-color: #8e2a2a;
 }
-.tno.gear-dialog .range-cycle > .range-band.positive .range-visual i {
+.tno.gear-dialog .range-band.positive .range-visual i {
   top: 18%;
   border-color: #2f5fd0;
 }
-.tno.gear-dialog .range-cycle > .range-band.unavailable .range-visual i {
+.tno.gear-dialog .range-band.unavailable .range-visual i {
   border-top-style: dashed;
   border-color: rgba(34, 38, 43, 0.35);
 }
-.tno.gear-dialog .range-help {
-  flex: 0 0 100%;
-  margin: 3px 2px 0;
-  font-size: 9px;
-  line-height: 1.35;
-  color: rgba(34, 38, 43, 0.58);
+.tno.gear-dialog {
+  /* ---------------------------------------------- Effects */
 }
 .tno.gear-dialog .consumable-effects {
   flex-direction: column;
@@ -3441,31 +3163,138 @@
 }
 .tno.gear-dialog .consumable-effect {
   display: flex;
-  align-items: stretch;
-  gap: 5px;
+  align-items: flex-start;
+  gap: 6px;
 }
 .tno.gear-dialog .consumable-effect textarea {
   flex: 1;
-  min-height: 58px;
+  box-sizing: border-box;
+  min-height: 64px;
+  padding: 8px 10px;
+  border: 1px solid #c9c4b8;
+  border-radius: 5px;
+  background: #fff;
+  color: #22262b;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.4;
   resize: vertical;
 }
-.tno.gear-dialog .consumable-effect button {
-  flex: 0 0 32px;
-  width: 32px;
-  margin: 0;
+.tno.gear-dialog .consumable-effect textarea:focus {
+  border-color: #22262b;
+  outline: none;
+  box-shadow: none;
+}
+.tno.gear-dialog .consumable-effect textarea.is-missing {
+  border: 1.5px solid #d9a93a;
+  background: #fff9ea;
+}
+.tno.gear-dialog .consumable-effect-remove {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: none;
   color: #8e2a2a;
+  cursor: pointer;
+}
+.tno.gear-dialog .consumable-effects-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 .tno.gear-dialog .consumable-effect-add {
-  align-self: flex-start;
-  width: auto;
-  margin: 0;
-  padding: 4px 9px;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid #c9c4b8;
+  border-radius: 4px;
+  background: #fff;
+  font-size: 12px;
+  cursor: pointer;
 }
-.tno.gear-dialog .empty-effect {
-  margin: 2px 0;
-  color: rgba(34, 38, 43, 0.55);
-  font-size: 10px;
-  font-style: italic;
+.tno.gear-dialog {
+  /* ---------------------------------------------- Folds */
+}
+.tno.gear-dialog .gear-fold {
+  border-bottom: 1px solid #d3cec3;
+}
+.tno.gear-dialog .gear-fold > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  list-style: none;
+}
+.tno.gear-dialog .gear-fold > summary::-webkit-details-marker {
+  display: none;
+}
+.tno.gear-dialog .gear-fold > summary:hover {
+  background: rgba(34, 38, 43, 0.03);
+}
+.tno.gear-dialog .gear-fold > summary:focus-visible {
+  outline: 2px solid #2f5fd0;
+  outline-offset: -2px;
+}
+.tno.gear-dialog .gear-fold .gear-fold-caret::before {
+  content: "▸";
+  font-size: 11px;
+  color: #5a5f66;
+}
+.tno.gear-dialog .gear-fold[open] .gear-fold-caret::before {
+  content: "▾";
+}
+.tno.gear-dialog .gear-fold .gear-fold-summary {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12px;
+  color: #6a6f75;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tno.gear-dialog .gear-fold[open] .gear-fold-summary {
+  display: none;
+}
+.tno.gear-dialog .gear-fold-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 16px 12px;
+}
+.tno.gear-dialog .memo {
+  display: flex;
+  flex-direction: column;
+  min-height: 140px;
+  border: 1px solid #c9c4b8;
+  border-radius: 5px;
+  background: #fff;
+  overflow: hidden;
+  resize: vertical;
+}
+.tno.gear-dialog .memo:focus-within {
+  border-color: #22262b;
+}
+.tno.gear-dialog .memo .editor-menu {
+  flex: 0 0 auto;
+  padding: 3px 4px;
+  border-bottom: 1px solid #e2ded5;
+  background: #f7f5f0;
+}
+.tno.gear-dialog .memo .editor-content {
+  flex: 1;
+  min-height: 96px;
+  padding: 8px 10px;
+  line-height: 1.45;
+  cursor: text;
+  overflow-y: auto;
+}
+.tno.gear-dialog .memo .ProseMirror {
+  min-height: 88px;
+}
+.tno.gear-dialog .memo .ProseMirror:focus {
+  outline: none;
 }
 .tno.gear-dialog {
   /* ---------------------------------------------- Foot */
@@ -3473,51 +3302,84 @@
 .tno.gear-dialog .gear-foot {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding-top: 8px;
-  border-top: 2px solid #22262b;
+  gap: 8px;
+  margin-top: auto;
+  padding: 10px 16px;
+  background: #e4e0d7;
 }
-.tno.gear-dialog .gear-foot .gear-validation {
-  position: relative;
-  flex: 1;
-  min-width: 0;
-}
-.tno.gear-dialog .gear-foot .gear-status {
-  flex: 1;
-  cursor: pointer;
-  font-size: 10px;
-  color: rgba(34, 38, 43, 0.55);
-}
-.tno.gear-dialog .gear-foot .gear-status.is-missing {
-  color: #8e2a2a;
-}
-.tno.gear-dialog .gear-foot .missing-fields {
-  position: absolute;
-  z-index: 5;
-  bottom: calc(100% + 6px);
-  left: 0;
+.tno.gear-dialog .gear-status {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
-  width: min(420px, 80vw);
-  padding: 8px;
-  border: 1px solid #c9c4b8;
-  border-radius: 5px;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(34, 38, 43, 0.18);
+  align-items: center;
+  gap: 4px 6px;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #3f5f33;
 }
-.tno.gear-dialog .gear-foot .missing-fields span {
-  flex-basis: 100%;
-  color: rgba(34, 38, 43, 0.55);
-  font-size: 9px;
+.tno.gear-dialog .gear-status.is-missing {
+  color: #8a6a1e;
 }
-.tno.gear-dialog .gear-foot .missing-fields button {
-  padding: 3px 6px;
-  border: 1px solid rgba(142, 42, 42, 0.45);
+.tno.gear-dialog .gear-status-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #5e8c4a;
+}
+.tno.gear-dialog .gear-status.is-missing .gear-status-dot {
+  background: #d9a93a;
+}
+.tno.gear-dialog .gear-missing-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.tno.gear-dialog .gear-missing-link:hover {
+  color: #22262b;
+}
+.tno.gear-dialog .gear-foot-action {
+  margin-left: auto;
+  height: 28px;
+  padding: 0 10px;
+  border: 0;
   border-radius: 4px;
-  background: rgba(142, 42, 42, 0.05);
+  background: none;
+  color: #3b4047;
+  font-size: 12px;
+  cursor: pointer;
+}
+.tno.gear-dialog .gear-foot-action:hover {
+  background: rgba(34, 38, 43, 0.06);
+}
+.tno.gear-dialog .gear-foot-delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
   color: #8e2a2a;
-  font-size: 9px;
+  cursor: pointer;
+}
+.tno.gear-dialog .gear-foot-delete:hover {
+  background: rgba(142, 42, 42, 0.1);
+}
+.tno.gear-dialog .gear-foot-delete.is-blocked {
+  color: rgba(34, 38, 43, 0.3);
+  cursor: not-allowed;
+}
+.tno.gear-dialog .gear-foot-delete.is-blocked:hover {
+  background: none;
 }
 .tno {
   /* ================================================ Add to inventory
@@ -3567,7 +3429,7 @@
   gap: 10px;
   padding: 6px 10px;
   border: 1px solid #c9c4b8;
-  border-radius: 4px;
+  border-radius: 5px;
   color: rgba(34, 38, 43, 0.7);
   font-size: 12px;
   line-height: 1.2;
@@ -3645,7 +3507,7 @@
   width: 100%;
   height: 28px;
   border: 1px solid #c9c4b8;
-  border-radius: 4px;
+  border-radius: 5px;
   background: transparent;
   font-family: "IBM Plex Sans", sans-serif;
   font-size: 13px;

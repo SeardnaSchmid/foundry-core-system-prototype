@@ -1,6 +1,8 @@
-{{!-- The primary weapon category. A ranged weapon may still be used as an
-improvised melee weapon under the combat rules; that does not turn its authored
-ranged profile into a second, incomplete weapon profile. --}}
+{{!-- The weapon's values. The primary use decides which distance question
+is asked: a melee weapon has a Distanzklasse, a ranged one has its five range
+bands — the wiki's ranged DK — and only the one that applies is shown. A ranged
+weapon may still be swung as an improvised melee weapon under the combat rules;
+that does not give it a second authored profile. --}}
 
 <div class='gear-row' data-row='use'>
   <span class='gear-label'>{{localize 'TNO.Weapons.Use.Label'}}</span>
@@ -13,53 +15,38 @@ ranged profile into a second, incomplete weapon profile. --}}
   </div>
 </div>
 
-<div class='gear-row {{#if missing.wa}}is-missing{{/if}}' data-row='wa'>
-  <span class='gear-label' title='{{localize "TNO.Weapons.AttributeHint"}}'>{{localize 'TNO.Weapons.Attribute'}}</span>
-  <div class='gear-ctl'>
-    <label class='field field-wa' title='{{localize "TNO.Weapons.AttributeHint"}}'>
-      <select name='system.wa'>
-        <option value=''>—</option>
-        {{#each weaponAttributeOptions}}
-          <option value='{{this.key}}' {{#if this.on}}selected{{/if}}>{{localize this.label}}</option>
-        {{/each}}
-      </select>
-    </label>
+{{!-- WA and WF together are the fixed components a weapon check starts
+from, so they share one row. --}}
+<div class='gear-row {{#if missing.wa}}is-missing{{/if}}{{#if missing.wf}} is-missing{{/if}}' data-row='wa'>
+  <span class='gear-label' title='{{localize "TNO.Weapons.WfHint"}}'>{{localize 'TNO.Item.Editor.AttributeSkill'}}</span>
+  <div class='gear-ctl gear-ctl-pair'>
+    <select name='system.wa' data-field='wa' class='{{#if missing.wa}}is-missing{{/if}}'
+            aria-label='{{localize "TNO.Weapons.Attribute"}}' title='{{localize "TNO.Weapons.AttributeHint"}}'>
+      <option value=''>{{localize 'TNO.Item.Editor.AttributePick'}}</option>
+      {{#each weaponAttributeOptions}}
+        <option value='{{this.key}}' {{#if this.on}}selected{{/if}}>{{localize this.label}}</option>
+      {{/each}}
+    </select>
+    <select name='system.wf' data-field='wf' class='{{#if missing.wf}}is-missing{{/if}}'
+            aria-label='{{localize "TNO.Item.Cap.Wf"}}' title='{{localize "TNO.Weapons.WfHint"}}'>
+      <option value=''>{{localize 'TNO.Item.Editor.SkillPick'}}</option>
+      {{#each skills}}
+        <option value='{{this.key}}' {{#ifEquals this.key ../system.wf}}selected{{/ifEquals}}>{{this.label}}</option>
+      {{/each}}
+    </select>
   </div>
 </div>
 
-<div class='gear-row {{#if missing.wf}}is-missing{{/if}}' data-row='wf'>
-  <span class='gear-label' title='{{localize "TNO.Weapons.WfHint"}}'>{{localize 'TNO.Item.Cap.Wf'}}</span>
-  <div class='gear-ctl'>
-    <label class='field field-wf' title='{{localize "TNO.Weapons.WfHint"}}'>
-      <select name='system.wf'>
-        <option value=''>—</option>
-        {{#each skills}}
-          <option value='{{this.key}}' {{#ifEquals this.key ../system.wf}}selected{{/ifEquals}}>
-            {{this.label}}
-          </option>
-        {{/each}}
-      </select>
-    </label>
-  </div>
-</div>
-
-<div class='gear-row {{#if missing.dk}}is-missing{{/if}}' data-row='dk'>
-  <span class='gear-label' title='{{localize "TNO.Weapons.DkHint"}}'>{{localize 'TNO.Weapons.Dk'}}</span>
-  {{#if melee}}
+{{#if melee}}
+  <div class='gear-row {{#if missing.dk}}is-missing{{/if}}' data-row='dk'>
+    <span class='gear-label' title='{{localize "TNO.Weapons.DkHint"}}'>
+      {{localize 'TNO.Item.Editor.Dk'}} <span class='gear-sublabel'>· {{localize 'TNO.Item.Editor.DkSub'}}</span>
+    </span>
     {{> 'systems/tno/templates/item/parts/item-scale.hbs' cells=scales.dk key='dk'}}
-  {{else}}
-    <div class='gear-ctl'>
-      <span class='field na'>
-        <span class='cap'>0–6</span>
-        <span class='val'>{{localize 'TNO.Item.NaRanged'}}</span>
-      </span>
-    </div>
-  {{/if}}
-</div>
-
-<div class='gear-row {{#if missing.range}}is-missing{{/if}}' data-row='range'>
-  <span class='gear-label' title='{{localize "TNO.Weapons.RangeHint"}}'>{{localize 'TNO.Weapons.Range'}}</span>
-  {{#if ranged}}
+  </div>
+{{else}}
+  <div class='gear-row {{#if missing.range}}is-missing{{/if}}' data-row='range'>
+    <span class='gear-label' title='{{localize "TNO.Weapons.RangeHint"}}'>{{localize 'TNO.Weapons.Range'}}</span>
     <div class='gear-ctl range-cycle' role='group' aria-label='{{localize "TNO.Weapons.Range"}}'>
       {{#each rangeFields}}
         <button type='button' class='range-band {{this.state}}' data-band='{{this.band}}' title='{{localize "TNO.Weapons.RangeCycleHint"}}'>
@@ -68,51 +55,38 @@ ranged profile into a second, incomplete weapon profile. --}}
           <span>{{localize this.label}}</span>
         </button>
       {{/each}}
-      <p class='range-help'>{{localize 'TNO.Weapons.RangeVisualHint'}}</p>
     </div>
-  {{else}}
-    <div class='gear-ctl'>
-      {{!-- No band caption here: the five of them do not fit next to the
-      message, and the row's own label already says what is missing. --}}
-      <span class='field na' title='{{localize "TNO.Weapons.BandsShort"}}'>
-        <span class='val'>{{localize 'TNO.Item.NaMelee'}}</span>
-      </span>
-    </div>
-  {{/if}}
-</div>
+  </div>
+{{/if}}
 
-<div class='gear-row {{#if missing.rb}}is-missing{{/if}}' data-row='penetration'>
+<div class='gear-row {{#if missing.rb}}is-missing{{/if}}' data-row='rb'>
   <span class='gear-label' title='{{localize "TNO.Weapons.RbHint"}}'>{{localize 'TNO.Weapons.Rb'}}</span>
   {{> 'systems/tno/templates/item/parts/item-scale.hbs' cells=scales.rb key='rb'}}
 </div>
 
-{{!-- Which of the two damage figures applies is decided at the table, by RB
-against the armour's RH — so both are authored side by side and neither is ever
-n/a. --}}
-<div class='gear-row {{#if missing.ss}}is-missing{{/if}}' data-row='damage'>
-  <span class='gear-label' title='{{localize "TNO.Weapons.DamageHint"}}'>{{localize 'TNO.Weapons.Damage'}}</span>
-  <div class='gear-ctl'>
-    <label class='split' title='{{localize "TNO.Weapons.SsHint"}}'>
+{{!-- Which damage figure applies is decided at the table, by RB against the
+armour's RH — so both are authored side by side. A ranged weapon has one
+Handhabung only. --}}
+<div class='gear-row {{#if missing.ss}}is-missing{{/if}}' data-row='ss'>
+  <span class='gear-label' title='{{localize "TNO.Weapons.DamageHint"}}'>{{localize 'TNO.Item.Editor.DamageHandling'}}</span>
+  <div class='gear-ctl gear-ctl-quad'>
+    <label class='gear-field {{#if missing.ss}}is-missing{{/if}}' title='{{localize "TNO.Weapons.SsHint"}}'>
       <span class='cap'>{{localize 'TNO.Weapons.Ss'}}</span>
       <input type='number' name='system.ss.count' value='{{system.ss.count}}' min='0' step='1' />
     </label>
-    <label class='split' title='{{localize "TNO.Weapons.WsHint"}}'>
+    <label class='gear-field' title='{{localize "TNO.Weapons.WsHint"}}'>
       <span class='cap'>{{localize 'TNO.Weapons.Ws'}}</span>
       <input type='number' name='system.ws.count' value='{{system.ws.count}}' min='0' step='1' />
     </label>
-  </div>
-</div>
-
-<div class='gear-row' data-row='hh'>
-  <span class='gear-label' title='{{localize "TNO.Weapons.HhHint"}}'>{{localize 'TNO.Weapons.Hh'}}</span>
-  <div class='gear-ctl'>
-    <label class='split' title='{{localize "TNO.Weapons.HhHint"}}'>
-      <span class='cap'>{{localize 'TNO.Weapons.HhActive'}}</span>
+    <label class='gear-field' title='{{localize "TNO.Weapons.HhHint"}}'>
+      <span class='cap'>{{#if melee}}{{localize 'TNO.Item.Editor.HhActive'}}{{else}}{{localize 'TNO.Item.Summary.Hh'}}{{/if}}</span>
       <input type='number' name='system.hh.active' value='{{system.hh.active}}' min='-3' max='3' step='1' />
     </label>
-    <label class='split {{#if ranged}}is-disabled{{/if}}' title='{{#if ranged}}{{localize "TNO.Item.NaRanged"}}{{else}}{{localize "TNO.Weapons.HhHint"}}{{/if}}'>
-      <span class='cap'>{{localize 'TNO.Weapons.HhPassive'}}</span>
-      <input type='number' name='system.hh.passive' value='{{system.hh.passive}}' min='-3' max='3' step='1' {{#if ranged}}disabled{{/if}} />
-    </label>
+    {{#if melee}}
+      <label class='gear-field' title='{{localize "TNO.Weapons.HhHint"}}'>
+        <span class='cap'>{{localize 'TNO.Item.Editor.HhPassive'}}</span>
+        <input type='number' name='system.hh.passive' value='{{system.hh.passive}}' min='-3' max='3' step='1' />
+      </label>
+    {{/if}}
   </div>
 </div>

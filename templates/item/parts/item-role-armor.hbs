@@ -1,54 +1,42 @@
-{{!-- One armour piece belongs to exactly one location. Clicking the selected
-chip again clears it. --}}
+{{!-- The armour's values. One piece belongs to exactly one location; clicking
+the selected chip again clears it. The Unterkleidung is padding without a hit
+location: every row of it in the Rüstungstabelle reads RH 0 and RA "–", so it
+is asked for RW alone and a note says why the other two are gone. --}}
 
 <div class='gear-row {{#if missing.zone}}is-missing{{/if}}' data-row='zone'>
   <span class='gear-label'>{{localize 'TNO.Armor.Zone.Label'}}</span>
-  <div class='gear-ctl chips'>
+  <div class='gear-ctl segments'>
     {{#each zoneChips}}
-      <button type='button' class='chip zone-chip' data-zone='{{this.zone}}' aria-pressed='{{this.on}}'>
+      <button type='button' class='zone-chip' data-zone='{{this.zone}}' aria-pressed='{{this.on}}'>
         {{localize this.label}}
       </button>
     {{/each}}
   </div>
 </div>
 
-{{!-- Every Unterkleidung row of the Rüstungstabelle reads RH 0, so a suit's
-hardness is shown as that fixed zero rather than as an authorable scale. Hatched
-in place rather than hidden, like a ranged weapon's Distanzklasse: dropping the
-row would move RW and RA up under the cursor every time the location chip
-changes. --}}
-<div class='gear-row {{#if missing.rh}}is-missing{{/if}}' data-row='rh'>
-  <span class='gear-label' title='{{localize "TNO.Armor.RhHint"}}'>{{localize 'TNO.Armor.Rh'}}</span>
-  {{#if armorSuit}}
-    <div class='gear-ctl'>
-      <span class='field na' title='{{localize "TNO.Armor.SuitRhZeroHint"}}'>
-        <span class='cap'>{{localize 'TNO.Armor.Zone.Suit'}}</span>
-        <span class='val'>0</span>
-      </span>
-    </div>
-  {{else}}
+{{#unless armorSuit}}
+  <div class='gear-row {{#if missing.rh}}is-missing{{/if}}' data-row='rh'>
+    <span class='gear-label' title='{{localize "TNO.Armor.RhHint"}}'>
+      {{localize 'TNO.Armor.RhShort'}} <span class='gear-sublabel'>· {{localize 'TNO.Item.Editor.RhSub'}}</span>
+    </span>
     {{> 'systems/tno/templates/item/parts/item-scale.hbs' cells=scales.rh key='rh'}}
-  {{/if}}
-</div>
+  </div>
+{{/unless}}
 
 <div class='gear-row' data-row='rw'>
-  <span class='gear-label' title='{{localize "TNO.Armor.RwHint"}}'>{{localize 'TNO.Armor.Rw'}}</span>
+  <span class='gear-label' title='{{localize "TNO.Armor.RwHint"}}'>
+    {{localize 'TNO.Armor.RwShort'}} <span class='gear-sublabel'>· {{localize 'TNO.Item.Editor.RwSub'}}</span>
+  </span>
   {{> 'systems/tno/templates/item/parts/item-scale.hbs' cells=scales.rw key='rw'}}
 </div>
 
-{{!-- Rüstungsabdeckung is how hard one hit location is to shoot around, and the
-Unterkleidung has no hit location — the table writes its RA as "–". So a suit
-has no RA to author. --}}
-<div class='gear-row {{#if missing.ra}}is-missing{{/if}}' data-row='ra'>
-  <span class='gear-label' title='{{localize "TNO.Armor.RaHint"}}'>{{localize 'TNO.Armor.Ra'}}</span>
-  {{#if armorSuit}}
-    <div class='gear-ctl'>
-      <span class='field na' title='{{localize "TNO.Armor.SuitNoRaHint"}}'>
-        <span class='cap'>1–10</span>
-        <span class='val'>{{localize 'TNO.Armor.NaSuit'}}</span>
-      </span>
-    </div>
-  {{else}}
+{{#if armorSuit}}
+  <p class='gear-note'>{{localize 'TNO.Item.Editor.SuitNote'}}</p>
+{{else}}
+  <div class='gear-row {{#if missing.ra}}is-missing{{/if}}' data-row='ra'>
+    <span class='gear-label' title='{{localize "TNO.Armor.RaHint"}}'>
+      {{localize 'TNO.Armor.RaShort'}} <span class='gear-sublabel'>· {{localize 'TNO.Item.Editor.RaSub'}}</span>
+    </span>
     {{> 'systems/tno/templates/item/parts/item-scale.hbs' cells=scales.ra key='ra'}}
-  {{/if}}
-</div>
+  </div>
+{{/if}}

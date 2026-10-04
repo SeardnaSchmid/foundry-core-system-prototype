@@ -1,19 +1,35 @@
+{{!-- What using the piece does, as free text — it reads the same in the item
+popover and in chat. A piece without any yet shows one empty box rather than an
+"add" button, because a consumable without an effect is the case to fill in;
+typing into it creates the first entry. --}}
 <div class='gear-row gear-row-top {{#if missing.effects}}is-missing{{/if}}' data-row='effects'>
-  <span class='gear-label'>{{localize 'TNO.Item.Effects.Label'}}</span>
+  <span class='gear-label'>
+    {{localize 'TNO.Item.Effect'}} <span class='gear-sublabel'>· {{localize 'TNO.Item.Editor.Required'}}</span>
+  </span>
   <div class='gear-ctl consumable-effects'>
     {{#each consumableEffects}}
       <div class='consumable-effect' data-effect-id='{{this.id}}'>
-        <textarea name='system.consumableEffects.{{this.index}}.text' placeholder='{{localize "TNO.Item.Effects.Placeholder"}}'>{{this.text}}</textarea>
+        <textarea rows='3' name='system.consumableEffects.{{this.index}}.text'
+                  aria-label='{{localize "TNO.Item.Effect"}}'
+                  placeholder='{{localize "TNO.Item.Editor.EffectPlaceholder"}}'>{{this.text}}</textarea>
         <button type='button' class='consumable-effect-remove' data-effect-id='{{this.id}}' title='{{localize "TNO.Item.Effects.Remove"}}' aria-label='{{localize "TNO.Item.Effects.Remove"}}'>
           <i class='fa-solid fa-trash' aria-hidden='true'></i>
         </button>
       </div>
     {{else}}
-      <p class='empty-effect'>{{localize 'TNO.Item.Effects.Empty'}}</p>
+      <div class='consumable-effect' data-effect-id=''>
+        <textarea rows='3' class='is-missing' aria-label='{{localize "TNO.Item.Effect"}}'
+                  placeholder='{{localize "TNO.Item.Editor.EffectPlaceholder"}}'></textarea>
+      </div>
     {{/each}}
-    <button type='button' class='consumable-effect-add'>
-      <i class='fa-solid fa-plus' aria-hidden='true'></i>
-      {{localize 'TNO.Item.Effects.Add'}}
-    </button>
+    <div class='consumable-effects-foot'>
+      <span class='gear-help'>{{localize 'TNO.Item.Editor.EffectHelp'}}</span>
+      {{#if consumableEffects.length}}
+        <button type='button' class='consumable-effect-add'>
+          <i class='fa-solid fa-plus' aria-hidden='true'></i>
+          {{localize 'TNO.Item.Effects.Add'}}
+        </button>
+      {{/if}}
+    </div>
   </div>
 </div>

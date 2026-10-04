@@ -1,0 +1,9 @@
+{{!-- One section's head: its title, and — for a section with required
+fields — whether they are all set. Called as
+{{> item-section-head title='TNO.Weapons.Values' status=sections.weapon}}. --}}
+<div class='gear-section-head'>
+  <span class='gear-section-title'>{{localize title}}</span>
+  {{#if status}}
+    <span class='gear-section-status {{#if status.count}}is-missing{{else}}is-done{{/if}}'>{{status.label}}</span>
+  {{/if}}
+</div>

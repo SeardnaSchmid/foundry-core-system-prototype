@@ -3,7 +3,7 @@ type: concept
 title: Item roles and the gear dialog
 description: Why a physical item has roles instead of a Foundry item type, and how the row-editor sheet is built from them.
 tags: [items, roles, weapons, armor, sheets, schema]
-resource: [module/apps/item-overview.mjs, module/helpers/item-audit.mjs, module/apps/roll-dialog.mjs, module/documents/item.mjs, module/helpers/items.mjs, module/helpers/item-presentation.mjs, module/helpers/item-summary.mjs, module/helpers/item-transfer.mjs, module/sheets/actor-sheet.mjs, module/sheets/item-gear-sheet.mjs, templates/actor/parts/item-popover.hbs, templates/apps/create-item-dialog.hbs, templates/apps/take-item-dialog.hbs, templates/apps/roll-dialog.hbs, templates/chat/item-summary.hbs, templates/chat/item-use.hbs, templates/item/item-gear-sheet.hbs, templates/item/parts/item-gear-summary.hbs, templates/item/parts/item-role-weapon.hbs, templates/item/parts/item-post.hbs]
+resource: [module/apps/item-overview.mjs, module/helpers/item-audit.mjs, module/apps/roll-dialog.mjs, module/documents/item.mjs, module/helpers/items.mjs, module/helpers/item-presentation.mjs, module/helpers/item-summary.mjs, module/helpers/item-transfer.mjs, module/sheets/actor-sheet.mjs, module/sheets/item-gear-sheet.mjs, templates/actor/parts/item-popover.hbs, templates/apps/create-item-dialog.hbs, templates/apps/take-item-dialog.hbs, templates/apps/roll-dialog.hbs, templates/chat/item-summary.hbs, templates/chat/item-use.hbs, templates/item/item-gear-sheet.hbs, templates/item/parts/item-gear-summary.hbs, templates/item/parts/item-role-weapon.hbs, templates/item/parts/item-section-head.hbs]
 spec: docs/design/character-sheet-prd.md
 related: [concepts/combat-roll-workflows, concepts/inventory, concepts/migrations, reference/ui-surfaces, architecture/data-schema]
 ---
@@ -126,18 +126,17 @@ that affects resolution, not the authored base value.
 `price` is an optional **euro base price**. The currency section explicitly compares
 all currencies against euros (with one OR equal to one euro), so a
 currency-specific item price would bake an exchange choice into the catalog.
-In the edit view, quantity, base price and availability form the separate
-**Trade** group; the calculated slot footprint stays beside quantity because
-it changes with the stack size.
+In the edit view, quantity, base price and availability form the folded
+**Handel** section; its summary line reads them back while it is shut.
 
 ## Armour has one location
 
-`zone` is one of Unterkleidung, head, torso, arms or legs. The edit chips are
+`zone` is one of Unterkleidung, head, torso, arms or legs. The edit segments are
 an exclusive, clearable selection and the paper doll fills that one target
 when the piece is worn. Unterkleidung remains a special base-layer location
 which contributes beneath every hit zone during armour resolution — padding
-only, since it has no hit location to harden or cover. Its RH row shows the
-table's fixed `0` and its RA row is hatched; both are authorable on every other
+only, since it has no hit location to harden or cover. The editor leaves its
+RH and RA rows out and says why in a note; both are authorable on every other
 location.
 
 ## The editor and compact summary
@@ -154,49 +153,34 @@ the pure presentation data, while
 localization and the live actor context for the compact summary. Together they
 keep slot footprint, weapon skill, armour values and carried/worn state out of templates.
 
-Three properties of the layout are deliberate and easy to undo by accident:
+The editor follows the 2026-10 "Item-Editor" mockup. Its shape is deliberate:
 
-**No tabs inside editing.** Every field an item has is on one scrolling page.
-The compact play summary is a separate surface rather than a second editor view,
-so related authoring fields are never divided across hidden pages.
+**One column, in authoring order.** Identity first — picture, name and the role
+as a four-way radiogroup (*Gegenstand* is the explicit "no role") — then the
+role's values, then *Inventar* (slots; *Zweihändig* and SV for a weapon, SV for
+armour), then *Handel* and *Beschreibung* as folds, and a foot with the status
+and the two whole-item acts, posting to chat and deleting. Every value row is
+`label | control` with a 130px label column, so values start at one x down the
+whole sheet. `position.width` is 720: RB's eleven cells beside that column.
 
-**The page is a rail beside a band, then one full-width column.** The rail holds
-what is about the item as an object rather than a field of it — its picture, and
-the two acts that take the whole thing somewhere, posting it to chat and deleting
-it. Beside it sit the rows every item has: roles, SV, slots, and Trade. Past the
-rail's own height the page is `.gear-wide`, a single full-width column carrying
-description and whatever blocks the item's roles bring.
+**No tabs; folds instead.** Tabs would hide fields a player is comparing.
+Handel and Beschreibung are filled once and then only read, so they fold, and
+the summary line on a shut fold says what is in it ("Menge 1 · Preis – ·
+Verfügbarkeit –", or the start of the description). Which folds are open is kept
+on the sheet instance (`#openFolds`), because every change re-renders the form.
 
-The rail deliberately stops rather than running the sheet's height. Run full
-height it left several hundred pixels of empty column under the delete link,
-while the two things that actually want width — a rich-text editor, and scales of
-up to eleven cells — were being shortened by a picture they were nowhere near.
+**Only what applies is shown.** A ranged weapon is asked for its five range
+bands — the wiki's ranged DK — where a melee one is asked for DK; a ranged one
+has one HH, a melee one HH-A and HH-P; the Unterkleidung has RW alone. The
+earlier sheet hatched such rows as `n/a` so nothing moved; the redesign trades
+that for a shorter form, and the rows that change swap one for one or sit at a
+section's end.
 
-The picture is square, and nothing beside it can stretch its frame, which settles
-the crop-or-letterbox problem a stretched band could not: a square frame around
-square art fits exactly.
-
-**Description belongs to the defaults by meaning but sits in the wide half.** It
-is a field every item has, so it leads that half rather than trailing the role
-blocks — but it is laid out with them because an editor wants width more than it
-wants to be next to Trade.
-
-Both halves keep `label | control` at the fixed 96px, so within each the values
-start at the same x. They do not share one x with each other: the wide half's
-labels begin at the sheet's edge and the band's begin past the rail. That is the
-cost of the split and is accepted.
-
-`position.width` follows from the cells rather than from taste: beside the rail,
-Availability's ten cells plus the label column plus the rail come to 723; below
-it, RB's eleven cells plus the label column come to 576. 760 clears both, and
-under it a ten-cell scale wraps rather than shrinking.
-
-**Nothing is hidden, only disabled.** A field the current role or use does not
-apply to — the Distanzklasse of a rifle, the Fertigkeitswert of a breastplate —
-stays in place as a hatched `n/a` cell. Collapsing the row would move every row
-below it, so switching a weapon from melee to ranged would make the dialog jump
-under the cursor. Whole role blocks are the exception: a role that is off is a
-section the item does not have, not a field it cannot fill.
+**Required fields say so where they are.** A field `missingRequired` reports is
+drawn in amber in its row; each section's head counts its own
+(`SECTION_FIELDS`: "2 Pflichtfelder offen" / "✓ vollständig"), and the foot lists
+them all ("Offen: …"), each a button that focuses its control via `data-field`
+or `data-row`.
 
 ## The GM's provenance window
 
@@ -303,17 +287,13 @@ Controls, and when each is right:
 
 | Control | Used for | Why |
 | --- | --- | --- |
-| Click-scale | slots, availability, DK, RB, RH, RW, RA | A closed set of steps a rules table enumerates. Clicking the selected cell again clears it — the only way back to "not set". The slots label has a keyboard-focusable info-icon tooltip containing the complete size guideline table |
+| Click-scale | slots, availability, DK, RB, RH, RW, RA | A closed set of steps a rules table enumerates. Clicking the selected cell again clears it — the only way back to "not set". The slots label carries the complete size guideline table as its tooltip |
 | Stepper | quantity | A count with no table behind it, nudged far more often than typed |
-| Chips | role, armour location | Both are exclusive and clearable selections |
-| Segments | weapon use | Single-select melee/ranged category, joined into one bar |
-| Range bands | Five independently cycled `—`, `−3`, `0`, `+3` values. New ranged profiles start neutral at `0`; a horizontal line moves down/red for a penalty and up/green for a bonus, with a dashed center line for no attack |
-| Split | SS, WS, HH | Related values in equal caption/value boxes: SS beside WS and Angriff beside Parade. A ranged weapon keeps Parade visible but disables its input. SS/WS are plain damage values from 0 upward — no unit, no die type, and nothing to append to the number |
-| Repeatable text | consumable effects | Each effect is a complete free-text rule including any value or duration it needs |
-
-The general/trade fields and the selected role's fields are separated by a
-labelled horizontal rule. The divider is structural orientation only; it does
-not hide either group or create another tab.
+| Segments | role, weapon use, armour location | Exclusive selections, joined into one bar with the chosen one filled. The location is clearable by clicking it again; the role is a radiogroup with *Gegenstand* for none |
+| Select pair | WA, WF | The two fixed components a weapon check starts from, side by side in one row |
+| Range bands | ranged distance | Five independently cycled `—`, `−3`, `0`, `+3` values. A horizontal line moves down/red for a penalty and up/blue for a bonus, with a dashed center line for no attack |
+| Value boxes | SS, WS, HH-A, HH-P; SV; price | Caption left, figure right. SS/WS are plain damage values from 0 upward — no unit, no die type |
+| Repeatable text | consumable effects | Each effect is a complete free-text rule. A consumable without one shows one empty box; typing into it creates the first entry |
 
 The keyboard model is part of the design, not an accessibility afterthought:
 `↑`/`↓` walk the rows, `←`/`→` change the value in the focused scale, and a
@@ -360,8 +340,8 @@ description it has always been.
 - **Holsters, vacuum sealing, clothing category.** Real properties in the
   rules, but nothing reads them — adding fields nothing reads is how the old
   `roll.diceNum` boxes got there. *Zweihändig* is the exception, because the
-  hands read it: `twoHanded` is a checkbox beside SV on every piece (any piece
-  can be held), and the popover's subtitle names it — see
+  hands read it: `twoHanded` is a checkbox in a weapon's Inventar section (the
+  flag is read on any piece that has it), and the popover's subtitle names it — see
   [inventory.md](inventory.md#holding).
 - **Readiness as a rule and automatic attack resolution.** Ranged weapons may be
   used as improvised melee weapons under the combat rules, but that does not
