@@ -1,5 +1,17 @@
 # Changelog
 
+# [0.54.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.53.0...v0.54.0) (2026-10-04)
+
+
+### Bug Fixes
+
+* **e2e:** seed an explicit English client language before joining ([7819576](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/781957637ba28950e094f251874d1eb5ab606765))
+
+
+### Features
+
+* **sheet:** Beziehungen tab with table and relationship graph ([b55847a](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/b55847aff2d80890a5e36d12e3c96feb7d892b62))
+
 # [0.53.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.52.0...v0.53.0) (2026-10-04)
 
 
