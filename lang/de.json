@@ -585,7 +585,9 @@
         "Hint": "Eins vom Bestand abziehen und die Wirkung im Chat zeigen.",
         "Flavor": "{item} benutzt",
         "Remaining": "Verbleibend: {count}"
-      }
+      },
+      "TwoHanded": "Zweihändig",
+      "TwoHandedHint": "Braucht beide Hände: in der Hand belegt es beide und legt ab, was dort war."
     },
     "Roll": {
       "DialogTitle": "Würfelwurf",
@@ -960,6 +962,17 @@
         "Legs": "Beine"
       }
     },
+    "Hands": {
+      "Title": "In der Hand",
+      "Hint": "Was der Charakter gerade hält — nur zur Übersicht, ohne Regelwirkung: Slots, Angriff und Parade bleiben gleich. Einen Gegenstand auf eine Hand ziehen; ein zweihändiger belegt beide.",
+      "Right": "R. Hand",
+      "Left": "L. Hand",
+      "Both": "Beide Hände",
+      "Empty": "leer",
+      "Release": "Aus der Hand legen",
+      "HeldHint": "In der Hand — anklicken für Aktionen, zurück in die Inventarslots ziehen oder × zum Ablegen.",
+      "DropHint": "Einen Gegenstand hierher ziehen, um ihn in diese Hand zu nehmen."
+    },
     "Inventory": {
       "CarrySlots": "Inventar",
       "Slots": "Inventarslots",
@@ -991,6 +1004,8 @@
       "WornHint": "Am Leib getragen — zählt zum gemeinsamen Slotbudget. Über das Paperdoll ablegen.",
       "WornSlot": "Getragen",
       "WornSlotHint": "Getragener Teil des Slotbudgets — wird vor mitgeführter Ausrüstung gepackt.",
+      "Held": "In der Hand",
+      "HeldSlotHint": "In der Hand — zählt weiter als mitgeführt. Mit dem × an der Hand oder per Ziehen zurück in die Inventarslots ablegen.",
       "Stashed": "Zurückgelassen",
       "StashedHint": "Nicht dabei — abgelegt, weggegeben oder abgenommen. Zählt nicht zur Last, kann nicht getragen und nicht benutzt werden. In die Inventarslots ziehen, um es wieder mitzunehmen.",
       "StashedEmpty": "Hierher ziehen, was der Charakter gerade nicht dabei hat.",

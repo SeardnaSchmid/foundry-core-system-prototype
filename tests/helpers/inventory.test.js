@@ -6,6 +6,10 @@ import {
   buildSlotGrid,
   isStashed,
   CARRY_THRESHOLDS,
+  heldItemIds,
+  holdInHand,
+  releaseHand,
+  releaseItem,
 } from '../../module/helpers/inventory.mjs';
 
 /** Shorthand for a carried item stack. */
@@ -334,3 +338,43 @@ describe('left-behind gear', () => {
   });
 });
 
+describe('hands', () => {
+  const empty = { right: null, left: null };
+
+  it('takes a one-handed piece into one hand and leaves the other alone', () => {
+    expect(holdInHand(empty, 'machete', 'right')).toEqual({ right: 'machete', left: null });
+    expect(holdInHand({ right: 'machete', left: null }, 'torch', 'left'))
+      .toEqual({ right: 'machete', left: 'torch' });
+  });
+
+  it('moves a piece from one hand to the other rather than copying it', () => {
+    expect(holdInHand({ right: 'machete', left: null }, 'machete', 'left'))
+      .toEqual({ right: null, left: 'machete' });
+  });
+
+  it('fills both hands with a two-handed piece and puts down what was there', () => {
+    expect(holdInHand({ right: 'machete', left: 'torch' }, 'axe', 'left', true))
+      .toEqual({ right: 'axe', left: 'axe' });
+  });
+
+  it('puts a two-handed piece down as a whole when one hand takes something else', () => {
+    expect(holdInHand({ right: 'axe', left: 'axe' }, 'torch', 'left'))
+      .toEqual({ right: null, left: 'torch' });
+  });
+
+  it('empties a hand, and both for a two-handed piece', () => {
+    expect(releaseHand({ right: 'machete', left: 'torch' }, 'right')).toEqual({ right: null, left: 'torch' });
+    expect(releaseHand({ right: 'axe', left: 'axe' }, 'left')).toEqual(empty);
+    expect(releaseHand(empty, 'left')).toEqual(empty);
+  });
+
+  it('lets go of one piece wherever it is held', () => {
+    expect(releaseItem({ right: 'axe', left: 'axe' }, 'axe')).toEqual(empty);
+    expect(releaseItem({ right: 'machete', left: 'torch' }, 'torch')).toEqual({ right: 'machete', left: null });
+  });
+
+  it('collects the held ids, with no store at all reading as empty hands', () => {
+    expect([...heldItemIds({ right: 'axe', left: 'axe' })]).toEqual(['axe']);
+    expect(heldItemIds(undefined).size).toBe(0);
+  });
+});

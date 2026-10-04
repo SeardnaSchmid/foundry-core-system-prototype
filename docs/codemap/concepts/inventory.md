@@ -122,15 +122,9 @@ Two consequences are worth knowing before changing anything here:
   degrades movement, so the UI shows 12/10 rather than refusing the item.
 
 **A weapon is gear like any other here.** The Richtwert table prices weapons by
-size alongside everything else, so a carried weapon costs its slots. Whether one
-is *readied* is a separate question the rules have not answered yet, and it is
-deliberately not modelled by exempting weapons from the budget.
-
-The Basics tab used to reserve an empty Waffen block for the answer. It no
-longer does: a block that lists nothing is a promise, not a layout, and holding
-a column open for two years taught a reader only that weapons were missing.
-Readiness will need its own view when it exists, and what shape that view takes
-is not decided by leaving a gap for it now.
+size alongside everything else, so a carried weapon costs its slots. What the
+character holds in hand ([Holding](#holding)) is bookkeeping on top of that and
+deliberately not modelled by exempting anything from the budget.
 
 Load states come from `CARRY_THRESHOLDS`: at half capacity or more,
 `noSprint`; once the budget is full, `crawlOnly`. `derived.canSprint`
@@ -225,7 +219,33 @@ Armour is put on by dragging it onto its zone and taken off by dragging the row
 back into the slot grid, or with the row's `x` — see
 [Moving things between the two views](#moving-things-between-the-two-views).
 
-## The two views
+## Holding
+
+`system.hands` maps `right` and `left` to an item id. A piece whose
+`system.twoHanded` is ticked is stored in both, the way a coverall is stored in
+every zone it covers, so whether a hand is free stays one lookup. The pure
+helpers sit beside the wearing ones in `inventory.mjs`:
+
+| Export | Responsibility |
+| --- | --- |
+| `HANDS` | `['right', 'left']` |
+| `heldItemIds(hands)` | The id set in either hand |
+| `holdInHand(hands, id, hand, twoHanded)` | Both hands once a piece is taken into one: it leaves the hand it was in; a two-handed one fills both; a one-handed one put where a two-handed one was puts that down whole |
+| `releaseHand(hands, hand)` | One hand emptied — both, if it held a two-handed piece |
+| `releaseItem(hands, id)` | The piece let go wherever it was held |
+
+**Holding has no rule effect.** A held piece is still carried: it keeps its
+slots and its band in the raster, and every piece keeps its weapon actions held
+or not. The rules' Bereit machen and Schnellziehen are played at the table; this
+is the sheet remembering the answer. The only readers are the views — the hand
+slots, the silhouette's hand dots, the held cell's colour and the popover's
+*In der Hand* state (`buildOwnershipPresentation`, where worn still wins).
+
+Any physical piece can be held, not only weapons. Taking one in hand picks it up
+from the pile and takes it off the body first; leaving it behind
+(`_setStashed`) or wearing it (`_setEquippedArmor`) lets go of it. A hand that
+points at an item the actor no longer owns renders empty, like a zone does.
+
 
 Both are **derived on every render, never stored** — see
 [ui-surfaces.md](../reference/ui-surfaces.md) for the templates and
@@ -301,6 +321,13 @@ changes state**:
   for the way back exactly as it does for a worn piece. The item popover's
   *Zurücklassen* / *Mitnehmen* button is the same toggle without dragging, and
   the only way for Kleinkram, whose tab does not show the block.
+
+- **Anything physical onto a hand** takes it into that hand (`_setHeld`); a
+  two-handed piece lights and fills both. The hand slots sit inside the doll
+  block but are checked first, so they never read as an armour drop. While any
+  gear is in flight the hands light up (`hands-drop-target`). A held slot is
+  draggable like a worn row: back onto the raster puts it down, its `x` does
+  the same, onto the other hand moves it.
 
 **An empty zone is a drop target and nothing else.** Clicking one used to offer
 to author a piece on the spot, which conjured armour out of an empty doll —

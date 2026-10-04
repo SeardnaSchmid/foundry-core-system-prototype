@@ -39,10 +39,10 @@ summary cell: count the room that is left. --}}
   it to the end, and armour dragged onto its paper doll zone is worn. --}}
   <div class='slot-grid'>
     {{#each slotGrid.cells as |cell|}}
-      <div class='slot-cell slot-filled draggable{{#if cell.worn}} worn{{/if}}{{#if cell.over}} over-capacity{{/if}}{{#if cell.first}} slot-first{{/if}}{{#if cell.showQty}} slot-with-qty{{/if}}{{#unless cell.last}} slot-joined{{/unless}}'
+      <div class='slot-cell slot-filled draggable{{#if cell.worn}} worn{{/if}}{{#if cell.held}} held{{/if}}{{#if cell.over}} over-capacity{{/if}}{{#if cell.first}} slot-first{{/if}}{{#if cell.showQty}} slot-with-qty{{/if}}{{#unless cell.last}} slot-joined{{/unless}}'
            style='--slot-run: {{cell.span}}'
            data-item-id='{{cell.item._id}}'
-           {{#if cell.worn}}title='{{localize "TNO.Inventory.WornSlotHint"}}'{{/if}}>
+           {{#if cell.worn}}title='{{localize "TNO.Inventory.WornSlotHint"}}'{{else if cell.held}}title='{{localize "TNO.Inventory.HeldSlotHint"}}'{{/if}}>
         {{#if cell.first}}
           <i class='fas fa-grip-vertical slot-grip'></i>
           {{#if cell.over}}<i class='fas fa-triangle-exclamation slot-overflow-icon'></i>{{/if}}
@@ -62,7 +62,7 @@ summary cell: count the room that is left. --}}
             stay reachable on hover as well as through the popover a click
             opens — the skill list carries its own title for the same reason. --}}
             <span class='slot-name' title='{{cell.item.name}}'>{{cell.item.name}}</span>
-            <span class='slot-subcategory'>{{#if cell.worn}}{{localize 'TNO.Inventory.WornSlot'}}{{#if cell.typeLine}} · {{/if}}{{/if}}{{cell.typeLine}}</span>
+            <span class='slot-subcategory'>{{#if cell.worn}}{{localize 'TNO.Inventory.WornSlot'}}{{#if cell.typeLine}} · {{/if}}{{else if cell.held}}{{localize 'TNO.Inventory.Held'}}{{#if cell.typeLine}} · {{/if}}{{/if}}{{cell.typeLine}}</span>
           </span>
           {{#if cell.showQty}}<span class='slot-qty'>×{{cell.quantity}}</span>{{/if}}
         {{/if}}

@@ -11,6 +11,7 @@ system:
   availability: null
   description: <p>Zweihändig, Ringen</p>
   wf: flexibleWeapons
+  twoHanded: true
   roles:
     weapon: true
     armor: false

@@ -81,15 +81,79 @@ export function wornItemIds(equipment) {
 }
 
 /**
+ * The two hands, right first. `actor.system.hands` maps each to the id of the
+ * item it holds; a two-handed piece is stored in both, the way a coverall is
+ * stored in every zone it covers, so "is this hand free" is one lookup.
+ *
+ * Holding has no rule effect in the system: it is table bookkeeping, and a held
+ * piece stays carried, in its slots and in its actions.
+ * @type {Array<string>}
+ */
+export const HANDS = ['right', 'left'];
+
+/**
+ * The set of item ids currently held in either hand.
+ * @param {Object} hands  actor.system.hands — hand key -> item id.
+ * @returns {Set<string>}
+ */
+export function heldItemIds(hands) {
+  return new Set(HANDS.map((hand) => hands?.[hand]).filter(Boolean));
+}
+
+/**
+ * Both hands with `itemId` taken out of whichever held it.
+ * @param {Object} hands
+ * @param {string} itemId
+ * @returns {{right: ?string, left: ?string}}
+ */
+export function releaseItem(hands, itemId) {
+  return Object.fromEntries(
+    HANDS.map((hand) => [hand, hands?.[hand] && hands[hand] !== itemId ? hands[hand] : null])
+  );
+}
+
+/**
+ * Both hands with one of them emptied. A two-handed piece is in both, so
+ * putting it out of one hand puts it down entirely.
+ * @param {Object} hands
+ * @param {string} hand  A key of HANDS.
+ * @returns {{right: ?string, left: ?string}}
+ */
+export function releaseHand(hands, hand) {
+  const held = hands?.[hand];
+  return held ? releaseItem(hands, held) : releaseItem(hands, null);
+}
+
+/**
+ * Both hands once `itemId` is taken into `hand`.
+ *
+ * The piece leaves whichever hand had it before, so dragging it across moves
+ * it rather than duplicating it. A two-handed piece takes both hands and puts
+ * down whatever was in them; a one-handed piece put into a hand that held a
+ * two-handed one puts that one down as a whole, never half of it.
+ * @param {Object} hands
+ * @param {string} itemId
+ * @param {string} hand        A key of HANDS.
+ * @param {boolean} twoHanded  Whether the piece needs both hands.
+ * @returns {{right: ?string, left: ?string}}
+ */
+export function holdInHand(hands, itemId, hand, twoHanded = false) {
+  if (twoHanded) return Object.fromEntries(HANDS.map((key) => [key, itemId]));
+  const next = releaseHand(releaseItem(hands, itemId), hand);
+  next[hand] = itemId;
+  return next;
+}
+
+/**
  * The item types the slot economy applies to: physical things a character can
  * pick up. `feature` and `spell` are not objects at all, so they never appear
  * in the grid or the sum.
  *
  * A weapon is gear like any other here — the Inventarregeln's Richtwert table
  * prices weapons by size along with everything else ("einhändige Waffen",
- * "zweihändige Waffen", "schwere Waffen"). Whether a weapon is *readied* is a
- * separate, still-undesigned question, and deliberately not modelled by
- * exempting it from the budget.
+ * "zweihändige Waffen", "schwere Waffen"). What a character holds in hand
+ * (`HANDS`) is bookkeeping on top of that and deliberately not modelled by
+ * exempting it from the budget: a held piece is still carried.
  *
  * Kept as an alias of GEAR_TYPES: which *roles* a piece of gear has took over
  * from its type everywhere else, but the slot economy never cared about the

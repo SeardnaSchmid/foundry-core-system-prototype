@@ -41,6 +41,9 @@ in Foundry v14+.
   - `character.equipment.<zone>` — the worn-gear store: `suit`, `head`,
     `torso`, `arms`, `legs`, each holding an owned item id or `null`. See
     [inventory.md](../concepts/inventory.md).
+  - `character.hands.{right,left}` — what each hand holds, an owned item id or
+    `null`; a two-handed piece sits in both. Bookkeeping without a rule effect,
+    see [inventory.md](../concepts/inventory.md#holding).
   - `character.damage.{sharp,blunt}` — the two raw non-negative damage counters,
     Schaden and Wuchtschaden; the keys predate that naming. Their conversion,
     global malus and incapacitation state are derived; old actors without the
@@ -83,6 +86,7 @@ in Foundry v14+.
     rather than authoring: `stashed`, true while the piece is left behind —
     owned but not on the character, see
     [inventory.md](../concepts/inventory.md#where-the-state-is-stored).
+    `twoHanded` is authored on every piece, since any piece can be held.
   - `feature` has nothing beyond `base`; `spell` adds `spellLevel`.
 
 Item types are declared in `template.json`, which Foundry reads **at

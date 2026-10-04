@@ -172,6 +172,12 @@ describe('item presentation', () => {
     expect(buildGearPresentation({ id: 'rope', type: 'item', system: {} }, actor).ownership.state).toBe('carried');
   });
 
+  it('reports a held piece as held, and a worn one as worn even in hand', () => {
+    const actor = { system: { equipment: { head: 'helmet' }, hands: { right: 'machete', left: 'helmet' } } };
+    expect(buildGearPresentation({ id: 'machete', type: 'item', system: {} }, actor).ownership.state).toBe('held');
+    expect(buildGearPresentation({ id: 'helmet', type: 'item', system: {} }, actor).ownership.state).toBe('worn');
+  });
+
   it('reads the Strength shortfall off the owning character', () => {
     const actor = { system: { abilities: { str: { base: 4 } }, derived: {}, equipment: {} } };
     const short = buildGearSummary({ ...weapon({ sv: 5, dk: 1, rb: 0, ss: { count: 1 }, wf: 'blades' }), actor });

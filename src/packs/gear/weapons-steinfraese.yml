@@ -11,6 +11,7 @@ system:
   availability: null
   description: <p>Zweihändig</p>
   wf: heavyMelee
+  twoHanded: true
   roles:
     weapon: true
     armor: false

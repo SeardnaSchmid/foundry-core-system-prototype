@@ -60,6 +60,11 @@ is the drop target and the at-a-glance summary. --}}
           </g>
         {{/ifEquals}}
       {{/each}}
+      {{!-- The hands, under the arms: filled when something is held. The
+      figure faces the reader, so the right hand is on the reader's left. They
+      are a read-out only — no hit location, so no resistance click. --}}
+      <circle class='hand hand-{{paperdoll.hands.figure.right}}' cx='29.5' cy='99' r='5'/>
+      <circle class='hand hand-{{paperdoll.hands.figure.left}}' cx='90.5' cy='99' r='5'/>
     </svg>
 
     {{!-- Ausweichen belongs to the defender as a whole, never to one hit
@@ -209,6 +214,32 @@ is the drop target and the at-a-glance summary. --}}
         {{localize 'TNO.Armor.SvPenalty' str=system.abilities.str.base sv=paperdoll.svLabel}}
       </div>
     {{/if}}
+
+    {{!-- What the character holds. Bookkeeping without a rule effect: a held
+    piece stays carried, in its slots and in its actions. Any physical piece is
+    taken in hand by dragging it onto a hand, put down with the x or by dragging
+    it back into the slot grid; a two-handed one fills both and shows as one
+    slot across them. --}}
+    <div class='paperdoll-hands' title='{{localize "TNO.Hands.Hint"}}'>
+      <span class='hands-title'>{{localize 'TNO.Hands.Title'}}</span>
+      <div class='hand-slots'>
+        {{#each paperdoll.hands.slots as |h|}}
+          <div class='hand-slot {{#if h.item}}draggable{{else}}hand-empty{{/if}}{{#if h.both}} hand-both{{/if}}'
+               data-hand='{{h.hand}}'
+               {{#if h.item}}data-item-id='{{h.item.id}}' draggable='true'{{/if}}
+               title='{{#if h.item}}{{localize "TNO.Hands.HeldHint"}}{{else}}{{localize "TNO.Hands.DropHint"}}{{/if}}'>
+            {{#if h.item}}
+              <span class='hand-name'><span class='hand-label'>{{localize h.label}} ·</span> {{h.item.name}}</span>
+              <a class='hand-release' data-hand='{{h.hand}}' title='{{localize "TNO.Hands.Release"}}'>
+                <i class='fas fa-times'></i>
+              </a>
+            {{else}}
+              <span class='hand-name'>{{localize h.label}} · <i>{{localize 'TNO.Hands.Empty'}}</i></span>
+            {{/if}}
+          </div>
+        {{/each}}
+      </div>
+    </div>
 
   </div>
 

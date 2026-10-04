@@ -18,7 +18,12 @@ import {
 import {
   buildSlotGrid,
   ARMOR_ADDON_ZONES,
+  HANDS,
+  heldItemIds,
+  holdInHand,
   isStashed,
+  releaseHand,
+  releaseItem,
   wornItemIds,
 } from '../helpers/inventory.mjs';
 import { MONEY_CURRENCIES, normalizeMoneyAmount, prepareWallet } from '../helpers/money.mjs';
@@ -1066,6 +1071,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           svLabel: item ? this.#formatNumber(Number(item.system?.sv) || 0) : null,
         };
       }),
+      hands: this.#handsContext(),
     };
 
     const capacity = derived.carrySlots ?? 0;
@@ -1076,6 +1082,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       !(derived.carryNoContainer ?? false)
     );
     const used = derived.carrySlotsUsed ?? 0;
+    const held = heldItemIds(this.actor.system.hands);
 
     context.slotGrid = {
       ...grid,
@@ -1089,8 +1096,8 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       // free cells: anything straddling pushes the cursor past capacity, so
       // `empty` is 0 exactly when `overflow` is non-empty.
       cells: [
-        ...grid.blocks.flatMap((block) => this.#slotCells(block, block.inside)),
-        ...grid.overflow.flatMap((block) => this.#slotCells(block, 0)),
+        ...grid.blocks.flatMap((block) => this.#slotCells(block, block.inside, held)),
+        ...grid.overflow.flatMap((block) => this.#slotCells(block, 0, held)),
       ],
       // Zero-slot items get no cell, but they still stack — loose change is the
       // likeliest thing on the sheet to be counted — so each row carries its
@@ -1153,10 +1160,11 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    *
    * @param {{item: Item, span: number, quantity: number, worn: boolean}} block
    * @param {number} inside  Cells of this block that fit the budget.
+   * @param {Set<string>} held  Item ids in either hand.
    * @returns {Array<object>}
    * @private
    */
-  #slotCells(block, inside) {
+  #slotCells(block, inside, held) {
     return Array.from({ length: block.span }, (_, index) => {
       const over = index >= inside;
       return {
@@ -1172,8 +1180,37 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         quantity: block.quantity,
         showQty: block.quantity > 1,
         worn: block.worn,
+        // Still carried and still in the carried band: holding changes nothing
+        // the budget counts, so the cell only takes the "on the body" colour.
+        held: held.has(block.item.id),
       };
     });
+  }
+
+  /**
+   * The two hands under the paper doll. A two-handed piece is stored in both
+   * hands, so it renders as one slot across both rather than as the same item
+   * twice; its `hand` is the right one, which is what the slot's `x` and drag
+   * hand back to `_setHeld`.
+   *
+   * `figure` is the silhouette's view of the same state, one entry per hand.
+   * @returns {{slots: Array<object>, figure: Object<string, string>}}
+   * @private
+   */
+  #handsContext() {
+    const hands = this.actor.system.hands ?? {};
+    const itemIn = (hand) => this.actor.items.get(hands[hand]) ?? null;
+    const figure = Object.fromEntries(HANDS.map((hand) => [hand, itemIn(hand) ? 'held' : 'empty']));
+    const both = itemIn('right') && hands.right === hands.left;
+    const slots = both
+      ? [{ hand: 'right', label: 'TNO.Hands.Both', item: itemIn('right'), both: true }]
+      : HANDS.map((hand) => ({
+        hand,
+        label: hand === 'right' ? 'TNO.Hands.Right' : 'TNO.Hands.Left',
+        item: itemIn(hand),
+        both: false,
+      }));
+    return { slots, figure };
   }
 
   /**
@@ -1719,7 +1756,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     let anchor = this._itemPopoverAnchor;
     if (!anchor?.isConnected) {
       const id = CSS.escape(this._itemPopoverItemId ?? '');
-      anchor = this.element.querySelector(`.slot-first[data-item-id="${id}"], .slot-trinket[data-item-id="${id}"], .stash-item[data-item-id="${id}"], .armor-row[data-item-id="${id}"]`);
+      anchor = this.element.querySelector(`.slot-first[data-item-id="${id}"], .slot-trinket[data-item-id="${id}"], .stash-item[data-item-id="${id}"], .armor-row[data-item-id="${id}"], .hand-slot[data-item-id="${id}"]`);
       this._itemPopoverAnchor = anchor;
     }
     if (!anchor) return;
@@ -2121,7 +2158,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // targets in
     // _onRender; this forwards their Enter/Space to the same click listeners
     // bound below.
-    this.#delegate('keydown', 'a:not([href]), .skill-info, .heatmap-cell, .slot-cell, .slot-trinket, .stash-item, .armor-row[data-item-id], .money-wallet-block.editable, .banner-portrait .profile-img[data-action="editImage"]', (event, target) => {
+    this.#delegate('keydown', 'a:not([href]), .skill-info, .heatmap-cell, .slot-cell, .slot-trinket, .stash-item, .armor-row[data-item-id], .hand-slot[data-item-id], .money-wallet-block.editable, .banner-portrait .profile-img[data-action="editImage"]', (event, target) => {
       if (event.key !== 'Enter' && event.key !== ' ') return;
       event.preventDefault();
       target.click();
@@ -2417,14 +2454,15 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       this.#openMoneyPopover(target);
     }, editable);
 
-    // Carry cells, loose trinkets, left-behind gear and worn armour open a compact action
-    // popover. The full editor remains one level below its Edit action. The
-    // unequip x belongs to the row but keeps its dedicated state-change action.
+    // Carry cells, loose trinkets, left-behind gear, worn armour and held gear
+    // open a compact action popover. The full editor remains one level below
+    // its Edit action. The unequip and put-down x belong to the row but keep
+    // their dedicated state-change action.
     this.#delegate(
       'click',
-      '.slot-cell[data-item-id], .slot-trinket, .stash-item, .armor-row[data-item-id]',
+      '.slot-cell[data-item-id], .slot-trinket, .stash-item, .armor-row[data-item-id], .hand-slot[data-item-id]',
       (event, target) => {
-        if (event.target.closest('.armor-unequip, .armor-resist')) return;
+        if (event.target.closest('.armor-unequip, .armor-resist, .hand-release')) return;
         event.preventDefault();
         const item = this.actor.items.get(target.dataset.itemId);
         if (item) this.#openItemPopover(item, target);
@@ -2447,6 +2485,13 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     this.#delegate('click', '.armor-unequip', (event, target) => {
       event.preventDefault();
       this._setEquippedArmor(target.dataset.zone, null);
+    }, editable);
+
+    // The x on a held slot puts the piece down; it stays carried. Taking a
+    // piece *into* a hand is drag-only, like wearing (see _onDrop).
+    this.#delegate('click', '.hand-release', (event, target) => {
+      event.preventDefault();
+      this._setHeld(target.dataset.hand, null);
     }, editable);
 
     // Active Effect management
@@ -2511,6 +2556,16 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         event.preventDefault();
         this.#clearDropMarkers();
         const source = this.#dragging;
+        // The hands sit inside the doll block but take a drop of their own:
+        // the slot under the pointer goes solid, or both for a two-handed
+        // piece, since that is what it will fill.
+        const hand = event.target.closest?.('.hand-slot');
+        if (hand) {
+          if (!isGear(source)) return;
+          const slots = source.system?.twoHanded ? target.querySelectorAll('.hand-slot') : [hand];
+          for (const el of slots) el.classList.add('drop-onto');
+          return;
+        }
         const [zone] = armorZones(source);
         if (!zone || this.#wornZone(source.id)) return;
         for (const el of target.querySelectorAll(this.#zoneSelector(zone))) {
@@ -2640,7 +2695,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // four-slot item four times to reach the next one is worse than not
     // reaching its tail at all.
     const targets = this.element.querySelectorAll(
-      'a:not([href]), .skill-info, .heatmap-cell, .slot-cell.slot-first, .slot-trinket, .stash-item, .armor-row[data-item-id], .money-wallet-block.editable, .banner-portrait .profile-img[data-action="editImage"]'
+      'a:not([href]), .skill-info, .heatmap-cell, .slot-cell.slot-first, .slot-trinket, .stash-item, .armor-row[data-item-id], .hand-slot[data-item-id], .money-wallet-block.editable, .banner-portrait .profile-img[data-action="editImage"]'
     );
     for (const el of targets) {
       if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
@@ -2659,8 +2714,29 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (stashed) {
       const zone = this.#wornZone(item.id);
       if (zone) await this._setEquippedArmor(zone, null);
+      // Nor can it be in hand.
+      if (heldItemIds(this.actor.system.hands).has(item.id)) {
+        await this.actor.update({ 'system.hands': releaseItem(this.actor.system.hands, item.id) });
+      }
     }
     return item.update({ 'system.stashed': stashed });
+  }
+
+  /**
+   * Take a piece into a hand, or empty that hand when `itemId` is null.
+   * `holdInHand` decides what a two-handed piece does to the other hand.
+   * Holding is bookkeeping only: nothing about slots or actions changes.
+   * @param {string} hand  A key of HANDS.
+   * @param {string|null} itemId
+   * @private
+   */
+  async _setHeld(hand, itemId) {
+    if (!HANDS.includes(hand)) return;
+    const hands = this.actor.system.hands ?? {};
+    const next = itemId
+      ? holdInHand(hands, itemId, hand, !!this.actor.items.get(itemId)?.system?.twoHanded)
+      : releaseHand(hands, hand);
+    return this.actor.update({ 'system.hands': next });
   }
 
   /**
@@ -2701,6 +2777,11 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const covered = armorZones(this.actor.items.get(itemId));
     for (const key of covered.length ? covered : [zone]) {
       update[`system.equipment.${key}`] = itemId;
+    }
+
+    // Put on means out of the hand.
+    if (heldItemIds(this.actor.system.hands).has(itemId)) {
+      update['system.hands'] = releaseItem(this.actor.system.hands, itemId);
     }
 
     return this.actor.update(update);
@@ -2813,6 +2894,22 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const item = await Item.implementation.fromDropData(data);
     if (!item) return;
 
+    // Into a hand. Any physical piece can be held; taking one in hand means
+    // having it on you, so it is picked up from the pile and taken off the
+    // body first, and gear from elsewhere is created on the way.
+    const hand = event.target?.closest?.('.hand-slot');
+    if (hand) {
+      if (!isGear(item)) return;
+      const owned =
+        item.parent === this.actor
+          ? item
+          : (await this.actor.createEmbeddedDocuments('Item', [item.toObject()]))[0];
+      if (isStashed(owned)) await this._setStashed(owned, false);
+      const zone = this.#wornZone(owned.id);
+      if (zone) await this._setEquippedArmor(zone, null);
+      return this._setHeld(hand.dataset.hand, owned.id);
+    }
+
     // Onto the left-behind pile. Gear from elsewhere arrives there directly —
     // owned, but not on the character. A piece already in the pile was
     // dropped on a neighbour to re-sort it, which core does.
@@ -2839,6 +2936,10 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       if (isStashed(item)) await this._setStashed(item, false);
       const wornZone = this.#wornZone(item.id);
       if (wornZone) await this._setEquippedArmor(wornZone, null);
+      // Out of the hand: it was carried all along, so it only sorts.
+      if (heldItemIds(this.actor.system.hands).has(item.id)) {
+        await this.actor.update({ 'system.hands': releaseItem(this.actor.system.hands, item.id) });
+      }
       // The free tail has no neighbour to sort against, so it means "put this
       // last" — for a piece just taken off as much as for anything else.
       if (emptyCell) return this._sortItemToEnd(item);
@@ -3004,10 +3105,16 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // the grid answers both. Anything else physical can be left behind, so
     // the pile answers every other drag of gear.
     const stashed = isStashed(item);
-    const grid = worn || stashed ? this.element.querySelector('.slot-grid-block') : null;
+    const held = heldItemIds(this.actor.system.hands).has(item.id);
+    const grid = worn || stashed || held ? this.element.querySelector('.slot-grid-block') : null;
     grid?.classList.add('carry-drop-target');
     const stash = isGear(item) && !stashed ? this.element.querySelector('.stash-block') : null;
     stash?.classList.add('stash-drop-target');
+    // Any physical piece can be taken in hand, so the hands answer every drag
+    // of gear — the slot it is already in included, since the other may be
+    // where it is going.
+    const hands = isGear(item) ? this.element.querySelector('.paperdoll-hands') : null;
+    hands?.classList.add('hands-drop-target');
 
     dragged.addEventListener(
       'dragend',
@@ -3016,6 +3123,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         doll?.classList.remove('worn-drop-target');
         grid?.classList.remove('carry-drop-target');
         stash?.classList.remove('stash-drop-target');
+        hands?.classList.remove('hands-drop-target');
         for (const el of targets) el.classList.remove('zone-drop-target');
         this.element.classList.remove('dragging-item');
         this.#clearDropMarkers();

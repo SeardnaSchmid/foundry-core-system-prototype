@@ -116,6 +116,11 @@ system version has advanced past what a world last recorded.
   rank}` with `system.wf`, the skill alone, on world items and embedded actor
   items. An already-authored `wf` wins; the rank is dropped. Skipping
   documents without their own `fv` key makes the step idempotent.
+- **`0.52.1` — `migrateTwoHandedFromDescription`**: ticks the new
+  `system.twoHanded` on gear whose description names the wiki's "Zweihändig"
+  remark as a whole word — the compendium carried it as the description, so
+  copies already in a world say so there. Skipping pieces already marked makes
+  the step idempotent.
 
 ## Adding a new step
 

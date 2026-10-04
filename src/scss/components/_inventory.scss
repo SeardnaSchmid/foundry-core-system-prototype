@@ -145,6 +145,126 @@ $c-zone-suited-stroke: $c-worn-stroke;
       stroke: $c-advance;
     }
   }
+
+  // The hands: a read-out, not a hit location, so no pointer and no hover.
+  .hand {
+    stroke-width: 1;
+
+    &.hand-empty {
+      fill: $c-zone-bare;
+      stroke: $c-zone-bare-stroke;
+    }
+
+    &.hand-held {
+      fill: $c-worn-stroke;
+      stroke: $c-worn-stroke;
+    }
+  }
+}
+
+// In der Hand, under the armour rows: two slots side by side, or one across
+// both for a two-handed piece. Filled and empty read like the zone rows above
+// them, so a slot is "worn blue" exactly when something is in it.
+.paperdoll-hands {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+  border-radius: 5px;
+
+  // Any piece of gear in flight can be taken in hand.
+  &.hands-drop-target .hand-slot {
+    border-style: dashed;
+    border-color: $c-advance;
+    background: rgba($c-advance, 0.12);
+  }
+}
+
+.hands-title {
+  font-size: var(--font-size-10, 10px);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: $c-tan;
+}
+
+.hand-slots {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.hand-slot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 32px;
+  box-sizing: border-box;
+  padding: 0 4px 0 10px;
+  border: 1px solid $c-zone-filled-border;
+  border-radius: 5px;
+  background: $c-zone-filled-bg;
+  font-size: var(--font-size-13, 13px);
+
+  &.hand-both {
+    grid-column: 1 / -1;
+  }
+
+  &.draggable {
+    cursor: grab;
+  }
+
+  &.hand-empty {
+    padding-right: 10px;
+    border-style: dashed;
+    border-color: $c-beige;
+    background: none;
+    color: $c-tan;
+  }
+
+  // Same solid gold as a zone row once letting go lands the piece here.
+  &.drop-onto,
+  .paperdoll-hands.hands-drop-target &.drop-onto {
+    border-style: solid;
+    border-color: $c-advance;
+    background: rgba($c-advance, 0.35);
+    box-shadow: 0 0 8px rgba($c-advance, 0.6);
+    color: $c-dark;
+  }
+}
+
+.hand-name {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+
+  .hand-empty & {
+    font-weight: normal;
+  }
+}
+
+.hand-label {
+  font-weight: normal;
+  color: $c-tan;
+}
+
+.hand-release {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: $c-tan;
+  cursor: pointer;
+
+  &:hover {
+    color: $c-dark;
+  }
 }
 
 .paperdoll-zones {
@@ -817,6 +937,14 @@ $c-zone-suited-stroke: $c-worn-stroke;
 // an overload warning, so the worn blue distinguishes location without
 // competing with the red over-capacity state.
 .slot-cell.worn:not(.over-capacity) {
+  border-color: $c-worn-border;
+  background: $c-worn-bg;
+}
+
+// Held gear stays in the carried band — holding changes nothing the budget
+// counts — but takes the same blue, since in hand is as much "on the body" as
+// worn is.
+.slot-cell.held:not(.over-capacity) {
   border-color: $c-worn-border;
   background: $c-worn-bg;
 }

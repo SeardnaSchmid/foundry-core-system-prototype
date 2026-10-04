@@ -2947,6 +2947,26 @@
 .tno.gear-dialog .field.field-wa {
   flex: 1.1;
 }
+.tno.gear-dialog .field.field-check {
+  flex: none;
+  max-width: none;
+  cursor: pointer;
+}
+.tno.gear-dialog .field.field-check .cap {
+  flex: none;
+}
+.tno.gear-dialog .field.field-check input {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: #22262b;
+  cursor: pointer;
+}
+.tno.gear-dialog .field.field-check > .cap + input {
+  border-left: 0;
+  padding-left: 0;
+}
 .tno.gear-dialog .field.na {
   border-style: dashed;
   border-color: #c9c4b8;
@@ -3702,6 +3722,102 @@
 .tno .paperdoll-figure .zone:hover .zone-base, .tno .paperdoll-figure .zone:hover .zone-plate {
   stroke: #b8860b;
 }
+.tno .paperdoll-figure .hand {
+  stroke-width: 1;
+}
+.tno .paperdoll-figure .hand.hand-empty {
+  fill: #ddd8cd;
+  stroke: #b8b2a5;
+}
+.tno .paperdoll-figure .hand.hand-held {
+  fill: #6f9ab8;
+  stroke: #6f9ab8;
+}
+.tno .paperdoll-hands {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+  border-radius: 5px;
+}
+.tno .paperdoll-hands.hands-drop-target .hand-slot {
+  border-style: dashed;
+  border-color: #b8860b;
+  background: rgba(184, 134, 11, 0.12);
+}
+.tno .hands-title {
+  font-size: var(--font-size-10, 10px);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #5a5f66;
+}
+.tno .hand-slots {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+.tno .hand-slot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 32px;
+  box-sizing: border-box;
+  padding: 0 4px 0 10px;
+  border: 1px solid #a7c2d3;
+  border-radius: 5px;
+  background: #d4e3ec;
+  font-size: var(--font-size-13, 13px);
+}
+.tno .hand-slot.hand-both {
+  grid-column: 1/-1;
+}
+.tno .hand-slot.draggable {
+  cursor: grab;
+}
+.tno .hand-slot.hand-empty {
+  padding-right: 10px;
+  border-style: dashed;
+  border-color: #c9c4b8;
+  background: none;
+  color: #5a5f66;
+}
+.tno .hand-slot.drop-onto, .paperdoll-hands.hands-drop-target .tno .hand-slot.drop-onto {
+  border-style: solid;
+  border-color: #b8860b;
+  background: rgba(184, 134, 11, 0.35);
+  box-shadow: 0 0 8px rgba(184, 134, 11, 0.6);
+  color: #22262b;
+}
+.tno .hand-name {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+}
+.hand-empty .tno .hand-name {
+  font-weight: normal;
+}
+.tno .hand-label {
+  font-weight: normal;
+  color: #5a5f66;
+}
+.tno .hand-release {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: #5a5f66;
+  cursor: pointer;
+}
+.tno .hand-release:hover {
+  color: #22262b;
+}
 .tno .paperdoll-zones {
   --armor-action-size: 1.25em;
   --armor-row-gap: 10px;
@@ -4134,6 +4250,10 @@
   color: #fff;
 }
 .tno .slot-cell.worn:not(.over-capacity) {
+  border-color: #a7c2d3;
+  background: #d4e3ec;
+}
+.tno .slot-cell.held:not(.over-capacity) {
   border-color: #a7c2d3;
   background: #d4e3ec;
 }
@@ -4722,7 +4842,7 @@
   font-weight: 600;
   line-height: 1.35;
 }
-.tno.item-popover .item-popover-state.worn, .tno.item-chat-summary .item-popover-state.worn {
+.tno.item-popover .item-popover-state.worn, .tno.item-popover .item-popover-state.held, .tno.item-chat-summary .item-popover-state.worn, .tno.item-chat-summary .item-popover-state.held {
   background: #d4e3ec;
   color: #2f5d7c;
 }

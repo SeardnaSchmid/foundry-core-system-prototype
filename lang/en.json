@@ -585,7 +585,9 @@
         "Hint": "Take one off the stock and show its effect in chat.",
         "Flavor": "{item} used",
         "Remaining": "Remaining: {count}"
-      }
+      },
+      "TwoHanded": "Two-handed",
+      "TwoHandedHint": "Needs both hands: held, it takes both and puts down whatever was in them."
     },
     "Roll": {
       "DialogTitle": "Dice Roll",
@@ -960,6 +962,17 @@
         "Legs": "Legs"
       }
     },
+    "Hands": {
+      "Title": "In hand",
+      "Hint": "What the character is holding — an overview only, with no rule effect: slots, attack and parry stay the same. Drag an item onto a hand; a two-handed one takes both.",
+      "Right": "R. hand",
+      "Left": "L. hand",
+      "Both": "Both hands",
+      "Empty": "empty",
+      "Release": "Put down",
+      "HeldHint": "In hand — click for actions, drag back into the slots or × to put it down.",
+      "DropHint": "Drag an item here to take it in this hand."
+    },
     "Inventory": {
       "CarrySlots": "Inventory",
       "Slots": "Slots",
@@ -991,6 +1004,8 @@
       "WornHint": "Worn on the body — counts against the shared slot budget. Take it off on the paper doll.",
       "WornSlot": "Worn",
       "WornSlotHint": "Worn band of the slot budget — packed before carried gear.",
+      "Held": "In hand",
+      "HeldSlotHint": "In hand — still counts as carried. Put it down with the × on the hand or by dragging it back into the slots.",
       "Stashed": "Left behind",
       "StashedHint": "Not on the character — put down, handed over or taken away. Costs no slot, cannot be worn or used. Drag it back into the slots to pick it up again.",
       "StashedEmpty": "Drag here what the character does not have on them right now.",

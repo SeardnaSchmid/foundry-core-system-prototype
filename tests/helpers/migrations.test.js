@@ -595,6 +595,40 @@ describe('migrateFvToWf (0.52.0)', () => {
   });
 });
 
+describe('migrateTwoHandedFromDescription (0.52.1)', () => {
+  it('marks gear whose description names the remark, on world and embedded gear', async () => {
+    const worldItem = makeItem({ system: { description: '<p>Zweihändig</p>' } });
+    const embedded = makeItem({ type: 'weapon', system: { description: '<p>Zweihändig, Ringen</p>' } });
+    stubFoundry({ items: [worldItem], actors: [makeActor({ items: [embedded] })] });
+
+    await step('0.52.1')();
+
+    expect(worldItem.system.twoHanded).toBe(true);
+    expect(embedded.system.twoHanded).toBe(true);
+  });
+
+  it('leaves prose that only inflects the word, and non-gear, alone', async () => {
+    const prose = makeItem({ system: { description: '<p>Eine zweihändige Axt aus dem Bergbau.</p>' } });
+    const feature = makeItem({ type: 'feature', system: { description: 'Zweihändig' } });
+    stubFoundry({ items: [prose, feature] });
+
+    await step('0.52.1')();
+
+    expect(prose.updates).toHaveLength(0);
+    expect(feature.updates).toHaveLength(0);
+  });
+
+  it('is idempotent once the box is ticked', async () => {
+    const item = makeItem({ system: { description: 'Zweihändig' } });
+    stubFoundry({ items: [item] });
+
+    await step('0.52.1')();
+    await step('0.52.1')();
+
+    expect(item.updates).toHaveLength(1);
+  });
+});
+
 /* -------------------------------------------------------------------------- */
 
 describe('migrateWorld', () => {
@@ -624,7 +658,7 @@ describe('migrateWorld', () => {
 
   it('runs nothing once the stored version covers every step', async () => {
     const item = makeItem({ type: 'weapon', system: { weight: 2 } });
-    stubFoundry({ items: [item], stored: '0.52.0' });
+    stubFoundry({ items: [item], stored: '0.52.1' });
 
     await migrateWorld();
 
@@ -643,7 +677,7 @@ describe('migrateWorld', () => {
 
     await migrateWorld();
 
-    expect(pinned).toBe('0.52.0');
+    expect(pinned).toBe('0.52.1');
     expect(notifications).toHaveLength(0);
   });
 

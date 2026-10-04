@@ -449,6 +449,32 @@ $gear-value-max: 200px;
       flex: 1.1;
     }
 
+    // A yes/no beside the numbers: the box only as wide as its caption, the
+    // checkbox at its own size instead of stretched like a value input.
+    &.field-check {
+      flex: none;
+      max-width: none;
+      cursor: pointer;
+
+      .cap {
+        flex: none;
+      }
+
+      input {
+        flex: none;
+        width: 14px;
+        height: 14px;
+        margin: 0;
+        accent-color: $c-dark;
+        cursor: pointer;
+      }
+
+      > .cap + input {
+        border-left: 0;
+        padding-left: 0;
+      }
+    }
+
     // A field the current role or use has nothing to put in. Hatched rather
     // than hidden: the row keeps its place so nothing below it moves when the
     // role or the use changes.

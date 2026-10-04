@@ -85,7 +85,8 @@ the sheet starts at the same x. --}}
     </div>
 
     {{!-- Compact general requirements. SV belongs only to weapons and armour;
-    weapon-specific FV and WA live in the weapon-values block below. --}}
+    weapon-specific WA and WF live in the weapon-values block below. Any piece
+    can be held, so any piece can need both hands. --}}
     <div class='gear-row' data-row='general'>
       <span class='gear-label'>{{localize 'TNO.Item.General'}}</span>
       <div class='gear-ctl general-fields'>
@@ -106,6 +107,10 @@ the sheet starts at the same x. --}}
         {{else}}
         <span class='field na'><span class='cap'>{{localize 'TNO.Item.Cap.Sv'}}</span><span class='val'>n/a</span></span>
         {{/if}}
+        <label class='field field-check' title='{{localize "TNO.Item.TwoHandedHint"}}'>
+          <span class='cap'>{{localize 'TNO.Item.TwoHanded'}}</span>
+          <input type='checkbox' name='system.twoHanded' {{checked system.twoHanded}} />
+        </label>
       </div>
     </div>
 

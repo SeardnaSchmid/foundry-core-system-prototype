@@ -46,6 +46,10 @@
         "arms": null,
         "legs": null
       },
+      "hands": {
+        "right": null,
+        "left": null
+      },
       "abilities": {
         "str": {
           "base": 4,
@@ -212,6 +216,7 @@
         "quantity": 1,
         "slots": 1,
         "stashed": false,
+        "twoHanded": false,
         "sv": 0,
         "price": null,
         "availability": null,

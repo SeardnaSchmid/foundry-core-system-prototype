@@ -159,7 +159,8 @@
     font-weight: 600;
     line-height: 1.35;
 
-    &.worn {
+    &.worn,
+    &.held {
       background: $c-worn-bg;
       color: #2f5d7c;
     }

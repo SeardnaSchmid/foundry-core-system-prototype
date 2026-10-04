@@ -8,7 +8,7 @@ import {
   weaponAttribute,
   weaponUse,
 } from './items.mjs';
-import { isStashed, itemSlotCost, wornItemIds } from './inventory.mjs';
+import { heldItemIds, isStashed, itemSlotCost, wornItemIds } from './inventory.mjs';
 import { TNO } from './config.mjs';
 
 const PENETRATION_MIN_RH = 0;
@@ -274,9 +274,10 @@ export function buildOwnershipPresentation(item, actor) {
   if (!actor) return { embedded: false, state: null };
   const id = item?._id ?? item?.id;
   const worn = wornItemIds(actor.system?.equipment).has(id);
+  const held = heldItemIds(actor.system?.hands).has(id);
   return {
     embedded: true,
-    state: worn ? 'worn' : isStashed(item) ? 'stashed' : 'carried',
+    state: worn ? 'worn' : held ? 'held' : isStashed(item) ? 'stashed' : 'carried',
   };
 }
 

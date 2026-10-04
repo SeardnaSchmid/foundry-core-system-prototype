@@ -20,6 +20,7 @@ export const MIGRATIONS = [
   { version: '0.36.0', migrate: migrateDropTemporaryAttributeValues },
   { version: '0.48.0', migrate: migrateRdToRb },
   { version: '0.52.0', migrate: migrateFvToWf },
+  { version: '0.52.1', migrate: migrateTwoHandedFromDescription },
 ];
 
 /**
@@ -402,6 +403,30 @@ async function migrateItemTypesToRoles() {
     await item.update(update);
   };
 
+  for (const item of game.items) await migrate(item);
+  for (const actor of game.actors) {
+    for (const item of actor.items) await migrate(item);
+  }
+}
+
+/**
+ * Tick the new `twoHanded` box on gear whose description still says it in
+ * words. The gear compendium carried the wiki's "Zweihändig" remark as the
+ * whole description, so every copy of such a weapon already in a world names
+ * it there; matched as a whole word, so "zweihändige" in prose does not count.
+ *
+ * Idempotent because a piece already marked is skipped.
+ */
+async function migrateTwoHandedFromDescription() {
+  const remark = /\bzweihändig\b/i;
+  const migrate = async (item) => {
+    if (!GEAR_TYPES.includes(item.type)) return;
+    const system = item._source?.system;
+    if (!system || system.twoHanded === true) return;
+    const text = String(system.description ?? '').replace(/<[^>]*>/g, ' ');
+    if (!remark.test(text)) return;
+    await item.update({ 'system.twoHanded': true });
+  };
   for (const item of game.items) await migrate(item);
   for (const actor of game.actors) {
     for (const item of actor.items) await migrate(item);

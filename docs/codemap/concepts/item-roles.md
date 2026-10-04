@@ -100,7 +100,7 @@ always did.
 
 | Group | Fields |
 | --- | --- |
-| Every item | `quantity`, `slots`, `sv`, `price`, `availability`, `description` |
+| Every item | `quantity`, `slots`, `sv`, `twoHanded`, `price`, `availability`, `description` |
 | Weapon role | `use` (`melee`/`ranged`), `wa` (one primary-attribute key), `wf` (one skill key), `dk`, `range: {sn, near, mid, far, sf}`, `ss: {count}`, `ws: {count}`, `hh: {active, passive}`, `rb` |
 | Armour role | `zone`, `rh`, `rw`, `ra` |
 | Consumable role | `consumableEffects: [{id, text}]`; its remaining stock is the shared `quantity` |
@@ -357,15 +357,18 @@ description it has always been.
 - **`stapelbarMit`** from the handoff's data model. It is a second layering
   model, and the one that governs is already settled: the suit gives neither RH
   nor RA, and its RW adds. Two would contradict.
-- **Einhändig/zweihändig, holsters, vacuum sealing, clothing category.** Real
-  properties in the rules, but nothing reads them — adding fields nothing reads
-  is how the old `roll.diceNum` boxes got there.
-- **Weapon readiness and automatic attack resolution.** Ranged weapons may be
+- **Holsters, vacuum sealing, clothing category.** Real properties in the
+  rules, but nothing reads them — adding fields nothing reads is how the old
+  `roll.diceNum` boxes got there. *Zweihändig* is the exception, because the
+  hands read it: `twoHanded` is a checkbox beside SV on every piece (any piece
+  can be held), and the popover's subtitle names it — see
+  [inventory.md](inventory.md#holding).
+- **Readiness as a rule and automatic attack resolution.** Ranged weapons may be
   used as improvised melee weapons under the combat rules, but that does not
   create a second authored profile; the removed `both` value could not store
   separate SS/WS/HH values truthfully. The item popover can
-  open its weapon check, but the PRD still defines no readied-weapon state or
-  complete RB/RH → SS/WS workflow. The compact summary therefore shows the
+  open its weapon check whether the weapon is held or not — the hands are
+  bookkeeping only — and the PRD defines no complete RB/RH → SS/WS workflow. The compact summary therefore shows the
   threshold neutrally instead of assigning an outcome the model cannot prove.
 
 ## What went away

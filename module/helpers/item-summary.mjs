@@ -20,7 +20,8 @@ export function localizeGearSummary(item) {
   const loc = (key) => game.i18n.localize(key);
   const absent = () => loc('TNO.Item.Summary.Missing');
 
-  // "Waffe / Nahkampf · 4 Slots": what it is, then what it costs to carry. A
+  // "Waffe / Nahkampf · Zweihändig · 4 Slots": what it is and how many hands
+  // it takes, then what it costs to carry. A
   // stack's size joins the line for the roles whose card has no stock row.
   const { roleKey, detailKey } = summary.typeLine;
   const kind = detailKey
@@ -28,6 +29,7 @@ export function localizeGearSummary(item) {
     : loc(roleKey);
   const subtitle = [
     kind,
+    ...(item.system?.twoHanded ? [loc('TNO.Item.TwoHanded')] : []),
     game.i18n.format(summary.slots === 1 ? 'TNO.Item.Summary.SlotOne' : 'TNO.Item.Summary.SlotMany', { count: summary.slots }),
     ...(summary.quantity > 1 && !itemRoles(item).consumable ? [`×${summary.quantity}`] : []),
   ].join(' · ');
