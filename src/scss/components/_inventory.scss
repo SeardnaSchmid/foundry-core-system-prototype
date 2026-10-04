@@ -950,11 +950,19 @@ $c-zone-suited-stroke: $c-worn-stroke;
 }
 
 // Only the grid's own art grows. Two classes, so it outweighs the shared
-// `.slot-art` sizing below without that rule having to know about this one.
+// `.slot-art` sizing below without that rule having to know about this one —
+// which is why the size is restated here: `.slot-icon`'s own width loses to
+// `.slot-art`'s 24px further down, and art smaller than its box leaves the role
+// badge hanging off the box's corner instead of the picture's. The dark ground
+// is the mockup's tile, so art with a transparent or pale edge still reads as
+// one square.
 .slot-icon.slot-art {
   display: block;
+  width: $slot-icon-size;
+  height: $slot-icon-size;
   border-radius: 4px;
-  background: none;
+  background: #5a5f66;
+  object-fit: cover;
   mask-image: none;
   -webkit-mask-image: none;
 }

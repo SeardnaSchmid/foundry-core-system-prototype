@@ -4188,8 +4188,11 @@
 }
 .tno .slot-icon.slot-art {
   display: block;
+  width: 34px;
+  height: 34px;
   border-radius: 4px;
-  background: none;
+  background: #5a5f66;
+  object-fit: cover;
   mask-image: none;
   -webkit-mask-image: none;
 }
