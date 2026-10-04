@@ -1,0 +1,93 @@
+{{!-- The Beziehungen tab: the people the character has come to know in play,
+one row each, edited in place like a spreadsheet — Enter moves down a column
+and opens a new row from the last one. Dropping an Actor here adds it as a row
+linked to that Actor.
+
+The cells have no `name`: the sheet writes the whole list back on each edit
+(see `helpers/connections.mjs`, which also says how the same data is meant to
+become a relationship graph). --}}
+<div class='basics-section-header connections-header'>
+  <h3 class='basics-section-title'>{{localize 'TNO.Connections.Title'}}</h3>
+  <span class='section-meta'>{{connections.rows.length}}</span>
+  <div class='connections-views segments' role='radiogroup' aria-label='{{localize "TNO.Connections.View"}}'>
+    <button type='button' class='connections-view' data-view='table' role='radio' aria-checked='{{#ifEquals connections.view "table"}}true{{else}}false{{/ifEquals}}'>
+      <i class='fa-solid fa-table' aria-hidden='true'></i> {{localize 'TNO.Connections.ViewTable'}}
+    </button>
+    <button type='button' class='connections-view' data-view='graph' role='radio' aria-checked='{{#ifEquals connections.view "graph"}}true{{else}}false{{/ifEquals}}'>
+      <i class='fa-solid fa-circle-nodes' aria-hidden='true'></i> {{localize 'TNO.Connections.ViewGraph'}}
+    </button>
+  </div>
+  {{#ifEquals connections.view 'table'}}
+  <input type='text' class='connections-search' value='{{connections.search}}'
+         placeholder='{{localize "TNO.Connections.Search"}}'
+         aria-label='{{localize "TNO.Connections.Search"}}' />
+  {{/ifEquals}}
+  {{#if editable}}
+    <a class='section-add connection-add' title='{{localize "TNO.Connections.Add"}}' aria-label='{{localize "TNO.Connections.Add"}}'>
+      <i class='fas fa-plus'></i>
+    </a>
+  {{/if}}
+</div>
+
+{{#ifEquals connections.view 'graph'}}
+  {{> 'systems/tno/templates/actor/parts/actor-connections-graph.hbs' graph=connections.graph}}
+{{else}}
+<div class='connections-table' role='table' aria-label='{{localize "TNO.Connections.Title"}}'>
+  <div class='connection-head' role='row'>
+    <span class='connection-cap connection-cap-flag' role='columnheader' title='{{localize "TNO.Connections.NeuralinkHint"}}'>{{localize 'TNO.Connections.Field.neuralink'}}</span>
+    <span class='connection-cap' role='columnheader'>{{localize 'TNO.Connections.Field.name'}}</span>
+    <span class='connection-cap' role='columnheader'>{{localize 'TNO.Connections.Field.relations'}}</span>
+    <span class='connection-cap' role='columnheader'>{{localize 'TNO.Connections.Field.knows'}}</span>
+    <span class='connection-cap' role='columnheader'>{{localize 'TNO.Connections.Field.factions'}}</span>
+    <span class='connection-cap' role='columnheader'>{{localize 'TNO.Connections.Field.origins'}}</span>
+    <span class='connection-cap' role='columnheader'>{{localize 'TNO.Connections.Field.notes'}}</span>
+    <span role='columnheader'></span>
+  </div>
+
+  {{#each connections.rows as |row|}}
+    <div class='connection-row' role='row' data-connection-id='{{row.id}}' data-search='{{row.searchText}}'>
+      <label class='connection-flag' title='{{localize "TNO.Connections.NeuralinkHint"}}'>
+        <input type='checkbox' data-connection-field='neuralink' {{#if row.neuralink}}checked{{/if}}
+               aria-label='{{localize "TNO.Connections.Field.neuralink"}}' />
+      </label>
+      {{!-- The list after the Name offers people the other characters know and
+      the world's Actors; filled by the sheet while typing. --}}
+      <input type='text' class='connection-name' data-connection-field='name' value='{{row.name}}' autocomplete='off'
+             role='combobox' aria-expanded='false' aria-autocomplete='list'
+             placeholder='{{localize "TNO.Connections.Field.name"}}' aria-label='{{localize "TNO.Connections.Field.name"}}' />
+      <ul class='connection-tag-suggest connection-person-suggest' role='listbox' popover='manual'></ul>
+      {{!-- Beziehung, Kennt, Fraktion, Herkunft: 0..N labels each, picked like Jira
+      labels. The list under a field is filled by the sheet while typing,
+      never by a render. --}}
+      {{#each row.labelCells as |cell|}}
+        <div class='connection-tags'>
+          {{#each cell.labels as |label|}}
+            <span class='connection-tag'>{{label}}{{#if @root.editable}}<a class='connection-tag-remove' data-index='{{@index}}' aria-label='{{localize "TNO.Connections.TagRemove"}}: {{label}}'><i class='fa-solid fa-xmark' aria-hidden='true'></i></a>{{/if}}</span>
+          {{/each}}
+          <input type='text' class='connection-tag-input' data-connection-field='{{cell.field}}' autocomplete='off'
+                 role='combobox' aria-expanded='false' aria-autocomplete='list'
+                 {{#unless cell.labels.length}}placeholder='{{localize cell.placeholder}}'{{/unless}}
+                 aria-label='{{localize cell.label}}' />
+          <ul class='connection-tag-suggest' role='listbox' popover='manual'></ul>
+        </div>
+      {{/each}}
+      <textarea rows='1' data-connection-field='notes' aria-label='{{localize "TNO.Connections.Field.notes"}}'>{{row.notes}}</textarea>
+      <span class='connection-actions'>
+        {{#if row.actorUuid}}
+          <a class='connection-open' data-actor-uuid='{{row.actorUuid}}' title='{{localize "TNO.Connections.Open"}}' aria-label='{{localize "TNO.Connections.Open"}}'>
+            <i class='fa-solid fa-link' aria-hidden='true'></i>
+          </a>
+        {{/if}}
+        {{#if @root.editable}}
+          <a class='connection-remove' title='{{localize "TNO.Connections.Remove"}}' aria-label='{{localize "TNO.Connections.Remove"}}'>
+            <i class='fa-solid fa-trash' aria-hidden='true'></i>
+          </a>
+        {{/if}}
+      </span>
+    </div>
+  {{else}}
+    <p class='connections-empty'>{{localize 'TNO.Connections.Empty'}}</p>
+  {{/each}}
+  <p class='connections-nomatch' hidden>{{localize 'TNO.Connections.NoMatch'}}</p>
+</div>
+{{/ifEquals}}

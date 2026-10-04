@@ -91,6 +91,8 @@
     "BasicsSplitterHint": "Ziehen verschiebt die Grenze zwischen diesen beiden Spalten. Doppelklick setzt die ganze Reihe zurück.",
     "TabBasics": "Grundlagen",
     "TabDescription": "Beschreibung",
+    "TabBiography": "Biografie",
+    "TabConnections": "Beziehungen",
     "BiographyPlaceholder": "Schreibe hier die Geschichte, Notizen und den Hintergrund deines Charakters…",
     "TabItems": "Inventar",
     "RollSkill": "Würfeln",
@@ -1134,7 +1136,62 @@
       "Add": "Merkmal hinzufügen",
       "Empty": "Noch keine Merkmale."
     },
-    "EdgeAdjustLabel": "Korrektur (GM)"
+    "EdgeAdjustLabel": "Korrektur (GM)",
+    "Connections": {
+      "Title": "Beziehungen",
+      "Search": "Suchen …",
+      "Add": "Beziehung hinzufügen",
+      "Remove": "Beziehung entfernen",
+      "Open": "Verknüpften Akteur öffnen",
+      "Empty": "Noch niemand. Mit + eine Zeile anlegen oder einen Akteur hierher ziehen.",
+      "NoMatch": "Keine Beziehung passt zur Suche.",
+      "AlreadyListed": "{name} steht schon in den Beziehungen.",
+      "Listed": "schon eingetragen",
+      "Field": {
+        "name": "Name",
+        "relations": "Beziehung",
+        "knows": "Kennt",
+        "factions": "Fraktion",
+        "origins": "Herkunft",
+        "neuralink": "Neuralink",
+        "notes": "Notizen"
+      },
+      "NeuralinkHint": "Im Telefonbuch: über Neuralink erreichbar.",
+      "TagNew": "„{label}“ neu anlegen",
+      "TagRemove": "Entfernen",
+      "Placeholder": {
+        "relations": "z. B. Kontakt, Rivale",
+        "knows": "Person …",
+        "factions": "Fraktion …",
+        "origins": "Herkunft …"
+      },
+      "View": "Ansicht",
+      "ViewTable": "Tabelle",
+      "ViewGraph": "Graph",
+      "Graph": {
+        "Unnamed": "(ohne Namen)",
+        "Kind": {
+          "self": "Charakter",
+          "person": "Person",
+          "faction": "Fraktion",
+          "origin": "Herkunft"
+        },
+        "Reachable": "Im Telefonbuch (Neuralink)",
+        "Hearsay": "Nur vom Hörensagen",
+        "KnownBy": "Bekannt bei",
+        "Members": "Personen",
+        "Tuning": {
+          "Title": "Physik",
+          "stiffness": "Federstärke",
+          "springLength": "Federlänge",
+          "repulsion": "Abstoßung",
+          "gravity": "Anziehung zur Mitte",
+          "Relayout": "Neu anordnen",
+          "Reset": "Standard"
+        },
+        "ToggleHint": "Klicken zum Aus- oder Einblenden"
+      }
+    }
   },
   "TYPES": {
     "Actor": {

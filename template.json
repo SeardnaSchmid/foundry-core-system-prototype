@@ -50,6 +50,7 @@
         "right": null,
         "left": null
       },
+      "connections": [],
       "abilities": {
         "str": {
           "base": 4,

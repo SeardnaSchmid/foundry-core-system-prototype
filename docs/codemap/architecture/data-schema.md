@@ -44,6 +44,15 @@ in Foundry v14+.
   - `character.hands.{right,left}` — what each hand holds, an owned item id or
     `null`; a two-handed piece sits in both. Bookkeeping without a rule effect,
     see [inventory.md](../concepts/inventory.md#holding).
+  - `character.connections` — the Beziehungen tab: an array of
+    `{id, name, relations, knows, factions, origins, notes, neuralink, actorUuid}`,
+    the people the character knows. `relations`, `knows`, `factions` and
+    `origins` are label lists (0..N; the older single `relation`/`faction`/`origin`
+    strings are read as comma-separated labels); `knows` holds the names of
+    other people this person knows,
+    `neuralink` a boolean (in the phone book: reachable through Neuralink), the rest free
+    text; `actorUuid` is set when the entry
+    came from a dropped Actor. Shape and graph intent: `helpers/connections.mjs`.
   - `character.damage.{sharp,blunt}` — the two raw non-negative damage counters,
     Schaden and Wuchtschaden; the keys predate that naming. Their conversion,
     global malus and incapacitation state are derived; old actors without the

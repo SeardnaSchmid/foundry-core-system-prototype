@@ -74,6 +74,84 @@
   }
 }
 
+// Height of the tab strip below; the banner sticks this far further down.
+$tab-strip-height: 38px;
+
+// No room for the rail beside the sheet: detached into a browser window of its
+// own (Foundry marks that window's body `detached`), or pushed against the
+// screen edge (`TnoActorSheet#placeTabRail` sets `tabs-inside`). The rail then
+// becomes a strip across the top of the sheet, labels always shown, that stays
+// put while the sheet scrolls under it.
+.tno.sheet.actor.tabs-inside,
+body.detached .tno.sheet.actor {
+  .window-content {
+    flex-direction: column;
+  }
+
+  // Full-bleed under the window header like the banner: the negative margins
+  // cancel `.window-content`'s 16px padding (and, on the character, the
+  // scrollbar gutter), and `top` matches them for the same sticky-inset reason
+  // the banner gives in `_forms.scss`.
+  .sheet-tabs.tabs-right {
+    position: sticky;
+    top: -16px;
+    margin: -16px -16px 0;
+    box-sizing: border-box;
+    height: $tab-strip-height;
+    left: auto;
+    z-index: 5;
+    order: -1;
+    flex: 0 0 auto;
+    width: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border: none;
+    border-radius: 0;
+
+    .item,
+    .item:hover,
+    .item:focus-visible {
+      justify-content: flex-start;
+      width: auto;
+      padding: 0 10px;
+      box-shadow: none;
+    }
+
+    .item .tab-label {
+      max-width: none;
+      margin-left: 6px;
+    }
+  }
+
+  // The banner now meets the strip instead of the frame, and sticks under it.
+  &.character {
+    .sheet-tabs.tabs-right {
+      margin-right: -32px;
+      padding-right: 24px;
+    }
+
+    .sheet-banner {
+      margin-top: 0;
+      top: calc(#{$tab-strip-height} - 16px);
+    }
+  }
+}
+
+// Collapsed to its title bar (a double-click on the header), and while the
+// animation runs. Foundry hides `.window-content` then, but every TNO window
+// that gives its content `display: flex` out-ranks that rule — and the actor
+// sheet's un-clipped frame then let the banner and the tab rail stand out of
+// the collapsed bar. Hidden here for all of them at once.
+.tno.application:is(.minimized, .minimizing, .maximizing) {
+  overflow: hidden;
+
+  > .window-content {
+    display: none !important;
+  }
+}
+
 .rollable {
   &:hover,
   &:focus {

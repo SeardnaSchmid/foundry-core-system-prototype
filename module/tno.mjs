@@ -10,6 +10,7 @@ import { TnoGearSheet } from './sheets/item-gear-sheet.mjs';
 import { preloadHandlebarsTemplates } from './helpers/templates.mjs';
 import { GEAR_TYPES } from './helpers/items.mjs';
 import { DEFAULT_ITEM_TABLE_CONFIG } from './helpers/item-table.mjs';
+import { SPRING_DEFAULTS } from './helpers/connection-graph.mjs';
 import { TNO } from './helpers/config.mjs';
 import { rollTno, rollTnoBase } from './helpers/dice.mjs';
 import { registerChatListeners } from './helpers/chat.mjs';
@@ -128,6 +129,10 @@ Hooks.once('init', function () {
   // want that on every sheet they open. Nothing here is game state: the sort is
   // view-only and never touches `item.sort`.
   game.settings.register('tno', 'itemTableLayout', { scope: 'client', config: false, type: Object, default: DEFAULT_ITEM_TABLE_CONFIG });
+
+  // The Beziehungen graph's forces as the sliders under it set them: a
+  // reading preference of this client, like the table layouts.
+  game.settings.register('tno', 'graphPhysics', { scope: 'client', config: false, type: Object, default: SPRING_DEFAULTS });
 
   // The item overview's own copy of that layout. Separate from the sheet's on
   // purpose: the ledger is a per-character reading and the overview a

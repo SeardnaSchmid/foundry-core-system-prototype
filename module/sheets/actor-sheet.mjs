@@ -53,9 +53,68 @@ import {
   toggleItemTableColumn,
 } from '../helpers/item-table.mjs';
 import { itemTypeLine } from '../helpers/item-presentation.mjs';
+import {
+  addConnection,
+  addLabel,
+  connectionSearchText,
+  labelSuggestions,
+  LABEL_FIELDS,
+  removeLabel,
+  personSuggestions,
+  adoptPerson,
+  editConnection,
+  hasConnectionTo,
+  normalizeConnections,
+  removeConnection,
+} from '../helpers/connections.mjs';
+import {
+  GRAPH_HIDEABLE_KINDS,
+  GRAPH_NODE_KINDS,
+  SPRING_DEFAULTS,
+  SPRING_PARAMS,
+  buildConnectionGraph,
+  createSpringEmbedder,
+  layoutGraph,
+  normalizeSpringParams,
+} from '../helpers/connection-graph.mjs';
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
+
+/**
+ * How much room the tab rail needs right of the sheet. With less than that —
+ * the sheet pushed against the screen edge, or detached into a window of its
+ * own — the rail moves inside the sheet (see `#placeTabRail`).
+ */
+const TAB_RAIL_WIDTH = 44;
+
+/**
+ * The Beziehungen graph's layout box. The drawing itself takes the size of
+ * the space it is shown in; positions are kept in this box and scaled.
+ */
+const GRAPH_WIDTH = 1000;
+const GRAPH_HEIGHT = 600;
+
+/** Never smaller than this, however little room the window leaves. */
+const GRAPH_MIN_HEIGHT = 280;
+
+/** Room kept under the graph: the scroll box's padding and the frame's border. */
+const GRAPH_BOTTOM_GAP = 22;
+
+/**
+ * The graph is drawn at most this often per second, whatever the screen's
+ * refresh rate: smooth enough for settling springs, and a 144 Hz screen does
+ * not draw it six times as often as needed.
+ */
+const GRAPH_FPS = 30;
+
+/**
+ * The graph's spring embedder runs this many physics steps per drawn frame —
+ * four at 30 fps keeps the pace of the earlier two per 60 Hz frame — and
+ * stops once the kinetic energy left falls under the threshold.
+ */
+const GRAPH_STEPS_PER_FRAME = 4;
+const GRAPH_REST_ENERGY = 0.05;
 
 /**
  * How the Basics tab divides each of its two rows: one share per column, in
@@ -191,6 +250,14 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   #dragging = null;
 
   /**
+   * The Beziehungen graph's running spring embedder and its animation frame,
+   * or null while the graph is not shown or has come to rest.
+   * `held` keeps it running while a node is dragged, at rest or not.
+   * @type {{sim: object, frame: number|null, held: boolean, wake: () => void}|null}
+   */
+  #graphRun = null;
+
+  /**
    * Watches the carry raster's width so the wrap marks can be re-measured. The
    * grid element is replaced on every render, so the observer is re-pointed in
    * `_onRender` rather than bound once.
@@ -225,9 +292,10 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     primary: {
       initial: 'basics',
       tabs: [
-        { id: 'basics', icon: 'fa-solid fa-chart-simple', label: 'TNO.TabBasics' },
-        { id: 'description', icon: 'fa-solid fa-feather', label: 'TNO.TabDescription' },
-        { id: 'items', icon: 'fa-solid fa-suitcase', label: 'TNO.TabItems' },
+        { id: 'basics', icon: 'fa-solid fa-dice-d20', label: 'TNO.TabBasics' },
+        { id: 'biography', icon: 'fa-solid fa-book-user', label: 'TNO.TabBiography' },
+        { id: 'connections', icon: 'fa-solid fa-circle-nodes', label: 'TNO.TabConnections' },
+        { id: 'items', icon: 'fa-solid fa-backpack', label: 'TNO.TabItems' },
       ],
     },
   };
@@ -246,8 +314,8 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   }
 
   /**
-   * NPCs have no attribute matrix or skill list, so they drop the "basics" tab
-   * and open on the biography instead.
+   * NPCs have no attribute matrix, skill list or Beziehungen, so they drop
+   * those tabs and open on the biography instead.
    * @override
    */
   _getTabsConfig(group) {
@@ -255,8 +323,8 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     if (!config || this.actor.type !== 'npc') return config;
     return {
       ...config,
-      tabs: config.tabs.filter((tab) => tab.id !== 'basics'),
-      initial: 'description',
+      tabs: config.tabs.filter((tab) => !['basics', 'connections'].includes(tab.id)),
+      initial: 'biography',
     };
   }
 
@@ -426,6 +494,32 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     context.looseTab = this._looseTab;
     this._trinketFilter ??= '';
     context.trinketFilter = this._trinketFilter;
+
+    // The Beziehungen table. Rows carry their search text so the filter can
+    // stay client-side, like the Inventar search.
+    this._connectionSearch ??= '';
+    // The graph is the tab's face; an empty list opens on the table, where
+    // the first row is typed.
+    this._connectionView ??= normalizeConnections(this.actor.system.connections).length ? 'graph' : 'table';
+    context.connections = {
+      search: this._connectionSearch,
+      view: this._connectionView,
+      // Laid out only while it is shown: the force layout is the one costly
+      // thing on this tab.
+      graph: this._connectionView === 'graph' ? this.#connectionGraphContext() : null,
+      rows: normalizeConnections(this.actor.system.connections).map((entry) => ({
+        ...entry,
+        searchText: connectionSearchText(entry),
+        // The three label columns stand side by side and work alike, so the
+        // template draws them from one loop.
+        labelCells: Object.keys(LABEL_FIELDS).map((field) => ({
+          field,
+          labels: entry[field],
+          label: `TNO.Connections.Field.${field}`,
+          placeholder: `TNO.Connections.Placeholder.${field}`,
+        })),
+      })),
+    };
 
     // Build the skill list, grouped by category, in TNO.skillCategories order.
     // Categories without any skills yet (WIP groups) still render, empty.
@@ -1830,6 +1924,703 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     });
   }
 
+  /**
+   * Open a new Beziehungen row and put the caret in it once the sheet has
+   * redrawn.
+   * @param {unknown} [base]   The list to append to; the stored one by default.
+   * @param {string} [field]   The column the caret lands in.
+   * @param {object} [init]    Field values for the new entry.
+   */
+  #addConnection(base = this.actor.system.connections, field = 'name', init = {}) {
+    const id = foundry.utils.randomID();
+    this._focusConnection = { id, field };
+    return this.actor.update({ 'system.connections': addConnection(base, id, init) });
+  }
+
+  /**
+   * Move the caret from one Beziehungen cell to another, Excel-style. Rows
+   * hidden by the search are skipped. Above the first row there is nowhere to
+   * go; below the last one a new row is opened, and the cell being left goes
+   * out in the same write — committing it separately would race the add,
+   * each writing back a list that lacks the other's change.
+   *
+   * @param {HTMLElement} cell  The cell being left.
+   * @param {object} move
+   * @param {number} [move.cols]   +1 / -1: next / previous cell, wrapping rows.
+   * @param {number} [move.rows]   +1 / -1: the row below / above.
+   * @param {string} [move.field]  The column to land in on a row move.
+   */
+  #navigateConnections(cell, { cols = 0, rows = 0, field = cell.dataset.connectionField }) {
+    const table = cell.closest('.connections-table');
+    const rowEls = [...table.querySelectorAll('.connection-row:not([hidden])')];
+    const cellsOf = (row) => [...row.querySelectorAll('[data-connection-field]')];
+    let r = rowEls.indexOf(cell.closest('.connection-row'));
+    let target = null;
+
+    if (cols) {
+      const cells = cellsOf(rowEls[r]);
+      const c = cells.indexOf(cell) + cols;
+      if (c >= cells.length) {
+        r += 1;
+        target = rowEls[r] && cellsOf(rowEls[r])[0];
+        field = 'name';
+      } else if (c < 0) {
+        r -= 1;
+        target = rowEls[r] && cellsOf(rowEls[r]).at(-1);
+      } else {
+        target = cells[c];
+      }
+    } else {
+      r += rows;
+      target = rowEls[r]?.querySelector(`[data-connection-field="${field}"]`);
+    }
+
+    if (r < 0) return;
+    if (r >= rowEls.length) return this.#addConnection(this.#withPendingCell(cell), field);
+    // Text still typed into a label field becomes a label before the caret
+    // goes; plain cells commit themselves on `change` as it leaves.
+    if (cell.matches('.connection-tag-input') && cell.value.trim()) {
+      this.#takeLabel(cell, this.#pickedLabel(cell));
+    }
+    target?.focus();
+    if (target?.select && target.type !== 'checkbox') target.select();
+  }
+
+  /** The label a label field would take now: the picked suggestion, else the typed text. */
+  #pickedLabel(input) {
+    const list = input.nextElementSibling;
+    const active = list.matches(':popover-open') && list.querySelector('.connection-tag-option.active');
+    return active?.dataset.value ?? input.value.trim();
+  }
+
+  /**
+   * The stored list with `cell`'s not yet committed value applied — the base
+   * for a write that also adds a row. Empties a label field it takes from.
+   */
+  #withPendingCell(cell) {
+    const list = this.actor.system.connections;
+    const id = cell.closest('[data-connection-id]').dataset.connectionId;
+    const field = cell.dataset.connectionField;
+    if (cell.matches('.connection-tag-input')) {
+      const label = this.#pickedLabel(cell);
+      cell.value = '';
+      return label ? addLabel(list, id, field, label) : list;
+    }
+    return editConnection(list, id, field, cell.type === 'checkbox' ? cell.checked : cell.value);
+  }
+
+  /**
+   * Fill and open the label list under `input` (a Beziehung, Kennt, Fraktion
+   * or Herkunft field) from the labels in use in that column, narrowed by
+   * what has been typed; the first match is picked, so Enter takes it. Typed
+   * text that is not a label yet closes the list as the label it would
+   * create. DOM only: typing must not re-render the sheet.
+   * @param {HTMLInputElement} input
+   */
+  #suggestLabels(input) {
+    const id = input.closest('[data-connection-id]').dataset.connectionId;
+    const typed = input.value.trim();
+    const field = input.dataset.connectionField;
+    const labels = labelSuggestions(this.actor.system.connections, field, typed, id, {
+      shared: this.#sharedConnections(),
+      people: field === 'knows' ? this.#knownActors().map((actor) => actor.name) : [],
+    });
+    const own = normalizeConnections(this.actor.system.connections).find((entry) => entry.id === id)?.[field] ?? [];
+    const known = [...labels, ...own].some((label) => label.toLocaleLowerCase() === typed.toLocaleLowerCase());
+    const options = labels.map((label) => ({ value: label, text: label }));
+    if (typed && !known) {
+      options.push({ value: typed, text: game.i18n.format('TNO.Connections.TagNew', { label: typed }) });
+    }
+    this.#showSuggestions(input, options, { pickFirst: !!typed });
+  }
+
+  /**
+   * Fill and open the list of people under a Name field: the table's own
+   * rows, everyone the other characters list and every Actor the user may see, by the name typed so
+   * far. Nothing is picked until the arrows or the mouse pick it, so Enter
+   * on a new name still just moves on. DOM only, like the label list.
+   * @param {HTMLInputElement} input
+   */
+  #suggestPeople(input) {
+    const id = input.closest('[data-connection-id]').dataset.connectionId;
+    const people = personSuggestions(this.actor.system.connections, input.value, id, {
+      shared: this.#sharedConnections(),
+      actors: this.#knownActors(),
+    }).slice(0, 30);
+    this._personSuggestions = people;
+    const listed = game.i18n.localize('TNO.Connections.Listed');
+    this.#showSuggestions(input, people.map((person, index) => ({
+      value: String(index),
+      text: person.name,
+      hint: person.connectionId ? listed : [...person.factions, ...person.origins].join(' · '),
+    })), { pickFirst: false });
+  }
+
+  /**
+   * Show `options` in the list that follows `input`, under its cell. A
+   * top-layer popover, so the tab's scroll box cannot clip it under the last
+   * rows; placed by hand, since it no longer flows there.
+   * @param {HTMLInputElement} input
+   * @param {Array<{value: string, text: string, hint?: string}>} options
+   * @param {{pickFirst: boolean}} mode
+   */
+  #showSuggestions(input, options, { pickFirst }) {
+    const list = input.nextElementSibling;
+    list.replaceChildren(...options.map(({ value, text, hint }, index) => {
+      const li = input.ownerDocument.createElement('li');
+      li.className = `connection-tag-option${index === 0 && pickFirst ? ' active' : ''}`;
+      li.setAttribute('role', 'option');
+      li.dataset.value = value;
+      li.textContent = text;
+      if (hint) {
+        const small = input.ownerDocument.createElement('span');
+        small.className = 'connection-tag-hint';
+        small.textContent = hint;
+        li.append(small);
+      }
+      return li;
+    }));
+    if (!options.length) return this.#closeSuggestions(input);
+    const cell = (input.closest('.connection-tags') ?? input).getBoundingClientRect();
+    list.style.top = `${cell.bottom + 2}px`;
+    list.style.left = `${cell.left}px`;
+    list.style.minWidth = `${cell.width}px`;
+    if (!list.matches(':popover-open')) list.showPopover();
+    input.setAttribute('aria-expanded', 'true');
+  }
+
+  /** Close the suggestion list that follows `input`. */
+  #closeSuggestions(input) {
+    const list = input.nextElementSibling;
+    if (list?.matches(':popover-open')) list.hidePopover();
+    input.setAttribute('aria-expanded', 'false');
+  }
+
+  /**
+   * Arrow keys and Escape in a field with a suggestion list. Returns whether
+   * the key was handled.
+   */
+  #steerSuggestions(event, input) {
+    const list = input.nextElementSibling;
+    const options = [...list.querySelectorAll('.connection-tag-option')];
+    const open = list.matches(':popover-open') && options.length > 0;
+    if (!open) return false;
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      const active = options.findIndex((option) => option.classList.contains('active'));
+      const step = event.key === 'ArrowDown' ? 1 : -1;
+      options[active]?.classList.remove('active');
+      const next = options[active < 0 && step < 0 ? options.length - 1 : (active + step + options.length) % options.length];
+      next.classList.add('active');
+      next.scrollIntoView({ block: 'nearest' });
+      return true;
+    }
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      this.#closeSuggestions(input);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Make the row of the Name field `input` the person at `index` of the last
+   * people list: name, known Fraktion and Herkunft, Actor link — one write.
+   * A person the table already has is a row to go to instead.
+   * Until it is saved, the field's own `change` stands aside, or it would
+   * write the name over the stored list it was read from.
+   */
+  #takePerson(input, index) {
+    const person = this._personSuggestions?.[index];
+    if (!person) return;
+    const id = input.closest('[data-connection-id]').dataset.connectionId;
+    this.#closeSuggestions(input);
+    // Already a row: go there rather than list the person twice. This row's
+    // Name goes back to what it was, so leaving it writes nothing.
+    if (person.connectionId) {
+      input.value = normalizeConnections(this.actor.system.connections).find((entry) => entry.id === id)?.name ?? '';
+      const name = this.element.querySelector(`.connection-row[data-connection-id="${person.connectionId}"] .connection-name`);
+      name?.focus();
+      name?.select();
+      return;
+    }
+    input.value = person.name;
+    this._adoptingConnection = id;
+    return this.actor.update({ 'system.connections': adoptPerson(this.actor.system.connections, id, person) })
+      .finally(() => {
+        if (this._adoptingConnection === id) this._adoptingConnection = null;
+      });
+  }
+
+  /**
+   * The Beziehungen lists of the other characters this user may observe, for
+   * the suggestions: the GM gets everyone's, a player those shared with them.
+   * Only names and labels are read from them, never notes or Neuralink.
+   * @returns {unknown[]}
+   */
+  #sharedConnections() {
+    return game.actors
+      .filter((actor) => actor.type === 'character' && actor.id !== this.actor.id
+        && actor.testUserPermission(game.user, 'OBSERVER'))
+      .map((actor) => actor.system.connections);
+  }
+
+  /**
+   * The Actors to offer as people, by name: characters and NPCs other than
+   * this one that the user may at least see the name of.
+   * @returns {Array<{name: string, uuid: string}>}
+   */
+  #knownActors() {
+    return game.actors
+      .filter((actor) => ['character', 'npc'].includes(actor.type) && actor.id !== this.actor.id
+        && actor.testUserPermission(game.user, 'LIMITED'))
+      .map((actor) => ({ name: actor.name, uuid: actor.uuid }));
+  }
+
+  /**
+   * Add `label` to the row of `input` and empty the field. The caret comes
+   * back to the same field after the redraw (see `_preRender`), ready for
+   * the next label.
+   */
+  #takeLabel(input, label) {
+    const id = input.closest('[data-connection-id]').dataset.connectionId;
+    input.value = '';
+    this.#closeSuggestions(input);
+    return this.actor.update({ 'system.connections': addLabel(this.actor.system.connections, id, input.dataset.connectionField, label) });
+  }
+
+  /** Remove the label at `index` from the row of `input`. */
+  #removeLabelAt(input, index) {
+    const id = input.closest('[data-connection-id]').dataset.connectionId;
+    return this.actor.update({ 'system.connections': removeLabel(this.actor.system.connections, id, input.dataset.connectionField, index) });
+  }
+
+  /**
+   * The graph view's model: laid-out nodes and edges with what the SVG
+   * needs to draw them, plus the legend. Kinds come back as CSS classes;
+   * labels are clipped so a long name cannot sprawl over its neighbours.
+   */
+  #connectionGraphContext() {
+    // Which kinds the legend has switched off: view state on the open sheet.
+    this._graphHidden ??= new Set();
+    const graph = buildConnectionGraph({ name: this.actor.name, img: this.actor.img }, this.actor.system.connections, {
+      hidden: this._graphHidden,
+    });
+    const laid = layoutGraph(graph, { width: GRAPH_WIDTH, height: GRAPH_HEIGHT });
+    // Where the spring embedder left a node last time it is drawn again, so a
+    // redraw — any change to the actor — does not throw the picture back to
+    // the start layout. New nodes start where the layout puts them.
+    this._graphPositions ??= new Map();
+    const nodes = laid.nodes.map((node) => ({ ...node, ...this._graphPositions.get(node.id) }));
+    const at = new Map(nodes.map((node) => [node.id, node]));
+    const edges = laid.edges.map((edge) => ({
+      ...edge,
+      x1: at.get(edge.from).x,
+      y1: at.get(edge.from).y,
+      x2: at.get(edge.to).x,
+      y2: at.get(edge.to).y,
+    }));
+    this._graphModel = { nodes, edges };
+    this._graphDetails = this.#graphDetails(nodes);
+    const clip = (text) => (text.length > 22 ? `${text.slice(0, 21)}…` : text);
+    const unnamed = game.i18n.localize('TNO.Connections.Graph.Unnamed');
+    const physics = this.#graphPhysics();
+    return {
+      width: GRAPH_WIDTH,
+      height: GRAPH_HEIGHT,
+      empty: nodes.length === 1,
+      nodes: nodes.map((node) => {
+        const radius = node.kind === 'self' ? 30 : node.kind === 'person' ? 16 : 11;
+        return {
+          ...node,
+          img: node.img ?? this.#connectionPortrait(node.connectionId),
+          text: clip(node.label || unnamed),
+          radius,
+          diameter: radius * 2,
+          reachRadius: radius + 4,
+          initial: (node.label || '?').trim().charAt(0).toUpperCase(),
+        };
+      }),
+      edges: edges.map((edge) => ({
+        ...edge,
+        midX: Math.round((edge.x1 + edge.x2) / 2),
+        midY: Math.round((edge.y1 + edge.y2) / 2),
+        text: clip(edge.label),
+      })),
+      legend: GRAPH_NODE_KINDS.map((kind) => ({
+        kind,
+        label: `TNO.Connections.Graph.Kind.${kind}`,
+        toggle: GRAPH_HIDEABLE_KINDS.includes(kind),
+        off: this._graphHidden.has(kind),
+      })),
+      tuningOpen: !!this._graphTuningOpen,
+      tuning: Object.entries(SPRING_PARAMS).map(([key, range]) => ({
+        key,
+        ...range,
+        value: physics[key],
+        label: `TNO.Connections.Graph.Tuning.${key}`,
+      })),
+    };
+  }
+
+  /**
+   * The portrait of the Actor a row is linked to (dropped on the tab or
+   * picked from the people list), or nothing — no link, an Actor gone, or
+   * one still showing Foundry's placeholder silhouette.
+   * @param {string} [connectionId]
+   * @returns {string|undefined}
+   */
+  #connectionPortrait(connectionId) {
+    if (!connectionId) return undefined;
+    const entry = normalizeConnections(this.actor.system.connections).find((e) => e.id === connectionId);
+    const img = entry?.actorUuid ? fromUuidSync(entry.actorUuid, { strict: false })?.img : null;
+    return img && img !== CONST.DEFAULT_TOKEN && img !== Actor.implementation.DEFAULT_ICON ? img : undefined;
+  }
+
+  /**
+   * What the hover card says about each node, by node id: a title, the kind
+   * of node, and the rows known about it — for a person their row of the
+   * table and who else names them under Kennt, for a Fraktion or Herkunft the
+   * people in it. Empty rows are left out.
+   * @returns {Map<string, {title: string, kind: string, rows: Array<{label: string, value: string}>}>}
+   */
+  #graphDetails(nodes) {
+    const t = (key) => game.i18n.localize(key);
+    const entries = normalizeConnections(this.actor.system.connections);
+    const byId = new Map(entries.map((entry) => [entry.id, entry]));
+    const lower = (text) => text.trim().toLocaleLowerCase();
+    const knownBy = (name) => entries.filter((entry) => entry.knows.some((other) => lower(other) === lower(name))).map((entry) => entry.name);
+    const withLabel = (field, label) => entries.filter((entry) => entry[field].some((value) => lower(value) === lower(label))).map((entry) => entry.name);
+    const join = (list) => list.filter(Boolean).join(', ');
+    const notes = (text) => (text.length > 240 ? `${text.slice(0, 239)}…` : text);
+
+    const details = new Map();
+    for (const node of nodes) {
+      const entry = node.connectionId ? byId.get(node.connectionId) : null;
+      let kind = t(`TNO.Connections.Graph.Kind.${node.kind}`);
+      let rows = [];
+      if (node.kind === 'self') {
+        rows = [{ label: t('TNO.Connections.Graph.Members'), value: String(entries.length) }];
+      } else if (entry) {
+        rows = [
+          { label: t('TNO.Connections.Field.relations'), value: join(entry.relations) },
+          { label: t('TNO.Connections.Field.knows'), value: join(entry.knows) },
+          { label: t('TNO.Connections.Graph.KnownBy'), value: join(knownBy(entry.name)) },
+          { label: t('TNO.Connections.Field.factions'), value: join(entry.factions) },
+          { label: t('TNO.Connections.Field.origins'), value: join(entry.origins) },
+          { label: t('TNO.Connections.Field.neuralink'), value: entry.neuralink ? t('TNO.Connections.Graph.Reachable') : '' },
+          { label: t('TNO.Connections.Field.notes'), value: notes(entry.notes.trim()) },
+        ];
+      } else if (node.hearsay) {
+        kind = t('TNO.Connections.Graph.Hearsay');
+        rows = [{ label: t('TNO.Connections.Graph.KnownBy'), value: join(knownBy(node.label)) }];
+      } else {
+        const field = node.kind === 'faction' ? 'factions' : 'origins';
+        rows = [{ label: t('TNO.Connections.Graph.Members'), value: join(withLabel(field, node.label)) }];
+      }
+      details.set(node.id, {
+        title: node.label || t('TNO.Connections.Graph.Unnamed'),
+        kind,
+        rows: rows.filter((row) => row.value),
+      });
+    }
+    return details;
+  }
+
+  /**
+   * Show the hover card for the graph node `el` beside it, or hide the card.
+   * Filled as text, never as markup: the values are what players typed.
+   */
+  #showGraphCard(el) {
+    const card = this.element.querySelector('.graph-card');
+    if (!card) return;
+    const details = el && this._graphDetails?.get(el.dataset.nodeId);
+    if (!details) {
+      card.hidden = true;
+      return;
+    }
+    const doc = card.ownerDocument;
+    const make = (tag, className, text) => {
+      const node = doc.createElement(tag);
+      node.className = className;
+      node.textContent = text;
+      return node;
+    };
+    const list = doc.createElement('dl');
+    for (const { label, value } of details.rows) list.append(make('dt', '', label), make('dd', '', value));
+    card.replaceChildren(make('strong', 'graph-card-title', details.title), make('span', 'graph-card-kind', details.kind));
+    if (details.rows.length) card.append(list);
+    card.hidden = false;
+
+    // Right of the node, or left of it where the right has no room; never
+    // past the graph's top or bottom.
+    const box = card.parentElement.getBoundingClientRect();
+    const at = el.getBoundingClientRect();
+    const gap = 10;
+    const left = at.right - box.left + gap + card.offsetWidth <= box.width
+      ? at.right - box.left + gap
+      : Math.max(0, at.left - box.left - gap - card.offsetWidth);
+    const top = Math.min(Math.max(0, at.top - box.top), Math.max(0, box.height - card.offsetHeight));
+    card.style.left = `${Math.round(left)}px`;
+    card.style.top = `${Math.round(top)}px`;
+  }
+
+  /** Light `node` and what it touches in the graph, or clear the lighting. */
+  #lightGraphNode(node) {
+    const svg = this.element.querySelector('.connections-graph svg');
+    if (!svg) return;
+    svg.classList.toggle('has-focus', !!node);
+    for (const el of svg.querySelectorAll('.is-lit')) el.classList.remove('is-lit');
+    if (!node) return;
+    const id = node.dataset.nodeId;
+    node.classList.add('is-lit');
+    for (const edge of svg.querySelectorAll('.graph-edge')) {
+      const { from, to } = edge.dataset;
+      if (from !== id && to !== id) continue;
+      edge.classList.add('is-lit');
+      const other = from === id ? to : from;
+      svg.querySelector(`.graph-node[data-node-id="${CSS.escape(other)}"]`)?.classList.add('is-lit');
+    }
+  }
+
+  /**
+   * Start the spring embedder on the graph just rendered and animate it
+   * until it comes to rest. Each frame runs a few physics steps and writes
+   * the positions into the SVG; nothing about the DOM is rebuilt. With
+   * reduced motion asked for, the graph settles out of sight and is drawn
+   * once.
+   */
+  #runGraph() {
+    this.#stopGraph();
+    const svg = this.element.querySelector('.connections-graph svg');
+    if (!svg || !this._graphModel || !svg.isConnected || !svg.clientWidth) return;
+
+    // The drawing takes the space it is shown in, 1:1 in pixels: the whole
+    // width, and the height down to the bottom of the window as it sits with
+    // the sheet scrolled to the top. Positions are kept in the layout's own
+    // box (GRAPH_WIDTH × GRAPH_HEIGHT) and scaled into this one, so a resize
+    // stretches the picture rather than throwing it away.
+    const { width, height } = this.#measureGraph(svg);
+    svg.style.height = `${height}px`;
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    const sx = width / GRAPH_WIDTH;
+    const sy = height / GRAPH_HEIGHT;
+
+    const sim = createSpringEmbedder(
+      this._graphModel.nodes.map((node) => {
+        const at = this._graphPositions.get(node.id) ?? node;
+        return { ...node, x: at.x * sx, y: at.y * sy };
+      }),
+      this._graphModel.edges,
+      { width, height, ...this.#graphPhysics() },
+    );
+    const nodeEls = new Map([...svg.querySelectorAll('.graph-node')].map((el) => [el.dataset.nodeId, el]));
+    const edgeEls = [...svg.querySelectorAll('.graph-edge')].map((el) => ({
+      a: sim.node(el.dataset.from),
+      b: sim.node(el.dataset.to),
+      line: el.querySelector('line'),
+      label: el.querySelector('text'),
+    }));
+    const draw = () => {
+      for (const node of sim.nodes) {
+        nodeEls.get(node.id)?.setAttribute('transform', `translate(${node.x.toFixed(1)} ${node.y.toFixed(1)})`);
+        this._graphPositions.set(node.id, { x: node.x / sx, y: node.y / sy });
+      }
+      for (const { a, b, line, label } of edgeEls) {
+        line.setAttribute('x1', a.x.toFixed(1));
+        line.setAttribute('y1', a.y.toFixed(1));
+        line.setAttribute('x2', b.x.toFixed(1));
+        line.setAttribute('y2', b.y.toFixed(1));
+        label?.setAttribute('x', ((a.x + b.x) / 2).toFixed(1));
+        label?.setAttribute('y', ((a.y + b.y) / 2).toFixed(1));
+      }
+    };
+
+    const view = this.element.ownerDocument.defaultView;
+    // `held`: a node is being dragged and the graph runs on even at rest.
+    // `paused`: the pointer rests on a node, and the graph stands still so it
+    // can be read — unless that node is being dragged.
+    const run = { sim, frame: null, held: false, paused: false, wake: null, width, height, observer: null };
+    let last = -Infinity;
+    const tick = (time) => {
+      // Paused on a hovered node, or out of sight on another tab: no frames.
+      // Coming back to the tab starts the graph again (see the tab click).
+      if ((run.paused && !run.held) || !svg.clientWidth) {
+        run.frame = null;
+        return;
+      }
+      // Between two drawn frames: wait for the next screen frame. A dragged
+      // node is drawn every frame, so it stays under the pointer.
+      if (!run.held && time - last < 1000 / GRAPH_FPS - 1) {
+        run.frame = view.requestAnimationFrame(tick);
+        return;
+      }
+      last = time;
+      let energy = 0;
+      for (let i = 0; i < GRAPH_STEPS_PER_FRAME; i++) energy = sim.step();
+      draw();
+      run.frame = energy > GRAPH_REST_ENERGY || run.held ? view.requestAnimationFrame(tick) : null;
+    };
+    run.wake = () => {
+      if (run.frame === null) run.frame = view.requestAnimationFrame(tick);
+    };
+
+    if (view.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      for (let i = 0; i < 2000 && sim.step() > GRAPH_REST_ENERGY; i++);
+      draw();
+      run.wake = () => { for (let i = 0; i < 2000 && sim.step() > GRAPH_REST_ENERGY; i++); draw(); };
+    } else {
+      run.wake();
+    }
+    this.#graphRun = run;
+
+    // A new size — the window resized, the sheet detached, the splitter or
+    // the browser zoom moved — starts the drawing over in the new box, from
+    // where the nodes are now. Only a real change does: setting the height
+    // above is itself a resize of the SVG.
+    run.observer = new ResizeObserver(() => {
+      if (this.#graphRun !== run || run.held) return;
+      const next = this.#measureGraph(svg);
+      if (next.width !== run.width || next.height !== run.height) this.#runGraph();
+    });
+    run.observer.observe(svg);
+    run.observer.observe(this.element.querySelector('.window-content'));
+  }
+
+  /** The graph's forces as this client's sliders set them. */
+  #graphPhysics() {
+    return normalizeSpringParams(game.settings.get('tno', 'graphPhysics'));
+  }
+
+  /**
+   * The size the graph may take: the SVG's laid-out width, and the height
+   * left under its top edge in the sheet's scroll box, less the legend and
+   * the box's bottom padding — measured with the sheet scrolled to the top,
+   * so it does not depend on where the reader happens to be.
+   */
+  #measureGraph(svg) {
+    const scroller = this.element.querySelector('.window-content');
+    const top = svg.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
+    const legend = svg.parentElement.querySelector('.graph-legend')?.offsetHeight ?? 0;
+    return {
+      width: Math.round(svg.clientWidth),
+      height: Math.max(GRAPH_MIN_HEIGHT, Math.round(scroller.clientHeight - top - legend - GRAPH_BOTTOM_GAP)),
+    };
+  }
+
+  /** Stop the graph's animation, if one is running. */
+  #stopGraph() {
+    if (this.#graphRun?.frame) this.element?.ownerDocument.defaultView.cancelAnimationFrame(this.#graphRun.frame);
+    this.#graphRun?.observer?.disconnect();
+    this.#graphRun = null;
+  }
+
+  /**
+   * Drag one graph node. It is pinned to the pointer for as long as it is
+   * held, and the springs pull the rest after it; let go, and it is free
+   * again and the whole graph swings into a new rest. The pointer is mapped
+   * into the SVG's own coordinates, since the drawing is scaled to the tab.
+   * The character stays the fixed anchor and is not dragged.
+   */
+  #dragGraphNode(event, el) {
+    const run = this.#graphRun;
+    const node = run?.sim.node(el.dataset.nodeId);
+    if (event.button !== 0 || !node || el.classList.contains('graph-node-self')) return;
+    const svg = el.ownerSVGElement;
+    const place = (e) => {
+      const point = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM().inverse());
+      node.x = Math.min(run.width, Math.max(0, point.x));
+      node.y = Math.min(run.height, Math.max(0, point.y));
+    };
+    el.setPointerCapture(event.pointerId);
+    el.classList.add('is-dragging');
+    node.fixed = true;
+    run.held = true;
+    run.wake();
+
+    const move = (e) => {
+      place(e);
+      run.wake();
+    };
+    const stop = () => {
+      el.classList.remove('is-dragging');
+      node.fixed = false;
+      run.held = false;
+      run.wake();
+      el.removeEventListener('pointermove', move);
+      el.removeEventListener('pointerup', stop);
+      el.removeEventListener('pointercancel', stop);
+    };
+    el.addEventListener('pointermove', move);
+    el.addEventListener('pointerup', stop);
+    el.addEventListener('pointercancel', stop);
+  }
+
+  /**
+   * Show/hide Beziehungen rows per the tab's search box, across all of a
+   * row's text. DOM-level like the Inventar search, so typing keeps the caret.
+   * @private
+   */
+  _applyConnectionFilter() {
+    const table = this.element.querySelector('.connections-table');
+    if (!table) return;
+    const search = (this._connectionSearch ?? '').trim();
+    let visible = 0;
+    for (const row of table.querySelectorAll('.connection-row')) {
+      // A row with nothing in it yet is one being filled in: it stays, or a
+      // row opened while searching would vanish under the caret.
+      const match = !search || !row.dataset.search || fuzzyMatch(search, row.dataset.search);
+      row.hidden = !match;
+      if (match) visible++;
+    }
+    const none = table.querySelector('.connections-nomatch');
+    if (none) none.hidden = !search || visible > 0;
+  }
+
+  /**
+   * Dock the tab rail outside the sheet's right edge where there is room for
+   * it, and inside the sheet — as a strip across its top — where there is not:
+   * a sheet dragged against the screen edge, or one detached into a browser
+   * window of its own, which is exactly as wide as the sheet. Measured against
+   * the window the sheet is in, which after detaching is not `window`.
+   */
+  #placeTabRail() {
+    const el = this.element;
+    if (!el?.isConnected) return;
+    const view = el.ownerDocument.defaultView;
+    const room = view.innerWidth - el.getBoundingClientRect().right;
+    el.classList.toggle('tabs-inside', room < TAB_RAIL_WIDTH);
+  }
+
+  /**
+   * Remember which Beziehungen cell has the caret before the sheet redraws.
+   * Every edit commits on `change` and re-renders, and the commonest way to
+   * fire one is Tab into the next cell — whose element the redraw replaces.
+   * Without this the caret would land nowhere after each Tab.
+   * @override
+   */
+  async _preRender(context, options) {
+    await super._preRender(context, options);
+    if (this._focusConnection) return;
+    const cell = this.element?.ownerDocument.activeElement?.closest?.('.connection-row [data-connection-field]');
+    if (!cell || !this.element.contains(cell)) return;
+    this._focusConnection = {
+      id: cell.closest('[data-connection-id]').dataset.connectionId,
+      field: cell.dataset.connectionField,
+      start: cell.selectionStart,
+      end: cell.selectionEnd,
+      // Typed after the Tab but not yet committed: the redraw would drop it.
+      value: cell.type === 'checkbox' ? null : cell.value,
+    };
+  }
+
+  /** @override */
+  _onPosition(position) {
+    super._onPosition(position);
+    this.#placeTabRail();
+  }
+
   /** Grow the biography to its content, up to its stylesheet-defined limit. */
   #resizeBiography() {
     const textarea = this.element.querySelector('.biography-textarea');
@@ -2164,13 +2955,24 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       target.click();
     });
 
-    // The description tab is hidden during the character sheet's initial
+    // The biography tab is hidden during the character sheet's initial
     // render, so size its textarea after Foundry has made that tab visible.
-    this.#delegate('click', '.sheet-tabs [data-tab="description"]', () => {
+    this.#delegate('click', '.sheet-tabs [data-tab="biography"]', () => {
       requestAnimationFrame(() => this.#resizeBiography());
     });
 
     this.#delegate('input', '.biography-textarea', () => this.#resizeBiography());
+
+    // Likewise the graph: a hidden tab has no size to lay it out in, so it
+    // starts once the Beziehungen tab is showing.
+    this.#delegate('click', '.sheet-tabs [data-tab="connections"]', () => {
+      requestAnimationFrame(() => {
+        // Never started (the tab was hidden at render), or stopped while
+        // out of sight: pick up where it was.
+        if (!this.#graphRun) this.#runGraph();
+        else this.#graphRun.wake();
+      });
+    });
 
     // Render the item sheet for viewing/editing prior to the editable check.
     // Keyed off `data-item-id` rather than a row class: the Merkmale list, the
@@ -2249,6 +3051,267 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     this.#delegate('input', '.item-search-input', (event, target) => {
       this._itemSearch = target.value;
       this._applyItemFilter();
+    });
+
+    // Beziehungen: the search, and the table's own editing. The cells carry no
+    // `name`, so the sheet's submit-on-change never sees them; each edit writes
+    // the whole list back instead, like the consumable effects in the item
+    // editor.
+    this.#delegate('input', '.connections-search', (event, target) => {
+      this._connectionSearch = target.value;
+      this._applyConnectionFilter();
+    });
+
+    this.#delegate('click', '.connection-add', () => {
+      // A new row is typed into in the table, whichever view was showing.
+      this._connectionView = 'table';
+      this.#addConnection();
+    }, { requireEditable: true });
+
+    // Table or graph: view state on the open sheet, like the carry tabs.
+    this.#delegate('click', '.connections-view', (event, target) => {
+      if (this._connectionView === target.dataset.view) return;
+      this._connectionView = target.dataset.view;
+      this.render();
+    });
+
+    // Graph: hovering a node lights it, its edges and its neighbours, and
+    // dims the rest.
+    // Graph: hovering a node stops the physics, lights the node and what it
+    // touches, and shows what is known about it in a card beside it — hidden
+    // while a node is dragged. Leaving it lets the graph run on.
+    this.#delegate('pointerover', '.graph-node', (event, target) => {
+      if (this.#graphRun) this.#graphRun.paused = true;
+      this.#lightGraphNode(target);
+      if (!this.#graphRun?.held) this.#showGraphCard(target);
+    });
+    this.#delegate('pointerout', '.graph-node', (event, target) => {
+      if (target.contains(event.relatedTarget)) return;
+      this.#lightGraphNode(null);
+      this.#showGraphCard(null);
+      const run = this.#graphRun;
+      if (run?.paused) {
+        run.paused = false;
+        run.wake();
+      }
+    });
+
+    // Graph: a node follows the pointer while dragged. View only — the next
+    // render lays the graph out afresh.
+    this.#delegate('pointerdown', '.graph-node', (event, target) => {
+      this.#showGraphCard(null);
+      this.#dragGraphNode(event, target);
+    });
+
+    // Graph: a legend entry for Fraktion or Herkunft switches that kind of
+    // node off and on. Redrawn, so the springs settle without them.
+    this.#delegate('click', '.graph-legend-toggle', (event, target) => {
+      const kind = target.dataset.kind;
+      if (this._graphHidden.has(kind)) this._graphHidden.delete(kind);
+      else this._graphHidden.add(kind);
+      this.render();
+    });
+
+    // The physics panel over the graph. A slider moves the running graph at
+    // once and is stored for this client when let go; it is no actor data,
+    // so it never reaches the sheet's own form submit. Read-only sheets get
+    // it too: it changes how the graph is drawn, not what it shows.
+    this.element.addEventListener('toggle', (event) => {
+      if (event.target.matches?.('.graph-tuning')) this._graphTuningOpen = event.target.open;
+    }, { capture: true });
+    this.#delegate('input', '[data-graph-param]', (event, target) => {
+      const key = target.dataset.graphParam;
+      const run = this.#graphRun;
+      if (run) {
+        run.sim.params[key] = Number(target.value);
+        run.wake();
+      }
+      const output = target.parentElement.querySelector('output');
+      if (output) output.textContent = target.value;
+    });
+    this.element.addEventListener('change', (event) => {
+      const slider = event.target.closest?.('[data-graph-param]');
+      if (!slider) return;
+      event.stopImmediatePropagation();
+      game.settings.set('tno', 'graphPhysics', { ...this.#graphPhysics(), [slider.dataset.graphParam]: Number(slider.value) });
+    }, { capture: true });
+    this.#delegate('click', '.graph-tuning-reset', async () => {
+      await game.settings.set('tno', 'graphPhysics', SPRING_DEFAULTS);
+      this.render();
+    });
+    // Start the picture over from the deterministic layout, dropping where
+    // the springs and any drags had left the nodes.
+    this.#delegate('click', '.graph-relayout', () => {
+      this._graphPositions = new Map();
+      this.render();
+    });
+
+    // Graph: a double-click on a person opens their row in the table.
+    this.#delegate('dblclick', '.graph-node-person', (event, target) => {
+      // Someone known only by hearsay has no row to open.
+      if (!target.dataset.connectionId) return;
+      this._connectionView = 'table';
+      this._focusConnection = { id: target.dataset.connectionId, field: 'name' };
+      this.render();
+    });
+
+    // Label columns (Beziehung, Kennt, Fraktion, Herkunft), Jira-style: focusing or typing opens the list of
+    // labels already in use; arrows pick, Enter or a comma takes the picked
+    // one (or the typed text), Backspace in the empty field drops the last
+    // label, Escape closes the list. Registered before the row navigation
+    // below, which steps aside once a key here has been handled.
+    this.#delegate('focusin', '.connection-tag-input', (event, target) => this.#suggestLabels(target), { requireEditable: true });
+    this.#delegate('input', '.connection-tag-input', (event, target) => this.#suggestLabels(target), { requireEditable: true });
+    this.#delegate('focusout', '.connection-tag-input', (event, target) => this.#closeSuggestions(target));
+
+    this.#delegate('keydown', '.connection-tag-input', (event, target) => {
+      if (event.isComposing || this.#steerSuggestions(event, target)) return;
+      const list = target.nextElementSibling;
+      const options = [...list.querySelectorAll('.connection-tag-option')];
+      const active = options.findIndex((option) => option.classList.contains('active'));
+      const open = list.matches(':popover-open') && options.length > 0;
+
+      if (event.key === 'Backspace' && !target.value) {
+        const index = target.parentElement.querySelectorAll('.connection-tag').length - 1;
+        if (index < 0) return;
+        event.preventDefault();
+        this.#removeLabelAt(target, index);
+        return;
+      }
+      if ((event.key === 'Enter' && !event.shiftKey) || event.key === ',') {
+        const label = open && active >= 0 ? options[active].dataset.value : target.value.trim();
+        // Nothing to take: Enter falls through to the row navigation.
+        if (!label) {
+          if (event.key === ',') event.preventDefault();
+          return;
+        }
+        event.preventDefault();
+        this.#takeLabel(target, label);
+      }
+    }, { requireEditable: true });
+
+    // `mousedown`, not `click`: it lands before the field loses focus, so the
+    // list is still there to be clicked.
+    // Anywhere in the list — an option or its scrollbar — the press must not
+    // take the focus from the field, whose blur would close the list.
+    this.#delegate('mousedown', '.connection-tag-suggest', (event, target) => {
+      event.preventDefault();
+      const option = event.target.closest('.connection-tag-option');
+      if (!option) return;
+      const input = target.previousElementSibling;
+      if (input.matches('.connection-name')) this.#takePerson(input, Number(option.dataset.value));
+      else this.#takeLabel(input, option.dataset.value);
+    }, { requireEditable: true });
+
+    this.#delegate('click', '.connection-tag-remove', (event, target) => {
+      const input = target.closest('.connection-tags').querySelector('.connection-tag-input');
+      this.#removeLabelAt(input, Number(target.dataset.index));
+    }, { requireEditable: true });
+
+    // A click on the cell's empty space is a click into the field.
+    this.#delegate('click', '.connection-tags', (event, target) => {
+      if (event.target === target) target.querySelector('.connection-tag-input')?.focus();
+    });
+
+    // The Name offers people the other characters list and Actors of the
+    // world as it is typed. The arrows or the mouse pick one, Enter takes
+    // the picked one — name, Fraktion, Herkunft and Actor link at once — and
+    // stays; with nothing picked, Enter and Tab move on as everywhere.
+    this.#delegate('input', '.connection-name', (event, target) => this.#suggestPeople(target), { requireEditable: true });
+    this.#delegate('focusout', '.connection-name', (event, target) => this.#closeSuggestions(target));
+    this.#delegate('keydown', '.connection-name', (event, target) => {
+      if (event.isComposing || this.#steerSuggestions(event, target)) return;
+      const list = target.nextElementSibling;
+      const picked = list.matches(':popover-open') && list.querySelector('.connection-tag-option.active');
+      if (event.key === 'Enter' && !event.shiftKey && !event.altKey && picked) {
+        event.preventDefault();
+        this.#takePerson(target, Number(picked.dataset.value));
+        return;
+      }
+      if (event.key === 'Tab' || event.key === 'Enter') this.#closeSuggestions(target);
+    }, { requireEditable: true });
+
+    this.#delegate('click', '.connection-remove', (event, target) => {
+      const id = target.closest('[data-connection-id]')?.dataset.connectionId;
+      this.actor.update({ 'system.connections': removeConnection(this.actor.system.connections, id) });
+    }, { requireEditable: true });
+
+    this.#delegate('click', '.connection-open', async (event, target) => {
+      const actor = await fromUuid(target.dataset.actorUuid);
+      actor?.sheet?.render(true);
+    });
+
+    this.element.addEventListener('change', (event) => {
+      const cell = event.target.closest?.('.connection-row [data-connection-field]');
+      if (!cell) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      // Text left in the label field when it is left — Tab, or a click
+      // elsewhere — becomes a label, as Enter would have made it.
+      if (cell.matches('.connection-tag-input')) {
+        if (cell.value.trim()) this.#takeLabel(cell, cell.value.trim());
+        return;
+      }
+      const id = cell.closest('[data-connection-id]').dataset.connectionId;
+      const field = cell.dataset.connectionField;
+      // A picked person is being written with the name in it.
+      if (field === 'name' && this._adoptingConnection === id) return;
+      const value = cell.type === 'checkbox' ? cell.checked : cell.value;
+      const entry = normalizeConnections(this.actor.system.connections).find((e) => e.id === id);
+      if (!entry || entry[field] === value) return;
+      this.actor.update({
+        'system.connections': editConnection(this.actor.system.connections, id, field, value),
+      });
+    }, { capture: true });
+
+    // Moving through the table the way Excel does:
+    //  - Tab / Shift+Tab: the next / previous cell, wrapping into the next /
+    //    previous row; Tab past the last cell opens a new row.
+    //  - Enter / Shift+Enter: the row below / above, in the column a run of
+    //    Tabs started from (or this one); Enter on the last row opens a new
+    //    row.
+    //  - Alt+Enter: a line break in the notes.
+    // Leaving a cell commits it — on its own `change`, or, for text still in
+    // a label field, by taking it as a label first.
+    this.#delegate('keydown', '.connection-row [data-connection-field]', (event, target) => {
+      if (event.defaultPrevented || event.isComposing) return;
+
+      if (event.key === 'Tab') {
+        event.preventDefault();
+        this._connectionTabAnchor ??= target.dataset.connectionField;
+        this.#navigateConnections(target, { cols: event.shiftKey ? -1 : 1 });
+        return;
+      }
+      if (event.key !== 'Enter') return;
+      event.preventDefault();
+
+      if (event.altKey) {
+        if (target.tagName === 'TEXTAREA') {
+          target.setRangeText('\n', target.selectionStart, target.selectionEnd, 'end');
+          target.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        return;
+      }
+      const field = this._connectionTabAnchor ?? target.dataset.connectionField;
+      this._connectionTabAnchor = null;
+      this.#navigateConnections(target, { rows: event.shiftKey ? -1 : 1, field });
+    }, { requireEditable: true });
+
+    // A label list is placed once, under its cell; when the table scrolls it
+    // would be left behind, so it closes instead.
+    this.element.addEventListener('scroll', (event) => {
+      if (!event.target.closest?.('.tab.connections, .window-content')) return;
+      // The list scrolling its own options is no reason to close it.
+      if (event.target.matches?.('.connection-tag-suggest')) return;
+      for (const list of this.element.querySelectorAll('.connection-tag-suggest:popover-open')) {
+        this.#closeSuggestions(list.previousElementSibling);
+      }
+    }, { capture: true });
+
+    // A click puts the caret somewhere new; Enter no longer returns to where
+    // a run of Tabs began.
+    this.#delegate('pointerdown', '.connections-table', () => {
+      this._connectionTabAnchor = null;
     });
 
     // Sort the table by a column. Deliberately **view-only**: `item.sort` is
@@ -2606,12 +3669,31 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     this._applySkillFilter();
     this._applyTrinketFilter();
     this._applyItemFilter();
+    this._applyConnectionFilter();
+    this.#runGraph();
+    this.#placeTabRail();
     this._applyColumnSplit();
     this.#resizeBiography();
     this.#observeSlotGrid();
     // Detaching moves the sheet into a second window; the popovers have to
     // follow it there before either is opened again.
     this.#mountPopovers();
+
+    // Back into the Beziehungen cell the caret was in before the redraw — or
+    // into the name of a row just opened.
+    if (this._focusConnection) {
+      const { id, field, start, end, value } = this._focusConnection;
+      const cell = this.element.querySelector(`.connection-row[data-connection-id="${id}"] [data-connection-field="${field}"]`);
+      if (cell && value != null && value !== cell.value) {
+        // Put the uncommitted text back, and commit it on leaving: a value set
+        // by script never fires `change` by itself.
+        cell.value = value;
+        cell.addEventListener('blur', () => cell.dispatchEvent(new Event('change', { bubbles: true })), { once: true });
+      }
+      cell?.focus();
+      if (cell && start != null) cell.setSelectionRange(start, end);
+      this._focusConnection = null;
+    }
 
     if (this._itemPopover?.matches(':popover-open')) {
       await this.#refreshItemPopover();
@@ -2653,6 +3735,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   /** @inheritDoc */
   async _onClose(options) {
+    this.#stopGraph();
     this.#slotGridObserver?.disconnect();
     this.#slotGridObserver = null;
     if (this._itemPopover?.matches(':popover-open')) this._itemPopover.hidePopover();
@@ -2862,6 +3945,26 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   }
 
   /**
+   * An Actor dropped on the Beziehungen tab becomes a row named after it and
+   * linked to it — once: the same Actor dropped again is already listed.
+   */
+  async #dropConnection(data) {
+    if (!this.isEditable) return;
+    const actor = await Actor.implementation.fromDropData(data);
+    if (!actor || actor === this.actor) return;
+    if (hasConnectionTo(this.actor.system.connections, actor.uuid)) {
+      ui.notifications.info(game.i18n.format('TNO.Connections.AlreadyListed', { name: actor.name }));
+      return;
+    }
+    return this.actor.update({
+      'system.connections': addConnection(this.actor.system.connections, foundry.utils.randomID(), {
+        name: actor.name,
+        actorUuid: actor.uuid,
+      }),
+    });
+  }
+
+  /**
    * @override
    * Route drops that land on one of the sheet's own equipment surfaces:
    *
@@ -2880,6 +3983,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    */
   async _onDrop(event) {
     const data = foundry.applications.ux.TextEditor.implementation.getDragEventData(event);
+    if (data?.type === 'Actor' && event.target?.closest?.('.tab.connections')) return this.#dropConnection(data);
     if (data?.type !== 'Item') return super._onDrop(event);
 
     // The whole doll takes the drop, not just the row: a piece has exactly one

@@ -312,11 +312,16 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
     </div>
 
     {{!-- Biography Tab --}}
-    <div class="tab biography {{tabs.description.cssClass}}" data-group="primary" data-tab="description">
+    <div class="tab biography {{tabs.biography.cssClass}}" data-group="primary" data-tab="biography">
       {{!-- Plain textarea instead of the ProseMirror editor helper: the
       editor requires an explicit click into an edit mode before typing,
       which is unnecessary friction for a simple freetext notes field. --}}
       <textarea name="system.biography" class="biography-textarea" placeholder="{{localize 'TNO.BiographyPlaceholder'}}">{{system.biography}}</textarea>
+    </div>
+
+    {{!-- Beziehungen Tab --}}
+    <div class="tab connections {{tabs.connections.cssClass}}" data-group="primary" data-tab="connections">
+      {{> "systems/tno/templates/actor/parts/actor-connections.hbs"}}
     </div>
 
     {{!-- Owned Items Tab --}}
@@ -330,7 +335,9 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
   edge, mirroring the reference dnd5e sheet's tab layout. Each item also
   carries a text label, hidden by default and revealed on hover/focus (see
   _forms.scss), so the rail's purpose as tab navigation is discoverable
-  without waiting on the native tooltip's delay. --}}
+  without waiting on the native tooltip's delay. Where there is no room beside
+  the sheet — detached, or against the screen edge — the sheet marks itself
+  `tabs-inside` and the rail becomes a labelled strip across its top. --}}
   <nav class="sheet-tabs tabs tabs-right" data-group="primary">
     {{!-- Tab set and default tab are declared in actor-sheet.mjs (static TABS);
     `data-action="tab"` is what hands the click to ApplicationV2#changeTab. --}}

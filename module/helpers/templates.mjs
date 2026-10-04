@@ -11,6 +11,8 @@ export const preloadHandlebarsTemplates = async function () {
     // Actor partials.
     'systems/tno/templates/actor/parts/actor-features.hbs',
     'systems/tno/templates/actor/parts/actor-items.hbs',
+    'systems/tno/templates/actor/parts/actor-connections.hbs',
+    'systems/tno/templates/actor/parts/actor-connections-graph.hbs',
     'systems/tno/templates/actor/parts/actor-effects.hbs',
     'systems/tno/templates/actor/parts/actor-malus.hbs',
     'systems/tno/templates/actor/parts/actor-damage.hbs',

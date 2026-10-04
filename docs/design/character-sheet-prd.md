@@ -14,10 +14,11 @@
 4. [Basics Tab: Attributes](#basics-tab-attributes)
 5. [Basics Tab: Skills](#basics-tab-skills)
 6. [Biography Tab](#biography-tab)
-7. [Inventory Tab](#inventory-tab)
-8. [Accessibility](#accessibility)
-9. [Implementation Notes](#implementation-notes)
-10. [Localization](#localization)
+7. [Connections Tab](#connections-tab)
+8. [Inventory Tab](#inventory-tab)
+9. [Accessibility](#accessibility)
+10. [Implementation Notes](#implementation-notes)
+11. [Localization](#localization)
 11. [Open Questions / Variants to Explore](#open-questions--variants-to-explore)
 
 ---
@@ -38,7 +39,7 @@ The character sheet (`TnoActorSheet`, actor type `character`) is the single-wind
 
 - **Default window size:** 1280×900 (`TnoActorSheet.DEFAULT_OPTIONS`), resizable. The width gives the Basics rows enough room for their attribute, skill and equipment columns; the entire character sheet shares one `.window-content` scroll surface.
 - **Banner:** `.sheet-banner` is a full-width grid above the tab body with three areas: square portrait, protected identity lane, and the meta lane. The portrait remains in normal grid flow and only visually overhangs the band's bottom edge. Its layout, contents and responsive behaviour are specified in [header-banner-prd.md](header-banner-prd.md).
-- **Tab rail:** `<nav class="sheet-tabs tabs-right">` is docked as a vertical icon rail along the right edge, each item showing an icon plus a text label that's hidden by default and revealed on hover/focus. It remains inside `.window-content`, where ApplicationV2 resolves the tab actions, while CSS positions it outside the visible sheet edge.
+- **Tab rail:** `<nav class="sheet-tabs tabs-right">` is docked as a vertical icon rail along the right edge, each item showing an icon plus a text label that's hidden by default and revealed on hover/focus. It remains inside `.window-content`, where ApplicationV2 resolves the tab actions, while CSS positions it outside the visible sheet edge. The four tabs are Grundlagen (`dice-d20`), Biografie (`book-user`), Beziehungen (`circle-nodes`) and Inventar (`backpack`). Where there is no room beside the sheet — a detached window, which is exactly as wide as the sheet, or a sheet dragged against the screen edge — the rail becomes a sticky strip across the top of the sheet with every label shown, instead of being cut off.
 - **Visual style (2026-10 redesign, Basics tab and windows; the banner keeps its earlier design):** every TNO window stands on one flat warm-grey ground instead of Foundry's parchment texture; panels (lists, cards, the skill groups) are a lighter surface on it with a soft hairline; section headers are an uppercase title over a hairline with quiet figures beside it. Type is IBM Plex Sans throughout, one step smaller than Foundry's default scale, with its Condensed cut for the skill-group titles, bundled with the system rather than loaded from the web. Worn gear is one cool blue wherever it is drawn — zone rows, the silhouette, the worn band of the slot raster.
 - **Basics grid ("Kompakt · Matrix E"):** one row of two columns, 1:1 by default with a draggable handle between them. Left is what the character can roll: the attribute matrix and the skill list (Initiative and 6. Sinn are roll pills in the banner). Right is what the character has: the worn gear, then Inventar · Kleinkram · Geld as three tabs of one panel, with the create `+` closing the tab bar.
 - **Responsive banner:** `.window-content` is the named `character-sheet` inline-size container. At 980px and below the meta lane moves beneath the identity while the portrait stays left; only below 520px may the protected 280px name lane yield. See [header-banner-prd.md](header-banner-prd.md#responsive-behaviour).
@@ -92,7 +93,24 @@ Health is not part of this column — the damage block sits in the banner, see
 
 ## Biography Tab
 
+Labelled *Biografie* (tab id `biography`): who the character is, in the player's words.
+
 Plain `<textarea name="system.biography">`, not Foundry's ProseMirror rich-text editor — deliberately, since the editor requires an explicit click into an edit mode before typing, which is unnecessary friction for a simple free-text notes field.
+
+---
+
+## Connections Tab
+
+*Beziehungen* — the people the character comes to know in play. Character-only; the wiki says nothing about contacts, so everything here is table bookkeeping with no rule effect.
+
+- **A spreadsheet, not a form.** One row per person with a *Neuralink* box first, then Name, Beziehung, Kennt, Fraktion, Herkunft and free-text Notizen, all edited in place. The keys work as in Excel: Tab / Shift+Tab move to the next / previous cell, wrapping into the next / previous row, and Tab past the last cell opens a new row; Enter / Shift+Enter move to the row below / above, back in the column a run of Tabs started from, and Enter on the last row opens a new row; Alt+Enter is a line break in the notes. The caret survives the save each cell triggers on leaving. In a label field, Enter with text takes the label and stays for the next one; Enter in an empty label field moves on like everywhere else. A search box filters across every column (a ticked Neuralink box counts as the word); `+` adds a row.
+- **Neuralink** marks a person in the character's phone book: Neuralink is the phone, so a ticked person can be reached through it. A flag only; nothing reads it as a rule.
+- **Beziehung, Kennt, Fraktion and Herkunft are 0..N labels each**. *Beziehung* is how the character stands to the person (Kontakt, Rivale); *Kennt* names the other people this person knows — what the character has learnt of the web around them — and offers people's names: the table's rows, the other characters' rows and the world's Actors. The labels are entered like Jira labels: badges in the cell with a typing field after them. Focusing the field opens the labels already used in that column across the table (most used first, those the row has left out); typing narrows them, the arrows pick, Enter or a comma takes the picked label or creates the typed one, Backspace in the empty field drops the last label, `×` drops any. Text left in the field when Tab leaves it becomes a label too. An older single free-text value in any of the three reads as its comma-separated parts.
+- **People in the Name.** Typing a Name opens a list of people matching what was typed: the table's own rows first, marked *schon eingetragen*, then the people the other characters list and the Actors the user may see, with what is known of them (Fraktion, Herkunft) beside the name. Picking one of the table's own rows goes to that row instead of listing the person twice. Nothing is picked until the arrows or the mouse pick it — Enter on a new name just moves on — and taking a person fills in the name, adds their known Fraktion and Herkunft labels and links their Actor in one write.
+- **Shared vocabulary.** The label lists also draw on the Beziehungen of every other character the user may observe (the GM: all; a player: those shared with them), so a group writes the same person and the same Fraktion one way. The table's own values come first. Only names and labels are read from other characters, never notes or the Neuralink box; Actors count by name if the user may see them at all.
+- **Dropping an Actor** onto the tab adds a row named after it and linked to it (`actorUuid`); the row's link icon opens that Actor. The same Actor is listed once.
+- **Stored as one array**, `system.connections`, each entry with a stable `id`; the sheet writes the whole list back on every edit.
+- **Graph view.** A *Tabelle | Graph* switch in the header (view state on the open sheet; the tab opens on the graph, or on the table while the list is empty) draws the same list as a graph of every entity in it: the character in the middle with its portrait, a person linked to an Actor (dropped or picked) with that Actor's portrait unless it is Foundry's placeholder, each person joined to it by an edge labelled with their Beziehungen, each distinct Fraktion and Herkunft label as one node its people join. A name under Kennt joins that person to the row of that name (or to the character) by a dashed edge, once per pair; a name with no row of its own becomes a hollow, dashed person known only by hearsay. A person in the phone book wears a blue ring; Neuralink is no node of its own, since it is the phone rather than anyone to know. It starts from a deterministic force layout and then runs live as a physical spring embedder (`helpers/connection-graph.mjs`): edges are springs, nodes repel, a weak gravity holds the graph together and damping lets it come to rest, at which point the animation stops; a speed limit keeps crowded graphs stable, a node stops at the box's wall, and nothing runs while the tab is out of sight; it is drawn at most 30 times a second. The character is the fixed anchor. The drawing takes exactly the space it is shown in — the full width and the height down to the window's bottom edge, in real pixels — and starts over in the new box when the window is resized or detached. Dragging a node pins it to the pointer and the springs pull its neighbours after it; let go, and the graph swings into a new rest. Positions are kept for the open sheet, so a redraw does not reset the picture, but they are not stored. With reduced motion asked for, the graph settles out of sight and is drawn once. The legend's Fraktion and Herkunft entries switch those nodes, with their edges, off and on (view state on the open sheet), and the springs settle without them. Hovering a node freezes the physics until the pointer leaves it (a drag still moves it), dims everything it does not touch and shows a card beside it with what is known about it — for a person their Beziehung, Kennt, Fraktion, Herkunft, phone book and notes plus who else names them under Kennt (*Bekannt bei*), for a hearsay person who names them, for a Fraktion or Herkunft its people; a double-click on a person opens their row in the table. `+` always switches to the table. A *Physik* panel folded into the graph's corner tunes the forces live — spring strength, spring length, repulsion, pull to the centre — stored per user as the client setting `tno.graphPhysics` (`config: false`); *Neu anordnen* starts the picture over from the start layout, *Standard* restores the default forces. Not yet: one graph of several characters' tables together.
 
 ---
 
@@ -151,7 +169,7 @@ Key prefixes used throughout the sheet (see `lang/de.json` / `lang/en.json`):
 - `TNO.CustomSkill.*` — add button, badge, shift-click hint for custom skills.
 - `TNO.Derived.*` / `TNO.DerivedShort.*` / `TNO.DerivedHint.*` — derived-value labels (the banner's Initiative and 6. Sinn pills, the movement line, carry slots) in long/short/tooltip variants.
 - `TNO.Money.Tab` — the Geld tab's label; the wallet's other keys are under `TNO.Money.*`.
-- `TNO.TabBasics` / `TabDescription` / `TabItems` — tab rail labels (`TabItems` reads "Inventar" / "Inventory": the tab covers the inventory rules as a whole, not just a list of things).
+- `TNO.TabBasics` / `TabBiography` / `TabConnections` / `TabItems` — tab rail labels (`TabItems` reads "Inventar" / "Inventory": the tab covers the inventory rules as a whole, not just a list of things).
 - `TNO.Inventory.*` — Trageslots view: title, slot-cost hints, the `Keine Tasche` badge, the add-dialog's labels, the cell/free-cell hints, the free-slot summary (`FreeSlots`) and the meter's accessible label (`MeterLabel`), the Kleinkram tab's title, explanation, empty state, filter and no-match line (`Trinkets*`), and the Zurückgelassen block's title, hint, empty state and the popover toggle (`Stashed*`, `Stash*`, `Unstash*`). The two load-state hints moved to `TNO.DerivedHint.NoSprint` / `CrawlOnly`, where the movement chip reads them.
 - `TNO.Damage.*` — damage-pool labels, stepper actions, the banner block's row/malus tooltips (free remainder, capacity, conversion, malus breakdown) and the Kampfunfähig warning.
 - `TNO.Status.*` — the six condition names, threshold/state wording, chip summary and raster interaction hint, plus the three derived conditions: their names (`Loaded` / `Overloaded`, `ArmorTooHeavy`, `NoDodge`), one reason each, written as why the condition is on (`CarryHalf` / `CarryFull`, `ArmorSvShort`, `StanceBlocksDodge`); the damage lights' reason names a manual override as such (`ThresholdForced`, `ThresholdSuppressed`) and their consequences (`OverloadEffect.*`, `ArmorEffect`, `DodgeEffect.*`).
@@ -162,6 +180,7 @@ Key prefixes used throughout the sheet (see `lang/de.json` / `lang/en.json`):
 - `TNO.PortraitEdit` — accessible label and visible edit hint for an owner's portrait.
 - `TNO.XpTotalAllHint` / `XpTotalAttributesHint` / `XpTotalSkillsHint` / `XpMaxBadge` — the three XP badge tooltips and the at-cap badge text.
 - `TNO.BiographyPlaceholder` — biography textarea placeholder.
+- `TNO.Connections.*` — the Beziehungen tab: title, search, add/remove/open, the empty and no-match lines, the duplicate-drop notice, and the column captions under `Field.*`.
 - Problem-Solving keys are documented in full in [problem-solving-prd.md](problem-solving-prd.md#localization).
 
 ---
@@ -180,6 +199,7 @@ Key prefixes used throughout the sheet (see `lang/de.json` / `lang/en.json`):
 | Version | Date | Changes | Author |
 |---------|------|---------|--------|
 | 1.5 | 2026-10-04 | "Kompakt · Matrix E": Basics as two columns, compact attribute matrix with category headings, Inventar/Kleinkram/Geld as one tabbed panel | System |
+| 1.6 | 2026-10-04 | Beziehungen tab; Beschreibung renamed Biografie; new tab icons; the rail moves inside the sheet where there is no room beside it | System |
 | 1.8 | 2026-10-04 | Zurückgelassen: gear can be left behind under the slot raster — owned, outside the budget, not wearable or usable | System |
 | 1.7 | 2026-10-04 | The whole paper doll takes an armour drop and lights up as an area while one is in flight, the piece's zone marked stronger inside it; the wrong-zone warning is gone | System |
 | 1.6 | 2026-10-04 | The movement tiers moved from the worn-gear column into the banner, beside the damage tracks | System |

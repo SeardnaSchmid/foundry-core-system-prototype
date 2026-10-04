@@ -91,6 +91,8 @@
     "BasicsSplitterHint": "Drag to move the boundary between these two columns. Double-click resets the whole row.",
     "TabBasics": "Basics",
     "TabDescription": "Description",
+    "TabBiography": "Biography",
+    "TabConnections": "Connections",
     "BiographyPlaceholder": "Write your character's story, notes, and background here…",
     "TabItems": "Inventory",
     "RollSkill": "Roll",
@@ -1134,7 +1136,62 @@
       "Add": "Add feature",
       "Empty": "No features yet."
     },
-    "EdgeAdjustLabel": "Correction (GM)"
+    "EdgeAdjustLabel": "Correction (GM)",
+    "Connections": {
+      "Title": "Connections",
+      "Search": "Search …",
+      "Add": "Add connection",
+      "Remove": "Remove connection",
+      "Open": "Open linked actor",
+      "Empty": "Nobody yet. Add a row with + or drop an actor here.",
+      "NoMatch": "No connection matches the search.",
+      "AlreadyListed": "{name} is already listed.",
+      "Listed": "already listed",
+      "Field": {
+        "name": "Name",
+        "relations": "Relation",
+        "knows": "Knows",
+        "factions": "Faction",
+        "origins": "Origin",
+        "neuralink": "Neuralink",
+        "notes": "Notes"
+      },
+      "NeuralinkHint": "In the phone book: reachable through Neuralink.",
+      "TagNew": "Create \"{label}\"",
+      "TagRemove": "Remove",
+      "Placeholder": {
+        "relations": "e.g. contact, rival",
+        "knows": "Person …",
+        "factions": "Faction …",
+        "origins": "Origin …"
+      },
+      "View": "View",
+      "ViewTable": "Table",
+      "ViewGraph": "Graph",
+      "Graph": {
+        "Unnamed": "(unnamed)",
+        "Kind": {
+          "self": "Character",
+          "person": "Person",
+          "faction": "Faction",
+          "origin": "Origin"
+        },
+        "Reachable": "In the phone book (Neuralink)",
+        "Hearsay": "Hearsay only",
+        "KnownBy": "Known by",
+        "Members": "People",
+        "Tuning": {
+          "Title": "Physics",
+          "stiffness": "Spring strength",
+          "springLength": "Spring length",
+          "repulsion": "Repulsion",
+          "gravity": "Pull to the centre",
+          "Relayout": "Rearrange",
+          "Reset": "Defaults"
+        },
+        "ToggleHint": "Click to hide or show"
+      }
+    }
   },
   "TYPES": {
     "Actor": {

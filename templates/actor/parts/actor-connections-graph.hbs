@@ -1,0 +1,88 @@
+{{!-- The Beziehungen graph: the table's entities and how they hang together,
+laid out by `helpers/connection-graph.mjs`. Edges first so the nodes sit on
+top of them. Hovering a node lights it and its neighbours and shows what is
+known about it; nodes can be
+dragged (view only — nothing is stored); a double-click on a person opens
+their row in the table. The panel in the corner tunes the physics. --}}
+{{#if graph.empty}}
+  <p class='connections-empty'>{{localize 'TNO.Connections.Empty'}}</p>
+{{else}}
+<div class='connections-graph'>
+  <svg viewBox='0 0 {{graph.width}} {{graph.height}}' preserveAspectRatio='xMidYMid meet' role='img'
+       aria-label='{{localize "TNO.Connections.ViewGraph"}}'>
+    <defs>
+      <clipPath id='graph-portrait-{{@root.actor.id}}' clipPathUnits='objectBoundingBox'>
+        <circle cx='0.5' cy='0.5' r='0.5' />
+      </clipPath>
+    </defs>
+
+    <g class='graph-edges'>
+      {{#each graph.edges as |edge|}}
+        <g class='graph-edge graph-edge-{{edge.kind}}' data-from='{{edge.from}}' data-to='{{edge.to}}'>
+          <line x1='{{edge.x1}}' y1='{{edge.y1}}' x2='{{edge.x2}}' y2='{{edge.y2}}' />
+          {{#if edge.text}}
+            <text class='graph-edge-label' x='{{edge.midX}}' y='{{edge.midY}}' text-anchor='middle' dy='-4'>{{edge.text}}</text>
+          {{/if}}
+        </g>
+      {{/each}}
+    </g>
+
+    <g class='graph-nodes'>
+      {{#each graph.nodes as |node|}}
+        <g class='graph-node graph-node-{{node.kind}}{{#if node.reachable}} is-reachable{{/if}}{{#if node.hearsay}} is-hearsay{{/if}}' data-node-id='{{node.id}}' aria-label='{{node.label}}' transform='translate({{node.x}} {{node.y}})'
+           {{#if node.connectionId}}data-connection-id='{{node.connectionId}}'{{/if}}>
+          {{#if node.reachable}}<circle class='graph-node-reach' r='{{node.reachRadius}}' />{{/if}}
+          {{#if node.img}}
+            {{!-- The character, or a person linked to an Actor with a portrait. --}}
+            <image href='{{node.img}}' x='-{{node.radius}}' y='-{{node.radius}}' width='{{node.diameter}}' height='{{node.diameter}}'
+                   clip-path='url(#graph-portrait-{{@root.actor.id}})' preserveAspectRatio='xMidYMid slice' />
+            <circle class='graph-node-ring' r='{{node.radius}}' />
+          {{else}}
+            <circle class='graph-node-shape' r='{{node.radius}}' />
+            <text class='graph-node-initial' text-anchor='middle' dy='0.35em'>{{node.initial}}</text>
+          {{/if}}
+          <text class='graph-node-label' text-anchor='middle' y='{{node.radius}}' dy='1.15em'>{{node.text}}</text>
+        </g>
+      {{/each}}
+    </g>
+  </svg>
+
+  {{!-- What is known about the hovered node; filled by the sheet. --}}
+  <div class='graph-card' hidden></div>
+
+  {{!-- The spring embedder's forces, tuned live; kept per client. --}}
+  <details class='graph-tuning' {{#if graph.tuningOpen}}open{{/if}}>
+    <summary title='{{localize "TNO.Connections.Graph.Tuning.Title"}}'>
+      <i class='fa-solid fa-sliders' aria-hidden='true'></i> {{localize 'TNO.Connections.Graph.Tuning.Title'}}
+    </summary>
+    {{#each graph.tuning as |param|}}
+      <label class='graph-tuning-row'>
+        <span>{{localize param.label}}</span>
+        <input type='range' data-graph-param='{{param.key}}' min='{{param.min}}' max='{{param.max}}' step='{{param.step}}' value='{{param.value}}' />
+        <output>{{param.value}}</output>
+      </label>
+    {{/each}}
+    <div class='graph-tuning-actions'>
+      <button type='button' class='graph-relayout'><i class='fa-solid fa-shuffle' aria-hidden='true'></i> {{localize 'TNO.Connections.Graph.Tuning.Relayout'}}</button>
+      <button type='button' class='graph-tuning-reset'><i class='fa-solid fa-rotate-left' aria-hidden='true'></i> {{localize 'TNO.Connections.Graph.Tuning.Reset'}}</button>
+    </div>
+  </details>
+
+  <ul class='graph-legend'>
+    {{#each graph.legend as |entry|}}
+      {{#if entry.toggle}}
+        <li class='graph-legend-{{entry.kind}}'>
+          <button type='button' class='graph-legend-toggle{{#if entry.off}} is-off{{/if}}' data-kind='{{entry.kind}}'
+                  aria-pressed='{{#if entry.off}}false{{else}}true{{/if}}' title='{{localize "TNO.Connections.Graph.ToggleHint"}}'>
+            <span class='graph-legend-dot'></span>{{localize entry.label}}
+          </button>
+        </li>
+      {{else}}
+        <li class='graph-legend-{{entry.kind}}'><span class='graph-legend-dot'></span>{{localize entry.label}}</li>
+      {{/if}}
+    {{/each}}
+    <li class='graph-legend-reachable'><span class='graph-legend-dot'></span>{{localize 'TNO.Connections.Graph.Reachable'}}</li>
+    <li class='graph-legend-hearsay'><span class='graph-legend-dot'></span>{{localize 'TNO.Connections.Graph.Hearsay'}}</li>
+  </ul>
+</div>
+{{/if}}
