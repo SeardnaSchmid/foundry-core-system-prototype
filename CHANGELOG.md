@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.53.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.52.0...v0.53.0) (2026-10-04)
+
+
+### Features
+
+* **items:** redesign the item editor after the Item-Editor mockup ([2a245be](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/2a245bef76eb58509a9ea04ddab7f926bd261ce6))
+
 # [0.52.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.51.0...v0.52.0) (2026-10-04)
 
 
