@@ -1,5 +1,19 @@
 # Changelog
 
+# [0.52.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.51.0...v0.52.0) (2026-10-04)
+
+
+### Bug Fixes
+
+* **money:** stack the wallet editor's currency rows again ([31193d9](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/31193d961f56d32366034ccb2921221f690fabb1))
+
+
+### Features
+
+* **items:** replace the weapon FV with its Waffenfertigkeit ([c8e1062](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/c8e1062951226a6c11fddfeddf37df3b830c3d81))
+* **items:** show every item's description; drop Anlegen/Ablegen ([83a423f](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/83a423f88e27ff6b8af070c6d8f0b34627c599c6))
+* **sheet:** left and right hand under the paper doll ([bb2ba81](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/bb2ba8189f727444038d14317533940062e17d9b))
+
 # [0.51.0](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.50.0...v0.51.0) (2026-10-04)
 
 
