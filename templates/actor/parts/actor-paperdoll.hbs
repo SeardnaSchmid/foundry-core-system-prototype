@@ -6,10 +6,9 @@ from the slot grid onto its zone (see `_onDrop`). Clicking one used to offer to
 author a piece on the spot, which conjured gear out of an empty doll — wearing
 something is a state change on gear already in hand.
 
-The figure sizes to itself and the zone rows take the rest. The zero-slot pocket
-used to hang off the last quarter of this block and now has a column of its own
-in the row (see `actor-trinkets.hbs`) — the loose items are carried, not
-worn, and reading them off the armour card said otherwise. --}}
+The zone rows come first and the small silhouette closes the row on the right,
+with the Ausweichen control under it; the rows are what gets read, the figure
+is the drop target and the at-a-glance summary. --}}
 <div class='paperdoll'>
 
   <div class='paperdoll-figure-column'>
@@ -202,26 +201,8 @@ worn, and reading them off the armour card said otherwise. --}}
       {{/if}}
     </div>
 
-    {{!-- The body's total SV: what the rows above add up to, and the only SV
-    Strength is ever measured against. It is a footer to the column that sums
-    it, so it closes the list under the SV values it adds and is pushed onto the
-    block's bottom edge when the silhouette leaves the column spare height.
-    Shown whenever anything is worn — the total is a fact about the load, not a
-    verdict on it, so it no longer waits for the warning to carry it. --}}
-    {{#if paperdoll.sv}}
-      <div class='armor-total{{#if paperdoll.svPenalty}} armor-total-short{{/if}}'
-           title='{{localize "TNO.Armor.SvPenaltyHint"}}'>
-        <span class='armor-total-label'>{{localize 'TNO.Armor.SvTotal'}}</span>
-        <span class='armor-values'>
-          <span class='armor-value armor-value-sv' title='{{localize "TNO.Armor.Sv"}}'>
-            <span class='armor-key'>{{localize 'TNO.Armor.SvShort'}}</span><span class='armor-num'>{{paperdoll.svLabel}}</span>
-          </span>
-        </span>
-      </div>
-    {{/if}}
-
-    {{!-- Falling short is still said in words: the total above is the number,
-    this is what it costs. --}}
+    {{!-- Falling short is still said in words: the total in the column header
+    is the number, this is what it costs. --}}
     {{#if paperdoll.svPenalty}}
       <div class='armor-warning' title='{{localize "TNO.Armor.SvPenaltyHint"}}'>
         <i class='fas fa-triangle-exclamation'></i>

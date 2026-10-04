@@ -62,9 +62,16 @@ const { ActorSheetV2 } = foundry.applications.sheets;
  * single drag move one boundary while every other column stays put.
  */
 export const BASICS_LAYOUT_DEFAULT = Object.freeze({
-  top: [0.25, 0.5, 0.25],
-  bottom: [0.4, 0.6],
+  // One row of two columns. Its own key, so shares stored for the earlier
+  // two-row layouts cannot size these columns.
+  main: [0.5, 0.5],
 });
+
+/**
+ * The skill categories the "Kampf" filter shows: fighting and the manoeuvres
+ * fought with.
+ */
+const COMBAT_SKILL_CATEGORIES = Object.freeze(['combat', 'maneuvers']);
 
 /**
  * The narrowest a column may be dragged, as its share of the row. Below this a
@@ -155,12 +162,12 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   /** @override */
   static DEFAULT_OPTIONS = {
     classes: ['tno', 'sheet', 'actor'],
-    // The Basics tab is two columns wide now: the attribute matrix plus three
-    // skill columns on the left (which together want ~620px before the matrix
-    // drops its row-header column and the skill flow drops to two columns),
-    // and the equipment column on the right. The height covers the banner plus
-    // that right column's three stacked blocks without an immediate scroll.
-    position: { width: 1270, height: 720 },
+    // Wide enough for the Basics tab's three upper columns and two lower ones,
+    // and still leaves the scene and Foundry's sidebar room on a 1920px screen.
+    // The height shows the banner, the whole upper row and the start of the
+    // skill list and slot raster, and fits a 1080p screen with browser chrome;
+    // the long lists below scroll.
+    position: { width: 1280, height: 900 },
     window: { resizable: true },
     // V1 sheets submitted on every field change; keep that, since the sheet has
     // no save button.
@@ -342,9 +349,8 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         cells: row.map((key, ci) => {
           const labelKey = CONFIG.TNO.abilities[key];
           // The row verb (Assert/Adapt/…) and column category (Physical/…)
-          // are prefixed onto every cell tooltip so the grid's two semantic
-          // axes survive even when the header labels are compacted away on a
-          // narrow sheet (see the container query in _resource.scss).
+          // are prefixed onto every cell tooltip: the matrix heads its columns
+          // but not its rows, so the tooltip carries both axes.
           const colLabel = game.i18n.localize(
             CONFIG.TNO.attributeCategories[categoryKeys[ci]]
           );
@@ -353,9 +359,9 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           const value = ability?.base ?? 0;
           const xp = ability?.xp ?? 0;
           const dc = colorForValue(value);
-          // The value badge and the tile hairline are washes of the cell's own
-          // ink, so both hold whether the graded tile came out pale or nearly
-          // black. colorForValue only ever picks one of two ink tones, so a
+          // The tile hairline is a wash of the cell's own ink, so it holds
+          // whether the graded tile came out pale or nearly black.
+          // colorForValue only ever picks one of two ink tones, so a
           // two-branch wash covers the whole ramp.
           const onLightInk = dc.textColor !== INK_DARK;
 
@@ -381,7 +387,6 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             xpBarFill: 'rgba(51,45,34,0.45)',
             cellBg: dc.bg,
             textColor: dc.textColor,
-            badgeBg: onLightInk ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.08)',
             tileBorder: onLightInk ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.09)',
             isPeak: dc.isPeak,
           };
@@ -406,6 +411,14 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // skill can always be found regardless of trained/starter state.
     this._skillSearch ??= '';
     context.skillSearch = this._skillSearch;
+
+    // Which of the three carried-things tabs (Inventar / Kleinkram / Geld) is
+    // showing, and the Kleinkram filter text. View state only, kept on the
+    // sheet instance like the skill filter.
+    this._looseTab ??= 'inventory';
+    context.looseTab = this._looseTab;
+    this._trinketFilter ??= '';
+    context.trinketFilter = this._trinketFilter;
 
     // Build the skill list, grouped by category, in TNO.skillCategories order.
     // Categories without any skills yet (WIP groups) still render, empty.
@@ -1064,10 +1077,6 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     );
     const used = derived.carrySlotsUsed ?? 0;
 
-    // A stack's multiplier is only worth the pixels when there is more than
-    // one of it; Handlebars can't compare inline, so decide it here.
-    const withQty = (block) => ({ ...block, showQty: block.quantity > 1 });
-
     context.slotGrid = {
       ...grid,
       // One cell per slot consumed, rather than one element spanning several
@@ -1084,22 +1093,26 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         ...grid.overflow.flatMap((block) => this.#slotCells(block, 0)),
       ],
       // Zero-slot items get no cell, but they still stack — loose change is the
-      // likeliest thing on the sheet to be counted — so they are reshaped into
-      // the same {item, quantity} block the cells use and carry the same
-      // multiplier. `buildSlotGrid` stays free of view concerns and hands back
+      // likeliest thing on the sheet to be counted — so each row carries its
+      // quantity. `buildSlotGrid` stays free of view concerns and hands back
       // the bare items.
-      trinkets: grid.trinkets.map(({ item, worn }) => {
-        const quantity = Number(item.system?.quantity) || 1;
-        return withQty({
-          item,
-          ...inventoryArt(item),
-          quantity,
-          worn,
-        });
-      }),
-      // Handlebars has no "repeat n times", so the free-cell count becomes a
-      // list the template can simply iterate.
-      emptyCells: Array.from({ length: grid.empty }, (_, i) => i),
+      trinkets: grid.trinkets.map(({ item, worn }) => ({
+        item,
+        ...inventoryArt(item),
+        quantity: Number(item.system?.quantity) || 1,
+        worn,
+      })),
+      // The free slots are one summary cell rather than one cell each: the
+      // meter above the raster is where the remaining room is counted.
+      free: grid.empty,
+      // One meter segment per slot of the budget, plus one per slot the load
+      // runs past it: the worn band first, then carried load, then free room.
+      meter: Array.from({ length: Math.max(capacity, used) }, (_, index) => ({
+        tone: index >= capacity ? 'over'
+          : index < (derived.carryWorn ?? 0) ? 'worn'
+            : index < used ? 'used'
+              : 'free',
+      })),
       used,
       capacity,
       over: used > capacity,
@@ -2135,7 +2148,41 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // overrides the category filter so any matching skill is shown.
     this.#delegate('input', '.skill-search-input', (event, target) => {
       this._skillSearch = target.value;
+      this.element.querySelector('.skill-search-clear')?.toggleAttribute('hidden', !target.value);
       this._applySkillFilter();
+    });
+
+    this.#delegate('click', '.skill-search-clear', (event, target) => {
+      event.preventDefault();
+      const input = this.element.querySelector('.skill-search-input');
+      if (input) input.value = '';
+      this._skillSearch = '';
+      target.hidden = true;
+      this._applySkillFilter();
+      input?.focus();
+    });
+
+    // Inventar / Kleinkram / Geld: three tabs sharing one panel. Client-side like the
+    // skill filter, so switching costs no re-render and works read-only.
+    this.#delegate('click', '.loose-tab', (event, target) => {
+      event.preventDefault();
+      this._looseTab = target.dataset.looseTab;
+      for (const tab of this.element.querySelectorAll('.loose-tab')) {
+        const selected = tab === target;
+        tab.classList.toggle('active', selected);
+        tab.setAttribute('aria-selected', String(selected));
+      }
+      for (const panel of this.element.querySelectorAll('.loose-panel')) {
+        panel.hidden = panel.dataset.loosePanel !== this._looseTab;
+      }
+      // Where a run wraps is a measurement, and a hidden raster measures as
+      // nothing.
+      if (this._looseTab === 'inventory') this.#markSlotWraps();
+    });
+
+    this.#delegate('input', '.trinket-filter-input', (event, target) => {
+      this._trinketFilter = target.value;
+      this._applyTrinketFilter();
     });
 
     // The Inventar table's own search, filtering rows by name across every
@@ -2466,6 +2513,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     this._makeKeyboardAccessible();
     this._applySkillFilter();
+    this._applyTrinketFilter();
     this._applyItemFilter();
     this._applyColumnSplit();
     this.#resizeBiography();
@@ -2987,6 +3035,13 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const filter = this._skillFilter ?? 'trained';
     const search = (this._skillSearch ?? '').trim();
     for (const groupEl of this.element.querySelectorAll('.skill-group')) {
+      // "combat" is a filter on categories rather than on rows: the two
+      // fighting categories show in full, every other group hides.
+      if (filter === 'combat' && !search) {
+        groupEl.style.display = COMBAT_SKILL_CATEGORIES.includes(groupEl.dataset.category) ? '' : 'none';
+        for (const rowEl of groupEl.querySelectorAll('.skill-row')) rowEl.style.display = '';
+        continue;
+      }
       const rows = groupEl.querySelectorAll('.skill-row');
       let anyVisible = false;
       for (const rowEl of rows) {
@@ -3015,6 +3070,24 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       const groupVisible = (filter === 'all' && !search) || rows.length === 0 || anyVisible;
       groupEl.style.display = groupVisible ? '' : 'none';
     }
+  }
+
+  /**
+   * Show/hide Kleinkram rows by the filter box: the same diacritic- and
+   * case-insensitive subsequence match the skill search uses, on the name.
+   * @private
+   */
+  _applyTrinketFilter() {
+    const search = (this._trinketFilter ?? '').trim();
+    const list = this.element.querySelector('.slot-trinkets-list');
+    if (!list) return;
+    let anyVisible = false;
+    for (const rowEl of list.querySelectorAll('.slot-trinket')) {
+      const visible = !search || fuzzyMatch(search, rowEl.querySelector('.slot-trinket-name')?.textContent ?? '');
+      rowEl.hidden = !visible;
+      if (visible) anyVisible = true;
+    }
+    list.querySelector('.slot-trinkets-nomatch')?.toggleAttribute('hidden', anyVisible);
   }
 
   /** Adjust one raw damage pool by one point, clamped only at zero. */

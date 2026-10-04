@@ -29,7 +29,7 @@ Entry point, no exports (side-effecting init). See
 
 | File | Exports | Responsibility |
 | --- | --- | --- |
-| `actor-sheet.mjs` | `TnoActorSheet extends ActorSheetV2` | Character/NPC sheet: attribute heatmap and the derived strip beneath it, the banner's vitals and three state pills, skill groups with filter/search, inventory, effects. Owns six body-level popovers — item, wallet, column picker, Haltung picker, condition panel and Edge — each mounted on the host document and re-homed when the sheet is detached |
+| `actor-sheet.mjs` | `TnoActorSheet extends ActorSheetV2` | Character/NPC sheet: the attribute matrix, the banner's vitals, state pills and two roll pills, skill groups with filter/search, the Kleinkram/Geld tabs, inventory, effects. Owns six body-level popovers — item, wallet, column picker, Haltung picker, condition panel and Edge — each mounted on the host document and re-homed when the sheet is detached |
 | `item-gear-sheet.mjs` | `TnoGearSheet extends ItemSheetV2` | Overview/Edit sheet for every physical item, including bounded authoring and rule-backed actions — see [item-roles.md](../concepts/item-roles.md) |
 | `item-sheet.mjs` | `TnoItemSheet extends ItemSheet` | What is left of the V1 sheet: `feature` and `spell`, template resolved per type |
 

@@ -40,6 +40,10 @@ prefix would no longer find it (`_applySkillFilter`).
 
 `starter: true` flags entry-level skills shown during character creation.
 
+The sheet's "Kampf" filter is a category filter rather than a row filter:
+it shows the `combat` and `maneuvers` groups in full and hides the rest
+(`COMBAT_SKILL_CATEGORIES` in `actor-sheet.mjs`).
+
 **Note:** `template.json`'s `character.skills` declares **every** built-in
 skill, in `config.mjs`'s source order — see
 [data-schema.md](../architecture/data-schema.md). Only custom skills are

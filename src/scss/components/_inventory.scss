@@ -1,55 +1,54 @@
-// Equipment views: the armour paper doll, the Kleinkram column and the
+// Equipment views: the armour paper doll, the Kleinkram and Geld tabs and the
 // Trageslots grid. All three are columns of the Basics tab's two rows
-// (`.basics-cell` in components/_forms.scss), which is where their narrower
-// padding and smaller figure come from — the rules here are the full-width base
-// those overrides trim.
+// (`.basics-cell` in components/_forms.scss).
 
-// Worn zones read as "protected", empty ones as an invitation to fill them.
-$c-zone-filled: #7f9a62;
-$c-zone-filled-bg: #dfe8d5;
-$c-zone-filled-border: #8ba06f;
-$c-zone-filled-stroke: #5d7546;
-// A bare location is a neutral grey rather than "none": the card sits on
-// parchment, and an unfilled shape has to be visible as a silhouette before it
-// can read as a gap. Deliberately desaturated so it never competes with the
-// two greens.
-$c-zone-bare: #b0b2ad;
-$c-zone-bare-stroke: #85877f;
-// Covered by the Unterkleidung alone: a quiet ice blue that complements the
-// green armour layer without reading as a hardened plate.
-$c-zone-suited: #c5dce0;
-$c-zone-suited-stroke: #7e9fa4;
+// The carry grid's art box (see `.slot-art-box`); declared up here because the
+// label run's width is measured against it before the box itself is styled.
+$slot-icon-size: 34px;
+
+// Worn zones and worn gear share the banner-era worn blue (utils/_colors.scss):
+// a plate on the body reads the same on the silhouette, in its zone row and in
+// the worn band of the slot raster.
+$c-zone-filled: $c-worn-stroke;
+$c-zone-filled-bg: $c-worn-bg;
+$c-zone-filled-border: $c-worn-border;
+$c-zone-filled-stroke: #4f7c9c;
+// A bare location is a neutral warm grey rather than "none": an unfilled shape
+// has to be visible as a silhouette before it can read as a gap.
+$c-zone-bare: #ddd8cd;
+$c-zone-bare-stroke: #b8b2a5;
+// Covered by the Unterkleidung alone: the pale worn fill with the worn stroke,
+// so the suit reads as worn without reading as a hardened plate.
+$c-zone-suited: $c-worn-fill;
+$c-zone-suited-stroke: $c-worn-stroke;
 // The SV shortfall warning and the over-capacity load state both use the shared
 // $c-warning from utils/_colors.scss — the same red marks the movement tiers
 // that load takes away on the banner chip, and the two have to match.
 
-// Muted ink rather than $c-beige: the beige used elsewhere for secondary text
-// sits on the card, and against the shared card surface it drops to roughly 1.1:1 —
-// invisible. This label carries the meaning of the whole column, so it has to
-// stay readable while still ranking below the item names in $c-tan.
-$c-trinket-label: rgba($c-dark, 0.55);
-
-// Figure, then the worn zones. A grid rather than a flex row so the figure's
-// track sizes to its own width first and the zone rows take everything left,
-// however wide the column has been dragged.
+// The worn zones, then the small silhouette on the right. A grid rather than a
+// flex row so the figure's track sizes to its own width first and the zone rows
+// take everything left, however wide the column has been dragged. The figure
+// comes first in source order and is moved by `order`, so its markup stays next
+// to the zones it draws.
 .paperdoll {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  // Never squeezed by the equipment column's scroll container: the card is as
+  grid-template-columns: minmax(0, 1fr) 76px;
+  // Never squeezed by the equipment column's scroll container: the block is as
   // tall as its five rows, and the column scrolls instead.
   flex: 0 0 auto;
-  gap: 14px;
+  gap: 12px;
   // Stretch rather than centre, so the figure column is as tall as the stack
   // of zone rows beside it and the silhouette can scale to match.
   align-items: stretch;
-  padding: 14px 16px;
 }
 
 .paperdoll-figure-column {
+  order: 2;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 6px;
+  justify-content: center;
+  gap: 8px;
   // The silhouette below is sized `height: 100%`, which as a stretched grid
   // item feeds its own resolved height back into the row that sized it. Without
   // this the row settles ~34px taller than the block that contains it, and both
@@ -62,9 +61,9 @@ $c-trinket-label: rgba($c-dark, 0.55);
 // items and the slot raster remain distinct interactions, not distinct panel
 // systems.
 .basics-section-card {
-  border: 1px solid rgba($c-dark, 0.14);
-  border-radius: 8px;
-  background: rgba($c-dark, 0.05);
+  border: 1px solid $c-rule-soft;
+  border-radius: 6px;
+  background: $c-faint;
   box-shadow: none;
 }
 
@@ -78,7 +77,9 @@ $c-trinket-label: rgba($c-dark, 0.55);
   // take the zone column below what the warning line needs to stay on one line.
   width: auto;
   height: 100%;
-  max-width: 110px;
+  max-width: 76px;
+  max-height: 160px;
+  align-self: center;
 
   .zone {
     cursor: pointer;
@@ -100,6 +101,7 @@ $c-trinket-label: rgba($c-dark, 0.55);
     &.zone-suited .zone-base {
       fill: $c-zone-suited;
       stroke: $c-zone-suited-stroke;
+      stroke-width: 2;
     }
 
     // Zone armour is the upper layer. Its inset leaves enough of the base
@@ -107,7 +109,7 @@ $c-trinket-label: rgba($c-dark, 0.55);
     .zone-plate {
       fill: $c-zone-filled;
       stroke: $c-zone-filled-stroke;
-      stroke-width: 1.5;
+      stroke-width: 1;
     }
 
     // "This piece goes here", while a piece that fits is in flight. The same
@@ -156,19 +158,21 @@ $c-trinket-label: rgba($c-dark, 0.55);
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .armor-row {
   display: flex;
   align-items: center;
   gap: var(--armor-row-gap);
-  min-height: 34px;
-  padding: 6px 12px;
+  min-height: 32px;
+  box-sizing: border-box;
+  padding: 0 4px 0 10px;
   border: 1px solid $c-zone-filled-border;
-  border-radius: 8px;
+  border-radius: 5px;
   background: $c-zone-filled-bg;
   font-size: var(--font-size-13, 13px);
+  font-variant-numeric: tabular-nums;
 
   // A row missing one of the two actions still holds that column open, so the
   // read-outs stay in one line down the whole doll instead of stepping right
@@ -198,6 +202,10 @@ $c-trinket-label: rgba($c-dark, 0.55);
     border-color: $c-beige;
     background: none;
     color: $c-tan;
+
+    .armor-name {
+      font-weight: normal;
+    }
   }
 
   &.armor-drop-target {
@@ -255,7 +263,7 @@ $c-trinket-label: rgba($c-dark, 0.55);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-weight: bold;
+  font-weight: 600;
 }
 
 .armor-values {
@@ -270,12 +278,10 @@ $c-trinket-label: rgba($c-dark, 0.55);
   // point of the slot is that every row's RW sits at the same x, and a track
   // that grows to its content would buy a wide value its own alignment at the
   // cost of the column. Sized for the widest read-out the tables produce
-  // ("· RA 10", the number's box behind a separator and a label); a value past
+  // ("RA 10", the number's box behind its label); a value past
   // that reaches left into the empty space beside it rather than clipping or
-  // shoving the column over. SV is the narrower track of the two despite being
-  // the one value written in quarter steps: it leads the read-out, so it never
-  // carries a separator.
-  --armor-value-col: 4.4em;
+  // shoving the column over.
+  --armor-value-col: 4em;
   --armor-sv-col: 4em;
 
   // The number's own box inside that slot: wide enough for the widest reading
@@ -293,7 +299,7 @@ $c-trinket-label: rgba($c-dark, 0.55);
   justify-items: end;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
-  font-weight: bold;
+  font-weight: 700;
   color: $c-dark;
 
   // Which slot each value owns. Placing them by name rather than by source
@@ -309,30 +315,11 @@ $c-trinket-label: rgba($c-dark, 0.55);
   .armor-value-rw { grid-column: 3; }
   .armor-value-ra { grid-column: 4; }
 
-  // Middot separators between the pairs, so RH/RW/RA read as one read-out
-  // rather than three loose labels — cheaper than a divider element each.
-  // They sit inside the following slot, ahead of its label, so a row missing
-  // the value before them simply has no separator to draw.
-  .armor-value + .armor-value::before {
-    content: '·';
-    margin-right: 8px;
-    font-weight: normal;
-    color: $c-beige;
-  }
-
   // Values contributed by the suit alone, shown on a zone with no addon of
   // its own — dimmed so they don't read as a piece being worn there.
   &.armor-values-suit {
     opacity: 0.6;
   }
-}
-
-// The separator above assumes source order and column order agree, which holds
-// on every row but the Unterkleidung's: a suit carries SV and RW and nothing in
-// between, so the two are siblings two tracks apart. Drawn there, the middot
-// would hang at the start of the RW slot with a gap and no value behind it.
-.armor-suit .armor-values .armor-value + .armor-value::before {
-  content: none;
 }
 
 // An RW that is the sum of the Unterkleidung and the zone's addon. Marked
@@ -408,62 +395,14 @@ $c-trinket-label: rgba($c-dark, 0.55);
   }
 }
 
-// The summed SV, under the column of SV values it adds up. Not a row: it is
-// read as the last line of the list rather than as another thing worn, so it
-// takes no box, no border and no drop behaviour — only the rows' horizontal
-// padding, so its label starts where every name above it does.
-//
-// `margin-top: auto` is what puts it "at the bottom": the zones column is a
-// flex column stretched to the silhouette's height, so any height the rows
-// leave over collects above the total instead of below it. With no spare height
-// the auto margin is 0 and the total simply follows the base layer.
-.armor-total {
-  --total-break: 8px;
-
-  position: relative;
-  display: flex;
-  align-items: baseline;
-  gap: var(--armor-row-gap);
-  margin-top: auto;
-  padding: var(--total-break) 12px 0;
-  font-size: var(--font-size-13, 13px);
-  color: $c-tan;
-
-  // The same inset hairline the base layer's break draws, for the same reason:
-  // a border on the element would run the full width of the column and read as
-  // an edge of the rows above rather than as a rule between two readings.
-  &::before {
-    content: '';
-    position: absolute;
-    top: calc(var(--total-break) / 2);
-    right: 6px;
-    left: 6px;
-    border-top: 1px solid rgba($c-dark, 0.14);
-  }
-
-  // The width the rows spend on their two actions. Held open here so the total
-  // lands in the SV column instead of under the read-outs' right edge.
-  .armor-values {
-    margin-right: calc(2 * var(--armor-action-gap));
-  }
-
-  // Strength does not reach the total. The number turns the warning colour for
-  // the same reason the slot grid paints its overflow: the figure that is out
-  // of reach says so where it is read, and the line below says what it costs.
-  &.armor-total-short .armor-values {
-    color: $c-warning;
-  }
-}
-
-.armor-total-label {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  font-size: var(--font-size-11, 11px);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+// The summed SV in the gear column's header, beside the title of the rows it
+// adds up. Strength not reaching it turns the figure the warning colour, for
+// the same reason the slot grid paints its overflow: the figure that is out of
+// reach says so where it is read, and the line under the rows says what it
+// costs.
+.armor-total.armor-total-short {
+  color: $c-warning;
+  font-weight: 600;
 }
 
 .armor-warning {
@@ -492,10 +431,10 @@ $c-trinket-label: rgba($c-dark, 0.55);
   min-height: 28px;
   margin: 0;
   padding: 3px 5px;
-  border: 1px solid rgba($c-dark, 0.22);
+  border: 1px solid $c-beige;
   border-radius: 999px;
-  background: rgba($c-white, 0.58);
-  box-shadow: inset 0 1px 0 rgba($c-white, 0.76), 0 1px 2px rgba($c-dark, 0.12);
+  background: $c-white;
+  box-shadow: none;
   color: $c-dark;
   font-size: var(--font-size-12, 12px);
   font-weight: bold;
@@ -503,8 +442,8 @@ $c-trinket-label: rgba($c-dark, 0.55);
   transition: background 0.12s ease, border-color 0.12s ease;
 
   &:hover:not(:disabled) {
-    border-color: rgba($c-dark, 0.36);
-    background: rgba($c-white, 0.82);
+    border-color: $c-tan;
+    background: $c-white;
   }
 
   &:active:not(:disabled) {
@@ -590,7 +529,6 @@ $c-trinket-label: rgba($c-dark, 0.55);
 
 .slot-grid-block {
   flex: 0 0 auto;
-  padding: 14px 16px;
 
   // "Let go here to take it off", while a worn piece is in flight. The whole
   // block rather than a cell: coming off the body is not a drop at a position —
@@ -604,104 +542,87 @@ $c-trinket-label: rgba($c-dark, 0.55);
   }
 }
 
-.slot-grid-header {
-  gap: 6px;
-}
-
-.slot-grid-title {
-  padding-right: 0;
-}
-
-// A ratio, not a string: the three parts are sized and weighted apart so the
-// eye lands on the used figure first and the limit reads as the context behind
-// it. A flex row rather than inline text because the parts differ in size and
-// only a shared baseline keeps them from drifting as the figures change width.
+// Used over capacity, in the Inventar tab's label. The used count is the
+// number players actually track, so it carries the weight; over budget is
+// legal — it just costs movement — so that is a warning colour, never a
+// blocked state.
 .slot-grid-count {
-  display: inline-flex;
-  align-items: baseline;
   font-variant-numeric: tabular-nums;
-  line-height: 1;
 
-  // The used count is the number players actually track, so it carries the
-  // weight.
   strong {
-    font-size: var(--font-size-12, 12px);
-    color: $c-advance;
+    color: $c-dark;
+    font-weight: 600;
 
-    // Over budget is legal — it just costs movement — so this is a warning
-    // colour, never a blocked state.
     &.over-capacity {
       color: $c-warning;
     }
   }
 }
 
-// Set back from both figures and lighter than either: the slash says "out of"
-// and is the one part of the ratio nobody needs to read, so it separates
-// without becoming a third number.
-.slot-grid-sep {
-  margin: 0 2px;
-  font-size: var(--font-size-11, 11px);
-  color: $c-tan;
-  opacity: 0.45;
-}
-
-// Ranked below the used figure by size alone, as the banner's XP total already
-// does — full-strength $c-tan, because the 22px gold
-// beside it is accent enough to win the eye without the limit being faded to
-// get out of its way. It was $c-beige, which sat at 1.25:1 on the card's own
-// $c-faint: the limit is context, but a budget nobody can read is not context.
-.slot-grid-max {
-  font-size: var(--font-size-11, 11px);
-  color: $c-tan;
-}
-
-// Only "Keine Tasche" is left here: the load's movement consequences moved onto
-// the banner's movement chip, where they strike through the tier they take
-// away. This one is not a movement state but the reason the whole budget reads
-// 0, so it stays with the number it explains.
+// "Keine Tasche": not a movement state but the reason the carried band is
+// outside the budget, so it heads the Inventar panel it explains.
 .slot-badge {
   @extend %stat-chip;
-  margin-left: auto;
-  padding: 5px 12px;
+  align-self: flex-start;
+  padding: 4px 10px;
   border-radius: 999px;
-  font-size: var(--font-size-12, 12px);
+  font-size: var(--font-size-11, 11px);
   color: $c-white;
   background: $c-tan;
 }
 
 // The "add one of these" control that closes a section header. Only the icon —
 // the header is a title and possibly a badge already, and what gets added is
-// the section the button sits in. Used by the carry block and by each list on
-// the Inventar tab, so it is keyed off its own look-class rather than off any
+// the section the button sits in. Used by the carried-things tab bar and by each
+// list on the Inventar tab, so it is keyed off its own look-class rather than off any
 // one action: `.inventory-add` and `.item-create` are the two actions that wear
 // it, and they must not both land on one element.
-// Pushed to the far right by `margin-left: auto`, unless the "no bag" badge
-// already claimed it and it follows the badge.
+// Pushed to the far right by `margin-left: auto`.
 .section-add {
   margin-left: auto;
   align-self: center;
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
+  box-sizing: border-box;
   border: 1px solid $c-beige;
-  border-radius: 6px;
-  color: $c-tan;
+  border-radius: 4px;
+  background: $c-white;
+  color: $c-dark;
   cursor: pointer;
 
   &:hover {
-    border-color: $c-advance;
-    color: $c-advance;
+    border-color: $c-tan;
   }
 }
 
-// Spelled out rather than nested as `.slot-badge + &`: this file is nested
-// under `.tno`, so `&` carries that ancestor and the sibling half would compile
-// to a selector that can never match.
-.slot-grid-header .slot-badge + .section-add {
-  margin-left: 0;
+// The budget as a meter, one segment per slot. Countable at a glance, which
+// is what the raster's own free cells used to be for before they were folded
+// into one summary cell.
+.slot-meter {
+  display: flex;
+  gap: 2px;
+}
+
+.slot-meter-segment {
+  flex: 1 1 0;
+  height: 4px;
+  border-radius: 1px;
+  background: #ddd8cd;
+
+  &.is-worn {
+    background: $c-worn-stroke;
+  }
+
+  &.is-used {
+    background: #9a9ea3;
+  }
+
+  &.is-over {
+    background: $c-warning;
+  }
 }
 
 // One cell per slot. A multi-slot item is a run of adjacent cells rather than
@@ -722,7 +643,7 @@ $c-trinket-label: rgba($c-dark, 0.55);
   --slot-gap: 6px;
 
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(142px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: var(--slot-gap);
   // Bounds both things a run is allowed to push past its own cell: the welded
   // edge of a run that wraps, and a label spilling across the cells behind it.
@@ -738,19 +659,21 @@ $c-trinket-label: rgba($c-dark, 0.55);
   // the icon marks where the item begins, and the label reads on from there
   // across the rest of the run.
   justify-content: flex-start;
-  gap: 6px;
+  gap: 8px;
   min-height: $slot-bar-height;
+  box-sizing: border-box;
   padding: 0 6px;
-  border-radius: 8px;
+  border-radius: 5px;
   font-size: var(--font-size-13, 13px);
   white-space: nowrap;
   overflow: hidden;
 }
 
+// Carried gear stands on the panel surface; the worn band below takes the worn
+// blue, so the two read apart without either being a warning.
 .slot-filled {
-  border: 1px solid $c-zone-filled-border;
-  background: $c-zone-filled-bg;
-  font-weight: bold;
+  border: 1px solid $c-rule-soft;
+  background: $c-faint;
   cursor: grab;
 
   // Load past the budget. These cells are not slots — the character has none
@@ -769,21 +692,11 @@ $c-trinket-label: rgba($c-dark, 0.55);
 }
 
 // Worn gear is the first band of the same slot run. It is ordinary load, not
-// an overload warning, so the cool suit palette distinguishes location without
+// an overload warning, so the worn blue distinguishes location without
 // competing with the red over-capacity state.
 .slot-cell.worn:not(.over-capacity) {
-  border-color: $c-zone-suited-stroke;
-  background: $c-zone-suited;
-}
-
-.slot-worn-caption {
-  display: block;
-  font-size: var(--font-size-9, 9px);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  line-height: 1;
-  text-transform: uppercase;
-  color: rgba($c-dark, 0.65);
+  border-color: $c-worn-border;
+  background: $c-worn-bg;
 }
 
 // Weld a run into one surface: every cell but the last drops its right edge and
@@ -879,17 +792,27 @@ $c-trinket-label: rgba($c-dark, 0.55);
     z-index: 1;
     flex: 0 0 auto;
     width: max-content;
-    max-width: calc(var(--slot-run, 1) * (100% + var(--slot-gap)) - var(--slot-gap) - 22px);
+    max-width: calc(var(--slot-run, 1) * (100% + var(--slot-gap)) - var(--slot-gap) - #{$slot-icon-size + 26px});
   }
 }
 
-// How much room is left is something the player reads at a glance, so the free
-// cells have to be countable without being looked for. $c-beige sat at 1.25:1
-// on the card and the tail simply disappeared into it; the silhouette's own
-// "nothing here" stroke is the same dashed idiom one column over and lands
-// around 2.2:1 — present, still clearly quieter than a filled cell.
+// The free room, as one dashed cell after the load: the silhouette's own
+// "nothing here" stroke, the count in words, and for an owner the create
+// action. The meter above is where the room is counted slot by slot.
 .slot-empty {
+  justify-content: center;
+  gap: 6px;
   border: 1px dashed $c-zone-bare-stroke;
+  color: $c-tan;
+
+  &.inventory-add {
+    cursor: pointer;
+
+    &:hover {
+      border-color: $c-tan;
+      color: $c-dark;
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -983,29 +906,55 @@ $c-trinket-label: rgba($c-dark, 0.55);
   color: $c-white;
 }
 
-// The carry grid's own icon track. Wider than the 24px `.slot-art` default
-// because this is the one surface with the height to spend it: a slot cell is
-// $slot-bar-height tall and a 24px picture used 41% of it, floating in a band
-// of its own whitespace. The trinket rows and the item table are thin rows and
-// keep the default — the size lives here rather than on `.slot-art`, which all
-// three share.
-$slot-icon-size: 36px;
-
-.slot-icon {
+// The carry grid's own art box, $slot-icon-size: the one surface with the
+// height to spend it. The trinket rows and the item table are thin rows and keep the 24px
+// `.slot-art` default — the size lives here rather than on `.slot-art`, which
+// all three share.
+.slot-art-box {
+  position: relative;
   flex: 0 0 $slot-icon-size;
-  text-align: center;
-  // The fallback glyph shares this track with the art and has to hold it: at
-  // the cell's inherited 13px it read as a mark beside a picture rather than
-  // the same thing in the same box.
-  font-size: var(--font-size-20, 20px);
+  width: $slot-icon-size;
+  height: $slot-icon-size;
+}
+
+// Without art the role icon fills the box on a quiet tile of its own, so a
+// grid of mixed items keeps one left edge.
+.slot-icon {
+  display: grid;
+  place-items: center;
+  width: $slot-icon-size;
+  height: $slot-icon-size;
+  box-sizing: border-box;
+  border-radius: 4px;
+  background: rgba($c-dark, 0.08);
+  font-size: var(--font-size-18, 18px);
   color: $c-tan;
 }
 
 // Only the grid's own art grows. Two classes, so it outweighs the shared
 // `.slot-art` sizing below without that rule having to know about this one.
 .slot-icon.slot-art {
-  width: $slot-icon-size;
-  height: $slot-icon-size;
+  display: block;
+  border-radius: 4px;
+  background: none;
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+// The role, on the art's corner, when the art is what fills the box.
+.slot-role-badge {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border: 2px solid $c-white;
+  border-radius: 50%;
+  background: #3b4047;
+  color: $c-white;
+  font-size: 8px;
 }
 
 // An item's own art, wherever a role icon would otherwise stand. It is sized to
@@ -1083,7 +1032,7 @@ $slot-icon-size: 36px;
     opacity: 1;
   }
 
-  .slot-icon {
+  .slot-art-box {
     opacity: 0;
   }
 }
@@ -1096,17 +1045,16 @@ $slot-icon-size: 36px;
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-weight: 600;
 }
 
 .slot-content {
-  align-self: stretch;
   min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 3px;
-  justify-content: flex-start;
-  padding-top: 8px;
-  line-height: 1;
+  justify-content: center;
+  line-height: 1.2;
 }
 
 // The line under the name, now saying what kind of item this is rather than one
@@ -1118,7 +1066,7 @@ $slot-icon-size: 36px;
   overflow: hidden;
   text-overflow: ellipsis;
   color: $c-tan;
-  font-size: var(--font-size-10, 10px);
+  font-size: var(--font-size-11, 11px);
   font-weight: normal;
   font-variant-numeric: tabular-nums;
 }
@@ -1162,66 +1110,176 @@ $slot-icon-size: 36px;
   font-weight: bold;
 }
 
-// Zero-slot items (Geld, Papiere, Krimskrams) never occupy a cell in the carry
-// raster, so they get a column of their own beside the worn zones. Listed
-// downwards, not across: the names are short and the column is as tall as the
-// paper doll beside it, so height is the free dimension and width is not.
-// Flat rather than wrapped: zero-slot gear is a lightweight aside next to the
-// paper doll, not another inventory card.
+// Kleinkram and Geld take turns in one column: two text tabs over a hairline,
+// the active one underlined. The counts beside the labels are quiet metadata.
+// The `+` that creates gear closes the bar on the right.
+.loose-tabs {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+  min-height: 28px;
+  margin-top: 4px;
+  box-sizing: border-box;
+  border-bottom: 1px solid $c-beige;
+
+  .section-add {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+button.loose-tab {
+  flex: 0 0 auto;
+  width: auto;
+  height: 28px;
+  margin: 0 0 -1px;
+  padding: 0;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: $c-tan;
+  font-family: inherit;
+  font-size: var(--font-size-12, 12px);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  cursor: pointer;
+
+  &:hover {
+    color: $c-dark;
+  }
+
+  // The underline is the selection. Core outlines every `button.active` and
+  // every focused button, which drew a second selection around the tab, so
+  // neither outline applies here. Keyboard focus still shows, as an underline
+  // on a tab that is not the active one.
+  &,
+  &.active,
+  &:focus,
+  &:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+
+  &.active {
+    border-bottom-color: $c-dark;
+    color: $c-dark;
+  }
+
+  &:focus-visible:not(.active) {
+    border-bottom-color: $c-tan;
+  }
+}
+
+.loose-tab-meta {
+  margin-left: 2px;
+  color: $c-tan;
+  font-size: var(--font-size-11, 11px);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.loose-panel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+// Zero-slot items (Papiere, Krimskrams) never occupy a cell in the carry
+// raster, so they get a list of their own: a filter box over a panel of thin
+// name-and-count rows.
 .slot-trinkets {
   display: flex;
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   flex-direction: column;
-  align-items: stretch;
-  gap: 3px;
-  padding: 8px 10px;
-  // The list starts at the top of the column rather than floating in the middle
-  // of whatever height the row gives it.
-  justify-content: flex-start;
+  gap: 8px;
 }
 
-// The only thing here that names a rule rather than a piece of gear, so it is
-// also the only place to say why this column sits outside the slot budget.
-// There is nothing to click — the label explains itself and does nothing else,
-// so the pointer stays the plain arrow and `.tno-tooltip-hint` on the element
-// carries the discovery cue instead (see `components/_tooltip.scss`).
-.slot-trinkets-title {
-  cursor: default;
+input.trinket-filter-input {
+  flex: 0 0 auto;
+  height: 28px;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0 8px;
+  border: 1px solid $c-beige;
+  border-radius: 4px;
+  background: $c-white;
+  box-shadow: none;
+  font-family: inherit;
+  font-size: var(--font-size-13, 13px);
+  line-height: 1;
+  color: $c-dark;
+
+  &::placeholder {
+    color: $c-tan;
+  }
+
+  &:focus {
+    border-color: $c-tan;
+    box-shadow: none;
+    outline: none;
+  }
 }
 
-.slot-trinkets-list {
+.slot-trinkets-list,
+.money-wallet {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  gap: 3px;
-  min-height: auto;
-  overflow: visible;
+  padding: 4px 12px;
+  border: 1px solid $c-rule-soft;
+  border-radius: 6px;
+  background: $c-faint;
 }
 
-// Says the column is empty, not broken — with no header row of its own to make
-// the shape obvious, a blank pocket reads as a rendering fault.
+// Says the list is empty, not broken — a blank pocket reads as a rendering
+// fault.
 .slot-trinkets-empty {
   margin: 0;
-  font-size: var(--font-size-11, 11px);
+  padding: 6px 0;
+  font-size: var(--font-size-12, 12px);
   font-style: italic;
-  color: $c-trinket-label;
+  color: $c-tan;
+
+  &[hidden] {
+    display: none;
+  }
 }
 
-// Flat text, not a chip: these are contents, and a bordered pill at this size
-// would read as a button.
+// One piece per thin row: name on the left, count on the right. Same handling
+// as a cell: costing no slot does not make it a different kind of thing — it
+// can still be opened, sorted and worn.
 .slot-trinket {
   // Anchors the drop caret, which is drawn as an inset pseudo-element.
   position: relative;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   min-width: 0;
-  font-size: var(--font-size-11, 11px);
+  min-height: 28px;
+  font-size: var(--font-size-13, 13px);
   white-space: nowrap;
-  color: $c-tan;
-  // Same handling as a cell: costing no slot does not make it a different kind
-  // of thing — it can still be opened, sorted and worn.
+  color: $c-dark;
   cursor: grab;
+
+  & + & {
+    border-top: 1px solid #e2ddd2;
+  }
+
+  &[hidden] {
+    display: none;
+  }
 
   .slot-trinket-icon {
     flex: 0 0 auto;
@@ -1230,19 +1288,25 @@ $slot-icon-size: 36px;
 }
 
 .slot-trinket-name {
+  flex: 1 1 auto;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.slot-trinket-qty {
+  flex: none;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
 // ---------------------------------------------------------------------------
-// Wallet. Native money forms lead, while the euro comparison stays secondary.
-// It follows Kleinkram and uses thin rows so bookkeeping does not visually
-// outweigh the character's actual zero-slot gear.
+// Wallet, the Geld tab. Native money forms lead in thin rows; the euro total
+// stands in the tab label. An owner clicks the panel to open the editor.
 
 .money-wallet-block {
+  position: relative;
   flex: 0 0 auto;
-  margin-top: auto;
-  padding-top: 14px;
 
   &.editable {
     cursor: pointer;
@@ -1252,58 +1316,46 @@ $slot-icon-size: 36px;
       opacity: 1;
     }
 
+    &:hover .money-wallet,
+    &:focus-visible .money-wallet {
+      border-color: $c-tan;
+    }
+
     &:focus-visible {
       outline: none;
     }
   }
 }
 
-.money-wallet-header {
-  gap: 5px;
-}
-
-.money-wallet-total {
-  margin-left: auto;
+.money-wallet-edit {
+  position: absolute;
+  top: 10px;
+  right: 10px;
   color: $c-tan;
   font-size: var(--font-size-11, 11px);
-  font-weight: normal;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-
-.money-wallet-edit {
-  flex: 0 0 auto;
-  color: $c-tan;
-  font-size: var(--font-size-10, 10px);
   opacity: 0;
   transition: opacity 0.15s ease;
-}
-
-.money-wallet {
-  display: flex;
-  flex-direction: column;
-  padding: 5px 8px;
 }
 
 .money-wallet-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
-  padding: 3px 0;
-  color: $c-tan;
-  font-size: var(--font-size-11, 11px);
+  min-height: 28px;
+  font-size: var(--font-size-13, 13px);
+  color: $c-dark;
 
   + .money-wallet-row {
-    border-top: 1px solid rgba($c-dark, 0.08);
+    border-top: 1px solid #e2ddd2;
   }
 }
 
 .money-wallet-currency-icon {
-  flex: 0 0 13px;
-  width: 13px;
+  flex: 0 0 14px;
+  width: 14px;
   color: $c-tan;
-  font-size: var(--font-size-10, 10px);
+  font-size: var(--font-size-11, 11px);
   text-align: center;
 }
 
@@ -1315,15 +1367,17 @@ $slot-icon-size: 36px;
 
 .money-wallet-amount {
   margin-left: auto;
-  color: $c-dark;
+  padding-right: 18px;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
-// An empty purse has no rows at all, and the header total alone would read as a
-// half-drawn component — same italic note Kleinkram uses for the same reason.
+// An empty purse has no rows at all — same italic note Kleinkram uses for the
+// same reason.
 .money-wallet-empty {
   margin: 0;
-  font-size: var(--font-size-11, 11px);
+  padding: 6px 0;
+  font-size: var(--font-size-12, 12px);
   font-style: italic;
-  color: $c-trinket-label;
+  color: $c-tan;
 }

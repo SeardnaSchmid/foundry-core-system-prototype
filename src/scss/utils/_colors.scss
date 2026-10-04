@@ -1,14 +1,31 @@
 $c-white: #fff;
 $c-black: #000;
 
-$c-dark: #191813;
-$c-faint: #c9c7b8;
-$c-beige: #b5b3a4;
-$c-tan: #444;
+// The ink and its three quieter steps, from the 2026-10 sheet redesign: a cool
+// charcoal on a light warm ground rather than near-black on parchment.
+$c-dark: #22262b;
+// Muted text: captions, units, the label half of a value pair.
+$c-tan: #5a5f66;
+// Rules and borders that separate, never fill.
+$c-beige: #c9c4b8;
+// The raised panel surface every card and list stands on.
+$c-faint: #f4f2ec;
+
+// The flat ground of every TNO window, replacing Foundry's parchment texture.
+$c-ground: #e9e6df;
+// The softer hairline inside a panel — between rows, around a card.
+$c-rule-soft: #d3cec3;
+
+// Worn gear: one cool blue for the worn rows, the worn band of the slot raster
+// and the silhouette, so "on the body" reads the same wherever it is shown.
+$c-worn-bg: #d4e3ec;
+$c-worn-border: #a7c2d3;
+$c-worn-fill: #e3ecf2;
+$c-worn-stroke: #6f9ab8;
 
 // The "affordable / ready to buy" green, reserved for the problem-solving
 // reserve being topped up (a passive success state on the resource itself).
-$c-ready: #1f6b3a;
+$c-ready: #3f5f33;
 
 // "A rule is working against the character": the Stärkevorraussetzung
 // shortfall, load past the carry budget, and the movement tiers that load has
@@ -18,9 +35,9 @@ $c-ready: #1f6b3a;
 //
 // Used at full strength for text and borders, and at 35% alpha wherever it is
 // a fill — a solid block of it at this saturation swallowed the cell it was
-// marking, so the fill is a wash the parchment still shows through and the
+// marking, so the fill is a wash the ground still shows through and the
 // full-strength border is what draws the edge.
-$c-warning: #b3212b;
+$c-warning: #8e2a2a;
 
 // The "actionable / ready to buy the next rank" accent, shared by the
 // attribute heatmap XP badges + bar, the skill XP text, and the skill advance
@@ -35,9 +52,9 @@ $c-advance: #b8860b;
 // doesn't blend into stat/progression colours. Nothing that is not a roll takes
 // it: an item card without an attack emphasises Bearbeiten with weight and a
 // stronger outline instead.
-$c-primary: #2f6bff;
-$c-primary-hover: #255ae6;
-$c-primary-active: #1947c8;
+$c-primary: #2f5fd0;
+$c-primary-hover: #2752b8;
+$c-primary-active: #1f4396;
 
 // The "spend an optional resource" accent — the "Idee haben" toggle once
 // armed. Warm gold like $c-advance (both read as "bonus"), but a lighter/

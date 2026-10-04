@@ -22,9 +22,9 @@ related: [reference/module-map, concepts/combat-turn-order]
 | `actor/parts/actor-damage.hbs` | Character-only damage tracks under the banner's subtitle: two counted box rows (Wucht, Schaden) against each pool's own capacity mark, always stacked with Wucht on the upper line — the fixed-width tags align both runs of boxes into one comparable column. Read-only — steppers, the clear action and the raster moved to `condition-panel.hbs`. The condition panel's second door — see [damage.md](../concepts/damage.md) |
 | `actor/parts/actor-status.hbs` | The Zustände row, in the banner's identity lane directly under the damage tracks it is derived from: one named chip per active condition, severity-sorted, with a blue corner point on a manually forced one. Names rather than codes because the row is normally empty or short; past `BANNER_CONDITION_LIMIT` (3) the remainder becomes a `+n` counter and the panel carries the full list. Absent entirely when nothing is active. A borderless `<button>` shaped like `.banner-tracks` that opens `condition-panel.hbs` — see [damage.md](../concepts/damage.md#the-condition-collection) |
 | `actor/parts/actor-edge.hbs` | The Edge pill, third of the banner's state controls: the reserve as pips only, one per point of `derived.edgePoolMax`. Opens `edge-popover.hbs`, which carries the thresholds and the manual correction — see [edge-pool.md](../concepts/edge-pool.md) |
-| `actor/parts/actor-derived.hbs` | The derived-values strip under the attribute matrix in the Basics tab: Initiative and 6. Sinn as two roll buttons sharing one row half and half, each with its full name above the value and the dice notation it rolls. Both left the banner because each is a pure function of base attributes |
-| `actor/parts/actor-movement.hbs` | The three Bewegung tiers as one read-only dashed line, a tier the load has taken away struck through. It closes the worn-gear column rather than the derived strip: the summed Stärkevoraussetzung that strikes a tier through is totalled one line above it, so cause and consequence share a column |
-| `actor/parts/actor-paperdoll.hbs`, `actor-money-wallet.hbs`, `actor-trinkets.hbs`, `actor-slot-grid.hbs` | The equipment/money surfaces of the character sheet's Basics tab — see [inventory.md](../concepts/inventory.md). The paper doll, including its compact Dodge control beneath the silhouette, and the stacked Kleinkram/wallet column sit in the top row; the slot raster sits in the bottom one. The wallet lists one row per non-zero balance and keeps the combined euro value in its header |
+| `actor/parts/actor-derived.hbs` | Initiative and 6. Sinn as two glass roll pills sharing one row of the banner's state lane, under Haltung and Edge: short label and value on the left, the dice notation it rolls on the right |
+| `actor/parts/actor-movement.hbs` | The three Bewegung tiers as a read-only block in the banner's `.banner-vitals` row, beside the damage tracks; a tier the load has taken away is struck through |
+| `actor/parts/actor-paperdoll.hbs`, `actor-money-wallet.hbs`, `actor-trinkets.hbs`, `actor-slot-grid.hbs` | The equipment/money surfaces of the character sheet's Basics tab — see [inventory.md](../concepts/inventory.md). All four sit in the Basics tab's right-hand column: the paper doll — zone rows left, small silhouette with its Dodge control right — then the slot raster, Kleinkram and the wallet as three tabs of one panel (Inventar · Kleinkram · Geld; the tab bar and its `+` live in `actor-character-sheet.hbs`). The wallet lists one row per non-zero balance; the combined euro value stands in the Geld tab's label |
 | `actor/parts/item-popover.hbs` | The actor-sheet item popover: the shared view-mode card plus the live item actions. Its footer runs two button sizes and no more, and the size is a property of the **row**: `.item-popover-actions-row` is 26px/11px, `--lead` is 30px/13px, carried as three custom properties so every surface reusing this bar inherits the pair instead of restating padding and font-size. Every labelled button takes an equal share of its row and never wraps. Delete is the one action carrying no label: a square glyph pushed off the labelled pair by its own margin, named in its tooltip the way every other delete affordance in the system is |
 | `actor/parts/money-popover.hbs` | Body-level five-currency wallet editor with money forms, rates and live euro conversions; reuses the item-popover component structure |
 | `actor/parts/columns-popover.hbs` | The Inventar table's column picker, the third body-level popover; reuses the item-popover frame and specializes only the checkbox sections |
@@ -60,15 +60,18 @@ render-time fetch (works, but loses the preload benefit).
 
 ## The Basics tab's grid
 
-Two full-width rows, each a flex row of `.basics-cell` columns with a
-`.basics-splitter` at every boundary:
+One row of `.basics-cell` columns with a `.basics-splitter` at the boundary:
 
 | Row (`data-split-row`) | Columns |
 | --- | --- |
-| `top` | attribute matrix + damage widget · paper doll · Kleinkram |
-| `bottom` | skill list · Trageslots raster |
+| `main` | attribute matrix + skill list · worn gear (paper doll) + Inventar/Kleinkram/Geld tabs |
 
-Both rows size to their own content. Long skill and inventory lists extend the
+One row of two columns ("Kompakt · Matrix E"). The row's key is new with this
+layout, so `basicsLayout` shares stored for the earlier two-row layouts
+(`top`/`upper`, `bottom`) fall back to the defaults instead of sizing these
+columns.
+
+Both columns size to their own content. Long skill and inventory lists extend the
 character sheet's single `.window-content` scroll surface. The tab rail stays
 there too: ApplicationV2 resolves its tab actions from that container.
 
@@ -97,28 +100,24 @@ them in step with `BASICS_LAYOUT_DEFAULT`.
 | Partial | Covers |
 | --- | --- |
 | `components/_dice-dialog.scss`, `_dice-card.scss` | Roll dialogs (shared base rules, then the full dialog under `.tno-roll-dialog.tno-wurf`) and the chat roll card / edge panel |
-| `components/_forms.scss` | Shared form controls plus actor-sheet layout, including the dark-fade portrait banner, its `portrait identity state` grid, the identity lane's headline/subtitle/tracks stack, the three glass pill buttons of the `.banner-state` lane, the condition raster and stepper atoms the panel reuses, the Basics tab's derived strip, portrait edit affordance and the responsive banner/Basics split rows. The header reuses `$c-primary` blue only as a semantic fill, `$c-warning` red for negative and `$c-ready` green for positive/resource state; borders remain neutral grey/charcoal and icons monochrome black/white. It carries no `z-index` override for an open panel — both panels the band opens are top-layer popovers. Its banner breakpoints consume the named `character-sheet` inline-size container declared on `.window-content` in `global/_window.scss` |
-| `components/_resource.scss` | Largest component partial — attribute heatmap grid, skill groups, edge pool display |
+| `components/_forms.scss` | Shared form controls plus actor-sheet layout, including the dark-fade portrait banner, its `portrait identity state` grid, the identity lane's headline/subtitle/vitals stack (tracks + movement tiers), the three glass pill buttons of the `.banner-state` lane, the condition raster and stepper atoms the panel reuses, the banner's two roll pills, the Basics section-header rhythm, portrait edit affordance and the responsive banner/Basics split rows. The header reuses `$c-primary` blue only as a semantic fill, `$c-warning` red for negative and `$c-ready` green for positive/resource state; borders remain neutral grey/charcoal and icons monochrome black/white. It carries no `z-index` override for an open panel — both panels the band opens are top-layer popovers. Its banner breakpoints consume the named `character-sheet` inline-size container declared on `.window-content` in `global/_window.scss` |
+| `components/_resource.scss` | Attribute tile grid, the skills header (search with clear button, segmented filter) and the skill-group cards |
 | `components/_campaign-briefing.scss` | The full-canvas player briefing's masthead, chart framing, star map and scrollable recap archive, plus the conventional GM editor layout |
 | `components/_items.scss` | The two plain lists left on the Inventar tab — Merkmale and Active Effects — plus the tab's own spacing |
 | `components/_item-table.scss` | The Inventar tab's gear ledger: toolbar, the single CSS grid the header band, group bands and `subgrid` rows all share, the hatched n/a cell, and the column picker's popover body |
 | `components/_item-dialog.scss` | Both gear views: overview cards/profiles/actions plus the editor's label column, scales, cycleable range bands, repeatable consumable effects, resizable description editor, chips, segments, splits and steppers. Also the add-to-inventory dialog (`&.create-item-dialog`), which reuses the same name-as-title input and selected-chip colours, and the deliberately plainer take-from-chat dialog (`&.take-item-dialog`), which asks only where a finished item goes and so stays a native select. Nested with `&.gear-dialog` / `&.create-item-dialog` because those classes sit on the window root alongside `tno`, not inside it |
 | `components/_item-popover.scss` | The view-mode card in both its homes — the actor sheet's top-layer popover (`&.item-popover`) and the chat card (`&.item-chat-summary`) — plus the wallet editor (`&.item-popover.money-popover`), Haltung picker (`&.item-popover.stance-popover`), condition panel (`&.item-popover.condition-popover`) and Edge popover (`&.item-popover.edge-popover`) variants. Header, value tiles, detail rows and action bar are shared, and every surface that reuses the bar marks its principal row `--lead` rather than sizing its own buttons: the chat card's take action (`.item-chat-actions`, built in `item-transfer.mjs`), the wallet editor's Cancel/Save pair, the item card's combat row. None of them is the roll blue — `.wide` alone carries that, and it now carries colour only. The condition panel's clear action is not in a bar but wears the same secondary numbers |
-| `components/_inventory.scss` | The paper doll and its Dodge action, compact borderless wallet, Kleinkram column and Trageslots grid including the worn band — see [inventory.md](../concepts/inventory.md). The narrower padding they take inside a Basics column is set on `.basics-cell` in `_forms.scss`, not here |
+| `components/_inventory.scss` | The paper doll and its Dodge action, the Inventar/Kleinkram/Geld tab bar, the Kleinkram list and its filter, the wallet panel, and the Trageslots meter and grid including the worn band — see [inventory.md](../concepts/inventory.md) |
 | `components/_effects.scss` | Active effect list rendering |
 | `components/_tooltip.scss` | Both halves of the rich `data-tooltip-html` tooltip: the `.tno-tooltip` card itself, declared at the top level of `tno.scss` because Foundry mounts `#tooltip` on `<body>` outside any `.tno` element, and `.tno-tooltip-hint`, the dotted underline marking a plain-text trigger. Icon and chip triggers are left unmarked — they already carry their own affordance |
 | `components/_base-roll-button.scss` | The chat-log "Basiswürfel" quick-roll button |
-| `components/_combat-tracker.scss` | The sidebar tracker's Haltung chip, spent-round dimming, interrupt button and drag drop-target. Imported **outside** the `.tno` block, like `_base-roll-button` above it: the sidebar is painted by Foundry's own light/dark theme, and pulling it into `.tno` would drag the sheets' parchment palette and every sheet component with it into a surface none of them were written for. It therefore declares its own four band colours plus the interrupt blue as tokens on `.combat-tracker`, with a `.theme-dark` set beside them — the sheets' `utils/_colors.scss` is tuned for parchment and unreadable here. The chip picks its band off `data-stance-group`, so adding a Haltung to an existing band needs no CSS |
-| `global/_flex.scss`, `_grid.scss`, `_window.scss` | Layout primitives |
-| `utils/_colors.scss`, `_mixins.scss`, `_typography.scss`, `_variables.scss` | Shared tokens |
+| `components/_combat-tracker.scss` | The sidebar tracker's Haltung chip, spent-round dimming, interrupt button and drag drop-target. Imported **outside** the `.tno` block, like `_base-roll-button` above it: the sidebar is painted by Foundry's own light/dark theme, and pulling it into `.tno` would drag the sheets' palette and every sheet component with it into a surface none of them were written for. It therefore declares its own four band colours plus the interrupt blue as tokens on `.combat-tracker`, with a `.theme-dark` set beside them — the sheets' `utils/_colors.scss` is tuned for the sheets' light ground and unreadable here. The chip picks its band off `data-stance-group`, so adding a Haltung to an existing band needs no CSS |
+| `global/_flex.scss`, `_grid.scss`, `_window.scss` | Layout primitives; `_window.scss` also gives every TNO window the flat `$c-ground` in place of Foundry's parchment, and a one-step-smaller `--font-size-*` scale |
+| `utils/_colors.scss`, `_mixins.scss`, `_typography.scss`, `_variables.scss` | Shared tokens. `_colors.scss` holds the ink steps, the window ground and the worn-blue set; `_typography.scss` declares the bundled IBM Plex Sans / Condensed faces (`assets/fonts/ibm-plex`, OFL) |
 
 Note: heatmap gradient **colors** are computed in JS
 ([`heatmap.mjs`](../../../module/helpers/heatmap.mjs)) and applied as
 inline styles, not SCSS — the SCSS only styles the grid/cell chrome around
-them. The attribute tile itself is a corner-badge layout: the name owns the
-tile's width over two reserved lines, the value sits opposite it as a small
-ink-washed badge, and the XP track is inset along the bottom edge. The tile
-measurements the container tiers re-scale (`--heat-pad`, `--heat-gap`,
-`--heat-bar`, `--heat-name-size`, `--heat-badge-size`) are custom properties
-on `.heatmap-cell`, so each tier overrides those rather than restating the
-padding and the absolutely-positioned bar's inset separately.
+them. The attribute tiles are a plain three-column grid of `div.heatmap-cell`s
+— name, value, XP bar stacked — with no axis headers; each tile's tooltip
+names its row and column.

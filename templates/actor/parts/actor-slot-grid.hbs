@@ -4,37 +4,26 @@ the arrangement is stored — so reordering is purely a view concern.
 The grid holds exactly as many cells as the character has slots; there is no
 padding out to the raster width. Anything past the budget keeps running on in
 the same grid, marked over capacity. --}}
-<div class='basics-section-header slot-grid-header'>
-    <h3 class='basics-section-title slot-grid-title'>{{localize 'TNO.Inventory.CarrySlots'}}</h3>
-    {{!-- Used over capacity. The three parts are separate elements because they
-    rank differently — the figure the player tracks, the separator, the limit
-    behind it — and the container is a flex row, so the newlines between them
-    collapse away rather than becoming spaces around the slash. --}}
-    <span class='slot-grid-count'>
-      <strong{{#if slotGrid.atCapacity}} class='over-capacity'{{/if}}>{{slotGrid.used}}</strong>
-      <span class='slot-grid-sep' aria-hidden='true'>/</span>
-      <span class='slot-grid-max'>{{slotGrid.capacity}}</span>
-    </span>
+{{!-- The panel's title, used/capacity count and create action live on the
+Inventar tab above it. "Keine Tasche" stays here: it is not a load level but the
+reason only the worn band participates, and nowhere else says so. What the load
+costs in movement is struck through on the movement line, not said here. --}}
+{{#if slotGrid.noContainer}}
+  <span class='slot-badge badge-no-container' title='{{localize "TNO.Inventory.NoContainerHint"}}'>
+    {{localize 'TNO.Inventory.NoContainer'}}
+  </span>
+{{/if}}
 
-    {{!-- What the load costs in movement is shown on the movement chip in the
-    banner, struck through the tier it takes away — the question it answers is
-    "how far can I move", so it belongs on the numbers, not over the bag.
-    "Keine Tasche" stays here: it is not a load level but the reason only the
-    worn band participates, and nowhere else says so. --}}
-    {{#if slotGrid.noContainer}}
-      <span class='slot-badge badge-no-container' title='{{localize "TNO.Inventory.NoContainerHint"}}'>
-        {{localize 'TNO.Inventory.NoContainer'}}
-      </span>
-    {{/if}}
+{{!-- The budget as a meter, one segment per slot: the worn band, then carried
+load, then free room, and past the budget the overload in warning red. It is
+what the raster below no longer does by itself now that the free slots are one
+summary cell: count the room that is left. --}}
+<span class='slot-meter' role='img'
+      aria-label='{{localize "TNO.Inventory.MeterLabel" used=slotGrid.used capacity=slotGrid.capacity}}'>
+  {{#each slotGrid.meter as |segment|}}<span class='slot-meter-segment is-{{segment.tone}}'></span>{{/each}}
+</span>
 
-    {{#if @root.editable}}
-      <a class='section-add inventory-add' title='{{localize "TNO.Inventory.AddHint"}}'>
-        <i class='fas fa-plus'></i>
-      </a>
-    {{/if}}
-</div>
-
-<div class='slot-grid-block card basics-section-card'>
+<div class='slot-grid-block'>
 
   {{!-- One cell per slot the load costs, in one flat run: what fits, then what
   spills past the budget, then — only when nothing spilled — the free cells.
@@ -57,32 +46,40 @@ the same grid, marked over capacity. --}}
         {{#if cell.first}}
           <i class='fas fa-grip-vertical slot-grip'></i>
           {{#if cell.over}}<i class='fas fa-triangle-exclamation slot-overflow-icon'></i>{{/if}}
-          {{!-- The piece's own art when it has any, the role icon when it has
-          not. Both occupy the same 16px box, so a grid of mixed items stays on
-          its column rhythm. --}}
-          {{#if cell.img}}
-            <img class='slot-icon slot-art' src='{{cell.img}}' alt='' />
-          {{else}}
-            <i class='fa-solid {{cell.icon}} slot-icon' aria-hidden='true'></i>
-          {{/if}}
+          {{!-- The piece's own art when it has any, with its role as a badge
+          on the corner; the role icon alone when it has none. Both occupy the
+          same 40px box, so a grid of mixed items stays on its column rhythm. --}}
+          <span class='slot-art-box'>
+            {{#if cell.img}}
+              <img class='slot-icon slot-art' src='{{cell.img}}' alt='' />
+              <i class='fa-solid {{cell.icon}} slot-role-badge' aria-hidden='true'></i>
+            {{else}}
+              <i class='fa-solid {{cell.icon}} slot-icon' aria-hidden='true'></i>
+            {{/if}}
+          </span>
           <span class='slot-content'>
             {{!-- The name is clipped to the run's width, so the full one has to
             stay reachable on hover as well as through the popover a click
             opens — the skill list carries its own title for the same reason. --}}
             <span class='slot-name' title='{{cell.item.name}}'>{{cell.item.name}}</span>
-            {{#if cell.worn}}<span class='slot-worn-caption'>{{localize 'TNO.Inventory.WornSlot'}}</span>{{/if}}
-            {{#if cell.typeLine}}<span class='slot-subcategory'>{{cell.typeLine}}</span>{{/if}}
+            <span class='slot-subcategory'>{{#if cell.worn}}{{localize 'TNO.Inventory.WornSlot'}}{{#if cell.typeLine}} · {{/if}}{{/if}}{{cell.typeLine}}</span>
           </span>
           {{#if cell.showQty}}<span class='slot-qty'>×{{cell.quantity}}</span>{{/if}}
         {{/if}}
       </div>
     {{/each}}
 
-    {{#each slotGrid.emptyCells}}
-      <div class='slot-cell slot-empty'
+    {{!-- The free room as one cell: still a drop target that moves a piece to
+    the end of the run, and for an owner the same create action as the header's
+    `+`. --}}
+    {{#if slotGrid.free}}
+      <div class='slot-cell slot-empty{{#if @root.editable}} inventory-add{{/if}}'
            data-tooltip-html='{{localize "TNO.Inventory.EmptyCellHint"}}'
-           data-tooltip-direction='UP'></div>
-    {{/each}}
+           data-tooltip-direction='UP'>
+        {{#if @root.editable}}<i class='fas fa-plus' aria-hidden='true'></i>{{/if}}
+        {{localize 'TNO.Inventory.FreeSlots' count=slotGrid.free}}
+      </div>
+    {{/if}}
   </div>
 
   {{!-- Keyed off the budget, not off `overflow`: a block that merely straddles

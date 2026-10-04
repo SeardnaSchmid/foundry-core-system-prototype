@@ -9,13 +9,12 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
   Schadensleisten und die Zustandszeile stehen in der Identitätsbahn statt in
   der Metabahn, weil der Malus in derselben Grundlinie wie der Name gelesen
   wird, die Leisten unter ihm hängen und die Zustände aus ihnen folgen. Die
-  rechte Bahn führt dafür nur noch, was gewählt wird: Haltung und Edge.
+  rechte Bahn führt dafür nur Bedienelemente: Haltung und Edge, darunter die
+  zwei Würfe Initiative und 6. Sinn, die mitten im Kampf bei jedem Tab
+  erreichbar sein sollen.
 
-  Was nicht mehr hier steht: 6. Sinn und Initiative stehen als abgeleitete Werte
-  unter der Attributsmatrix im Grundlagen-Tab, die Bewegung unter der getragenen
-  Ausrüstung; Raster,
-  Stepper, Löschen-Aktion und das Edge-Zahlenfeld liegen hinter je einem Klick
-  in ihrem Panel. Im Band würfelt nichts mehr.
+  Die Bewegung steht neben den Schadensleisten. Was nicht mehr hier steht: Raster, Stepper, Löschen-Aktion und das Edge-Zahlenfeld liegen
+  hinter je einem Klick in ihrem Panel.
 
   Das Porträt hängt bewusst über die Unterkante des Bandes; `.sheet-body`
   reserviert die Höhe, die es braucht. --}}
@@ -77,14 +76,21 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
               data-tooltip-direction='DOWN'>{{totalXpSpent}}<span class="banner-xp-total">/{{totalXpAcquired}}</span> {{localize "TNO.UnitXp"}}</span>
       </div>
 
-      {{> "systems/tno/templates/actor/parts/actor-damage.hbs"}}
+      {{!-- Die Leisten und die Bewegung teilen sich eine Zeile: rechts neben
+      den Kästchen ist die Bahn ohnehin leer, und so kostet die Bewegung das
+      Band keine Höhe. --}}
+      <div class="banner-vitals">
+        {{> "systems/tno/templates/actor/parts/actor-damage.hbs"}}
+        {{> "systems/tno/templates/actor/parts/actor-movement.hbs"}}
+      </div>
 
       {{> "systems/tno/templates/actor/parts/actor-status.hbs"}}
 
     </div>
 
-    {{!-- Die Metabahn: zwei Pillen, beide Bedienelemente, beide auf dieselbe
-    Frage — was wähle ich gerade. Die Haltung führt sie an, weil sie im Kampf am
+    {{!-- Die Metabahn: zwei Pillen auf dieselbe Frage — was wähle ich gerade —
+    und darunter die zwei Würfe, Initiative und 6. Sinn. Die Haltung führt sie
+    an, weil sie im Kampf am
     häufigsten geändert wird und allein entscheidet, ob es überhaupt eine
     Verteidigung gibt. Die von ihr freigeschalteten Handlungen liegen an ihren
     eigenen Spielflächen: Ausweichen an der Papierpuppe, Parade an der Waffe.
@@ -111,6 +117,8 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
 
       {{> "systems/tno/templates/actor/parts/actor-edge.hbs"}}
 
+      {{> "systems/tno/templates/actor/parts/actor-derived.hbs"}}
+
     </div>
 
   </header>
@@ -118,143 +126,84 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
   {{!-- Sheet Body --}}
   <section class="sheet-body">
 
-    {{!-- Basics Tab, as two full-width rows rather than a left/right split.
-    Top: the attribute matrix, what is on the body, and the zero-slot pocket.
-    Bottom: the skill list and the slot raster — the two long lists, each of
-    which wants width more than the blocks above them do.
+    {{!-- Basics Tab, as two columns of one row ("Kompakt · Matrix E"). Left is
+    what the character can roll: the attribute matrix, the derived rolls and the
+    skill list. Right is what the character has: the worn gear, then everything carried behind one tab bar — Inventar, Kleinkram,
+    Geld.
 
-    Every boundary between two columns is a draggable handle, and each row keeps
-    its own set of shares (`basicsLayout`, client-scoped): a handle only ever
-    redistributes the pair it sits between, so a row of three columns has two
-    independent boundaries rather than one split running the sheet's height. --}}
+    The boundary between the columns is a draggable handle; its shares are the
+    `basicsLayout` client setting. --}}
     <div class="tab basics {{tabs.basics.cssClass}}" data-group="primary" data-tab="basics">
       <div class="basics-rows">
 
-      <div class="basics-row" data-split-row="top">
+      <div class="basics-row" data-split-row="main">
 
-      <section class="basics-cell cell-attributes flexcol">
+      <section class="basics-cell cell-play flexcol">
 
-        {{!-- Primary attributes, laid out as a heatmap: one column per category
-        (körperlich/sozial/geistig) and one row per attribute pairing,
-        mirroring the "Attribute" table in the rulebook. Cell and sum-badge
-        backgrounds are color-graded relative to the character's own values,
-        ported from the "Attribut-Heatmap" prototype. --}}
-        <div class="basics-section-header attributes-header flexrow">
-          <h3 class="basics-section-title attributes-title">{{localize "TNO.AttributesTitle"}} <span class="xp-badge"
+        {{!-- Primary attributes as a compact matrix: one column per category
+        (körperlich/sozial/geistig) under its heading, one row per attribute
+        pairing, in the order of the rulebook's "Attribute" table. Each cell is
+        one line — name, value — with the XP bar along its foot; backgrounds are
+        graded per value (`colorForValue`). --}}
+        <div class="basics-section-header attributes-header">
+          <h3 class="basics-section-title attributes-title">{{localize "TNO.AttributesTitle"}}</h3>
+          <span class="xp-badge"
               data-tooltip-html='<dl class="tno-tooltip"><div class="tno-tooltip-row"><dd>{{localize "TNO.XpTotalAttributesHint"}}</dd></div></dl>'
-              data-tooltip-direction='DOWN'>{{attributeGrid.totalValue}} {{localize "TNO.UnitPoints"}} · {{attributeGrid.totalXp}} {{localize "TNO.UnitXp"}}</span></h3>
+              data-tooltip-direction='DOWN'>{{attributeGrid.totalValue}} {{localize "TNO.UnitPoints"}} · {{attributeGrid.totalXp}} {{localize "TNO.UnitXp"}}</span>
           {{#if isGM}}
           <a class="heatmap-lab-btn" title="{{localize 'TNO.Settings.HeatmapPreset.BtnHint'}}"><i class="fa-solid fa-palette"></i></a>
           {{/if}}
         </div>
-        <div class="attributes-card">
-        <table class="attribute-table heatmap">
-          <thead>
-            <tr>
-              <th class="attribute-corner"></th>
-              {{#each attributeGrid.colHeaders as |col|}}
-              <th>
-                <span class="heatmap-col-label">{{col.label}}</span>
-              </th>
-              {{/each}}
-            </tr>
-          </thead>
-          <tbody>
-            {{#each attributeGrid.rows as |row|}}
-            <tr>
-              <th class="heatmap-row-header">
-                <span class="heatmap-row-label">{{row.label}}</span>
-              </th>
-              {{#each row.cells as |cell|}}
-              {{!-- The whole tile is the advance target, not just the bar at its
-              foot: a 3px strip is a hard thing to hit, and every part of the
-              tile is about the one attribute the dialog edits, so there was
-              nothing else for a click on it to mean. The bar keeps drawing the
-              progress and stops being interactive itself — one target per tile
-              rather than a target inside a target. --}}
-              <td class="heatmap-cell{{#if cell.isPeak}} heatmap-peak{{/if}}" data-key="{{cell.key}}" style="background:{{cell.cellBg}}; color:{{cell.textColor}}; border-color:{{cell.tileBorder}};" title="{{cell.hint}} · {{#if cell.xpAtMax}}{{localize 'TNO.XpMaxBadge'}}{{else}}{{cell.xp}}/{{cell.xpCost}} xp{{/if}} — {{localize 'TNO.AttributeAdvanceHint'}}">
-                {{!-- Name first and full-width, value demoted to a chip in the
-                top-right corner: the twelve tiles are scanned by name, and the
-                badge keeps the number legible without a 18px numeral fighting
-                the graded fill for the tile. --}}
-                <div class="heatmap-cell-top">
-                  <span class="heatmap-cell-name">{{cell.label}}</span>
-                  <strong class="heatmap-value" style="background:{{cell.badgeBg}};">{{cell.value}}</strong>
-                </div>
-                <span class="heatmap-xp-bar{{#if cell.xpReady}} ready{{/if}}" style="background:{{cell.xpBarTrack}};">
-                  <span class="heatmap-xp-bar-fill" style="width:{{cell.xpPercent}}%; background:{{cell.xpBarFill}};"></span>
-                </span>
-              </td>
-              {{/each}}
-            </tr>
-            {{/each}}
-          </tbody>
-        </table>
+        <div class="attribute-table heatmap">
+          {{#each attributeGrid.colHeaders as |col|}}
+          <span class="heatmap-col-label">{{col.label}}</span>
+          {{/each}}
+          {{#each attributeGrid.rows as |row|}}
+          {{#each row.cells as |cell|}}
+          {{!-- The whole cell is the advance target, not just the bar at its
+          foot: a 2px strip is a hard thing to hit, and every part of the cell
+          is about the one attribute the dialog edits. --}}
+          <div class="heatmap-cell{{#if cell.isPeak}} heatmap-peak{{/if}}" data-key="{{cell.key}}" style="background:{{cell.cellBg}}; color:{{cell.textColor}}; border-color:{{cell.tileBorder}};" title="{{cell.hint}} · {{#if cell.xpAtMax}}{{localize 'TNO.XpMaxBadge'}}{{else}}{{cell.xp}}/{{cell.xpCost}} xp{{/if}} — {{localize 'TNO.AttributeAdvanceHint'}}">
+            <span class="heatmap-cell-name">{{cell.label}}</span>
+            <strong class="heatmap-value">{{cell.value}}</strong>
+            <span class="heatmap-xp-bar{{#if cell.xpReady}} ready{{/if}}" style="background:{{cell.xpBarTrack}};">
+              <span class="heatmap-xp-bar-fill" style="width:{{cell.xpPercent}}%; background:{{cell.xpBarFill}};"></span>
+            </span>
+          </div>
+          {{/each}}
+          {{/each}}
         </div>
 
-        {{> "systems/tno/templates/actor/parts/actor-derived.hbs"}}
-
-      </section>
-
-      <div class="basics-splitter" role="separator" aria-orientation="vertical" tabindex="0"
-           title="{{localize 'TNO.BasicsSplitterHint'}}"></div>
-
-      {{!-- What the character is wearing right now: the armour paper doll and
-      its four zone read-outs. The Inventar tab keeps the flat administrative
-      list — creating, editing and deleting items — but this answers "what am I
-      wearing?", which is a question asked mid-roll, so it sits beside the
-      attributes rather than a tab away. --}}
-      <section class="basics-cell cell-gear flexcol">
-        <div class="basics-section-header gear-header flexrow">
-          <h3 class="basics-section-title cell-title">{{localize "TNO.Armor.WornTitle"}}</h3>
-        </div>
-        {{> "systems/tno/templates/actor/parts/actor-paperdoll.hbs"}}
-        {{!-- Die Bewegung schließt diese Spalte ab: die Stufe, die die Last
-        wegnimmt, steht damit unter der Summe der Stärkevoraussetzung, die sie
-        wegnimmt. --}}
-        {{> "systems/tno/templates/actor/parts/actor-movement.hbs"}}
-      </section>
-
-      <div class="basics-splitter" role="separator" aria-orientation="vertical" tabindex="0"
-           title="{{localize 'TNO.BasicsSplitterHint'}}"></div>
-
-      {{!-- Papers and other zero-slot gear remain ordinary draggable items.
-      Money is separate actor state and follows Kleinkram as the quieter,
-      secondary bookkeeping surface in the same column. --}}
-      <section class="basics-cell cell-loose flexcol">
-        {{> "systems/tno/templates/actor/parts/actor-trinkets.hbs"}}
-        {{> "systems/tno/templates/actor/parts/actor-money-wallet.hbs"}}
-      </section>
-
-      </div>
-
-      <div class="basics-row" data-split-row="bottom">
-
-      <section class="basics-cell cell-skills flexcol">
 
         {{!-- Skills, grouped by category. Each skill rolls with its linked
         attribute; the rank is added as the roll dialog's starting bonus. --}}
-        <div class="basics-section-header skills-header flexrow">
-          <h3 class="basics-section-title skills-title">{{localize "TNO.SkillsTitle"}} <span class="xp-badge"
+        <div class="basics-section-header skills-header">
+          <h3 class="basics-section-title skills-title">{{localize "TNO.SkillsTitle"}}</h3>
+          <span class="xp-badge"
               data-tooltip-html='<dl class="tno-tooltip"><div class="tno-tooltip-row"><dd>{{localize "TNO.XpTotalSkillsHint"}}</dd></div></dl>'
-              data-tooltip-direction='DOWN'>{{skillRankTotal}} {{localize "TNO.UnitPoints"}} · {{skillXpTotal}} {{localize "TNO.UnitXp"}}</span></h3>
-          <input type="text" class="skill-search-input" value="{{skillSearch}}" placeholder="{{localize 'TNO.SkillSearchPlaceholder'}}" title="{{localize 'TNO.SkillSearchHint'}}" />
+              data-tooltip-direction='DOWN'>{{skillRankTotal}} {{localize "TNO.UnitPoints"}} · {{skillXpTotal}} {{localize "TNO.UnitXp"}}</span>
+          <span class="skill-search">
+            <input type="text" class="skill-search-input" value="{{skillSearch}}" placeholder="{{localize 'TNO.SkillSearchPlaceholder'}}"
+                   title="{{localize 'TNO.SkillSearchHint'}}" aria-label="{{localize 'TNO.SkillSearchHint'}}" />
+            <button type="button" class="skill-search-clear" aria-label="{{localize 'TNO.SkillSearchClear'}}"
+                    title="{{localize 'TNO.SkillSearchClear'}}"{{#unless skillSearch}} hidden{{/unless}}><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+          </span>
           <div class="skill-filter-group">
             <a class="skill-filter-btn {{#ifEquals skillFilter 'trained'}}active{{/ifEquals}}" data-filter="trained" title="{{localize 'TNO.SkillFilterTrainedHint'}}">{{localize "TNO.SkillFilterTrained"}}</a>
             <a class="skill-filter-btn {{#ifEquals skillFilter 'starter'}}active{{/ifEquals}}" data-filter="starter" title="{{localize 'TNO.SkillFilterStarterHint'}}">{{localize "TNO.SkillFilterStarter"}}</a>
+            <a class="skill-filter-btn {{#ifEquals skillFilter 'combat'}}active{{/ifEquals}}" data-filter="combat" title="{{localize 'TNO.SkillFilterCombatHint'}}">{{localize "TNO.SkillFilterCombat"}}</a>
             <a class="skill-filter-btn {{#ifEquals skillFilter 'all'}}active{{/ifEquals}}" data-filter="all" title="{{localize 'TNO.SkillFilterAllHint'}}">{{localize "TNO.SkillFilterAll"}}</a>
           </div>
         </div>
         {{!-- The inner .skill-groups is a balanced CSS multi-column flow whose
-        height is content-driven inside the skills column's bounded scroll
-        region. --}}
+        height is content-driven. --}}
         <div class="skill-groups-scroll">
         <div class="skill-groups">
           {{#each skillGroups as |group|}}
-          <div class="card basics-section-card skill-group">
+          <div class="card basics-section-card skill-group" data-category="{{group.key}}">
             <h4 class="skill-group-title">
               <span class="skill-group-name">{{group.label}}</span>
-              <span class="xp-badge">{{group.totalRank}}pt | {{group.totalXp}}xp</span>
+              <span class="xp-badge">{{group.totalRank}} {{localize "TNO.UnitPoints"}} · {{group.totalXp}} {{localize "TNO.UnitXp"}}</span>
               {{#if @root.editable}}
               <a class="skill-create-button" data-category="{{group.key}}" title="{{localize 'TNO.CustomSkill.Add'}}">
                 <i class="fas fa-plus"></i>
@@ -306,11 +255,55 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
       <div class="basics-splitter" role="separator" aria-orientation="vertical" tabindex="0"
            title="{{localize 'TNO.BasicsSplitterHint'}}"></div>
 
-      {{!-- What the character is hauling: the Trageslots budget, packed. Beside
-      the skills rather than under the paper doll, because the raster and the
-      skill list are the tab's two long lists and both want the width. --}}
-      <section class="basics-cell cell-carry flexcol">
-        {{> "systems/tno/templates/actor/parts/actor-slot-grid.hbs"}}
+      {{!-- What the character has. The worn gear first — "what am I wearing?" is
+      asked mid-roll — closed by the movement tiers the load decides; then the
+      carried things behind one tab bar. The Inventar tab of the sheet keeps the
+      administrative ledger; these are the play views. --}}
+      <section class="basics-cell cell-gear flexcol">
+        {{!-- The body's total SV closes the header: what the rows below add up
+        to, and the only SV Strength is ever measured against. Shown whenever
+        anything is worn — the total is a fact about the load, not a verdict on
+        it; falling short is said in words under the rows. --}}
+        <div class="basics-section-header gear-header">
+          <h3 class="basics-section-title">{{localize "TNO.Armor.WornTitle"}}</h3>
+          {{#if paperdoll.sv}}
+          <span class="section-meta armor-total{{#if paperdoll.svPenalty}} armor-total-short{{/if}}" title="{{localize 'TNO.Armor.SvPenaltyHint'}}">{{localize 'TNO.Armor.SvTotal'}} {{paperdoll.svLabel}}</span>
+          {{/if}}
+        </div>
+        {{> "systems/tno/templates/actor/parts/actor-paperdoll.hbs"}}
+
+        {{!-- Inventar, Kleinkram and Geld take turns in one panel: three ways
+        of looking at what is carried, of which only one is wanted at a time.
+        Which one shows is view state on the open sheet. The `+` creates gear;
+        it belongs to the Inventar view but stays put across the tabs. --}}
+        <div class="loose-tabs" role="tablist" aria-label="{{localize 'TNO.Inventory.CarrySlots'}} · {{localize 'TNO.Inventory.Trinkets'}} · {{localize 'TNO.Money.Tab'}}">
+          <button type="button" class="loose-tab{{#ifEquals looseTab 'inventory'}} active{{/ifEquals}}" role="tab" data-loose-tab="inventory"
+                  aria-selected="{{#ifEquals looseTab 'inventory'}}true{{else}}false{{/ifEquals}}">
+            {{localize 'TNO.Inventory.CarrySlots'}}
+            <span class="loose-tab-meta slot-grid-count"><strong{{#if slotGrid.atCapacity}} class='over-capacity'{{/if}}>{{slotGrid.used}}</strong>/{{slotGrid.capacity}}</span>
+          </button>
+          <button type="button" class="loose-tab{{#ifEquals looseTab 'trinkets'}} active{{/ifEquals}}" role="tab" data-loose-tab="trinkets"
+                  data-tooltip-html='{{localize "TNO.Inventory.TrinketsHint"}}' data-tooltip-direction='UP'
+                  aria-selected="{{#ifEquals looseTab 'trinkets'}}true{{else}}false{{/ifEquals}}">
+            {{localize 'TNO.Inventory.Trinkets'}} <span class="loose-tab-meta">{{slotGrid.trinkets.length}}</span>
+          </button>
+          <button type="button" class="loose-tab{{#ifEquals looseTab 'money'}} active{{/ifEquals}}" role="tab" data-loose-tab="money"
+                  aria-selected="{{#ifEquals looseTab 'money'}}true{{else}}false{{/ifEquals}}">
+            {{localize 'TNO.Money.Tab'}} <span class="loose-tab-meta"{{#if money.approximate}} title="{{localize 'TNO.Money.ApproximateHint'}}"{{/if}}>{{#if money.approximate}}≈ {{/if}}{{money.totalDisplay}}</span>
+          </button>
+          {{#if editable}}
+          <a class="section-add inventory-add" title="{{localize 'TNO.Inventory.AddHint'}}"><i class="fas fa-plus"></i></a>
+          {{/if}}
+        </div>
+        <div class="loose-panel" role="tabpanel" data-loose-panel="inventory"{{#unless (eq looseTab 'inventory')}} hidden{{/unless}}>
+          {{> "systems/tno/templates/actor/parts/actor-slot-grid.hbs"}}
+        </div>
+        <div class="loose-panel" role="tabpanel" data-loose-panel="trinkets"{{#unless (eq looseTab 'trinkets')}} hidden{{/unless}}>
+          {{> "systems/tno/templates/actor/parts/actor-trinkets.hbs"}}
+        </div>
+        <div class="loose-panel" role="tabpanel" data-loose-panel="money"{{#unless (eq looseTab 'money')}} hidden{{/unless}}>
+          {{> "systems/tno/templates/actor/parts/actor-money-wallet.hbs"}}
+        </div>
       </section>
 
       </div>

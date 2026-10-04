@@ -1,9 +1,11 @@
 # Header Banner - Product Requirements Document
 
-**Version:** 1.1
-**Last Updated:** 2026-09-02
-**Status:** Implemented, following wireframes 4b/5a for the band and 5b for the
-derived strip
+**Version:** 1.4
+**Last Updated:** 2026-10-04
+**Status:** Implemented, following wireframe 4b for the band; Initiative and
+6. Sinn returned to the state lane with "Kompakt · Matrix E" (see
+[Initiative and 6. Sinn](#initiative-and-6-sinn)); Bewegung back in the band
+beside the tracks (1.4)
 
 ---
 
@@ -237,6 +239,14 @@ German words do not fit, so each row keeps its two-letter tag. The row tooltip
 carries the pool name, raw value, free remainder, capacity and converted count,
 as today; the panel spells all of it out in words.
 
+**Bewegung stands beside the tracks.** The three tiers share the tracks' row,
+right of the boxes behind a hairline: a small uppercase label over
+`Kriechen · Gehen · Sprint`, read-only. The boxes leave that part of the lane
+empty anyway, so the tiers cost the band no height. A tier the load has taken
+away is struck through and dimmed at its number (**P3**); the load itself is the
+Zustände entry on the line below. The row wraps rather than clips should a long
+overflow run ever need the width.
+
 ---
 
 ## Lane 3: State
@@ -317,6 +327,19 @@ correction — an off-mechanic spend, announced in chat on a decrease and silent
 an increase — moves into the pill's own popover along with the thresholds. It is
 a GM/admin correction and does not need a permanently visible input.
 
+### Initiative and 6. Sinn
+
+Two roll pills sharing one row under Edge, in the same glass as the pills above
+them: short label and value on the left, the dice notation it rolls (`1d10+4`,
+`3d20`) on the right. They returned to the band with "Kompakt · Matrix E": both
+are rolled mid-fight, and the band is the one surface visible on every tab.
+**P1** would send them out as properties; the state lane still holds nothing but
+controls — every element in it opens or rolls something. Both keep their
+behaviour: `1d10 + @derived.initiative` through the generic `data-roll` path,
+and a plain 3d20 against `derived.sixthSense` with no modifiers, no advantage
+and no pre-edge (`edgeExempt: true`) because an instinctive reaction is not a
+deliberate check.
+
 ---
 
 ## The condition panel
@@ -364,7 +387,13 @@ closes it; Escape closes it.
 
 ## What leaves the header
 
-### Bewegung, 6. Sinn and Initiative → a derived-values strip in the Basics tab
+### Initiative, 6. Sinn and Bewegung — left, and came back
+
+*Until 1.3 this section moved all three out of the band. Initiative and 6. Sinn
+returned to the state lane in 1.3 (see
+[Initiative and 6. Sinn](#initiative-and-6-sinn)), Bewegung to the vitals row in
+1.4 (see [Lane 2: Vitals](#lane-2-vitals)). The original reasoning is kept as
+history.*
 
 All three fail **P1**, and they have a stronger thing in common than the band
 ever gave them: each is a pure function of base attributes.
@@ -461,12 +490,11 @@ written out in each panel row.
   (a `<button>` instead of a `<details>`, in the identity lane) and
   [actor-edge.hbs](../../templates/actor/parts/actor-edge.hbs). The two panels are
   [condition-panel.hbs](../../templates/actor/parts/condition-panel.hbs) and
-  [edge-popover.hbs](../../templates/actor/parts/edge-popover.hbs); what leaves
-  the band is [actor-derived.hbs](../../templates/actor/parts/actor-derived.hbs)
-  (Initiative and 6. Sinn, under the attribute matrix) and
-  [actor-movement.hbs](../../templates/actor/parts/actor-movement.hbs) (the
-  tiers, closing the worn-gear column under the SV total that strikes one
-  through).
+  [edge-popover.hbs](../../templates/actor/parts/edge-popover.hbs);
+  [actor-derived.hbs](../../templates/actor/parts/actor-derived.hbs) holds the
+  two roll pills in the state lane, and
+  [actor-movement.hbs](../../templates/actor/parts/actor-movement.hbs) the
+  tiers, beside the tracks in `.banner-vitals`.
 - Both panels are body-level `popover="auto"` elements built in `_onFirstRender`
   beside the four the sheet already owns, and their controls are bound on the
   popover rather than through the sheet's delegation: a popover is a child of the
@@ -501,21 +529,21 @@ action — `TNO.Damage.Sharp` / `Blunt` become *visible* labels in the panel whe
 there is width for them, rather than tooltip-only text. `TNO.Status.*` for the
 nine condition names, effects, states, the raster label and the cycle hint.
 `TNO.Combat.Stance*` for the picker. `TNO.Derived.*` / `DerivedShort.*` /
-`DerivedHint.*` for the strip that leaves the header, including
+`DerivedHint.*` for the two roll pills and the movement line, including
 `DerivedHint.NoSprint` and `CrawlOnly` on a struck-through tier.
 
 **New keys:**
 
 | Key | For |
 |---|---|
-| `TNO.DerivedTitle` | the Basics-tab strip's heading |
 | `TNO.Damage.PanelTitle` | the condition panel's Schaden section |
 | `TNO.Status.PanelDamageHint` | the panel's one line on what a raster light is |
 | `TNO.EdgeAdjustLabel` | the reserve correction in the Edge popover |
-| `TNO.DerivedShort.Movement` | the strip's Bewegung line label — the existing `Derived.Movement*` keys all name one tier |
+| `TNO.DerivedShort.Movement` | the band's Bewegung label — the existing `Derived.Movement*` keys all name one tier |
 
 **Dropped:** `TNO.EdgeValueHint` — the title on the band's number field, which no
-longer exists.
+longer exists — and, in 1.3, `TNO.DerivedTitle`, the heading of the derived strip
+that no longer exists.
 
 ---
 
@@ -526,24 +554,25 @@ unproven until a test names them.
 
 | # | Criterion | Proof |
 |---|---|---|
-| 1 | At 1270px the band's height equals the portrait's height plus its padding — no lane makes it taller | — |
-| 2 | The band contains at most seven elements: portrait, name, malus (only when non-zero), subtitle, tracks, three state pills | — |
+| 1 | At 1280px the band's height equals the portrait's height plus its padding — no lane makes it taller | — |
+| 2 | The band contains at most: portrait, name, malus (only when non-zero), subtitle, tracks, Zustände row, Haltung, Edge and the two roll pills | — |
 | 3 | No condition is drawn on two surfaces of the band at once | — |
 | 4 | No value in the band is drawn more than once | — |
-| 5 | Nothing in the band rolls dice | [sheet-derived.spec.mjs](../../tests/e2e/specs/sheet-derived.spec.mjs) asserts `.sheet-banner .rollable` has no matches |
+| 5 | Initiative and 6. Sinn are the only things in the band that roll dice | [sheet-derived.spec.mjs](../../tests/e2e/specs/sheet-derived.spec.mjs) asserts `.sheet-banner .rollable` has exactly two matches |
 | 6 | Every control in the band is a native `<button>` or form control before `_makeKeyboardAccessible()` runs | — |
 | 7 | A read-only viewer sees the same band with no steppers, no clear action and no editable raster | — |
 | 8 | Both panels close on outside click and on Escape, and return focus to their pill | — |
 | 9 | `.sheet-banner` carries no `z-index` override for an open panel | — |
-| 10 | The malus figure is legible at the sheet's 1270px default from normal table distance | — |
-| 11 | Initiative, 6. Sinn and the three Bewegung tiers render on the Basics tab's derived strip | [sheet-derived.spec.mjs](../../tests/e2e/specs/sheet-derived.spec.mjs) |
-| 12 | The strip's Initiative cell and the combat tracker roll one and the same formula | [combat-initiative.spec.mjs](../../tests/e2e/specs/combat-initiative.spec.mjs) |
+| 10 | The malus figure is legible at the sheet's 1280px default from normal table distance | — |
+| 11 | Initiative, 6. Sinn and the three Bewegung tiers render in the band | [sheet-derived.spec.mjs](../../tests/e2e/specs/sheet-derived.spec.mjs) |
+| 12 | The band's Initiative pill and the combat tracker roll one and the same formula | [combat-initiative.spec.mjs](../../tests/e2e/specs/combat-initiative.spec.mjs) |
 
 ---
 
 ## Open questions
 
-1. **Does Bewegung really survive leaving the band?** It is a property by **P1**
+1. ~~**Does Bewegung really survive leaving the band?**~~ Answered in 1.4: it did
+   not — the tiers are back beside the tracks. It is a property by **P1**
    and a combat question in practice. The strip under the attribute matrix is on
    the default tab, so it is one glance rather than one click — but if playtest
    says the three tiers are read mid-round, the honest fix is a fourth state pill
@@ -572,5 +601,7 @@ unproven until a test names them.
 | 1.0 | 2026-09-02 | Initial PRD: extracts the banner from character-sheet-prd.md and specifies the redesign | System |
 | 1.1 | 2026-09-02 | Implemented. Target layout follows wireframe 4b — vitals in the identity lane, state pills stacked in the meta lane — and the derived strip follows 5b rather than 5a | System |
 | 1.2 | 2026-09-02 | The malus is drawn only when non-zero and carries its sign; the condition panel's raster became six named pills | System |
+| 1.3 | 2026-10-04 | Initiative and 6. Sinn back in the band as two roll pills under Haltung and Edge ("Kompakt · Matrix E"); the derived strip is gone | System |
+| 1.4 | 2026-10-04 | Bewegung back in the band, beside the damage tracks; it no longer closes the worn-gear column | System |
 
 ---

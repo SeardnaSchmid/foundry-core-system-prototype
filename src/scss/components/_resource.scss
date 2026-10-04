@@ -32,18 +32,19 @@ button:focus-visible {
   white-space: nowrap;
 }
 
-// Shared pill used everywhere a small "N / MxP" or "MxP" summary is shown
-// next to a group/section header (skill groups, attribute heatmap corner),
-// so both header row and header column badges share one consistent look.
+// The quiet "N Pkt · M XP" figures beside a section or skill-group title: plain
+// muted text rather than a pill, so the title stays the thing that is read.
 .xp-badge {
-  @extend %stat-chip;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   flex: none;
-  border: 1px solid $c-tan;
+  font-size: var(--font-size-11, 11px);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0;
   text-transform: none;
-  letter-spacing: normal;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
   color: $c-tan;
 }
 
@@ -52,373 +53,130 @@ button:focus-visible {
   50% { box-shadow: 0 0 0 2px rgba(241, 244, 247, 0.6), 0 0 4px 1px rgba(241, 244, 247, 0.2); }
 }
 
-// Holds the heatmap table only — no card border/background of its own. The
-// SKILLS section has no single box enclosing its header + all categories,
-// just borders on each individual category card below; ATTRIBUTES now
-// matches that: the header sits unboxed above, same as .skills-header.
-.attributes-card {
-  // Natural-height block at the top of the Basics tab.
-  flex: 0 0 auto;
-  margin: 0;
-  // Mobile-first: .attribute-table's base rules are the narrowest layout
-  // (fluid columns, row-header column and column-header row both dropped).
-  // Ascending @container (min-width) tiers below add richness back in as
-  // the container grows — thead, then full-size cell chrome, then finally
-  // the row-header column once there's room for all of it (see the exact
-  // footprint math on .attribute-table below). The columns stay fluid at
-  // every tier, so the matrix always spans the whole width this card is
-  // given. overflow-x is a defensive fallback only: it only matters below
-  // the table's 500px min-width — the per-cell tooltip carries the row ·
-  // column axis as a further belt-and-braces fallback (see actor-sheet.mjs).
-  container-type: inline-size;
-  overflow-x: auto;
-}
-
+// The attribute matrix: three category columns under their headings, one
+// single-line cell per attribute — name left, value right, the XP bar along
+// its foot. Twelve cells in four short rows, so the matrix leaves the column's
+// height to the skill list below it.
 .attribute-table {
-  // Mobile-first base: the narrowest end state. Fluid columns (table-layout
-  // is still fixed, but width: 100% + auto column widths lets the 3 data
-  // columns split whatever the container gives, so there's no fixed
-  // footprint to overflow at any width down to very narrow containers).
-  // Row-header column and thead are both dropped here — see the ascending
-  // tiers below for where each returns as space allows.
-  table-layout: fixed;
-  width: 100%;
-  min-width: 0;
-  border-collapse: separate;
-  border-spacing: 3px;
-  margin: 2px 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 6px;
+  row-gap: 3px;
+  margin-bottom: 6px;
 
-  .attribute-corner,
-  .heatmap-row-header {
-    display: none;
+  // Headings and names shorten with an ellipsis when the splitter narrows
+  // the column; the matrix keeps its shape and its height.
+  .heatmap-col-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0 2px 2px;
+    border-bottom: 1px solid #ddd8cd;
+    color: $c-tan;
+    font-size: var(--font-size-10, 10px);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
 
-  thead {
-    display: none;
-  }
+  // Background and ink come from the cell data (`colorForValue`), graded per
+  // value against a fixed 1–10 scale.
+  .heatmap-cell {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    min-width: 0;
+    height: 24px;
+    box-sizing: border-box;
+    padding: 0 7px;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    overflow: hidden;
+    // The whole cell opens the advancement dialog (see actor-sheet.mjs).
+    cursor: pointer;
 
-  thead th,
-  td.heatmap-cell {
-    width: auto;
-  }
-
-  // Coloured attribute cells float as rounded tiles in a small gutter grid:
-  // no gridlines, no filled header boxes. The cell colours carry all the
-  // visual weight so the eye lands on the attributes, not the chrome.
-  th,
-  td {
-    border: none;
-    padding: 0;
-    background: none;
-    vertical-align: middle;
-    text-align: left;
-  }
-
-  &.heatmap {
-    // Header labels (column categories + row themes) are quiet muted
-    // captions — no fill, no border, no bold — so they frame the coloured
-    // tiles without competing with them.
-    thead th,
-    .heatmap-row-header {
-      font-weight: 500;
-      font-size: var(--font-size-11, 11px);
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: $c-tan;
+    // A wash of the cell's own ink rather than a colour of its own: the twelve
+    // cells are already twelve fills, and a hover tint would read as a
+    // thirteenth value on the gradient.
+    &:hover {
+      border-color: currentColor;
     }
 
-    // Foundry core paints a dark gradient band on <thead>; clear it so the
-    // top header row has no background and stays exactly as quiet as the row
-    // headers on the left.
-    thead {
-      background: none;
+    &:focus-visible {
+      border-color: currentColor;
+      outline: 2px solid currentColor;
+      outline-offset: 1px;
     }
 
-    // Core also stripes <tbody> rows with an alternating tint, which shows
-    // through behind the row-label column as banding that reads like a
-    // rendering glitch. The coloured cells carry all the grouping cues, so
-    // clear the stripes and let the tiles stand on the card background.
-    tbody tr {
-      background: none;
-    }
-
-    // Both header row and header column are centred quiet captions.
-    thead th,
-    .heatmap-row-header {
-      text-align: center;
-      padding: 0 2px 2px;
-    }
-
-    .heatmap-row-header {
-      white-space: nowrap;
-    }
-
-    .heatmap-col-label,
-    .heatmap-row-label {
-      display: block;
-    }
-
-    // Tile layout: the attribute name owns the tile as its primary label and
-    // the value sits opposite it as a small badge, with the XP track running
-    // the full inner width along the bottom edge. The four measurements the
-    // container tiers re-scale are custom properties, so the tile's padding
-    // and the absolutely-positioned bar inside it can never drift apart.
-    .heatmap-cell {
-      --heat-pad: 6px;
-      --heat-gap: 5px;
-      --heat-bar: 3px;
-      --heat-name-size: var(--font-size-11, 11px);
-      --heat-badge-size: var(--font-size-12, 12px);
-
-      position: relative;
-      text-align: left;
-      // The whole tile opens the advancement dialog (see actor-sheet.mjs), so
-      // the affordance sits on the tile rather than on the bar at its foot.
-      cursor: pointer;
-      // Keep the vertical rhythm stable at every width. Wider containers add
-      // horizontal breathing room and, eventually, axis labels; they do not
-      // make the twelve data tiles taller.
-      min-height: 42px;
-      // The bar is absolute so it stays flush with the tile's bottom whether
-      // the name took one line or two; padding-bottom is what reserves its
-      // strip, hence the calc rather than a literal.
-      padding: var(--heat-pad) var(--heat-pad)
-        calc(var(--heat-pad) + var(--heat-bar) + var(--heat-gap));
-      border-radius: 8px;
-      // Colour comes from the cell data (a wash of the tile's own ink), so
-      // the hairline reads on a pale tile and on a near-black one alike.
-      border: 1px solid transparent;
-      overflow: hidden;
-
-      // A wash of the tile's own ink rather than a colour of its own: the
-      // twelve tiles are already twelve fills, and a hover tint would read as a
-      // thirteenth value on the gradient.
-      &:hover {
-        border-color: currentColor;
-      }
-
-      &:focus-visible {
-        border-color: currentColor;
-        outline: 2px solid currentColor;
-        outline-offset: 1px;
-      }
-
-      &.heatmap-peak {
-        animation: heatmap-peak-pulse 2.2s ease-in-out infinite;
-      }
-
-      .heatmap-cell-top {
-        position: relative;
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 5px;
-      }
-
-      .heatmap-cell-name {
-        // The name is the label the twelve tiles are scanned by, so it gets
-        // the tile's width and wraps onto a second line instead of being
-        // ellipsised — German compounds ("Fingerfertigkeit") need both lines.
-        flex: 1 1 auto;
-        min-width: 0;
-        font-weight: 600;
-        font-size: var(--heat-name-size);
-        line-height: 1.25;
-        // Reserve both lines whether or not this particular name uses them,
-        // so all twelve tiles keep one height.
-        min-height: 2.5em;
-        overflow-wrap: anywhere;
-        hyphens: auto;
-      }
-
-      .heatmap-value {
-        // Corner badge rather than the tile's headline numeral: a wash of the
-        // cell's own ink (from the cell data) keeps it readable at every point
-        // on the gradient without a second numeral-sized block of colour.
-        flex: 0 0 auto;
-        font-weight: 700;
-        font-size: var(--heat-badge-size);
-        line-height: 1;
-        padding: 0.34em 0.5em;
-        border-radius: 5px;
-        font-variant-numeric: tabular-nums;
-      }
-
-      // XP-toward-next-rank bar: a rounded track inset to the tile's padding
-      // box along its bottom edge, absolute so it costs no layout height and
-      // stays put however many lines the name took. A pure indicator — the
-      // whole tile is the click target, so the bar no longer needs a hit area
-      // of its own and a 3px strip is no longer the thing to aim at. The
-      // numeric xp/cost badge that used to sit in the cell's corner was removed
-      // as visual clutter; the fill communicates progress and the exact figures
-      // are in the tile's tooltip. The fill turns to the advance accent once
-      // the next rank is affordable; track/fill colors come from the cell data
-      // so the bar stays legible on every heatmap tone.
-      .heatmap-xp-bar {
-        display: block;
-        position: absolute;
-        left: var(--heat-pad);
-        right: var(--heat-pad);
-        bottom: var(--heat-pad);
-        height: var(--heat-bar);
-        border-radius: 2px;
-
-        &.ready {
-          height: 4px;
-        }
-
-        &.ready .heatmap-xp-bar-fill {
-          background: $c-advance !important;
-        }
-      }
-
-      .heatmap-xp-bar-fill {
-        display: block;
-        height: 100%;
-        border-radius: inherit;
-        transition: width 0.15s ease;
-      }
+    &.heatmap-peak {
+      animation: heatmap-peak-pulse 2.2s ease-in-out infinite;
     }
   }
 
-  // Mobile-first: base above is the narrowest end state (fluid columns, no
-  // thead, no row header, compact chrome). Each tier below adds richness
-  // back as the container grows, in the reverse order the old desktop-first
-  // tiers stripped it away. A max-width: Npx tier covers [0, N], so its
-  // ascending complement here is min-width: (N+1)px — using min-width: Npx
-  // would double-fire both rules at the exact boundary pixel.
-  //
-  // Once each data column has a little more room, enlarge only the tile's
-  // type. The header row remains hidden so crossing this breakpoint does not
-  // suddenly make the component taller.
-  @container (min-width: 401px) {
-    &.heatmap {
-      .heatmap-cell {
-        --heat-name-size: var(--font-size-12, 12px);
-        --heat-badge-size: var(--font-size-13, 13px);
-      }
+  .heatmap-cell-name {
+    min-width: 0;
+    overflow: hidden;
+    font-size: var(--font-size-11, 11px);
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .heatmap-value {
+    flex: none;
+    font-size: var(--font-size-13, 13px);
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  // XP toward the next rank, flush along the cell's foot: a pure indicator —
+  // the whole cell is the click target. Track and fill colours come from the
+  // cell data; the fill turns to the advance accent once the next rank is
+  // affordable. Exact figures are in the cell's tooltip.
+  .heatmap-xp-bar {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+
+    &.ready {
+      height: 3px;
+    }
+
+    &.ready .heatmap-xp-bar-fill {
+      background: $c-advance !important;
     }
   }
 
-  // Wider matrices gain horizontal breathing room only. There is deliberately
-  // no min-width or larger vertical chrome here, so splitter resizing remains
-  // fluid and never creates a horizontal scrollbar or a height jump.
-  @container (min-width: 481px) {
-    &.heatmap {
-      table-layout: fixed;
-      width: 100%;
-      border-spacing: 4px;
-
-      thead th,
-      td.heatmap-cell {
-        width: auto;
-      }
-
-      .heatmap-cell {
-        --heat-pad: 9px;
-        --heat-gap: 7px;
-        --heat-name-size: var(--font-size-13, 13px);
-        --heat-badge-size: var(--font-size-14, 14px);
-      }
-    }
-  }
-
-  // Once there's room for the matrix's full footprint including the
-  // row-header column — 84px + 3×150px data columns + 5×4px border-spacing
-  // gaps = 554px, plus a small cushion for sub-pixel container-size jitter
-  // — restore the row-header (category) column. The row labels aren't shown
-  // below this width, but each cell's tooltip carries its row · column axis
-  // as a fallback (see actor-sheet.mjs), so the matrix stays readable.
-  @container (min-width: 559px) {
-    &.heatmap {
-      thead {
-        display: table-header-group;
-      }
-
-      .attribute-corner,
-      .heatmap-row-header {
-        display: table-cell;
-        width: 84px;
-      }
-    }
-  }
-
-  // Splitters can make the attribute column extremely narrow. Tighten the
-  // padding and step the type down one notch so the name still gets its two
-  // lines and the badge still holds the value, at the same cell height.
-  @container (max-width: 300px) {
-    &.heatmap {
-      .heatmap-cell {
-        --heat-pad: 4px;
-        --heat-gap: 4px;
-        --heat-name-size: var(--font-size-10, 10px);
-        --heat-badge-size: var(--font-size-11, 11px);
-      }
-    }
+  .heatmap-xp-bar-fill {
+    display: block;
+    height: 100%;
+    transition: width 0.15s ease;
   }
 }
 
 // Section headers for the attribute grid and the skill list share one look:
-// an uppercase title on the left, meta/controls pushed to the right. The
-// card border and the uppercase title already separate each section, so the
-// header stays a plain caption row with no divider rule of its own.
+// an uppercase title on the left, meta and controls after it.
 .attributes-header,
 .skills-header {
   position: relative;
-  // Not space-between: the skills-header has three right-hand controls
-  // (search input + filter group) that must stay adjacent to each other,
-  // not spread apart. margin-left: auto on the first control (below) pushes
-  // the whole control cluster to the right instead.
-  justify-content: flex-start;
-}
-
-.attributes-title,
-.skills-title {
-  position: relative;
-  z-index: 1;
-  flex: 0 1 auto;
-  // Strip Foundry core's default <h3> box (border-bottom + padding) so the
-  // title is a plain uppercase caption line.
-  margin: 0;
-  padding: 0 8px 0 0;
-  border: none;
-
-  // Same quiet-at-rest, full-strength-on-hover treatment as the per-group
-  // badges below (.skill-group-title): the section title already reads as
-  // "Attributes"/"Skills" without shouting its pt|xp totals at full
-  // strength all the time.
-  .xp-badge {
-    margin-left: 6px;
-    text-transform: none;
-    vertical-align: middle;
-    border-color: transparent;
-    opacity: 0.55;
-    transition: opacity 0.1s ease;
-  }
-
-  &:hover .xp-badge {
-    opacity: 1;
-    border-color: $c-tan;
-  }
-}
-
-.heatmap-lab-btn,
-.skills-header .skill-search-input,
-.skills-header .skill-filter-group {
-  position: relative;
-  z-index: 1;
+  flex-wrap: wrap;
 }
 
 // First control after the title in each header — pushes itself (and any
 // following controls, which stay adjacent to it) to the row's right edge.
 .heatmap-lab-btn,
-.skills-header .skill-search-input {
+.skills-header .skill-search {
   margin-left: auto;
 }
 
 // Small icon button that opens the heatmap gradient editor (see
-// apps/heatmap-lab.mjs) — sits opposite the attributes title, sized to match
-// the other header-row controls.
+// apps/heatmap-lab.mjs) — sits opposite the attributes title.
 .heatmap-lab-btn {
   flex: 0 0 auto;
   color: $c-tan;
@@ -431,71 +189,105 @@ button:focus-visible {
   }
 }
 
-// Rests narrow so it doesn't crowd the filter buttons on the header row, and
-// grows to its full width only while focused (i.e. while actually being typed
-// into), animating between the two.
-.skill-search-input {
+// The search box, with a clear button inside its right edge while it holds
+// text.
+.skill-search {
+  position: relative;
+  display: flex;
   flex: 0 0 auto;
-  width: 70px;
-  // Foundry core gives text inputs a 32px line-height, which would leave this
-  // field half again as tall as the filter group next to it. Box it by hand
-  // from the same numbers as .skill-filter-btn — a 1.25em line inside 4px of
-  // vertical padding — so the two controls end up exactly the same height.
-  height: auto;
+}
+
+input.skill-search-input {
+  width: 120px;
+  height: 24px;
+  box-sizing: border-box;
   margin: 0;
-  padding: 4px 7px;
+  padding: 0 24px 0 8px;
   border: 1px solid $c-beige;
-  border-radius: 3px;
-  background: transparent;
-  font-size: var(--font-size-10, 10px);
-  line-height: 1.25;
-  color: $c-tan;
-  transition: width 0.15s ease, border-color 0.1s ease;
+  border-radius: 4px;
+  background: $c-white;
+  box-shadow: none;
+  font-family: inherit;
+  font-size: var(--font-size-13, 13px);
+  line-height: 1;
+  color: $c-dark;
 
   &::placeholder {
     color: $c-tan;
-    opacity: 0.5;
-    font-style: italic;
-  }
-
-  &:hover {
-    border-color: $c-tan;
   }
 
   &:focus {
-    width: 150px;
     border-color: $c-tan;
     box-shadow: none;
+    outline: none;
   }
 }
 
-.skill-filter-group {
-  display: flex;
-  flex: none;
-  gap: 2px;
-  padding: 2px;
-  border: 1px solid $c-beige;
-  border-radius: 3px;
-}
-
-.skill-filter-btn {
-  padding: 2px 7px;
-  border-radius: 2px;
-  font-size: var(--font-size-10, 10px);
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
+button.skill-search-clear {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  box-shadow: none;
   color: $c-tan;
+  font-size: var(--font-size-12, 12px);
+  line-height: 1;
   cursor: pointer;
-  transition: background-color 0.1s ease, color 0.1s ease;
 
   &:hover {
     color: $c-dark;
   }
 
+  &[hidden] {
+    display: none;
+  }
+}
+
+// One segmented control: four mutually exclusive filters, the active one
+// inverted.
+.skill-filter-group {
+  display: flex;
+  flex: none;
+  border: 1px solid $c-beige;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.skill-filter-btn {
+  display: flex;
+  align-items: center;
+  height: 24px;
+  box-sizing: border-box;
+  padding: 0 8px;
+  background: $c-white;
+  font-size: var(--font-size-11, 11px);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: $c-dark;
+  cursor: pointer;
+  transition: background-color 0.1s ease, color 0.1s ease;
+
+  & + & {
+    border-left: 1px solid $c-beige;
+  }
+
+  &:hover {
+    background: $c-faint;
+  }
+
   &.active {
-    background: $c-tan;
-    color: #fff;
+    background: $c-dark;
+    color: $c-white;
   }
 }
 
@@ -504,20 +296,14 @@ button:focus-visible {
 .skill-groups-scroll {
   flex: 1 1 auto;
   min-height: 0;
-  margin: 0 0 4px;
 }
 
 // Balanced multi-column flow (not flex-wrap): the browser divides the cards
 // into equal-height columns, so the long Knowledge list fills alongside the
-// short ones instead of leaving a large empty gap next to it (finding #5).
-// Height is content-driven; the wrapper above provides the scroll.
+// short ones instead of leaving a large empty gap next to it.
 //
-// The column *count* is stated nowhere: `columns` here carries a width alone,
-// which asks for as many columns of at least that width as the cell can hold.
-// It used to read `3 200px` — a width and a cap — and the cap was the binding
-// constraint on any wide sheet, so widening the window past about 1580px went
-// on stretching three columns instead of adding a fourth. Every column the
-// cell can fit is now a column.
+// The column *count* is stated nowhere: `columns` carries a width alone, which
+// asks for as many columns of at least that width as the cell can hold.
 .skill-groups {
   columns: $skill-column-min;
   column-gap: $skill-column-gap;
@@ -528,36 +314,29 @@ button:focus-visible {
   break-inside: avoid;
   // Multi-column siblings stack via bottom margin rather than a flex gap.
   width: auto;
-  margin: 0 0 6px;
-  padding: 4px 6px;
+  margin: 0 0 $skill-column-gap;
+  padding: 4px 10px 6px;
 }
 
+// The category name in the condensed cut, its totals beside it and the add
+// control at the far end.
 .skill-group-title {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 0 0 3px;
-  padding-bottom: 2px;
-  border-bottom: 1px solid rgba($c-dark, 0.15);
-  font-size: var(--font-size-13, 13px);
-  font-weight: bold;
+  min-height: 20px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  font-family: $font-condensed;
+  font-size: var(--font-size-12, 12px);
+  font-weight: 700;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
   color: $c-dark;
 
-  // The section headers (Attributes/Skills) already show the running
-  // pt|xp totals; repeating a full-strength badge on every group title
-  // makes the group names compete with their own metadata. Quiet the
-  // per-group badge at rest and bring it back on hover.
   .xp-badge {
-    border-color: transparent;
-    opacity: 0.55;
-    transition: opacity 0.1s ease;
-  }
-
-  &:hover .xp-badge {
-    opacity: 1;
-    border-color: $c-tan;
+    font-family: $font-primary;
   }
 }
 
@@ -569,7 +348,8 @@ button:focus-visible {
 
 .skill-group-empty {
   margin: 0;
-  font-size: var(--font-size-10, 10px);
+  padding: 4px 0;
+  font-size: var(--font-size-12, 12px);
   font-style: italic;
   color: $c-tan;
 }
@@ -583,34 +363,28 @@ button:focus-visible {
 .skill-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 2px 0;
-  border-radius: 3px;
-
-  & + & {
-    border-top: 1px solid rgba($c-beige, 0.4);
-  }
+  gap: 2px;
+  min-height: 22px;
 }
 
+// Name, rank, XP bar: three columns, the last two fixed so ranks and bars line
+// up down the card.
 .skill-info {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: minmax(0, 1fr) 24px 40px;
   align-items: center;
   gap: 6px;
   flex: 1;
   min-width: 0;
+  min-height: 22px;
+  padding: 0 4px;
+  margin-left: -4px;
+  border-radius: 4px;
   cursor: pointer;
-  border-radius: 3px;
-  padding: 1px 2px;
   transition: background-color 0.1s ease;
 
   &:hover {
-    background: rgba($c-beige, 0.3);
-
-    .skill-level {
-      color: $c-dark;
-      background: rgba($c-black, 0.08);
-    }
+    background: rgba($c-dark, 0.06);
   }
 }
 
@@ -622,7 +396,7 @@ button:focus-visible {
 }
 
 .skill-name-text {
-  font-size: var(--font-size-11, 11px);
+  font-size: var(--font-size-13, 13px);
   line-height: 1.3;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -639,14 +413,14 @@ button:focus-visible {
   align-items: center;
   justify-content: center;
   min-width: 14px;
-  height: 14px;
-  padding: 0 3px;
+  height: 16px;
+  padding: 0 4px;
   border-radius: 3px;
-  font-size: var(--font-size-9, 9px);
-  font-weight: bold;
+  font-size: var(--font-size-10, 10px);
+  font-weight: 600;
   letter-spacing: 0.02em;
   color: $c-tan;
-  background: rgba($c-black, 0.15);
+  background: rgba($c-dark, 0.08);
 }
 
 // Marks a skill as actor-defined rather than one of the system's own, right
@@ -657,49 +431,46 @@ button:focus-visible {
   align-items: center;
   justify-content: center;
   min-width: 14px;
-  height: 14px;
-  padding: 0 3px;
+  height: 16px;
+  padding: 0 4px;
   border-radius: 3px;
-  font-size: var(--font-size-9, 9px);
-  font-weight: bold;
+  font-size: var(--font-size-10, 10px);
+  font-weight: 600;
   color: $c-dark;
-  background: rgba($c-tan, 0.35);
+  background: rgba($c-tan, 0.25);
 }
 
+// The rank, right-aligned so the figures read down one edge. Ranked skills are
+// colour-graded like the attribute tiles (inline style from the sheet).
 .skill-level {
   @extend %stat-chip;
-  flex: none;
+  justify-self: end;
   min-width: 2ch;
+  padding: 1px 4px;
+  font-size: var(--font-size-13, 13px);
+  font-weight: 700;
   text-align: center;
   color: $c-dark;
-  background: rgba($c-beige, 0.35);
 }
 
-// XP-toward-next-rank bar, the skill-list counterpart to the attribute
-// heatmap's .heatmap-xp-bar: fill communicates progress at a glance instead
-// of a bare "12/18" fraction, and the bar itself is a click target for the
-// advance dialog (see .skill-advance-button, still kept alongside it as a
-// second, more precise target).
+// XP-toward-next-rank bar, the skill-list counterpart to the attribute tile's
+// bar: fill communicates progress at a glance, and the bar itself is a click
+// target for the advance dialog.
 .skill-xp-bar {
-  flex: none;
   position: relative;
-  width: 32px;
-  height: 5px;
-  border-radius: 3px;
+  display: block;
+  height: 3px;
+  border-radius: 2px;
   overflow: hidden;
   cursor: pointer;
-  background: rgba($c-black, 0.12);
+  background: $c-rule-soft;
 
-  // Widen the clickable strip past its visible height, same trick as
-  // .heatmap-xp-bar, so the advance action stays easy to hit on a thin bar.
+  // Widen the clickable strip past its visible height so the advance action
+  // stays easy to hit on a thin bar.
   &::before {
     content: '';
     position: absolute;
-    inset: -4px 0;
-  }
-
-  &.ready {
-    height: 6px;
+    inset: -6px 0;
   }
 
   &.ready .skill-xp-bar-fill {
@@ -710,7 +481,7 @@ button:focus-visible {
 .skill-xp-bar-fill {
   display: block;
   height: 100%;
-  background: rgba($c-tan, 0.6);
+  background: $c-tan;
   transition: width 0.15s ease;
 }
 
@@ -719,24 +490,23 @@ button:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
   font-size: var(--font-size-10, 10px);
   color: $c-tan;
   cursor: pointer;
   // Quiet at rest so a full skill list isn't a column of grey arrows; the
-  // row's hover brings its own arrow up to full strength (see below). A
-  // "ready" arrow overrides this to stay lit, since it's a call to action.
-  opacity: 0.25;
+  // row's hover brings its own arrow up (see below). A "ready" arrow stays lit,
+  // since it's a call to action.
+  opacity: 0;
   transition: opacity 0.1s ease;
 
   &:hover {
-    background: rgba($c-beige, 0.3);
+    background: rgba($c-dark, 0.06);
     color: $c-dark;
   }
 
-  // Lit up once the skill has banked enough XP to buy its next rank.
   &.ready {
     color: $c-advance;
     opacity: 1;
@@ -748,31 +518,28 @@ button:focus-visible {
   }
 }
 
-.skill-row:hover .skill-advance-button {
+.skill-row:hover .skill-advance-button,
+.skill-advance-button:focus-visible {
   opacity: 1;
 }
 
 // Adding a custom skill lives in the group title, pinned to the far right
-// past the name and its XP badge; editing or deleting one lives on its row
-// and only shows up once the row is hovered, so the built-in skills sitting
-// next to it aren't cluttered with icons that would never do anything for
-// them.
+// past the name and its totals.
 .skill-create-button {
   flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 3px;
-  font-size: var(--font-size-9, 9px);
-  color: $c-tan;
-  cursor: pointer;
+  width: 20px;
+  height: 20px;
   margin-left: auto;
+  border-radius: 4px;
+  font-size: var(--font-size-11, 11px);
+  color: $c-dark;
+  cursor: pointer;
 
   &:hover {
-    background: rgba($c-beige, 0.3);
-    color: $c-dark;
+    background: rgba($c-dark, 0.06);
   }
 }
 

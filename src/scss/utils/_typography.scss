@@ -1,2 +1,30 @@
-$font-primary: 'Roboto', sans-serif;
-$font-secondary: 'Roboto', sans-serif;
+// IBM Plex Sans for everything, its Condensed cut for the skill category
+// titles. Bundled under assets/fonts (OFL, see OFL.txt there) rather than
+// loaded from Google Fonts, so a table without internet still gets the type.
+// Latin only: it covers German; the system ships no other script.
+// Paths are relative to the compiled css/tno.css.
+$font-dir: '../assets/fonts/ibm-plex';
+
+@each $weight in 400, 500, 600, 700 {
+  @font-face {
+    font-family: 'IBM Plex Sans';
+    font-style: normal;
+    font-weight: $weight;
+    font-display: swap;
+    src: url('#{$font-dir}/ibm-plex-sans-latin-#{$weight}-normal.woff2') format('woff2');
+  }
+}
+
+@each $weight in 500, 600, 700 {
+  @font-face {
+    font-family: 'IBM Plex Sans Condensed';
+    font-style: normal;
+    font-weight: $weight;
+    font-display: swap;
+    src: url('#{$font-dir}/ibm-plex-sans-condensed-latin-#{$weight}-normal.woff2') format('woff2');
+  }
+}
+
+$font-primary: 'IBM Plex Sans', sans-serif;
+$font-secondary: 'IBM Plex Sans', sans-serif;
+$font-condensed: 'IBM Plex Sans Condensed', 'IBM Plex Sans', sans-serif;

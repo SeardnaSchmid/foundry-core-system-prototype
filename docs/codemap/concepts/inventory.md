@@ -62,14 +62,14 @@ non-zero `presentRows` the sheet lists and computes the total.
 
 ## Money
 
-The Basics sheet places a compact Geldbörse at the bottom of the Kleinkram
-column. The column stretches to the top row's height and an automatic flex gap
-holds the wallet against its bottom edge; a growing Kleinkram list instead
-extends the complete row and pushes the wallet down naturally. Its thin rows
-are the balances actually held — `presentRows`, one row per non-zero currency
-in its own units, so a purse holding only Qian lists only Qian. The combined
-euro value stays secondary in the header and is independent of the currency
-mix; an empty purse renders `TNO.Money.Empty` instead of rows. Owners can open
+The Basics sheet shows the Geldbörse as the third tab of the carried-things
+panel — Inventar · Kleinkram · Geld (`.loose-tab`, switched client-side by the sheet and kept on
+the instance as `_looseTab`, so it survives re-renders and works read-only).
+Its thin rows are the balances actually held — `presentRows`, one row per
+non-zero currency in its own units, so a purse holding only Qian lists only
+Qian. The combined euro value stands in the Geld tab's label and is
+independent of the currency mix; an empty purse renders `TNO.Money.Empty`
+instead of rows. Owners can open
 a body-level native popover with all five balances. Every row states its money form
 and exchange rate; typing updates every euro conversion and the secondary
 total immediately, while saving writes all balances in one actor update. That
@@ -129,14 +129,9 @@ is false exactly when the load reaches the `noSprint` or `crawlOnly` state.
 [`actor-movement.hbs`](../../../templates/actor/parts/actor-movement.hbs)
 strikes through that tier (sprint for `noSprint`, walk as well for
 `crawlOnly`), because the question a player is asking is "how far can I move"
-and the answer belongs on the figure that changes. That line closes the worn-gear
-column, under the summed Stärkevoraussetzung and the `armor-warning` that the
-same load produces — cause and consequence in one column. `.cell-gear` takes
-`align-self: stretch` so the column fills the row's height, and the line's own
-`margin-top: auto` then collects the slack and settles it on the bottom edge —
-the same pairing the wallet uses under Kleinkram in `.cell-loose`. The tiers
-left the banner with the other derived values, and the strike-through went with
-them. The slot grid's header keeps only
+and the answer belongs on the figure that changes. The tiers sit in the banner
+beside the damage tracks, so they are readable on every tab; the load itself is
+the Zustände entry right under them. The slot grid's header keeps only
 `noContainer`, which is not a movement state but explains why the carried band
 is outside the calculation.
 
@@ -144,9 +139,7 @@ The same state is **also** a condition. `resolveCarryCondition()` in
 [`conditions.mjs`](../../../module/helpers/conditions.mjs) turns `carryState`
 into the single `overloaded` entry of the Zustände collection — mild and named
 *Schwer beladen* at `noSprint`, severe and named *Überlastet* at `crawlOnly` —
-so the collection can be the one place every active condition is listed, and so
-the *loss* stays visible in the banner even though the tiers themselves no
-longer are. That is a read-out of the same number, not a second rule: the
+so the collection can be the one place every active condition is listed. That is a read-out of the same number, not a second rule: the
 movement line stays the surface that answers how far the character moves, and
 the condition entry only names the tier it costs. See
 [damage.md](damage.md#the-condition-collection), which holds the same
@@ -233,16 +226,23 @@ existing `sort`, then the carried band in its own `sort` order. Reordering is
 purely a view concern and a player's arrangement never needs extra persisted
 state.
 
-**Three columns, not two, and they sit in different rows.** The paper doll is in
-the Basics tab's top row and the slot raster in its bottom one, because the
-raster is a long list and belongs beside the other long list on the sheet. The
-wallet and zero-slot items share the third: `buildSlotGrid` splits those items
-off as `trinkets`, and they render as Kleinkram above the wallet
-(`parts/actor-money-wallet.hbs` and `parts/actor-trinkets.hbs`) rather than as
-a pocket inside the armour card, where reading them off the doll implied they
-were worn.
+**One column, four views.** The paper doll heads the Basics tab's right-hand
+column; under it the slot raster, the zero-slot items and the wallet are the
+three tabs of one panel. `buildSlotGrid` splits the zero-slot items off as
+`trinkets`, and they render as the Kleinkram tab
+(`parts/actor-trinkets.hbs`, a name-and-count list behind a client-side filter,
+`_applyTrinketFilter`) beside the Geld tab (`parts/actor-money-wallet.hbs`)
+rather than as a pocket inside the armour card, where reading them off the doll
+implied they were worn.
 
-**The Kleinkram column has no create control and no drop target.** Nothing there
+The raster draws the budget twice: a meter above it, one segment per slot
+(`slotGrid.meter` — worn, used, free, and past the budget over), and the cells
+themselves, one per slot the load costs. The free room is a single summary
+cell (`slotGrid.free`) rather than one cell per free slot: the meter is where
+the room is counted, and the summary cell stays the drop target that moves a
+piece to the end.
+
+**The Kleinkram list has no create control and no drop target.** Nothing there
 is a state a piece can be put *into*: an item is Kleinkram exactly when its
 `slots` is 0, which is authored on the item's own sheet. A drop that moved a
 piece into the column would have to rewrite that number, which is a change to
@@ -259,7 +259,7 @@ changes state**:
   without a sort handler of this system's own. What the cells need from us is
   the `draggable` **class**: that is the selector core's
   `DragDrop` binds, and without it a cell drags as an empty ghost.
-- **Cell onto a free cell** sorts the item past everything else
+- **Cell onto the free cell** sorts the item past everything else
   (`_sortItemToEnd`) — dropping into the tail of the grid has no neighbour to
   sort against, and "after the last one" is the only reading that leaves the
   rest of the arrangement alone.

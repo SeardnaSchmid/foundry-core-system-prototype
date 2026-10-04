@@ -5,6 +5,36 @@
   font-family: $font-primary;
 }
 
+// Every TNO window stands on one flat ground instead of Foundry's parchment
+// texture: the 2026-10 redesign draws its panels as lighter surfaces on it, and
+// a texture under them read as noise. Dialogs and item sheets share it so the
+// roll dialog opened from the sheet looks like part of it.
+.application.tno,
+.window-app.tno .window-content {
+  background: $c-ground;
+  color: $c-dark;
+}
+
+// One step smaller type in every TNO window. Every component sizes its text
+// from Foundry's `--font-size-*` scale, so the scale is redefined here once
+// rather than each size being edited where it is used: roughly 90% of core's
+// steps, rounded to whole pixels.
+.application.tno,
+.window-app.tno {
+  --font-size-9: 8px;
+  --font-size-10: 9px;
+  --font-size-11: 10px;
+  --font-size-12: 11px;
+  --font-size-13: 12px;
+  --font-size-14: 13px;
+  --font-size-15: 13px;
+  --font-size-16: 14px;
+  --font-size-17: 15px;
+  --font-size-18: 16px;
+  --font-size-20: 18px;
+  --font-size-24: 21px;
+}
+
 // ApplicationV2 makes `.window-content` the sheet's <form> element, so the root
 // flex layout that used to sit on the template's own <form> lives here now.
 .tno.sheet.actor {

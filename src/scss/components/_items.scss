@@ -111,7 +111,7 @@
   .item {
     align-items: center;
     padding: 0 2px; // to align with the header border
-    border-bottom: 1px solid $c-faint;
+    border-bottom: 1px solid $c-rule-soft;
     &:last-child { border-bottom: none; }
     .item-name {
       color: $c-dark;

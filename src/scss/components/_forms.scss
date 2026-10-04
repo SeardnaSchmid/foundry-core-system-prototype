@@ -86,10 +86,9 @@
 // the rest of the sheet keeps that gutter. Its own padding is what holds the
 // chips off the frame, and the top corners are square because the window header
 // now sits directly on them.
-// The sheet stands on Foundry's `/ui/parchment.jpg`; this is that texture's
-// average tone. The band needs it as an opaque base now that it is sticky —
-// see the `background` note below.
-$c-sheet-ground: #dbd8cd;
+// The window's flat ground (utils/_colors.scss). The band needs it as an
+// opaque base now that it is sticky — see the `background` note below.
+$c-sheet-ground: $c-ground;
 
 .sheet-banner {
   --portrait-size: clamp(150px, 16cqi, 170px);
@@ -212,7 +211,8 @@ $c-sheet-ground: #dbd8cd;
   justify-self: end;
   align-self: start;
   min-width: 0;
-  width: clamp(210px, 22cqi, 260px);
+  // Wide enough for the two roll pills to share a row with their formulas.
+  width: clamp(260px, 26cqi, 320px);
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -329,6 +329,44 @@ button.banner-chip.chip-stance {
   &[aria-expanded='true'] .chip-stance-caret {
     transform: rotate(180deg);
   }
+}
+
+// Initiative and 6. Sinn, the band's two rolls, sharing one row under Haltung
+// and Edge. Same glass pill as the controls above, a little lower: they are
+// rolled, not chosen. Both keep their behaviour — Initiative through the
+// generic `data-roll` path, the 6. Sinn as a plain 3d20 against the derived
+// value with no dialog.
+.banner-rolls {
+  display: flex;
+  gap: 6px;
+}
+
+button.banner-chip.banner-roll {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 26px;
+  padding: 3px 10px;
+  gap: 6px;
+
+  .derived-cell-value {
+    margin-left: 3px;
+    color: $c-dark;
+    font-size: var(--font-size-13, 13px);
+    letter-spacing: 0;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+// The formula, not a decoration: what the click will roll is the one thing the
+// value itself does not say.
+.banner-roll-dice {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: $c-dark;
+  font-size: var(--font-size-11, 11px);
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
 }
 
 // The Zustände row, under the two damage tracks it follows from. Same shape as
@@ -1166,38 +1204,20 @@ button.status-light-button {
   min-height: 0;
 }
 
-// The Basics tab as two full-width rows: the attribute matrix, the worn gear
-// and the zero-slot pocket above; the skill list and the carry raster below.
-//
-// The top row sizes to its content; the long bottom row receives the remaining
-// space in the bounded Basics area.
+// The Basics tab as one row of two columns: what the character can roll on
+// the left, what the character has on the right. Both columns size to their
+// content and share the sheet's one scroll surface.
 .basics-rows {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
-  gap: 4px;
 }
 
 .basics-row {
   display: flex;
+  align-items: flex-start;
   min-height: 0;
-
-  &[data-split-row='top'] {
-    // The compact blocks have different content densities, so they keep their
-    // own heights instead of stretching to the tallest neighbour.
-    align-items: flex-start;
-    flex: 0 1 auto;
-  }
-
-  &[data-split-row='bottom'] {
-    // Skills and Carry Slots must fill this bounded row; their cells own the
-    // vertical overflow and therefore need a definite cross-axis height.
-    align-items: stretch;
-    flex: 1 1 auto;
-    border-top: 1px solid $c-beige;
-    padding-top: 6px;
-  }
 }
 
 // The shares are grow factors off a zero basis rather than widths, so the
@@ -1213,6 +1233,7 @@ button.status-light-button {
   min-height: 0;
   display: flex;
   flex-direction: column;
+  gap: 8px;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba($c-dark, 0.3) transparent;
@@ -1249,9 +1270,7 @@ button.status-light-button {
     min-height: auto;
   }
 
-  .basics-row,
-  .basics-row[data-split-row='top'],
-  .basics-row[data-split-row='bottom'] {
+  .basics-row {
     flex: 0 0 auto;
     align-items: flex-start;
   }
@@ -1267,232 +1286,56 @@ button.status-light-button {
   }
 }
 
-.cell-attributes,
-.cell-loose {
-  flex-grow: 0.25;
-}
-
-// Unlike the other compact top-row cells, these two use the row's full height
-// so their closing block can sit on the bottom edge — the wallet under
-// Kleinkram, the movement line under the paper doll. Both cells' upper blocks
-// still own their natural height and expand the whole row when they grow; it is
-// the `margin-top: auto` on the closing block that collects the slack, so with
-// no spare height either column simply follows its content as before.
-.cell-gear,
-.cell-loose {
-  align-self: stretch;
-}
-
+.cell-play,
 .cell-gear {
   flex-grow: 0.5;
 }
 
-.cell-skills {
-  flex-grow: 0.4;
-}
-
-.cell-carry {
-  flex-grow: 0.6;
-}
-
-// The paper doll and the carry raster both size their padding for a full-width
-// tab; tighten it here so the armour rows keep room for their RH/RW/RA
-// read-outs and the raster keeps its five columns.
-.cell-gear,
-.cell-carry,
-.cell-loose {
-  padding-right: 2px;
-
-  .paperdoll,
-  .slot-grid-block {
-    padding: 10px;
-  }
-
-  .paperdoll {
-    padding: 6px;
-    gap: 6px;
-  }
-
-}
-
+// The gear column runs the row's full height, so its tabbed panel can grow
+// into whatever the play column leaves below the worn gear.
 .cell-gear {
-  // A worn row is one line of read-outs, not a card: unlike a `.slot-cell` it
-  // carries no second and third line, so it takes a fraction of that bar's
-  // height rather than a figure of its own — the two blocks stay in step when
-  // either is retuned. Only the horizontal padding is trimmed, which is what buys the
-  // rows room for their RH/RW/RA read-outs.
-  .paperdoll-zones {
-    gap: 3px;
-  }
-
-  .armor-row {
-    min-height: $slot-bar-height * $worn-row-ratio;
-    padding: 2px 6px;
-
-    // Trimmed with the rest of the doll, but the base-layer break has to stay
-    // readable as a break — at 3px it was just another row gap.
-    &.armor-suit {
-      --suit-break: 8px;
-    }
-  }
-
-  // The summary follows the trimmed rows' padding, or its label would start
-  // 6px right of every name it sums.
-  .armor-total {
-    --total-break: 6px;
-
-    padding-inline: 6px;
-
-    &::before {
-      right: 2px;
-      left: 2px;
-    }
-  }
+  align-self: stretch;
 }
 
-// The derived values that left the band, directly under the attribute matrix
-// that produces them: two rolls on one line, the movement tiers on their own.
-//
-// 5b's shape rather than 5a's single three-cell row: the dice notation is
-// spelled out where there is width for it, and the movement line's dashed
-// outline says without a word that nothing on it is to be clicked. It costs
-// about 40px more height than the single row and buys both of those.
-.derived-header {
-  margin-top: 10px;
-}
-
-// Only the two rolls remain here; the movement line moved to the gear column.
-.derived-strip {
+// Damage tracks and movement share one row of the identity lane: the boxes
+// leave the rest of the lane empty, so the movement costs the band no height.
+.banner-vitals {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.derived-rolls {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
-}
-
-// Both rolls keep their behaviour exactly as the band had it — Initiative
-// through the generic `data-roll` path, the 6. Sinn as a plain 3d20 against the
-// derived value with no dialog. They are native buttons here, so neither needs
-// `_makeKeyboardAccessible()` to reach the keyboard.
-button.derived-cell {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 6px;
-  width: auto;
-  height: auto;
-  min-height: 0;
-  margin: 0;
-  padding: 7px 10px;
-  border: 1px solid $c-beige;
-  border-radius: 6px;
-  background: $c-faint;
-  box-shadow: none;
-  color: $c-dark;
-  font-family: inherit;
-  line-height: 1;
-  text-align: left;
-  cursor: pointer;
-  transition: border-color 0.12s ease, background 0.12s ease;
-
-  &:hover,
-  &:focus-visible {
-    border-color: $c-primary;
-    background: rgba($c-primary, 0.08);
-    outline: none;
-  }
-}
-
-// Half a column is not enough for a name and its value on one line, so the name
-// takes a line of its own and the figure sits under it beside the formula that
-// will be rolled with it.
-.derived-cell-figure {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 18px;
   min-width: 0;
+}
+
+// The three Bewegung tiers, read-only, on the band's darkened backdrop: the
+// label over the tiers so the block is as tall as the two tracks beside it,
+// with a hairline between the two.
+.derived-movement {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 2px;
+  padding-left: 18px;
+  border-left: 1px solid rgba($c-white, 0.3);
+  color: rgba($c-white, 0.75);
+  font-size: var(--font-size-12, 12px);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba($c-black, 0.5);
 }
 
 .derived-cell-label {
-  min-width: 0;
-  overflow: hidden;
-  color: $c-tan;
-  font-size: var(--font-size-11, 11px);
+  font-size: var(--font-size-10, 10px);
   font-weight: bold;
-  letter-spacing: 0.06em;
-  line-height: 1.2;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.derived-cell-value {
-  flex: none;
-  font-size: var(--font-size-20, 20px);
-  font-weight: bold;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-
-// The movement line keeps its label beside the tiers: it is one full-width row,
-// so nothing there has to give up a line.
-.derived-movement .derived-cell-label {
-  flex: none;
-}
-
-// The formula, not a decoration: what the click will roll is the one thing the
-// value itself does not say.
-.derived-cell-dice {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex: none;
-  padding: 4px 8px;
-  border: 1px solid rgba($c-dark, 0.2);
-  border-radius: 5px;
-  background: rgba($c-white, 0.55);
-  color: $c-tan;
-  font-size: var(--font-size-11, 11px);
-  line-height: 1;
-  white-space: nowrap;
-
-  i {
-    font-size: var(--font-size-14, 14px);
-    color: $c-dark;
-  }
-}
-
-// Read-only, and dashed so it says so — the movement tiers are the one derived
-// value on the sheet that nothing rolls.
-//
-// It closes the worn-gear column rather than the derived strip: the load that
-// strikes a tier through is summed one line above it, so cause and consequence
-// finally share a column. `margin-top: auto` pins it to the column's bottom
-// edge when the silhouette leaves spare height, the way `.armor-total` does.
-.derived-movement {
-  margin-top: auto;
-  display: flex;
-  align-items: center;
-  // Label and tiers stay together on the left. `space-between` was right in the
-  // half-width derived strip; across the gear column's full width it would park
-  // the two halves 300px apart with nothing between them.
-  justify-content: flex-start;
-  gap: 14px;
-  padding: 7px 11px;
-  border: 1px dashed $c-beige;
-  border-radius: 6px;
 }
 
 .derived-move-tiers {
   display: flex;
   align-items: baseline;
-  gap: 10px;
-  min-width: 0;
+  gap: 12px;
 }
 
 .derived-move {
@@ -1502,31 +1345,22 @@ button.derived-cell {
   white-space: nowrap;
 
   b {
+    color: $c-white;
     font-size: var(--font-size-14, 14px);
-    font-variant-numeric: tabular-nums;
-  }
-
-  span {
-    color: $c-tan;
-    font-size: var(--font-size-10, 10px);
+    font-weight: 600;
   }
 }
 
 // A tier the character has lost — to load, or to a damaged Beweglichkeit.
-// Struck through rather than hidden or greyed: the number is still the range
-// this character would have, and what changed is that they may not use it.
-//
-// The consequence stays on the figure it takes away (P3) wherever that figure
-// lives; only its address changed when the tiers left the band. The load itself
-// remains a Zustände entry there, so the loss is still visible without leaving
-// the header.
+// Struck through and dimmed rather than hidden: the number is still the range
+// this character would have, and what changed is that they may not use it. The
+// load itself is the Zustände entry right under this row.
 .derived-move.move-blocked {
-  color: $c-warning;
-  text-decoration: line-through;
-  text-decoration-thickness: 2px;
+  opacity: 0.55;
 
-  span {
-    color: $c-warning;
+  b {
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
   }
 }
 
@@ -1535,23 +1369,24 @@ button.derived-cell {
 // the line the user aims at is the line that moves. Each handle redistributes
 // only the pair it sits between; the shares it sets are a client setting, so
 // each player keeps their own layout across sheets and sessions.
+//
+// Invisible at rest: the columns already stand apart on their own gutters, so
+// a permanent rule between them would be a line the redesign does not draw.
 .basics-splitter {
-  flex: 0 0 13px;
+  flex: 0 0 17px;
   position: relative;
   align-self: stretch;
   cursor: col-resize;
   touch-action: none;
 
-  // The visible hairline, centred in the wider hit area — 13px is comfortable
-  // to grab, 1px would not be.
   &::before {
     content: '';
     position: absolute;
     top: 0;
     bottom: 0;
-    left: 6px;
+    left: 8px;
     width: 1px;
-    background: $c-beige;
+    background: transparent;
     transition: background 0.15s ease, box-shadow 0.15s ease;
   }
 
@@ -1567,26 +1402,42 @@ button.derived-cell {
   }
 }
 
-// Every Basics area starts with the same quiet caption line. The content below
-// can be a matrix, a skill flow or an inventory card, but its title and any
-// compact metadata always share this rhythm.
+// Every Basics area starts with the same caption line: an uppercase title on
+// the left over a hairline, compact metadata and controls after it. The content
+// below can be tiles, a list, rows or a raster; the header rhythm is shared.
 .basics-section-header {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  min-height: 12px;
-  margin: 0 0 4px;
+  gap: 8px;
+  min-height: 28px;
+  margin: 0;
+  box-sizing: border-box;
+  border-bottom: 1px solid $c-beige;
 }
 
 .basics-section-title {
+  flex: 0 1 auto;
   margin: 0;
   padding: 0;
   border: none;
-  font-size: var(--font-size-12, 12px);
+  font-size: var(--font-size-13, 13px);
   font-weight: 600;
-  line-height: 12px;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
   text-transform: uppercase;
   color: $c-dark;
+}
+
+// Quiet figures beside a title — points and XP, the summed SV. Pushed to the
+// header's right edge unless a control follows.
+.section-meta {
+  margin-left: auto;
+  font-size: var(--font-size-11, 11px);
+  font-weight: 500;
+  color: $c-tan;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 // Vertical icon-only tab rail docked outside the sheet's right edge. It stays

@@ -209,7 +209,7 @@ moves on an actor in the current combat.
 
 The SCSS partial is imported **outside** the `.tno` block, next to
 `_base-roll-button`. The sidebar is painted by Foundry's own theme; putting it
-inside `.tno` would drag the sheets' parchment palette and every sheet component
+inside `.tno` would drag the sheets' palette and every sheet component
 with it into a surface none of them were written for.
 
 ## The one socket
