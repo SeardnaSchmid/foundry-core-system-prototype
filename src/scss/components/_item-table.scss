@@ -204,6 +204,12 @@
   &.is-worn .item-state {
     color: $c-ready;
   }
+
+  // Owned, not on the character: still listed once like everything else, but
+  // read past.
+  &.is-stashed {
+    opacity: 0.6;
+  }
 }
 
 .item-td {

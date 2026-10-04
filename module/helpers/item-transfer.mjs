@@ -36,6 +36,9 @@ const NON_TRAVELLING_FIELDS = ['_id', '_stats', 'folder', 'sort', 'ownership'];
 export function travellingItemData(data) {
   const copy = { ...data };
   for (const field of NON_TRAVELLING_FIELDS) delete copy[field];
+  // Left behind is where the giver had it, not a property of the thing: the
+  // receiver picks it up.
+  if (copy.system?.stashed) copy.system = { ...copy.system, stashed: false };
   return copy;
 }
 

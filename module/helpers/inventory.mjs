@@ -99,14 +99,25 @@ export function wornItemIds(equipment) {
 export const CARRIED_ITEM_TYPES = GEAR_TYPES;
 
 /**
+ * Whether a piece has been left behind — put down, handed over, taken away.
+ * The character still owns it, but it is not on them: it costs no slot, cannot
+ * be worn and offers no action until it is picked up again.
+ * @param {Object} item
+ * @returns {boolean}
+ */
+export function isStashed(item) {
+  return CARRIED_ITEM_TYPES.includes(item?.type) && item?.system?.stashed === true;
+}
+
+/**
  * Every physical item that can participate in the slot budget. Wearing is not
  * filtered here: it decides which band an item belongs to, not whether the
- * item costs slots.
+ * item costs slots. What was left behind is not on the character, so it is.
  * @param {Array<Object>} items  All of the actor's items.
  * @returns {Array<Object>}
  */
 function slottedGear(items) {
-  return (items ?? []).filter((item) => CARRIED_ITEM_TYPES.includes(item.type));
+  return (items ?? []).filter((item) => CARRIED_ITEM_TYPES.includes(item.type) && !isStashed(item));
 }
 
 /**
@@ -253,7 +264,10 @@ export function buildSlotGrid(items, equipment, capacity, hasContainer = true) {
     cursor += span;
   }
 
-  return { blocks, overflow, trinkets, empty: Math.max(0, capacity - cursor) };
+  // Left-behind gear is listed apart, in its own order, whatever it would cost.
+  const stashed = (items ?? []).filter(isStashed).sort(bySort);
+
+  return { blocks, overflow, trinkets, stashed, empty: Math.max(0, capacity - cursor) };
 }
 
 /**

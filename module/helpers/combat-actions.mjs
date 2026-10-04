@@ -1,4 +1,4 @@
-import { ARMOR_ADDON_ZONES } from './inventory.mjs';
+import { ARMOR_ADDON_ZONES, isStashed } from './inventory.mjs';
 import {
   ARMOR_SUIT_ZONE,
   armorPenetrationChoices,
@@ -384,6 +384,8 @@ function weaponSkill(actor, weapon, canRoll) {
   const key = weapon?.system?.fv?.skill;
   const definition = actor ? getSkillDefinitions(actor)[key] : null;
   if (!actor?.isOwner || !hasRole(weapon, 'weapon')) return null;
+  // A weapon left behind is not in hand.
+  if (isStashed(weapon)) return null;
   if (!canRoll(weapon.system, { skillDefined: !!definition })) return null;
   return { key, definition };
 }

@@ -981,6 +981,13 @@
       "WornHint": "Am Leib getragen — zählt zum gemeinsamen Slotbudget. Über das Paperdoll ablegen.",
       "WornSlot": "Getragen",
       "WornSlotHint": "Getragener Teil des Slotbudgets — wird vor mitgeführter Ausrüstung gepackt.",
+      "Stashed": "Zurückgelassen",
+      "StashedHint": "Nicht dabei — abgelegt, weggegeben oder abgenommen. Zählt nicht zur Last, kann nicht getragen und nicht benutzt werden. In die Inventarslots ziehen, um es wieder mitzunehmen.",
+      "StashedEmpty": "Hierher ziehen, was der Charakter gerade nicht dabei hat.",
+      "Stash": "Zurücklassen",
+      "StashHint": "Nicht mehr dabei: zählt nicht zur Last und kann nicht benutzt werden.",
+      "Unstash": "Mitnehmen",
+      "UnstashHint": "Wieder dabei: kommt zurück in die Inventarslots.",
       "SlotHint": {
         "0": "Geld, Papiere, Krimskrams",
         "1": "Kleine Gegenstände, Proviantbeutel, Einhändige Waffen, Handgranate",

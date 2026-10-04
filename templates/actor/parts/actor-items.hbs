@@ -75,7 +75,7 @@ because that is what keeps every group's columns lined up under one header. --}}
             {{!-- `draggable` so a piece can still be dragged out of the ledger
             onto the hotbar or another actor. Dropping one *back* onto the table
             sorts nothing — see `_onSortItem`. --}}
-            <div class='item-row draggable{{#if row.worn}} is-worn{{/if}}'
+            <div class='item-row draggable{{#if row.worn}} is-worn{{/if}}{{#if row.stashed}} is-stashed{{/if}}'
                  data-item-id='{{row.id}}' data-group='{{group.role}}'
                  data-name='{{row.name}}' draggable='true'>
               <div class='item-td item-td-name'>
@@ -96,6 +96,11 @@ because that is what keeps every group's columns lined up under one header. --}}
               {{/each}}
 
               <div class='item-td item-controls'>
+                {{#if row.stashed}}
+                  <span class='item-state' title='{{localize "TNO.Inventory.StashedHint"}}'>
+                    <i class='fas fa-box-archive'></i>
+                  </span>
+                {{/if}}
                 {{#if row.worn}}
                   {{!-- A marker, not a control: taking a piece off belongs to
                   the paper doll, which is the only view that knows which zones

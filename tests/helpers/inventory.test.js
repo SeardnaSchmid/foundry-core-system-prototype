@@ -4,6 +4,7 @@ import {
   resolveArmor,
   itemSlotCost,
   buildSlotGrid,
+  isStashed,
   CARRY_THRESHOLDS,
 } from '../../module/helpers/inventory.mjs';
 
@@ -308,3 +309,28 @@ describe('resolveArmor', () => {
     expect(() => JSON.stringify(zones)).not.toThrow();
   });
 });
+
+describe('left-behind gear', () => {
+  const stashed = (_id, slots, sort = 0) => ({ ...gear(_id, slots), sort, system: { slots, quantity: 1, stashed: true } });
+
+  it('recognises only physical items as left behind', () => {
+    expect(isStashed(stashed('rope', 2))).toBe(true);
+    expect(isStashed(gear('rope', 2))).toBe(false);
+    expect(isStashed({ _id: 'f', type: 'feature', system: { stashed: true } })).toBe(false);
+  });
+
+  it('costs no slot', () => {
+    const { used, carried } = computeCarry([gear('a', 2), stashed('b', 3)], {}, true, 10);
+    expect(used).toBe(2);
+    expect(carried).toBe(2);
+  });
+
+  it('is listed apart from the raster and the Kleinkram, in sort order', () => {
+    const grid = buildSlotGrid([gear('a', 1), stashed('z', 2, 20), stashed('coin', 0, 10)], {}, 10);
+    expect(grid.blocks.map((b) => b.item._id)).toEqual(['a']);
+    expect(grid.trinkets).toEqual([]);
+    expect(grid.stashed.map((i) => i._id)).toEqual(['coin', 'z']);
+    expect(grid.empty).toBe(9);
+  });
+});
+

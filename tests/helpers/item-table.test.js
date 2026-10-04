@@ -294,3 +294,19 @@ describe('ITEM_TABLE_COLUMNS', () => {
     }
   });
 });
+
+describe('left-behind gear in the ledger', () => {
+  const rope = item('rope', 'Seil', { slots: 2, stashed: true });
+
+  it('still lists the piece, marked, but leaves it out of the group load', () => {
+    const plain = buildItemGroups([rope, item('lamp', 'Lampe')], { columns: ['slots'] })
+      .find((group) => group.role === PLAIN_ROLE);
+    expect(plain.rows.map((row) => [row.id, row.stashed])).toEqual([['lamp', false], ['rope', true]]);
+    expect(plain.footprint).toBe(1);
+  });
+
+  it('reads its state as left behind', () => {
+    expect(columnCell(rope, 'state').value).toBe('stashed');
+  });
+});
+

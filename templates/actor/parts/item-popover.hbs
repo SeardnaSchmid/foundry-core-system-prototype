@@ -36,6 +36,18 @@
       <button type='button' class='{{#unless canWeaponCheck}}primary{{/unless}}' data-popover-action='edit'>
         <i class='fa-solid fa-pen' aria-hidden='true'></i>{{localize 'TNO.Item.Popover.Edit'}}
       </button>
+      {{!-- Leave it behind or pick it up again — the click path beside dragging
+            it onto the Zurückgelassen block under the slots. --}}
+      {{#if canStash}}
+        <button type='button' data-popover-action='stash'
+                title='{{#if stashed}}{{localize "TNO.Inventory.UnstashHint"}}{{else}}{{localize "TNO.Inventory.StashHint"}}{{/if}}'>
+          {{#if stashed}}
+            <i class='fa-solid fa-hand' aria-hidden='true'></i>{{localize 'TNO.Inventory.Unstash'}}
+          {{else}}
+            <i class='fa-solid fa-box-archive' aria-hidden='true'></i>{{localize 'TNO.Inventory.Stash'}}
+          {{/if}}
+        </button>
+      {{/if}}
       {{!-- Destructive, so it is the one action in this footer carrying no
             label: a square icon pushed off the labelled pair by its own auto
             margin. "Gegenstand löschen" is the longest string in the footer and

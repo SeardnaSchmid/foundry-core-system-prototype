@@ -560,6 +560,110 @@ $c-zone-suited-stroke: $c-worn-stroke;
   background: rgba($c-advance, 0.07);
 }
 
+// Zurückgelassen, under the raster: what the character owns but does not have
+// on them. Dashed and faint like an empty paper doll zone, because it is a
+// place things can be put rather than a load; its pieces are dimmed, since
+// none of them is to hand.
+.stash-block {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 10px;
+  border: 1px dashed $c-beige;
+  border-radius: 6px;
+  background: rgba($c-dark, 0.025);
+
+  // The same invitation as the raster's for the way back.
+  &.stash-drop-target {
+    border-color: $c-advance;
+    outline: 2px dashed $c-advance;
+    outline-offset: -4px;
+    background: rgba($c-advance, 0.07);
+  }
+}
+
+.stash-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-11, 11px);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: $c-tan;
+}
+
+.stash-count {
+  font-variant-numeric: tabular-nums;
+  color: $c-dark;
+}
+
+.stash-empty {
+  margin: 0;
+  font-size: var(--font-size-12, 12px);
+  font-style: italic;
+  color: $c-tan;
+}
+
+.stash-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.stash-item {
+  // Anchors the drop caret, which is drawn as an inset pseudo-element.
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 26px;
+  font-size: var(--font-size-13, 13px);
+  white-space: nowrap;
+  color: $c-dark;
+  cursor: grab;
+
+  & + & {
+    border-top: 1px solid #e2ddd2;
+  }
+
+  .stash-item-icon {
+    flex: 0 0 auto;
+    color: $c-tan;
+    opacity: 0.6;
+  }
+
+  img.stash-item-icon {
+    filter: grayscale(1);
+  }
+}
+
+.stash-item-name {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: rgba($c-dark, 0.7);
+}
+
+.stash-item-type {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: var(--font-size-11, 11px);
+  color: $c-tan;
+}
+
+.stash-item-qty {
+  flex: none;
+  margin-left: auto;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: rgba($c-dark, 0.7);
+}
+
 // Used over capacity, in the Inventar tab's label. The used count is the
 // number players actually track, so it carries the weight; over budget is
 // legal — it just costs movement — so that is a warning colour, never a
@@ -898,7 +1002,9 @@ $c-zone-suited-stroke: $c-worn-stroke;
 .items-list .item.drop-before::after,
 .items-list .item.drop-after::after,
 .slot-trinket.drop-before::after,
-.slot-trinket.drop-after::after {
+.slot-trinket.drop-after::after,
+.stash-item.drop-before::after,
+.stash-item.drop-after::after {
   content: '';
   position: absolute;
   left: 0;
@@ -909,12 +1015,14 @@ $c-zone-suited-stroke: $c-worn-stroke;
 }
 
 .items-list .item.drop-before::after,
-.slot-trinket.drop-before::after {
+.slot-trinket.drop-before::after,
+.stash-item.drop-before::after {
   top: 0;
 }
 
 .items-list .item.drop-after::after,
-.slot-trinket.drop-after::after {
+.slot-trinket.drop-after::after,
+.stash-item.drop-after::after {
   bottom: 0;
 }
 

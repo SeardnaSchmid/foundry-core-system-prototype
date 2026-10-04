@@ -94,3 +94,34 @@ summary cell: count the room that is left. --}}
 
 
 </div>
+
+{{!-- Zurückgelassen: what the character still owns but does not have on them —
+put down, handed over, taken away. Nothing here costs a slot, can be worn or
+offers a combat action. Dragging gear onto the block leaves it here, dragging
+it back into the raster (or onto the doll) picks it up again; the item's popover
+does the same with one click. --}}
+<div class='stash-block' data-tooltip-html='{{localize "TNO.Inventory.StashedHint"}}' data-tooltip-direction='UP'>
+  <div class='stash-header'>
+    <i class='fa-solid fa-box-archive' aria-hidden='true'></i>
+    <span class='stash-title'>{{localize 'TNO.Inventory.Stashed'}}</span>
+    {{#if slotGrid.stashed.length}}<span class='stash-count'>{{slotGrid.stashed.length}}</span>{{/if}}
+  </div>
+  {{#if slotGrid.stashed.length}}
+    <div class='stash-list'>
+      {{#each slotGrid.stashed as |entry|}}
+        <span class='stash-item draggable' data-item-id='{{entry.item._id}}'>
+          {{#if entry.img}}
+            <img class='stash-item-icon slot-art' src='{{entry.img}}' alt='' />
+          {{else}}
+            <i class='fa-solid {{entry.icon}} stash-item-icon' aria-hidden='true'></i>
+          {{/if}}
+          <span class='stash-item-name' title='{{entry.item.name}}'>{{entry.item.name}}</span>
+          {{#if entry.typeLine}}<span class='stash-item-type'>{{entry.typeLine}}</span>{{/if}}
+          {{#if (gt entry.quantity 1)}}<span class='stash-item-qty'>×{{entry.quantity}}</span>{{/if}}
+        </span>
+      {{/each}}
+    </div>
+  {{else}}
+    <p class='stash-empty'>{{localize 'TNO.Inventory.StashedEmpty'}}</p>
+  {{/if}}
+</div>

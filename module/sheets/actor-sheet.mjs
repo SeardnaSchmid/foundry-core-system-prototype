@@ -18,6 +18,7 @@ import {
 import {
   buildSlotGrid,
   ARMOR_ADDON_ZONES,
+  isStashed,
   wornItemIds,
 } from '../helpers/inventory.mjs';
 import { MONEY_CURRENCIES, normalizeMoneyAmount, prepareWallet } from '../helpers/money.mjs';
@@ -30,6 +31,7 @@ import {
   canWeaponAttack,
   canWeaponParry,
   inventoryArt,
+  isGear,
   itemRoles,
   selectRole,
   weaponUse,
@@ -796,6 +798,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         icon: row.item.inventoryArt.icon,
         img: row.item.inventoryArt.img,
         worn: row.worn,
+        stashed: row.stashed,
         cells: columns.map((column) => this.#cellContext(column, row.cells[column.key], row.item)),
       })),
     };
@@ -943,7 +946,10 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   /** Localize a value that is a key into one of the CONFIG.TNO label maps. */
   #choiceLabel(key, value) {
-    if (key === 'state') return game.i18n.localize(value === 'worn' ? 'TNO.Inventory.Worn' : 'TNO.Inventory.Carried');
+    if (key === 'state') {
+      const label = { worn: 'TNO.Inventory.Worn', stashed: 'TNO.Inventory.Stashed' }[value] ?? 'TNO.Inventory.Carried';
+      return game.i18n.localize(label);
+    }
     if (key === 'use') return game.i18n.localize(CONFIG.TNO.weaponUses[value] ?? value);
     if (key === 'zone') return game.i18n.localize(CONFIG.TNO.armorZones[value] ?? value);
     if (key === 'wa') {
@@ -1101,6 +1107,14 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         ...inventoryArt(item),
         quantity: Number(item.system?.quantity) || 1,
         worn,
+      })),
+      // What the character owns but does not have on them, under the raster:
+      // costs no slot, so it is a list rather than cells.
+      stashed: grid.stashed.map((item) => ({
+        item,
+        ...inventoryArt(item),
+        typeLine: this.#slotTypeLine(item),
+        quantity: Number(item.system?.quantity) || 1,
       })),
       // The free slots are one summary cell rather than one cell each: the
       // meter above the raster is where the remaining room is counted.
@@ -1638,13 +1652,18 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const canEdit = this.isEditable;
     const stock = Math.max(0, Number(item.system.quantity) || 0);
     const parryMalus = Number(item.actor?.system?.derived?.defenses?.parry?.malus) || 0;
+    // A piece left behind is not in hand: it keeps its card but offers no
+    // combat action until it is picked up again.
+    const stashed = isStashed(item);
     return {
       ...base,
       canEdit,
-      canWeaponCheck: !!(canEdit && item.actor?.isOwner && roles.weapon && canWeaponAttack(item.system, { skillDefined: !!skill })),
+      stashed,
+      canStash: canEdit && isGear(item),
+      canWeaponCheck: !!(canEdit && !stashed && item.actor?.isOwner && roles.weapon && canWeaponAttack(item.system, { skillDefined: !!skill })),
       // A parry additionally needs a Haltung that allows one at all — "je nach
       // Haltung hat der Charakter eine Parade, ein Ausweichen oder beides".
-      canWeaponParry: !!(canEdit && item.actor?.isOwner && roles.weapon
+      canWeaponParry: !!(canEdit && !stashed && item.actor?.isOwner && roles.weapon
         && canWeaponParry(item.system, { skillDefined: !!skill })
         && canDefend(item.actor, 'parry')),
       parryMalus,
@@ -1706,7 +1725,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     let anchor = this._itemPopoverAnchor;
     if (!anchor?.isConnected) {
       const id = CSS.escape(this._itemPopoverItemId ?? '');
-      anchor = this.element.querySelector(`.slot-first[data-item-id="${id}"], .slot-trinket[data-item-id="${id}"], .armor-row[data-item-id="${id}"]`);
+      anchor = this.element.querySelector(`.slot-first[data-item-id="${id}"], .slot-trinket[data-item-id="${id}"], .stash-item[data-item-id="${id}"], .armor-row[data-item-id="${id}"]`);
       this._itemPopoverAnchor = anchor;
     }
     if (!anchor) return;
@@ -1743,6 +1762,10 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         return item.openWeaponParry();
       case 'stock':
         return item.adjustStock(Number(control.dataset.by));
+      // Stays open like `stock`: the card is still the one being looked at,
+      // and the re-render refreshes it in place.
+      case 'stash':
+        return this._setStashed(item, !isStashed(item));
       case 'delete':
         return item.confirmDelete();
     }
@@ -2100,7 +2123,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // targets in
     // _onRender; this forwards their Enter/Space to the same click listeners
     // bound below.
-    this.#delegate('keydown', 'a:not([href]), .skill-info, .heatmap-cell, .slot-cell, .slot-trinket, .armor-row[data-item-id], .money-wallet-block.editable, .banner-portrait .profile-img[data-action="editImage"]', (event, target) => {
+    this.#delegate('keydown', 'a:not([href]), .skill-info, .heatmap-cell, .slot-cell, .slot-trinket, .stash-item, .armor-row[data-item-id], .money-wallet-block.editable, .banner-portrait .profile-img[data-action="editImage"]', (event, target) => {
       if (event.key !== 'Enter' && event.key !== ' ') return;
       event.preventDefault();
       target.click();
@@ -2396,12 +2419,12 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       this.#openMoneyPopover(target);
     }, editable);
 
-    // Carry cells, loose trinkets and worn armour open a compact action
+    // Carry cells, loose trinkets, left-behind gear and worn armour open a compact action
     // popover. The full editor remains one level below its Edit action. The
     // unequip x belongs to the row but keeps its dedicated state-change action.
     this.#delegate(
       'click',
-      '.slot-cell[data-item-id], .slot-trinket, .armor-row[data-item-id]',
+      '.slot-cell[data-item-id], .slot-trinket, .stash-item, .armor-row[data-item-id]',
       (event, target) => {
         if (event.target.closest('.armor-unequip, .armor-resist')) return;
         event.preventDefault();
@@ -2454,7 +2477,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // so the marker reads the same `#sortsBefore` the sort itself does.
     this.#delegate(
       'dragover',
-      '.slot-grid [data-item-id], .slot-trinkets [data-item-id], .items-list [data-item-id], .slot-empty',
+      '.slot-grid [data-item-id], .slot-trinkets [data-item-id], .stash-list [data-item-id], .items-list [data-item-id], .slot-empty',
       (event, target) => {
         event.preventDefault();
         this.#clearDropMarkers();
@@ -2499,9 +2522,22 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       editable
     );
 
+    // The left-behind pile takes a drop anywhere on it, not just on a piece
+    // already there. Its gaps clear a sort marker a piece left behind; the
+    // pieces themselves are marked by the handler above.
+    this.#delegate(
+      'dragover',
+      '.stash-block',
+      (event) => {
+        event.preventDefault();
+        if (!event.target.closest('[data-item-id]')) this.#clearDropMarkers();
+      },
+      editable
+    );
+
     // Leaving the grid entirely has to clear the marker; moving between cells
     // does not, since the next `dragover` clears and re-marks anyway.
-    this.#delegate('dragleave', '.slot-grid, .slot-trinkets, .items-list, .paperdoll', (event, target) => {
+    this.#delegate('dragleave', '.slot-grid, .slot-trinkets, .stash-block, .items-list, .paperdoll', (event, target) => {
       if (target.contains(event.relatedTarget)) return;
       this.#clearDropMarkers();
     });
@@ -2606,12 +2642,27 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // four-slot item four times to reach the next one is worse than not
     // reaching its tail at all.
     const targets = this.element.querySelectorAll(
-      'a:not([href]), .skill-info, .heatmap-cell, .slot-cell.slot-first, .slot-trinket, .armor-row[data-item-id], .money-wallet-block.editable, .banner-portrait .profile-img[data-action="editImage"]'
+      'a:not([href]), .skill-info, .heatmap-cell, .slot-cell.slot-first, .slot-trinket, .stash-item, .armor-row[data-item-id], .money-wallet-block.editable, .banner-portrait .profile-img[data-action="editImage"]'
     );
     for (const el of targets) {
       if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
       if (!el.hasAttribute('role')) el.setAttribute('role', 'button');
     }
+  }
+
+  /**
+   * Leave a piece behind, or pick it back up. A worn piece comes off first:
+   * what is not on the character cannot be on their body either, and leaving
+   * the zone pointing at it would keep counting armour nobody wears.
+   * @param {Item} item
+   * @param {boolean} stashed
+   */
+  async _setStashed(item, stashed) {
+    if (stashed) {
+      const zone = this.#wornZone(item.id);
+      if (zone) await this._setEquippedArmor(zone, null);
+    }
+    return item.update({ 'system.stashed': stashed });
   }
 
   /**
@@ -2756,12 +2807,27 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // authored Stelle, so where on the block it lands cannot change where it
     // goes — and the block is what lights up while it is in flight.
     const doll = event.target?.closest?.('.paperdoll');
+    const stash = event.target?.closest?.('.stash-block');
     const carryArea = event.target?.closest?.('.slot-grid, .slot-trinkets, .items-list');
     const emptyCell = event.target?.closest?.('.slot-empty');
-    if (!doll && !carryArea) return super._onDrop(event);
+    if (!doll && !stash && !carryArea) return super._onDrop(event);
 
     const item = await Item.implementation.fromDropData(data);
     if (!item) return;
+
+    // Onto the left-behind pile. Gear from elsewhere arrives there directly —
+    // owned, but not on the character. A piece already in the pile was
+    // dropped on a neighbour to re-sort it, which core does.
+    if (stash) {
+      if (!isGear(item)) return;
+      if (item.parent !== this.actor) {
+        const source = item.toObject();
+        source.system.stashed = true;
+        return this.actor.createEmbeddedDocuments('Item', [source]);
+      }
+      if (!isStashed(item)) return this._setStashed(item, true);
+      return super._onDrop(event);
+    }
 
     // Dropped back into the slot grid. Taking a piece off by dragging it
     // there is the mirror of putting it on by dragging it to the doll — the x
@@ -2771,6 +2837,8 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // assignment describe the same state.
     if (!doll) {
       if (item.parent !== this.actor) return super._onDrop(event);
+      // Picked back up: it rejoins the carried band before anything sorts it.
+      if (isStashed(item)) await this._setStashed(item, false);
       const wornZone = this.#wornZone(item.id);
       if (wornZone) await this._setEquippedArmor(wornZone, null);
       // The free tail has no neighbour to sort against, so it means "put this
@@ -2790,6 +2858,8 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       item.parent === this.actor
         ? item
         : (await this.actor.createEmbeddedDocuments('Item', [item.toObject()]))[0];
+    // Worn straight out of the pile: putting it on means having it again.
+    if (isStashed(owned)) await this._setStashed(owned, false);
 
     return this._setEquippedArmor(zone, owned.id);
   }
@@ -2932,8 +3002,14 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     ]);
     for (const el of targets) el.classList.add('zone-drop-target');
 
-    const grid = worn ? this.element.querySelector('.slot-grid-block') : null;
+    // Coming back from the pile is the same way in as coming off the body, so
+    // the grid answers both. Anything else physical can be left behind, so
+    // the pile answers every other drag of gear.
+    const stashed = isStashed(item);
+    const grid = worn || stashed ? this.element.querySelector('.slot-grid-block') : null;
     grid?.classList.add('carry-drop-target');
+    const stash = isGear(item) && !stashed ? this.element.querySelector('.stash-block') : null;
+    stash?.classList.add('stash-drop-target');
 
     dragged.addEventListener(
       'dragend',
@@ -2941,6 +3017,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         this.#dragging = null;
         doll?.classList.remove('worn-drop-target');
         grid?.classList.remove('carry-drop-target');
+        stash?.classList.remove('stash-drop-target');
         for (const el of targets) el.classList.remove('zone-drop-target');
         this.element.classList.remove('dragging-item');
         this.#clearDropMarkers();

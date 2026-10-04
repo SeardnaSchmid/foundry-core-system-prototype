@@ -79,7 +79,10 @@ in Foundry v14+.
     a document's type is immutable after creation, and un-registering them
     would stop every such document in a published world from loading. The
     field table and the reasoning are in
-    [item-roles.md](../concepts/item-roles.md).
+    [item-roles.md](../concepts/item-roles.md). One `gear` field is state
+    rather than authoring: `stashed`, true while the piece is left behind —
+    owned but not on the character, see
+    [inventory.md](../concepts/inventory.md#where-the-state-is-stored).
   - `feature` has nothing beyond `base`; `spell` adds `spellLevel`.
 
 Item types are declared in `template.json`, which Foundry reads **at

@@ -981,6 +981,13 @@
       "WornHint": "Worn on the body — counts against the shared slot budget. Take it off on the paper doll.",
       "WornSlot": "Worn",
       "WornSlotHint": "Worn band of the slot budget — packed before carried gear.",
+      "Stashed": "Left behind",
+      "StashedHint": "Not on the character — put down, handed over or taken away. Costs no slot, cannot be worn or used. Drag it back into the slots to pick it up again.",
+      "StashedEmpty": "Drag here what the character does not have on them right now.",
+      "Stash": "Leave behind",
+      "StashHint": "No longer on the character: costs no slot and cannot be used.",
+      "Unstash": "Pick up",
+      "UnstashHint": "On the character again: back into the slots.",
       "SlotHint": {
         "0": "Money, papers, odds and ends",
         "1": "Small items, ration bags, one-handed weapons, hand grenades",

@@ -42,7 +42,7 @@ import {
   weaponUse,
   ARMOR_SUIT_ZONE,
 } from './items.mjs';
-import { itemSlotCost } from './inventory.mjs';
+import { isStashed, itemSlotCost } from './inventory.mjs';
 
 /**
  * The group a row falls into when it carries no role at all. Roles are
@@ -292,6 +292,7 @@ function readValue(item, system, key, worn) {
       return price * (authored(system.quantity) ?? 1);
     }
     case 'state':
+      if (isStashed(item)) return 'stashed';
       return worn ? 'worn' : 'carried';
     case 'incomplete':
       return missingRequired(item);
@@ -402,9 +403,11 @@ export function buildItemGroups(items, { worn, columns, sort, collator } = {}) {
     }
 
     const group = groups.get(itemGroupKey(item));
-    group.rows.push({ item, id: item._id ?? item.id, name: item.name ?? '', worn: isWorn, cells });
+    const stashed = isStashed(item);
+    group.rows.push({ item, id: item._id ?? item.id, name: item.name ?? '', worn: isWorn, stashed, cells });
     group.count += 1;
-    group.footprint += itemSlotCost(item);
+    // What was left behind costs nothing, so it is not part of the group's load.
+    if (!stashed) group.footprint += itemSlotCost(item);
 
     const price = authored(item?.system?.price);
     if (price !== null) {

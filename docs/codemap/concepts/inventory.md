@@ -22,8 +22,18 @@ The rules model **two related axes that must not be conflated**:
 Worn armour lives in `actor.system.equipment` as zone key → item id. That map
 decides the item's band in the shared budget as well as the paper-doll layer;
 it no longer exempts the item from slots. Every other owned physical item is
-carried, and the rules define no persisted “stowed” state. Removing an item
-from the character therefore means deleting or transferring the embedded item.
+carried — unless it has been **left behind** (`item.system.stashed`): put down,
+handed over or taken away, still owned but not on the character. The rules
+have no such state; it is table bookkeeping, so nothing about it is a rule
+beyond "what is not on you is not carried".
+
+A left-behind piece (`isStashed`) is outside everything carrying decides: it
+costs no slot (`slottedGear` skips it, so `computeCarry` and the raster never
+see it), it cannot be worn (`_setStashed` takes it off first, and wearing one
+picks it back up), and it offers no weapon roll (`weaponSkill` in
+`combat-actions.mjs` refuses it, and the popover hides the actions). A copy
+posted to another actor arrives carried — `travellingItemData` clears the flag,
+since where the giver left it is not a property of the thing.
 
 Money is separate actor state under `actor.system.money`: one whole-unit
 balance per supported currency. It is not represented by zero-slot Items, so
@@ -42,10 +52,11 @@ without a game world (`tests/helpers/inventory.test.js`).
 | `CARRIED_ITEM_TYPES` | The types the slot economy applies to — an alias of `GEAR_TYPES`. `feature` and `spell` are not objects and never appear in the grid or the sum. Which *roles* a piece has took over from its type everywhere else, but not here: the budget applies to anything that is an object at all — see [item-roles.md](item-roles.md) |
 | `CARRY_THRESHOLDS` | The fractions of capacity at which movement degrades |
 | `ARMOR_SV_STEP` | The quarter step the Rüstungen table writes SV increments in, and the granularity the summed SV is snapped to |
+| `isStashed(item)` | Whether a physical item has been left behind (`system.stashed`) — outside the budget, the raster and the doll |
 | `wornItemIds(equipment)` | The id set currently on the body, used to partition the worn and carried slot bands |
 | `itemSlotCost(item)` | `slots × quantity` for one stack, floored at 1 slot per piece for anything carrying the armour role |
 | `computeCarry(items, equipment, hasContainer, capacity)` | `{ used, worn, carried, capacity, state, noContainer }` |
-| `buildSlotGrid(items, equipment, capacity, hasContainer)` | `{ blocks, overflow, trinkets, empty }` — worn first, then carried; every entry carries `worn` |
+| `buildSlotGrid(items, equipment, capacity, hasContainer)` | `{ blocks, overflow, trinkets, stashed, empty }` — worn first, then carried; every entry carries `worn`. `stashed` is the left-behind gear, plain items in `sort` order |
 | `resolveArmor(equipment, items)` | `{ zones, sv }` — effective per-zone values |
 
 [`TnoActor.prepareDerivedData()`](../../../module/documents/actor.mjs)
@@ -279,6 +290,18 @@ changes state**:
   (`carry-drop-target`) rather than a cell — coming off the body is not a drop
   at a position.
 
+- **Anything physical onto the Zurückgelassen block** leaves it behind. The
+  block sits under the raster in the Inventar tab (`.stash-block`) and takes
+  the drop anywhere on it; it lights up (`stash-drop-target`) whenever gear that
+  is not already there is in flight. A worn piece comes off on the way. Gear
+  dropped there from outside the actor is created already left behind. Pieces
+  in the block re-sort among themselves like trinkets.
+- **A left-behind piece back onto the raster or the doll** picks it up again:
+  the flag clears before the sort or the equip, and the raster block lights up
+  for the way back exactly as it does for a worn piece. The item popover's
+  *Zurücklassen* / *Mitnehmen* button is the same toggle without dragging, and
+  the only way for Kleinkram, whose tab does not show the block.
+
 **An empty zone is a drop target and nothing else.** Clicking one used to offer
 to author a piece on the spot, which conjured armour out of an empty doll —
 wearing something is a state change on gear already in hand.
@@ -352,6 +375,10 @@ table's rules and the rules out of the template.
 | `toggleItemTableColumn` / `nextItemTableSort` | The picker's and the header's one-step transitions |
 | `columnCell(item, key, {worn})` | `{applies, value, sort}` for one cell |
 | `buildItemGroups(items, {worn, columns, sort, collator})` | The whole table: groups, rows, and the two totals worth summing |
+
+A left-behind piece stays in the ledger — it is still owned — with a
+`box-archive` marker and dimmed (`is-stashed`); its State column reads
+*Zurückgelassen*, and it is left out of its group's slot total.
 
 **Grouped by role, and only by role.** Roles are mutually exclusive
 ([item-roles.md](item-roles.md)), so the groups are a reading of the one list
