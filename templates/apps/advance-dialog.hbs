@@ -1,57 +1,79 @@
-<form class="tno-advance-dialog flexcol">
+<form class="tno-advance-dialog" autocomplete="off">
 
-  {{!-- Progress toward the next rank: current rank -> next, XP over the cost
-  of that step, and a bar. At max rank the bar is full and the cost line is
-  replaced by a "maxed out" note. --}}
-  <div class="advance-progress">
-    <div class="advance-progress-head flexrow">
-      {{#if atMax}}
+  {{!-- Rank step and progress toward it: the bar, the XP invested over the
+  cost of that step, and what is still missing. At max rank the bar is full
+  and only the note stays. --}}
+  <div class="advance-head">
+    {{#if atMax}}
       <span class="advance-rank">{{localize "TNO.AdvanceMaxRank"}}</span>
-      {{else}}
-      <span class="advance-rank">{{localize "TNO.SkillRankLabel"}} {{rank}} <i class="fas fa-arrow-right"></i> {{nextRank}}</span>
-      <span class="advance-xp-count">{{xp}}/{{cost}} XP</span>
-      {{/if}}
-    </div>
+    {{else}}
+      <span class="advance-rank">{{localize "TNO.SkillRankLabel"}} {{rank}} <span class="advance-arrow">→</span> {{nextRank}}</span>
+    {{/if}}
+  </div>
+
+  <div class="advance-progress">
     <div class="advance-bar">
       <div class="advance-bar-fill{{#if canBuy}} ready{{/if}}" style="width: {{percent}}%;"></div>
     </div>
+    {{#unless atMax}}
+      <div class="advance-progress-text">
+        <span><b>{{xp}}</b> / {{cost}} {{localize "TNO.AdvanceInvested"}}</span>
+        <span class="advance-remaining">{{#if canBuy}}{{localize "TNO.AdvanceReady"}}{{else}}{{localize "TNO.AdvanceRemaining" n=remaining}}{{/if}}</span>
+      </div>
+    {{/unless}}
   </div>
 
-  {{!-- Guided actions apply immediately to the actor (no pending state), so
-  spend/refund one XP or buy the next rank take effect on click. Buy only
-  enables once enough XP is banked; buying consumes that rank's cost and any
-  surplus carries over. Shift-click steps XP by 5. --}}
-  <div class="advance-actions flexrow">
-    <button type="button" class="advance-action" data-action="xp-dec" {{#unless canDecXp}}disabled{{/unless}} title="{{localize 'TNO.AdvanceXpDecHint'}}">−1 XP</button>
-    <button type="button" class="advance-action" data-action="xp-inc" {{#if atMax}}disabled{{/if}} title="{{localize 'TNO.AdvanceXpIncHint'}}">+1 XP</button>
-    <button type="button" class="advance-action advance-buy" data-action="buy" {{#unless canBuy}}disabled{{/unless}} title="{{localize 'TNO.AdvanceBuyHint'}}">
-      <i class="fas fa-arrow-up"></i> {{localize "TNO.AdvanceBuy"}}{{#unless atMax}} ({{cost}} XP){{/unless}}
-    </button>
-  </div>
-
+  {{!-- Guided actions apply immediately to the actor (no pending state):
+  the stepper spends or takes back one XP (Shift: five), the main button buys
+  the next rank once enough XP is invested. Buying consumes that rank's cost;
+  any surplus carries over toward the following rank. --}}
   {{#unless atMax}}
-  <p class="advance-hint">
-    {{#if canBuy}}{{localize "TNO.AdvanceReadyHint"}}{{else}}{{localize "TNO.AdvanceNeedHint" n=remaining}}{{/if}}
-  </p>
+    <div class="advance-actions">
+      <div class="advance-stepper">
+        <button type="button" data-action="xp-dec" {{#unless canDecXp}}disabled{{/unless}}
+                aria-label="{{localize 'TNO.AdvanceXpDecHint'}}" title="{{localize 'TNO.AdvanceXpDecHint'}}">−</button>
+        <span class="advance-step">1 XP</span>
+        <button type="button" data-action="xp-inc"
+                aria-label="{{localize 'TNO.AdvanceXpIncHint'}}" title="{{localize 'TNO.AdvanceXpIncHint'}}">+</button>
+      </div>
+      <button type="button" class="advance-buy" data-action="buy" {{#unless canBuy}}disabled{{/unless}} title="{{localize 'TNO.AdvanceBuyHint'}}">
+        {{localize "TNO.AdvanceBuyRank" rank=nextRank cost=cost}}
+      </button>
+    </div>
+    {{#unless canBuy}}
+      <p class="advance-need">{{localize "TNO.AdvanceNeedHint" n=remaining rank=nextRank}}</p>
+    {{/unless}}
   {{/unless}}
 
-  {{!-- Manual correction: collapsed by default since it's the rare
-  error-fixing path. Rank and XP are directly editable; the Save button here
-  persists whatever is in these fields. --}}
-  <details class="advance-correction">
-    <summary>{{localize "TNO.AdvanceCorrection"}}</summary>
-    <div class="flexrow">
-      <div class="form-group">
-        <label>{{localize "TNO.AdvanceCorrectionRankLabel"}}</label>
-        <input type="number" name="rank" value="{{rank}}" min="{{rankMin}}" max="10"/>
-      </div>
-      <div class="form-group">
-        <label>{{localize "TNO.AdvanceCorrectionXpLabel"}}</label>
-        <input type="number" name="xp" value="{{xp}}" min="0"/>
-      </div>
+  {{!-- Correction, always at hand: rank and XP set directly, no XP booked.
+  The steppers only change the fields; Übernehmen saves them. --}}
+  <div class="advance-correction">
+    <div class="advance-correction-head">
+      <span class="advance-correction-title">{{localize "TNO.AdvanceCorrection"}}</span>
+      <span>{{localize "TNO.AdvanceCorrectionNoXp"}}</span>
     </div>
-    <footer class="sheet-footer flexrow">
-      <button type="submit"><i class="fas fa-check"></i> {{localize "TNO.SkillAdvanceSubmit"}}</button>
-    </footer>
-  </details>
+    <div class="advance-correction-row">
+      <div class="advance-field">
+        <button type="button" data-step="rank" data-delta="-1" aria-label="{{localize 'TNO.AdvanceCorrectionRankLabel'}} −1">−</button>
+        <label>
+          <span>{{localize "TNO.AdvanceCorrectionRankLabel"}}</span>
+          <input type="number" name="rank" value="{{rank}}" min="{{rankMin}}" max="10"/>
+        </label>
+        <button type="button" data-step="rank" data-delta="1" aria-label="{{localize 'TNO.AdvanceCorrectionRankLabel'}} +1">+</button>
+      </div>
+      <div class="advance-field">
+        <button type="button" data-step="xp" data-delta="-1" aria-label="{{localize 'TNO.AdvanceCorrectionXpLabel'}} −1">−</button>
+        <label>
+          <span>{{localize "TNO.AdvanceCorrectionXpLabel"}}</span>
+          <input type="number" name="xp" value="{{xp}}" min="0"/>
+        </label>
+        <button type="button" data-step="xp" data-delta="1" aria-label="{{localize 'TNO.AdvanceCorrectionXpLabel'}} +1">+</button>
+      </div>
+      <button type="submit" class="advance-apply">{{localize "TNO.AdvanceApply"}}</button>
+    </div>
+  </div>
+
+  <footer class="advance-footer">
+    <span class="advance-note">{{localize "TNO.AdvanceKeepNote"}}</span>
+  </footer>
 </form>

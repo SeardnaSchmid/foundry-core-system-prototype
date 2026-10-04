@@ -1503,146 +1503,219 @@ body.detached .tno.sheet.actor.character .sheet-banner {
   font-style: italic;
 }
 .tno .tno-advance-dialog {
-  gap: 10px;
-  padding: 6px 4px 4px;
-}
-.tno .tno-advance-dialog .advance-progress-head {
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 5px;
-  font-size: var(--font-size-12, 12px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 6px 2px 0;
+  color: #22262b;
 }
 .tno .tno-advance-dialog .advance-rank {
-  font-weight: bold;
+  font-size: var(--font-size-15, 15px);
+  font-weight: 700;
 }
-.tno .tno-advance-dialog .advance-rank .fas {
-  margin: 0 2px;
-  font-size: var(--font-size-10, 10px);
-  opacity: 0.6;
-}
-.tno .tno-advance-dialog .advance-xp-count {
-  font-variant-numeric: tabular-nums;
+.tno .tno-advance-dialog .advance-arrow {
   color: #5a5f66;
+  font-weight: 500;
+}
+.tno .tno-advance-dialog .advance-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 .tno .tno-advance-dialog .advance-bar {
-  height: 5px;
-  border-radius: 999px;
-  background: rgba(201, 196, 184, 0.35);
-  border: 1px solid rgba(201, 196, 184, 0.5);
+  height: 8px;
+  border-radius: 4px;
+  background: #d3cec3;
   overflow: hidden;
 }
 .tno .tno-advance-dialog .advance-bar-fill {
   height: 100%;
-  background: #5a5f66;
+  background: #3f5f33;
   transition: width 0.15s ease;
 }
-.tno .tno-advance-dialog .advance-bar-fill.ready {
-  background: #1f6b3a;
-}
-.tno .tno-advance-dialog .advance-actions {
-  gap: 6px;
-  align-items: stretch;
-}
-.tno .tno-advance-dialog .advance-actions .advance-action {
-  flex: 1;
+.tno .tno-advance-dialog .advance-progress-text {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  height: 26px;
-  margin: 0;
-  padding: 0 6px;
-  line-height: 1;
-  font-size: var(--font-size-11, 11px);
-}
-.tno .tno-advance-dialog .advance-actions .advance-buy {
-  flex: 1.5;
-}
-.tno .tno-advance-dialog .advance-actions .advance-buy:not(:disabled) {
-  border-color: #1f6b3a;
-  color: #1f6b3a;
-}
-.tno .tno-advance-dialog .advance-actions .advance-buy:not(:disabled):hover {
-  background: rgba(31, 107, 58, 0.12);
-}
-.tno .tno-advance-dialog .advance-actions .advance-buy:disabled {
-  opacity: 0.75;
-  border-color: rgba(201, 196, 184, 0.6);
-}
-.tno .tno-advance-dialog .advance-hint {
-  margin: -2px 0 0;
-  font-size: var(--font-size-10, 10px);
-  color: #5a5f66;
-  text-align: center;
+  justify-content: space-between;
+  font-size: var(--font-size-12, 12px);
   font-variant-numeric: tabular-nums;
 }
-.tno .tno-advance-dialog .advance-correction > summary {
+.tno .tno-advance-dialog .advance-remaining {
+  color: #5a5f66;
+}
+.tno .tno-advance-dialog .advance-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.tno .tno-advance-dialog .advance-stepper {
   display: flex;
   align-items: center;
-  gap: 5px;
-  list-style: none;
-  cursor: pointer;
+  flex: none;
+  border: 1px solid #c9c4b8;
+  border-radius: 6px;
+  background: #fff;
+  overflow: hidden;
 }
-.tno .tno-advance-dialog .advance-correction > summary::-webkit-details-marker {
-  display: none;
-}
-.tno .tno-advance-dialog .advance-correction > summary:focus-visible {
-  outline: 2px solid #2f5fd0;
-  outline-offset: -2px;
-}
-.tno .tno-advance-dialog .advance-correction > summary::after {
-  content: "▸";
-  font-size: var(--font-size-10, 10px);
-  color: #5a5f66;
-  opacity: 0.7;
-  transition: transform 0.15s ease;
-}
-.tno .tno-advance-dialog .advance-correction[open] > summary::after {
-  transform: rotate(90deg);
-}
-.tno .tno-advance-dialog .advance-correction {
-  padding-top: 8px;
-  border-top: 1px solid rgba(201, 196, 184, 0.5);
-}
-.tno .tno-advance-dialog .advance-correction > summary {
-  font-size: var(--font-size-10, 10px);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: #5a5f66;
-}
-.tno .tno-advance-dialog .advance-correction > summary::after {
-  margin-left: auto;
-}
-.tno .tno-advance-dialog .advance-correction[open] > summary {
-  margin-bottom: 5px;
-}
-.tno .tno-advance-dialog .advance-correction .flexrow {
-  gap: 8px;
-}
-.tno .tno-advance-dialog .advance-correction .form-group {
-  flex: 1;
+.tno .tno-advance-dialog .advance-stepper button {
+  width: 36px;
+  height: 36px;
   margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: #22262b;
+  font-size: var(--font-size-16, 16px);
+  font-weight: 600;
+  line-height: 1;
+  box-shadow: none;
 }
-.tno .tno-advance-dialog .advance-correction .form-group label {
-  display: block;
-  margin-bottom: 2px;
-  font-size: var(--font-size-10, 10px);
-  color: #5a5f66;
+.tno .tno-advance-dialog .advance-stepper button:hover:not(:disabled) {
+  background: rgba(34, 38, 43, 0.06);
 }
-.tno .tno-advance-dialog .advance-correction .form-group input {
-  width: 100%;
-  height: 26px;
-  margin: 0;
+.tno .tno-advance-dialog .advance-stepper button:disabled {
+  color: rgba(90, 95, 102, 0.5);
+}
+.tno .tno-advance-dialog .advance-step {
+  width: 52px;
+  border-left: 1px solid #d3cec3;
+  border-right: 1px solid #d3cec3;
+  font-size: var(--font-size-12, 12px);
+  font-weight: 600;
+  line-height: 36px;
   text-align: center;
 }
-.tno .tno-advance-dialog .sheet-footer {
-  margin-top: 2px;
-}
-.tno .tno-advance-dialog .sheet-footer button {
-  height: 28px;
+.tno .tno-advance-dialog .advance-buy {
+  flex: 1;
+  height: 38px;
   margin: 0;
-  line-height: 1;
+  border: 0;
+  border-radius: 6px;
+  background: #22262b;
+  color: #fff;
+  font-size: var(--font-size-13, 13px);
+  font-weight: 600;
+  box-shadow: none;
+}
+.tno .tno-advance-dialog .advance-buy:hover:not(:disabled) {
+  background: rgb(56.5194805195, 63.1688311688, 71.4805194805);
+}
+.tno .tno-advance-dialog .advance-buy:disabled {
+  border: 1px solid #c9c4b8;
+  background: #e9e6df;
+  color: #5a5f66;
+}
+.tno .tno-advance-dialog .advance-need {
+  margin: -4px 0 0;
+  color: rgb(126.2523076923, 91.9446153846, 7.5476923077);
   font-size: var(--font-size-12, 12px);
+}
+.tno .tno-advance-dialog .advance-correction {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #d3cec3;
+  border-radius: 6px;
+  background: rgba(233, 230, 223, 0.7);
+}
+.tno .tno-advance-dialog .advance-correction-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  color: #5a5f66;
+  font-size: var(--font-size-11, 11px);
+}
+.tno .tno-advance-dialog .advance-correction-title {
+  color: #22262b;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.tno .tno-advance-dialog .advance-correction-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.tno .tno-advance-dialog .advance-field {
+  display: flex;
+  align-items: center;
+  height: 30px;
+  box-sizing: border-box;
+  border: 1px solid #c9c4b8;
+  border-radius: 5px;
+  background: #fff;
+  overflow: hidden;
+}
+.tno .tno-advance-dialog .advance-field > button {
+  flex: none;
+  width: 26px;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: #22262b;
+  font-size: var(--font-size-14, 14px);
+  font-weight: 600;
+  line-height: 1;
+  box-shadow: none;
+}
+.tno .tno-advance-dialog .advance-field > button:hover {
+  background: rgba(34, 38, 43, 0.06);
+}
+.tno .tno-advance-dialog .advance-field label {
+  display: flex;
+  align-items: center;
+  width: 64px;
+  height: 100%;
+  padding-left: 6px;
+  box-sizing: border-box;
+  border-left: 1px solid #d3cec3;
+  border-right: 1px solid #d3cec3;
+}
+.tno .tno-advance-dialog .advance-field span {
+  color: #5a5f66;
+  font-size: var(--font-size-10, 10px);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.tno .tno-advance-dialog .advance-field input {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0 6px 0 0;
+  border: 0;
+  background: none;
+  font-size: var(--font-size-13, 13px);
+  font-weight: 600;
+  text-align: right;
+  box-shadow: none;
+  -moz-appearance: textfield;
+}
+.tno .tno-advance-dialog .advance-field input::-webkit-inner-spin-button, .tno .tno-advance-dialog .advance-field input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.tno .tno-advance-dialog .advance-apply {
+  width: auto;
+  height: 30px;
+  margin: 0 0 0 auto;
+  padding: 0 12px;
+  border: 1px solid #c9c4b8;
+  border-radius: 5px;
+  background: #fff;
+  font-size: var(--font-size-12, 12px);
+  font-weight: 600;
+}
+.tno .tno-advance-dialog .advance-footer {
+  padding: 8px 0 4px;
+  border-top: 1px solid #d3cec3;
+}
+.tno .tno-advance-dialog .advance-note {
+  color: #5a5f66;
+  font-size: var(--font-size-11, 11px);
 }
 .tno .tno-heatmap-lab {
   gap: 10px;

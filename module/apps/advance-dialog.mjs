@@ -12,8 +12,9 @@ const RANK_MAX = 10;
  *
  * It shows the current rank, the XP accumulated toward the next rank and the
  * cost of that next rank, and offers three guided actions — spend/refund a
- * single XP and "buy" the next rank — plus directly editable rank/XP fields
- * for correcting mistakes. Per the "Charakterentwicklung" rules, XP always
+ * single XP and "buy" the next rank — plus an always-open correction panel
+ * with directly editable rank/XP fields for fixing mistakes.
+ * There is no free XP pool: XP only ever exist on their attribute or skill. Per the "Charakterentwicklung" rules, XP always
  * belong to exactly one attribute or skill; buying a rank consumes that rank's
  * cost and any surplus carries over toward the next rank.
  *
@@ -47,8 +48,11 @@ export class TnoAdvanceDialog extends FormApplication {
       id: 'tno-advance-dialog',
       classes: ['tno', 'sheet'],
       template: 'systems/tno/templates/apps/advance-dialog.hbs',
-      width: 300,
-      closeOnSubmit: true,
+      // Room for the correction row: two stepped fields and Übernehmen.
+      width: 400,
+      // The correction stays in the dialog: it closes the correction panel
+      // and shows the corrected progress (see _updateObject).
+      closeOnSubmit: false,
     });
   }
 
@@ -98,10 +102,10 @@ export class TnoAdvanceDialog extends FormApplication {
 
     html.find('[data-action]').on('click', async (ev) => {
       ev.preventDefault();
+      const action = ev.currentTarget.dataset.action;
       // Fold any manual edits to the rank/XP fields back into working state
       // first, so guided actions build on what the user just typed.
       this._syncFromForm(html);
-      const action = ev.currentTarget.dataset.action;
       const step = ev.shiftKey ? 5 : 1;
 
       if (action === 'xp-inc') {
@@ -123,9 +127,20 @@ export class TnoAdvanceDialog extends FormApplication {
       this.render();
     });
 
-    // Native <details> grows the content but not the Foundry window frame, so
-    // recompute the auto height when the correction block opens/closes.
-    html.find('.advance-correction').on('toggle', () => this.setPosition({ height: 'auto' }));
+    // The correction steppers only change their field, within its min/max;
+    // Übernehmen saves. Shift steps by 5 like the XP stepper above.
+    html.find('[data-step]').on('click', (ev) => {
+      ev.preventDefault();
+      const input = html.find(`[name="${ev.currentTarget.dataset.step}"]`)[0];
+      if (!input) return;
+      const n = ev.shiftKey ? 5 : 1;
+      if (Number(ev.currentTarget.dataset.delta) > 0) input.stepUp(n);
+      else input.stepDown(n);
+    });
+
+    // A redraw adds or drops the hint line, which the V1 window frame does
+    // not follow by itself.
+    requestAnimationFrame(() => this.setPosition({ height: 'auto' }));
 
     // Surface native min/max validation on the correction fields instead of
     // silently clamping on save (see _updateObject).
@@ -181,5 +196,6 @@ export class TnoAdvanceDialog extends FormApplication {
     this.object.rank = Math.clamp(Math.round(Number(formData.rank) || 0), this._rankMin, RANK_MAX);
     this.object.xp = Math.max(0, Math.round(Number(formData.xp) || 0));
     await this._persist();
+    this.render();
   }
 }
