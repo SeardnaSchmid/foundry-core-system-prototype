@@ -1,65 +1,56 @@
 {{> 'systems/tno/templates/item/parts/item-gear-summary.hbs' showClose=true}}
 
-{{!-- Only actions backed by stored state. Weapon combat actions share the
-      primary row; every other item makes editing the primary action instead. --}}
-<footer class='item-popover-actions' aria-label='{{localize "TNO.Item.Overview.Actions"}}'>
-  {{#if canWeaponCheck}}
-    <div class='item-popover-actions-row item-popover-actions-row--lead item-popover-combat-actions'>
-      <button type='button' class='primary wide' data-popover-action='weapon-check'
+{{!-- One main action per role, under the values it acts on: attack (and
+      parry) for a weapon, wearing for armour, use for a consumable. A plain
+      item has none. Only actions backed by stored state. --}}
+{{#if (or canWeaponCheck canWeaponParry canWear canUse)}}
+  <div class='item-popover-lead'>
+    {{#if canWeaponCheck}}
+      <button type='button' class='item-popover-button primary grow' data-popover-action='weapon-check'
               title='{{localize "TNO.Item.Overview.WeaponCheckHint"}}'>
-        <i class='fa-solid fa-dice-d20' aria-hidden='true'></i>{{localize 'TNO.Item.Overview.WeaponCheck'}}
+        {{localize 'TNO.Item.Overview.WeaponCheck'}}
       </button>
-      {{#if canWeaponParry}}
-        <button type='button' data-popover-action='weapon-parry'
-                title='{{parryHint}}'>
-          <i class='fa-solid fa-shield-halved' aria-hidden='true'></i>{{localize 'TNO.Combat.Parry'}}
-          {{#if parryMalus}}<span class='defense-malus'>{{parryMalus}}</span>{{/if}}
-        </button>
-      {{/if}}
-    </div>
-  {{else}}
-    {{#if canWeaponParry}}
-      <div class='item-popover-actions-row item-popover-actions-row--lead item-popover-combat-actions'>
-        <button type='button' data-popover-action='weapon-parry'
-                title='{{parryHint}}'>
-          <i class='fa-solid fa-shield-halved' aria-hidden='true'></i>{{localize 'TNO.Combat.Parry'}}
-          {{#if parryMalus}}<span class='defense-malus'>{{parryMalus}}</span>{{/if}}
-        </button>
-      </div>
     {{/if}}
-  {{/if}}
-  <div class='item-popover-actions-row'>
-    <button type='button' data-popover-action='post'>
-      <i class='fa-solid fa-message' aria-hidden='true'></i>{{localize 'TNO.Item.Overview.Post'}}
-    </button>
-    {{#if canEdit}}
-      <button type='button' class='{{#unless canWeaponCheck}}primary{{/unless}}' data-popover-action='edit'>
-        <i class='fa-solid fa-pen' aria-hidden='true'></i>{{localize 'TNO.Item.Popover.Edit'}}
+    {{#if canWeaponParry}}
+      <button type='button' class='item-popover-button{{#unless canWeaponCheck}} grow{{/unless}}' data-popover-action='weapon-parry'
+              title='{{parryHint}}'>
+        {{localize 'TNO.Combat.Parry'}}
+        {{#if parryMalus}}<span class='defense-malus'>{{parryMalus}}</span>{{/if}}
       </button>
-      {{!-- Leave it behind or pick it up again — the click path beside dragging
-            it onto the Zurückgelassen block under the slots. --}}
-      {{#if canStash}}
-        <button type='button' data-popover-action='stash'
-                title='{{#if stashed}}{{localize "TNO.Inventory.UnstashHint"}}{{else}}{{localize "TNO.Inventory.StashHint"}}{{/if}}'>
-          {{#if stashed}}
-            <i class='fa-solid fa-hand' aria-hidden='true'></i>{{localize 'TNO.Inventory.Unstash'}}
-          {{else}}
-            <i class='fa-solid fa-box-archive' aria-hidden='true'></i>{{localize 'TNO.Inventory.Stash'}}
-          {{/if}}
-        </button>
-      {{/if}}
-      {{!-- Destructive, so it is the one action in this footer carrying no
-            label: a square icon pushed off the labelled pair by its own auto
-            margin. "Gegenstand löschen" is the longest string in the footer and
-            wrapped to two lines, which made the row's height — and the loudest
-            thing in it — the action nobody came here for. Every other delete
-            affordance in the system is already this: an icon whose name lives
-            in its tooltip. --}}
-      <button type='button' class='danger icon-only' data-popover-action='delete'
-              aria-label='{{localize "TNO.Item.Delete"}}'
-              {{#if canDelete}}title='{{localize "TNO.Item.Delete"}}'{{else}}disabled title='{{localize "TNO.Item.DeleteWornHint"}}'{{/if}}>
-        <i class='fa-solid fa-trash' aria-hidden='true'></i>
+    {{/if}}
+    {{#if canWear}}
+      <button type='button' class='item-popover-button grow' data-popover-action='wear'>
+        {{#if worn}}{{localize 'TNO.Armor.Unequip'}}{{else}}{{localize 'TNO.Armor.Equip'}}{{/if}}
+      </button>
+    {{/if}}
+    {{#if canUse}}
+      <button type='button' class='item-popover-button primary grow' data-popover-action='use'
+              title='{{localize "TNO.Item.Use.Hint"}}' {{#unless stock}}disabled{{/unless}}>
+        {{localize 'TNO.Item.Use.Label'}} <span class='aside'>(&minus;1)</span>
       </button>
     {{/if}}
   </div>
+{{/if}}
+
+{{!-- The quiet bar: what can be done to the item rather than with it. --}}
+<footer class='item-popover-footer' aria-label='{{localize "TNO.Item.Overview.Actions"}}'>
+  <button type='button' data-popover-action='post'>{{localize 'TNO.Item.Overview.Post'}}</button>
+  {{#if canEdit}}
+    <button type='button' data-popover-action='edit'>{{localize 'TNO.Item.Popover.Edit'}}</button>
+    {{!-- Leave it behind or pick it up again — the click path beside dragging
+          it onto the Zurückgelassen block under the slots. --}}
+    {{#if canStash}}
+      <button type='button' data-popover-action='stash'
+              title='{{#if stashed}}{{localize "TNO.Inventory.UnstashHint"}}{{else}}{{localize "TNO.Inventory.StashHint"}}{{/if}}'>
+        {{#if stashed}}{{localize 'TNO.Inventory.Unstash'}}{{else}}{{localize 'TNO.Inventory.Stash'}}{{/if}}
+      </button>
+    {{/if}}
+    {{!-- Destructive, so it carries no label: a square icon pushed off the
+          labelled actions by its own auto margin, its name in its tooltip. --}}
+    <button type='button' class='danger icon-only' data-popover-action='delete'
+            aria-label='{{localize "TNO.Item.Delete"}}'
+            {{#if canDelete}}title='{{localize "TNO.Item.Delete"}}'{{else}}disabled title='{{localize "TNO.Item.DeleteWornHint"}}'{{/if}}>
+      <i class='fa-solid fa-trash' aria-hidden='true'></i>
+    </button>
+  {{/if}}
 </footer>

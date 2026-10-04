@@ -2,7 +2,7 @@ import { angriffOptions, paradeOptions } from '../helpers/combat-actions.mjs';
 import { wornItemIds } from '../helpers/inventory.mjs';
 import { postedItemFlag } from '../helpers/item-transfer.mjs';
 import { prepareGearSummaryContext } from '../helpers/item-summary.mjs';
-import { clampGearNumber, hasRole, isGear } from '../helpers/items.mjs';
+import { clampGearNumber, hasRole, isGear, normalizeConsumableEffects } from '../helpers/items.mjs';
 
 /**
  * Extend the basic Item with some very simple modifications.
@@ -88,7 +88,7 @@ export class TnoItem extends Item {
     const content = isGear(this)
       ? await foundry.applications.handlebars.renderTemplate(
           'systems/tno/templates/chat/item-summary.hbs',
-          prepareGearSummaryContext(this)
+          await prepareGearSummaryContext(this)
         )
       : this.system.description ?? '';
     const flag = postedItemFlag(this);
@@ -130,6 +130,30 @@ export class TnoItem extends Item {
     const next = clampGearNumber(field, current + by);
     if (!Number.isFinite(next)) return;
     return this.update({ [field]: next });
+  }
+
+  /**
+   * Use one of a consumable stack: take it off the stock and say so in chat,
+   * with the written effects for the table to apply. Nothing is applied here —
+   * the effects are prose, not rules the system resolves.
+   */
+  async useConsumable() {
+    if (!hasRole(this, 'consumable') || (Number(this.system.quantity) || 0) <= 0) return;
+    await this.adjustStock(-1);
+    const content = await foundry.applications.handlebars.renderTemplate(
+      'systems/tno/templates/chat/item-use.hbs',
+      {
+        item: this,
+        effects: normalizeConsumableEffects(this.system).filter((effect) => effect.text.trim()),
+        remaining: Math.max(0, Number(this.system.quantity) || 0),
+      }
+    );
+    return ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      rollMode: game.settings.get('core', 'rollMode'),
+      flavor: game.i18n.format('TNO.Item.Use.Flavor', { item: this.name }),
+      content,
+    });
   }
 
 }

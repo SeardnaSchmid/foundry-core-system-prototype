@@ -1,0 +1,10 @@
+<div class='tno item-use-card'>
+  {{#if effects.length}}
+    <ul class='item-use-effects'>
+      {{#each effects}}<li>{{text}}</li>{{/each}}
+    </ul>
+  {{else}}
+    <p class='item-use-empty'>{{localize 'TNO.Item.Overview.NoEffect'}}</p>
+  {{/if}}
+  <p class='item-use-remaining'>{{localize 'TNO.Item.Use.Remaining' count=remaining}}</p>
+</div>

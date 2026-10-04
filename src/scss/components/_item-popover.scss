@@ -1,35 +1,30 @@
 // The view-mode card: compact item facts and actions, in the browser's native
 // top layer on the actor sheet and as an in-message card in chat.
 //
-// The layout is the wireframe's — badges, probe band, value tiles, warning,
-// detail rows, action bar. The *chrome* is deliberately not: the card is opened
-// from the character sheet and has to look like it belongs to that sheet, so it
-// borrows the Basics tab's vocabulary rather than the gear editor's high-
-// contrast black-and-white. Concretely:
+// The layout is the 2026-10 "Item-Popups" design: a header (art, name, kind ·
+// slots, status pill), the role's value tiles with any missing one marked and
+// named in a banner, the detail rows, one main action per role, and the other
+// actions as a quiet bar at the foot. Colours are the sheet redesign's:
 //
-// - quiet surfaces are `rgba($c-dark, .14)` hairlines at radius 8, like
-//   `.basics-section-card`;
-// - "this value is live" is the paper doll's worn green, the same step the
-//   armour rows and filled carry cells use;
-// - "nothing here" is a dashed $c-beige box, the same as an empty zone;
-// - a shortfall is $c-warning, shared with the Stärkevorraussetzung warning;
-// - the attack CTA is $c-primary, which _colors.scss reserves for exactly one
-//   thing: committing to a roll.
+// - white tiles on the $c-faint card, $c-rule-soft hairlines;
+// - worn is $c-worn-bg, the same blue the worn rows and silhouette use;
+// - a missing value is a dashed amber tile plus the amber banner;
+// - the main action is filled $c-dark, everything else outlined or bare.
 //
 // Like the gear dialog, the popover class sits on the same element as `.tno`,
 // hence `&`.
 &.item-popover {
   position: fixed;
   inset: auto;
-  width: min(300px, calc(100vw - 16px));
+  width: min(360px, calc(100vw - 16px));
   max-height: calc(100vh - 16px);
   margin: 0;
   padding: 0;
   overflow: auto;
-  border: 1px solid rgba($c-dark, 0.22);
+  border: 1px solid $c-beige;
   border-radius: 8px;
-  background: #f4f1e8;
-  box-shadow: 0 5px 18px rgba($c-black, 0.24);
+  background: $c-faint;
+  box-shadow: 0 8px 24px rgba($c-black, 0.18);
 
   &::backdrop {
     background: transparent;
@@ -39,7 +34,7 @@
 // Chat uses the exact same partial, presented as an in-message card instead of
 // a viewport-positioned top-layer element.
 &.item-chat-summary {
-  padding: 0 0 8px;
+  padding: 0;
   overflow: hidden;
   border: 1px solid rgba($c-dark, 0.14);
   border-radius: 8px;
@@ -50,6 +45,28 @@
   // floating above a strip of parchment.
   &:has(.item-chat-actions) {
     padding-bottom: 0;
+  }
+}
+
+// What "Benutzen" posts: the written effects, then what is left.
+&.item-use-card {
+  font-size: var(--font-size-12, 12px);
+  line-height: 1.45;
+
+  .item-use-effects {
+    margin: 0 0 6px;
+    padding-left: 18px;
+  }
+
+  .item-use-empty {
+    margin: 0 0 6px;
+    color: $c-tan;
+    font-style: italic;
+  }
+
+  .item-use-remaining {
+    margin: 0;
+    color: $c-tan;
   }
 }
 
@@ -72,49 +89,23 @@
   }
 
   .item-popover-head {
-    // Named so the art below can cancel them exactly. A hardcoded negative
-    // margin would drift the first time this padding is retuned — and the money
-    // popover already overrides it.
-    --head-pad-y: 9px;
-    --head-pad-x: 10px;
+    // Named so variants (the wallet) can retune the padding in one place.
+    --head-pad-y: 12px;
+    --head-pad-x: 12px;
 
     display: flex;
     align-items: flex-start;
-    gap: 9px;
+    gap: 12px;
     padding: var(--head-pad-y) var(--head-pad-x);
-    border-bottom: 1px solid rgba($c-dark, 0.14);
   }
 
-  // The item's own art as the header's leading block, bled to three edges
-  // instead of floating as a thumbnail inside the padding. It stops being a
-  // picture *in* the header and becomes the header's left half.
-  //
-  // `align-self: stretch` with `height: auto` is what makes it take the full
-  // height: the art no longer sets that height, the title stack does, so the
-  // block is exactly as tall as the name and badges beside it however many rows
-  // they run to. The negative margins cancel the header's own padding on the
-  // three outer sides; the fourth keeps the `gap` between art and title.
-  //
-  // No border or radius of its own — the container clips to its own 8px corner
-  // (both `.item-popover` and `.item-chat-summary` set `overflow`), which is
-  // also the only thing that stays correct when a tall popover scrolls. What
-  // separates art from text is the one hairline on its inner edge.
   .item-popover-head img {
-    align-self: stretch;
-    flex: 0 0 64px;
-    width: 64px;
-    height: auto;
-    // Below this the block reads as a stripe rather than a picture. It only
-    // binds on an item whose badges fit one row and whose name does not wrap.
-    min-height: 58px;
-    margin: calc(-1 * var(--head-pad-y)) 0 calc(-1 * var(--head-pad-y)) calc(-1 * var(--head-pad-x));
+    flex: 0 0 56px;
+    width: 56px;
+    height: 56px;
     border: 0;
-    border-right: 1px solid rgba($c-dark, 0.14);
-    border-radius: 0;
-    background: rgba($c-white, 0.5);
-    // `cover` now that the box is no longer square: the block is filled edge to
-    // edge, and core art is square enough that the crop is a few percent off
-    // the top and bottom.
+    border-radius: 6px;
+    background: $c-tan;
     object-fit: cover;
   }
 
@@ -122,144 +113,120 @@
     display: flex;
     flex: 1;
     flex-direction: column;
-    gap: 5px;
+    gap: 4px;
     min-width: 0;
 
     strong {
       overflow: hidden;
-      font-size: var(--font-size-14, 14px);
+      font-size: var(--font-size-16, 16px);
       line-height: 1.2;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
   }
 
+  .item-popover-subtitle {
+    color: #3b4047;
+    font-size: var(--font-size-11, 11px);
+    line-height: 1.3;
+  }
+
   .item-popover-close {
-    flex: 0 0 22px;
-    width: 22px;
-    height: 22px;
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
     padding: 0;
     border: none;
+    border-radius: 4px;
     background: transparent;
     color: $c-tan;
-    line-height: 22px;
+    font-size: var(--font-size-16, 16px);
+    line-height: 28px;
+
+    &:hover {
+      background: rgba($c-dark, 0.06);
+    }
   }
 
-  .item-popover-badges {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-
-  .item-popover-badge {
+  // Where the piece is: carried, on the body, or left behind.
+  .item-popover-state {
+    align-self: flex-start;
     padding: 2px 8px;
-    border: 1px solid rgba($c-dark, 0.18);
-    border-radius: 20px;
-    background: rgba($c-dark, 0.06);
+    border-radius: 10px;
+    background: #e2ded5;
+    color: #3b4047;
     font-size: var(--font-size-11, 11px);
+    font-weight: 600;
     line-height: 1.35;
 
-    // What the thing is, stated quietly. The role identifies the card; it is
-    // not a state, so it must not borrow the worn green.
-    &.role {
-      border-color: rgba($c-dark, 0.28);
-      background: rgba($c-dark, 0.1);
-      font-weight: bold;
+    &.worn {
+      background: $c-worn-bg;
+      color: #2f5d7c;
     }
 
-    &.zone {
-      border-color: $c-beige;
-      background: none;
-      color: $c-tan;
-    }
-
-    // Worn is the same green the paper doll and the armour rows use, because
-    // it is the same fact seen from a different surface.
-    &.state.worn {
-      border-color: $c-zone-filled-border;
-      background: $c-zone-filled-bg;
-    }
-
-    &.state.carried {
-      border-color: $c-beige;
+    &.stashed {
+      outline: 1px dashed $c-beige;
+      outline-offset: -1px;
       background: none;
       color: $c-tan;
     }
   }
 
-  // The two fixed components of an Angriffswurf, hairline-split inside one box
-  // because neither half is an answer on its own.
-  .item-popover-probe {
+  .item-popover-body {
     display: flex;
-    align-items: stretch;
-    margin: 9px 10px 0;
-    overflow: hidden;
-    border: 1px solid rgba($c-dark, 0.14);
-    border-radius: 8px;
-    background: rgba($c-white, 0.45);
+    flex-direction: column;
+    gap: 10px;
+    padding: 0 12px 12px;
 
-    > div {
-      display: flex;
-      flex: 1;
-      flex-direction: column;
-      gap: 2px;
-      min-width: 0;
-      padding: 5px 9px;
-
-      + div {
-        border-left: 1px solid rgba($c-dark, 0.14);
-      }
-    }
-
-    .val {
-      overflow: hidden;
-      font-size: var(--font-size-13, 13px);
-      font-weight: bold;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-
-      &.missing {
-        color: $c-warning;
-      }
+    &:empty {
+      display: none;
     }
   }
 
-  // One tile per number with a rules table behind it. The count is fixed per
-  // role, so an unfilled tile stays as a dashed or warning box rather than
-  // collapsing and changing the card's height.
+  // One tile per number with a rules table behind it; the long name is the
+  // tile's tooltip. Melee handling states attack and parry and gets the extra
+  // width for it.
   .item-popover-tiles {
     display: flex;
-    gap: 5px;
-    padding: 9px 10px 0;
+    gap: 6px;
   }
 
   .item-popover-tile {
     display: flex;
-    flex: 1;
+    flex: 1 1 0;
     flex-direction: column;
     align-items: center;
     min-width: 0;
-    padding: 5px 2px;
-    border: 1px solid rgba($c-dark, 0.14);
-    border-radius: 8px;
-    background: rgba($c-white, 0.5);
+    padding: 6px 0;
+    border: 1px solid $c-rule-soft;
+    border-radius: 6px;
+    background: $c-white;
+
+    &.wide {
+      flex-grow: 1.4;
+    }
 
     .val {
-      font-size: var(--font-size-16, 16px);
+      font-size: var(--font-size-18, 18px);
       font-weight: bold;
       font-variant-numeric: tabular-nums;
-      line-height: 1.2;
+      line-height: 1.3;
+      white-space: nowrap;
     }
 
-    // The one value a consumable has. Green-filled like a trained skill rank,
-    // which is the sheet's existing way of saying "this number is the point".
-    &.primary {
-      border-color: $c-zone-filled-border;
-      background: $c-zone-filled-bg;
+    &.wide .val {
+      font-size: var(--font-size-15, 15px);
+      line-height: 1.55;
     }
 
-    // Nothing to put here, by rule or by stack size. The same dashed idiom as
-    // an empty armour zone and a free carry cell.
+    .cap {
+      color: $c-tan;
+      font-size: var(--font-size-10, 10px);
+      font-weight: 600;
+      letter-spacing: 0.06em;
+    }
+
+    // Nothing written, and nothing required either.
     &.na {
       border-style: dashed;
       border-color: $c-beige;
@@ -267,170 +234,250 @@
 
       .val {
         color: $c-tan;
-        font-size: var(--font-size-12, 12px);
-        font-style: italic;
-        font-weight: normal;
-        line-height: 1.6;
       }
     }
 
     // A required value the item has not got. The same list the banner names.
     &.missing {
-      border-color: $c-warning;
-      background: rgba($c-warning, 0.08);
+      border: 1px dashed #c9a85a;
+      background: #fbf5e6;
 
-      .val {
-        color: $c-warning;
-        font-size: var(--font-size-12, 12px);
-        font-weight: normal;
-        line-height: 1.6;
-      }
-
+      .val,
       .cap {
-        color: $c-warning;
+        color: #9a7b33;
       }
     }
   }
 
-  // The stock is already the primary consumable value, so its quick action
-  // lives inside that tile instead of adding another row to the action footer.
-  // Its tight `− value +` cluster deliberately mirrors the attribute cells:
-  // the number is the focal point and the round steppers surface on hover.
+  // A consumable's one number, with its stepper — the stock row.
   .item-popover-stock {
     display: flex;
-    flex-direction: row;
     align-items: center;
-    justify-content: center;
-    gap: 4px;
-    min-height: 23px;
-    width: 100%;
+    justify-content: space-between;
+    padding: 6px 8px;
+    border: 1px solid $c-rule-soft;
+    border-radius: 6px;
+    background: $c-white;
 
-    > .val {
-      flex: 0 0 auto;
-      min-width: 30px;
+    .cap {
+      color: $c-tan;
+      font-size: var(--font-size-10, 10px);
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .val {
+      width: 32px;
       font-size: var(--font-size-18, 18px);
-      font-weight: 800;
-      line-height: 1;
+      font-weight: bold;
+      font-variant-numeric: tabular-nums;
       text-align: center;
     }
+  }
+
+  .item-popover-stepper {
+    display: flex;
+    align-items: center;
+    gap: 4px;
 
     button {
-      display: inline-flex;
-      flex: 0 0 16px;
-      align-items: center;
-      justify-content: center;
-      width: 16px;
-      height: 16px;
+      width: 28px;
+      height: 28px;
       padding: 0;
-      border: 1.5px solid $c-zone-filled-stroke;
-      border-radius: 50%;
-      background: rgba($c-zone-filled, 0.15);
-      color: $c-zone-filled-stroke;
-      font-size: var(--font-size-11, 11px);
-      font-weight: bold;
+      border: 1px solid $c-beige;
+      border-radius: 4px;
+      background: $c-faint;
+      color: $c-dark;
+      font-size: var(--font-size-15, 15px);
       line-height: 1;
-      opacity: 0.35;
-      transition: opacity 0.15s ease;
-
-      @media (hover: hover) and (pointer: fine) {
-        opacity: 0;
-      }
 
       &:hover:not(:disabled) {
-        filter: brightness(0.92);
-      }
-
-      &:focus-visible {
-        opacity: 1;
-        outline: none;
-      }
-
-      &:disabled {
-        opacity: 0.15;
+        background: $c-white;
       }
     }
-  }
-
-  .item-popover-tile:hover .item-popover-stock button {
-    opacity: 1;
-  }
-
-  .item-popover-tile:hover .item-popover-stock button:disabled {
-    opacity: 0.15;
-  }
-
-  // Recessive by design, in both the probe band and the tiles: the eye should
-  // land on the value, exactly as it does on an armour row's RH/RW/RA pair.
-  .item-popover-probe .cap,
-  .item-popover-tile .cap {
-    max-width: 100%;
-    overflow: hidden;
-    color: $c-tan;
-    font-size: var(--font-size-11, 11px);
-    font-weight: normal;
-    letter-spacing: 0.04em;
-    text-overflow: ellipsis;
-    text-transform: uppercase;
-    white-space: nowrap;
   }
 
   // Sits between the values and the actions, so the missing value is read on
-  // the way to the button that fixes it.
+  // the way to the link that fixes it.
   .item-popover-warning {
     display: flex;
-    gap: 6px;
-    margin: 9px 10px 0;
-    padding: 6px 8px;
-    border: 1px solid rgba($c-warning, 0.55);
-    border-radius: 8px;
-    background: rgba($c-warning, 0.07);
-    color: $c-warning;
-    font-size: var(--font-size-11, 11px);
+    align-items: flex-start;
+    gap: 8px;
+    margin: 0;
+    padding: 8px 10px;
+    border: 1px solid #d9be7c;
+    border-radius: 6px;
+    background: #f6ebcf;
+    color: #5c4310;
+    font-size: var(--font-size-12, 12px);
     line-height: 1.4;
+
+    > i {
+      flex: none;
+      margin-top: 2px;
+    }
+  }
+
+  // A link in look, a button in kind: it opens the editor, it goes nowhere.
+  .item-popover-link {
+    display: inline;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font-size: inherit;
+    font-weight: 600;
+    line-height: inherit;
+    text-decoration: underline;
+    cursor: pointer;
   }
 
   .item-popover-rows {
-    margin: 5px 10px 9px;
-    padding: 0;
-
-    > div {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      min-height: 24px;
-      padding: 3px 0;
-
-      + div {
-        border-top: 1px solid rgba($c-dark, 0.1);
-      }
-    }
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 4px 8px;
+    margin: 0;
+    font-size: var(--font-size-12, 12px);
 
     dt {
       color: $c-tan;
-      font-size: var(--font-size-11, 11px);
-      letter-spacing: 0.04em;
     }
 
     dd {
       min-width: 0;
       margin: 0;
       overflow-wrap: anywhere;
-      font-size: var(--font-size-12, 12px);
-      font-weight: bold;
+      font-weight: 600;
       font-variant-numeric: tabular-nums;
-      text-align: right;
+
+      &.missing {
+        color: #9a7b33;
+      }
     }
 
     .note {
-      font-size: var(--font-size-11, 11px);
-      font-weight: normal;
+      font-weight: 600;
 
       &.ok {
-        color: $c-tan;
+        color: $c-ready;
       }
 
       &.warning {
+        color: $c-warning;
+      }
+    }
+  }
+
+  .item-popover-description {
+    margin: 0;
+    font-size: var(--font-size-12, 12px);
+    line-height: 1.45;
+
+    > :first-child {
+      margin-top: 0;
+    }
+
+    > :last-child {
+      margin-bottom: 0;
+    }
+
+    &.empty {
+      color: #6a6f75;
+      font-style: italic;
+    }
+  }
+
+  // The role's one main action, under the values it acts on.
+  .item-popover-lead {
+    display: flex;
+    gap: 6px;
+    margin-top: -2px;
+    padding: 0 12px 12px;
+  }
+
+  .item-popover-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid $c-beige;
+    border-radius: 6px;
+    background: $c-white;
+    color: $c-dark;
+    font-size: var(--font-size-13, 13px);
+    font-weight: 600;
+    white-space: nowrap;
+
+    &.grow {
+      flex: 1;
+    }
+
+    &:hover:not(:disabled) {
+      border-color: $c-tan;
+    }
+
+    &.primary {
+      border-color: $c-dark;
+      background: $c-dark;
+      color: $c-white;
+
+      &:hover:not(:disabled) {
+        background: #3b4047;
+      }
+
+      .aside {
+        color: #c9ccd0;
+        font-weight: normal;
+      }
+    }
+
+    &:focus {
+      box-shadow: none;
+    }
+
+    .defense-malus {
+      color: $c-warning;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  // Everything done *to* the item rather than with it: quiet text buttons on a
+  // darker strip, delete pushed to the far end as a bare icon.
+  .item-popover-footer {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 8px;
+    border-top: 1px solid $c-rule-soft;
+    background: #eeebe4;
+
+    button {
+      height: 28px;
+      padding: 0 8px;
+      border: 0;
+      border-radius: 4px;
+      background: none;
+      color: #3b4047;
+      font-size: var(--font-size-12, 12px);
+      white-space: nowrap;
+
+      &:hover:not(:disabled) {
+        background: rgba($c-dark, 0.07);
+      }
+
+      &.icon-only {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        margin-left: auto;
+        padding: 0;
+      }
+
+      &.danger {
         color: $c-warning;
       }
     }
@@ -1036,6 +1083,7 @@
     --head-pad-x: 12px;
 
     gap: 9px;
+    border-bottom: 1px solid rgba($c-dark, 0.14);
   }
 
   .item-popover-title strong {

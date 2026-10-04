@@ -46,7 +46,8 @@ $c-warning: #8e2a2a;
 $c-advance: #b8860b;
 
 // The interactive "commit to this action" accent — the roll dialog's main CTA
-// button, and the item card's "Angriff würfeln", which opens that same dialog.
+// button. (The item card's main action is filled ink instead, per the 2026-10
+// Item-Popups design.)
 // A clear blue, distinct from both $c-advance's "level up" gold and $c-ready's
 // "affordable" green, so rolling the dice reads as the one primary action and
 // doesn't blend into stat/progression colours. Nothing that is not a roll takes

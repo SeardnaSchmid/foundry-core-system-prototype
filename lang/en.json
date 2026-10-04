@@ -548,16 +548,23 @@
       "Summary": {
         "Stock": "Stock",
         "Dk": "DK",
-        "HhActive": "HH atk",
-        "HhAttack": "Attack",
-        "HhParry": "Parry",
-        "WeaponAttribute": "Weapon attribute",
         "SkillRequirement": "Skill requirement",
-        "QuantityFrom2": "Qty from 2",
         "Na": "n/a",
         "Missing": "missing",
         "RequirementShort": "{delta} not met",
-        "MissingBanner": "Required values missing: {fields} — add them in the editor."
+        "MissingBanner": "Required values missing: {fields} — add them in the editor.",
+        "Hh": "HH",
+        "Attribute": "Attribute",
+        "Skill": "Skill",
+        "Kind": "{role} / {detail}",
+        "SlotOne": "{count} Slot",
+        "SlotMany": "{count} Slots",
+        "TileMissing": "{label} – missing",
+        "MissingOne": "{fields} is missing.",
+        "MissingMany": "{fields} are missing.",
+        "FixInEditor": "Add in the editor",
+        "HhAttack": "Attack",
+        "HhParry": "Parry"
       },
       "Popover": {
         "Edit": "Edit",
@@ -573,7 +580,13 @@
         "Footprint": "Space",
         "Value": "Value"
       },
-      "Edit": "Edit item"
+      "Edit": "Edit item",
+      "Use": {
+        "Label": "Use",
+        "Hint": "Take one off the stock and show its effect in chat.",
+        "Flavor": "{item} used",
+        "Remaining": "Remaining: {count}"
+      }
     },
     "Roll": {
       "DialogTitle": "Dice Roll",
@@ -948,7 +961,8 @@
         "Torso": "Torso",
         "Arms": "Arms",
         "Legs": "Legs"
-      }
+      },
+      "Equip": "Equip"
     },
     "Inventory": {
       "CarrySlots": "Inventory",

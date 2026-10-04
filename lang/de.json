@@ -548,16 +548,23 @@
       "Summary": {
         "Stock": "Bestand",
         "Dk": "DK",
-        "HhActive": "HH akt",
-        "HhAttack": "Angriff",
-        "HhParry": "Parade",
-        "WeaponAttribute": "Waffenattribut",
         "SkillRequirement": "Fertigkeitsvoraussetzung",
-        "QuantityFrom2": "Menge ab 2",
         "Na": "n/a",
         "Missing": "fehlt",
         "RequirementShort": "{delta} nicht erfüllt",
-        "MissingBanner": "Pflichtwerte fehlen: {fields} — im Editor nachtragen."
+        "MissingBanner": "Pflichtwerte fehlen: {fields} — im Editor nachtragen.",
+        "Hh": "HH",
+        "Attribute": "Attribut",
+        "Skill": "Fertigkeit",
+        "Kind": "{role} / {detail}",
+        "SlotOne": "{count} Slot",
+        "SlotMany": "{count} Slots",
+        "TileMissing": "{label} – fehlt",
+        "MissingOne": "{fields} fehlt.",
+        "MissingMany": "{fields} fehlen.",
+        "FixInEditor": "Im Editor ergänzen",
+        "HhAttack": "Angriff",
+        "HhParry": "Parade"
       },
       "Popover": {
         "Edit": "Bearbeiten",
@@ -573,7 +580,13 @@
         "Footprint": "Platz",
         "Value": "Wert"
       },
-      "Edit": "Gegenstand bearbeiten"
+      "Edit": "Gegenstand bearbeiten",
+      "Use": {
+        "Label": "Benutzen",
+        "Hint": "Eins vom Bestand abziehen und die Wirkung im Chat zeigen.",
+        "Flavor": "{item} benutzt",
+        "Remaining": "Verbleibend: {count}"
+      }
     },
     "Roll": {
       "DialogTitle": "Würfelwurf",
@@ -948,7 +961,8 @@
         "Torso": "Torso",
         "Arms": "Arme",
         "Legs": "Beine"
-      }
+      },
+      "Equip": "Anlegen"
     },
     "Inventory": {
       "CarrySlots": "Inventar",

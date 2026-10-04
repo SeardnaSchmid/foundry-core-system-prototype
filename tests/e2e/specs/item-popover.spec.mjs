@@ -21,10 +21,10 @@ test('carry-cell popover stays open across actions and opens the editor directly
   const popover = world.page.locator('.tno.item-popover');
   await expect(popover).toBeVisible();
   await expect(popover.locator('.item-popover-head')).toContainText('Popover Carbine');
-  await expect(popover.locator('.item-popover-badges')).toContainText('Ranged');
-  await expect(popover.locator('.item-popover-stats')).toContainText('Shooting 3');
+  await expect(popover.locator('.item-popover-subtitle')).toContainText('Ranged');
+  await expect(popover.locator('.item-popover-rows')).toContainText('Shooting 3');
 
-  const summaryParts = '.item-popover-head, .item-popover-badges, .item-popover-stats';
+  const summaryParts = '.item-popover-head, .item-popover-tiles, .item-popover-rows';
   const expectedSummary = await popover.locator(summaryParts).allInnerTexts();
   await popover.locator('[data-popover-action="post"]').click();
   // See combat-attack.spec.mjs: v14's chat log is a class, and the floating

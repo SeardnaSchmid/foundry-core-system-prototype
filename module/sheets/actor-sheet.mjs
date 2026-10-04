@@ -1645,16 +1645,16 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   }
 
   /** Build the popover's template context from the live embedded item. */
-  #itemPopoverContext(item) {
-    const base = prepareGearSummaryContext(item);
-    const { roles } = base;
+  async #itemPopoverContext(item) {
+    const base = await prepareGearSummaryContext(item);
+    const { roles, stock } = base;
     const skill = getSkillDefinitions(item.actor)[item.system.fv?.skill];
     const canEdit = this.isEditable;
-    const stock = Math.max(0, Number(item.system.quantity) || 0);
     const parryMalus = Number(item.actor?.system?.derived?.defenses?.parry?.malus) || 0;
     // A piece left behind is not in hand: it keeps its card but offers no
-    // combat action until it is picked up again.
+    // combat action, no wearing and no use until it is picked up again.
     const stashed = isStashed(item);
+    const [zone] = armorZones(item);
     return {
       ...base,
       canEdit,
@@ -1670,8 +1670,11 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       parryHint: parryMalus < 0
         ? game.i18n.format('TNO.Combat.NextDefenseMalus', { value: parryMalus })
         : game.i18n.localize('TNO.Combat.ParryHint'),
+      canWear: canEdit && roles.armor && !stashed && !!zone,
+      worn: item.isWorn,
       canAdjustStock: canEdit && roles.consumable,
       canDecreaseStock: canEdit && roles.consumable && stock > 0,
+      canUse: canEdit && roles.consumable && !stashed,
       canDelete: canEdit && !item.isWorn,
     };
   }
@@ -1693,7 +1696,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       : null;
     const html = await foundry.applications.handlebars.renderTemplate(
       'systems/tno/templates/actor/parts/item-popover.hbs',
-      this.#itemPopoverContext(item)
+      await this.#itemPopoverContext(item)
     );
     if (this._itemPopover !== popover || this._itemPopoverItemId !== itemId) return;
     popover.innerHTML = html;
@@ -1762,6 +1765,14 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         return item.openWeaponParry();
       case 'stock':
         return item.adjustStock(Number(control.dataset.by));
+      // Both stay open: the card is still the one being looked at, and the
+      // re-render refreshes its stock or worn state in place.
+      case 'use':
+        return item.useConsumable();
+      case 'wear': {
+        const [zone] = armorZones(item);
+        return this._setEquippedArmor(zone, item.isWorn ? null : item.id);
+      }
       // Stays open like `stock`: the card is still the one being looked at,
       // and the re-render refreshes it in place.
       case 'stash':

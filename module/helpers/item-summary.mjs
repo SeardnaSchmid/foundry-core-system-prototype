@@ -6,13 +6,13 @@ import { getSkillDefinitions } from './skills.mjs';
  * Add localized display strings to the global-free compact summary.
  *
  * Every value the card shows is finished here, so the templates hold no
- * formatting decisions: a tile that is `na` or `missing` says so in words, and
- * the two structured values — the weapon attribute's key and the FV's skill —
- * are resolved against the owning actor. An FV whose skill no longer exists on
- * that actor reads as missing rather than as a raw key.
+ * formatting decisions: the header's type line and slot count, a tile that is
+ * `na` or `missing`, and the two structured values — the weapon attribute's key
+ * and the FV's skill — resolved against the owning actor. An FV whose skill no
+ * longer exists on that actor reads as missing rather than as a raw key.
  *
  * @param {Item} item
- * @returns {{badges: Array, probe: ?Object, tiles: Array, rows: Array, missing: string[]}}
+ * @returns {{subtitle: string, probe: ?Object, tiles: Array, rows: Array, missing: string[]}}
  */
 export function localizeGearSummary(item) {
   const definitions = getSkillDefinitions(item.actor);
@@ -20,10 +20,17 @@ export function localizeGearSummary(item) {
   const loc = (key) => game.i18n.localize(key);
   const absent = () => loc('TNO.Item.Summary.Missing');
 
-  const badges = summary.badges.map((badge) => ({
-    ...badge,
-    text: badge.labelKeys.map(loc).join(badge.join),
-  }));
+  // "Waffe / Nahkampf · 4 Slots": what it is, then what it costs to carry. A
+  // stack's size joins the line for the roles whose card has no stock row.
+  const { roleKey, detailKey } = summary.typeLine;
+  const kind = detailKey
+    ? game.i18n.format('TNO.Item.Summary.Kind', { role: loc(roleKey), detail: loc(detailKey) })
+    : loc(roleKey);
+  const subtitle = [
+    kind,
+    game.i18n.format(summary.slots === 1 ? 'TNO.Item.Summary.SlotOne' : 'TNO.Item.Summary.SlotMany', { count: summary.slots }),
+    ...(summary.quantity > 1 && !itemRoles(item).consumable ? [`×${summary.quantity}`] : []),
+  ].join(' · ');
 
   let probe = null;
   if (summary.probe) {
@@ -36,7 +43,7 @@ export function localizeGearSummary(item) {
       },
       fv: {
         labelKey: summary.probe.fv.labelKey,
-        display: definition ? `${definition.label}: ${summary.probe.fv.value.rank}` : absent(),
+        display: definition ? `${definition.label} ${summary.probe.fv.value.rank}` : absent(),
         missing: !definition,
       },
     };
@@ -48,42 +55,55 @@ export function localizeGearSummary(item) {
 
   const tiles = summary.tiles.map((tile) => ({
     ...tile,
-    display: tile.state === 'missing' ? absent()
-      : tile.state === 'na' ? loc('TNO.Item.Summary.Na')
-        : tile.decimal ? decimal.format(tile.value)
-          : tile.value,
+    display: tile.state === 'value' ? (tile.decimal ? decimal.format(tile.value) : tile.value) : '–',
+    title: tile.state === 'missing'
+      ? game.i18n.format('TNO.Item.Summary.TileMissing', { label: loc(tile.titleKey) })
+      : loc(tile.titleKey),
   }));
 
   const rows = summary.rows.map((row) => ({
     ...row,
-    display: row.parts
-      ? row.parts.map((part) => `${loc(part.labelKey)} ${part.value}`).join(' · ')
-      : `${row.value}${row.suffix ? ` ${row.suffix}` : ''}`,
+    display: `${row.prefixKey ? `${loc(row.prefixKey)} ` : ''}${row.value}`,
     note: row.note
       ? { state: row.note.state, text: game.i18n.format(row.note.labelKey, row.note.params ?? {}) }
       : null,
   }));
 
-  return { badges, probe, tiles, rows, missing: summary.missing };
+  return { subtitle, probe, tiles, rows, missing: summary.missing };
 }
 
-/** Build the shared template context used by the popover and chat card. */
-export function prepareGearSummaryContext(item) {
+/**
+ * Build the shared template context used by the popover and chat card.
+ *
+ * Async because a plain item — the one role with no numbers to show — shows
+ * its description instead, and that is enriched HTML.
+ */
+export async function prepareGearSummaryContext(item) {
   const presentation = buildGearPresentation(item, item.actor);
   presentation.ownership.label = presentation.ownership.state
     ? `TNO.Inventory.${presentation.ownership.state[0].toUpperCase()}${presentation.ownership.state.slice(1)}`
     : null;
+  const roles = itemRoles(item);
+  const plain = !roles.weapon && !roles.armor && !roles.consumable;
   const missing = missingRequired(item);
   return {
     item,
-    roles: itemRoles(item),
+    roles,
+    plain,
     presentation,
     summary: localizeGearSummary(item),
+    stock: Math.max(0, Number(item.system.quantity) || 0),
+    description: plain && item.system.description
+      ? await foundry.applications.ux.TextEditor.implementation.enrichHTML(item.system.description, {
+          secrets: item.isOwner,
+          relativeTo: item,
+        })
+      : '',
     missingCount: missing.length,
     // Named rather than counted: the card is read instead of the editor, so
     // "RA is missing" is the useful sentence and "3 fields open" is not.
     missingFields: missing
       .map((field) => game.i18n.localize(MISSING_FIELD_LABELS[field] ?? field))
-      .join(' · '),
+      .join(', '),
   };
 }

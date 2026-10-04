@@ -153,8 +153,8 @@ on opposite sides of that line.
   no picture rather than a placeholder that would mean nothing. Rerolls do not
   disturb it: the edge actions patch sub-containers of a persisted card, never
   its heading.
-- The item popover keeps Attack primary and places Parry alongside it in the
-  combat row.
+- The item popover keeps Attack primary (filled) and places Parry alongside it
+  in the main-action row.
   [`actor-paperdoll.hbs`](../../../templates/actor/parts/actor-paperdoll.hbs)
   places the location-independent Dodge action beneath the silhouette and
   carries each location's resistance trigger twice: the silhouette's four

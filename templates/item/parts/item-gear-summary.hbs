@@ -1,19 +1,15 @@
 {{!-- The play-facing view of one piece of gear, shared by the actor sheet's
-      popover and the chat card. Read top to bottom: what it is, what a check
-      with it starts from, its numbers, what is still missing, then the facts
-      that need a sentence. Nothing about buying it appears here. --}}
+      popover and the chat card. Read top to bottom: what it is and where it
+      is, its numbers, what is still missing, what a check with it starts from,
+      then the stock or the description. Nothing about buying it appears here. --}}
 <header class='item-popover-head'>
-  <img src='{{item.img}}' width='64' height='64' alt=''/>
+  <img src='{{item.img}}' width='56' height='56' alt=''/>
   <div class='item-popover-title'>
     <strong>{{item.name}}</strong>
-    <div class='item-popover-badges'>
-      {{#each summary.badges}}
-        <span class='item-popover-badge {{state}}'>{{text}}</span>
-      {{/each}}
-      {{#if presentation.ownership.label}}
-        <span class='item-popover-badge state {{presentation.ownership.state}}'>{{localize presentation.ownership.label}}</span>
-      {{/if}}
-    </div>
+    <span class='item-popover-subtitle'>{{summary.subtitle}}</span>
+    {{#if presentation.ownership.label}}
+      <span class='item-popover-state {{presentation.ownership.state}}'>{{localize presentation.ownership.label}}</span>
+    {{/if}}
   </div>
   {{#if showClose}}
     <button type='button' class='item-popover-close' data-popover-action='close'
@@ -24,64 +20,76 @@
   {{/if}}
 </header>
 
-{{#if summary.probe}}
-  <div class='item-popover-probe'>
-    <div>
-      <span class='cap'>{{localize summary.probe.attribute.labelKey}}</span>
-      <span class='val{{#if summary.probe.attribute.missing}} missing{{/if}}'>{{summary.probe.attribute.display}}</span>
-    </div>
-    <div>
-      <span class='cap'>{{localize summary.probe.fv.labelKey}}</span>
-      <span class='val{{#if summary.probe.fv.missing}} missing{{/if}}'>{{summary.probe.fv.display}}</span>
-    </div>
-  </div>
-{{/if}}
-
-{{#if summary.tiles.length}}
-  <div class='item-popover-tiles'>
-    {{#each summary.tiles}}
-      <div class='item-popover-tile {{state}}'>
-        {{#ifEquals key 'stock'}}
-          {{#if @root.canAdjustStock}}
-            <div class='item-popover-stock'>
-              <button type='button' data-popover-action='stock' data-by='-1'
-                      title='{{localize "TNO.Item.Overview.StockDecrease"}}'
-                      aria-label='{{localize "TNO.Item.Overview.StockDecrease"}}'
-                      {{#unless @root.canDecreaseStock}}disabled{{/unless}}>&minus;</button>
-              <span class='val'>{{display}}</span>
-              <button type='button' data-popover-action='stock' data-by='1'
-                      title='{{localize "TNO.Item.Overview.StockIncrease"}}'
-                      aria-label='{{localize "TNO.Item.Overview.StockIncrease"}}'>+</button>
-            </div>
-          {{else}}
-            <span class='val'>{{display}}</span>
-          {{/if}}
-        {{else}}
+<div class='item-popover-body'>
+  {{#if summary.tiles.length}}
+    <div class='item-popover-tiles'>
+      {{#each summary.tiles}}
+        <div class='item-popover-tile {{state}}{{#if wide}} wide{{/if}}' title='{{title}}'>
           <span class='val'>{{display}}</span>
-        {{/ifEquals}}
-        <span class='cap'>{{localize labelKey}}</span>
-      </div>
-    {{/each}}
-  </div>
-{{/if}}
+          <span class='cap'>{{localize labelKey}}</span>
+        </div>
+      {{/each}}
+    </div>
+  {{/if}}
 
-{{#if missingCount}}
-  <p class='item-popover-warning'>
-    <i class='fa-solid fa-triangle-exclamation' aria-hidden='true'></i>
-    {{localize 'TNO.Item.Summary.MissingBanner' fields=missingFields}}
-  </p>
-{{/if}}
+  {{#if roles.consumable}}
+    <div class='item-popover-stock'>
+      <span class='cap'>{{localize 'TNO.Item.Summary.Stock'}}</span>
+      {{#if @root.canAdjustStock}}
+        <span class='item-popover-stepper'>
+          <button type='button' data-popover-action='stock' data-by='-1'
+                  title='{{localize "TNO.Item.Overview.StockDecrease"}}'
+                  aria-label='{{localize "TNO.Item.Overview.StockDecrease"}}'
+                  {{#unless @root.canDecreaseStock}}disabled{{/unless}}>&minus;</button>
+          <span class='val'>{{stock}}</span>
+          <button type='button' data-popover-action='stock' data-by='1'
+                  title='{{localize "TNO.Item.Overview.StockIncrease"}}'
+                  aria-label='{{localize "TNO.Item.Overview.StockIncrease"}}'>+</button>
+        </span>
+      {{else}}
+        <span class='val'>{{stock}}</span>
+      {{/if}}
+    </div>
+  {{/if}}
 
-{{#if summary.rows.length}}
-  <dl class='item-popover-rows'>
-    {{#each summary.rows}}
-      <div>
+  {{!-- Sits between the values and the actions, so the missing value is read
+        on the way to the button that fixes it. The link only where there is an
+        editor to open: the popover, for someone who may edit. --}}
+  {{#if missingCount}}
+    <p class='item-popover-warning' role='note'>
+      <i class='fa-solid fa-circle-info' aria-hidden='true'></i>
+      <span>
+        <b>{{#ifEquals missingCount 1}}{{localize 'TNO.Item.Summary.MissingOne' fields=missingFields}}{{else}}{{localize 'TNO.Item.Summary.MissingMany' fields=missingFields}}{{/ifEquals}}</b>
+        {{#if @root.canEdit}}
+          <button type='button' class='item-popover-link' data-popover-action='edit'>{{localize 'TNO.Item.Summary.FixInEditor'}}</button>
+        {{/if}}
+      </span>
+    </p>
+  {{/if}}
+
+  {{#if (or summary.probe summary.rows.length)}}
+    <dl class='item-popover-rows'>
+      {{#if summary.probe}}
+        <dt>{{localize summary.probe.attribute.labelKey}}</dt>
+        <dd class='{{#if summary.probe.attribute.missing}}missing{{/if}}'>{{summary.probe.attribute.display}}</dd>
+        <dt>{{localize summary.probe.fv.labelKey}}</dt>
+        <dd class='{{#if summary.probe.fv.missing}}missing{{/if}}'>{{summary.probe.fv.display}}</dd>
+      {{/if}}
+      {{#each summary.rows}}
         <dt>{{localize labelKey}}</dt>
         <dd>
           {{display}}
-          {{#if note}}<span class='note {{note.state}}'>· {{note.text}}</span>{{/if}}
+          {{#if note}}<span class='note {{note.state}}'>{{#ifEquals note.state 'ok'}}<i class='fa-solid fa-check' aria-hidden='true'></i>{{/ifEquals}} {{note.text}}</span>{{/if}}
         </dd>
-      </div>
-    {{/each}}
-  </dl>
-{{/if}}
+      {{/each}}
+    </dl>
+  {{/if}}
+
+  {{#if plain}}
+    {{#if description}}
+      <div class='item-popover-description'>{{{description}}}</div>
+    {{else}}
+      <p class='item-popover-description empty'>{{localize 'TNO.Item.Overview.NoDescription'}}</p>
+    {{/if}}
+  {{/if}}
+</div>

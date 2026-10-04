@@ -3,7 +3,7 @@ type: concept
 title: Item roles and the gear dialog
 description: Why a physical item has roles instead of a Foundry item type, and how the row-editor sheet is built from them.
 tags: [items, roles, weapons, armor, sheets, schema]
-resource: [module/apps/item-overview.mjs, module/helpers/item-audit.mjs, module/apps/roll-dialog.mjs, module/documents/item.mjs, module/helpers/items.mjs, module/helpers/item-presentation.mjs, module/helpers/item-summary.mjs, module/helpers/item-transfer.mjs, module/sheets/actor-sheet.mjs, module/sheets/item-gear-sheet.mjs, templates/actor/parts/item-popover.hbs, templates/apps/create-item-dialog.hbs, templates/apps/take-item-dialog.hbs, templates/apps/roll-dialog.hbs, templates/chat/item-summary.hbs, templates/item/item-gear-sheet.hbs, templates/item/parts/item-gear-summary.hbs, templates/item/parts/item-role-weapon.hbs, templates/item/parts/item-post.hbs]
+resource: [module/apps/item-overview.mjs, module/helpers/item-audit.mjs, module/apps/roll-dialog.mjs, module/documents/item.mjs, module/helpers/items.mjs, module/helpers/item-presentation.mjs, module/helpers/item-summary.mjs, module/helpers/item-transfer.mjs, module/sheets/actor-sheet.mjs, module/sheets/item-gear-sheet.mjs, templates/actor/parts/item-popover.hbs, templates/apps/create-item-dialog.hbs, templates/apps/take-item-dialog.hbs, templates/apps/roll-dialog.hbs, templates/chat/item-summary.hbs, templates/chat/item-use.hbs, templates/item/item-gear-sheet.hbs, templates/item/parts/item-gear-summary.hbs, templates/item/parts/item-role-weapon.hbs, templates/item/parts/item-post.hbs]
 spec: docs/design/character-sheet-prd.md
 related: [concepts/combat-roll-workflows, concepts/inventory, concepts/migrations, reference/ui-surfaces, architecture/data-schema]
 ---
@@ -258,48 +258,45 @@ buttons so Enter/Space and disabled/focus semantics come from the browser.
 ## The view-mode card
 
 The compact summary is one card, built once in `buildGearSummary` and rendered
-by both the actor-sheet popover and the chat item card. It is read top to
-bottom in four passes, and the shape is per role:
+by both the actor-sheet popover and the chat item card. Its layout is the
+2026-10 "Item-Popups" design and is read top to bottom; the shape is per role:
 
 | Band | What it holds |
 | --- | --- |
-| Badges | The role chip (filled), the weapon's use joined into it, the armour location, and the carried/worn state |
-| Probe band | A weapon's Waffenattribut and Fertigkeitsvoraussetzung, hairline-split in one box because neither half is an answer alone |
-| Tiles | The numbers with a rules table behind them — DK/RB/SS/WS for a melee weapon, RD/SS/WS/HH for a ranged one, RH/RW/RA for armour, Bestand + Trageslots for a consumable, Trageslots + Menge for a plain object |
-| Warning | Which required values are still blank, sitting between the numbers and the button that fixes them |
-| Rows | Everything needing a sentence: Handhabung, the stack's carry cost, and the SV against its owner's Strength |
+| Header | Art, name, the kind line (`Waffe / Nah · 4 Slots`, a stack's `×n` appended for non-consumables) and the carried / worn / left-behind pill |
+| Tiles | The numbers with a rules table behind them, long name in the tooltip — DK/RB/S/WS/HH (attack / parry, wide) for a melee weapon, RB/S/WS/HH for a ranged one, SV/RH/RW/RA for armour (no RA on an Unterkleidung). Consumables and plain items have none |
+| Stock | A consumable's Bestand, as a row with its `−` / `+` stepper |
+| Warning | Which required values are still blank, with an "Im Editor ergänzen" link in the popover |
+| Rows | A weapon's Attribut and Fertigkeit, and an SV requirement against its owner's Strength |
+| Description | A plain item only — the one role with no numbers to show |
 
 Three properties of that card matter:
 
-**A tile never collapses.** The tile count is fixed within a role, so a value
-the item has not got stays as a hatched `na` box or, when the role requires it,
-a `missing` box in the warning colour. This is the same reason the editor
-hatches instead of hiding, and it is what keeps a shelf of cards aligned.
+**One list decides both the tile and the banner.** A `missing` tile (dashed
+amber, `–`) and the warning banner both read `missingRequired`, so they cannot
+disagree. The one place that list encodes a rule is the Unterkleidung: the
+Rüstungstabelle writes every suit row as RH 0 and RA `–`, so neither is a value
+a suit is missing. The RH tile reads the fixed `0`, there is no RA tile, and
+the piece is complete.
 
-**One list decides both the tile and the banner.** A `missing` tile and the
-warning banner both read `missingRequired`, so they cannot disagree. The one
-place that list encodes a rule is the Unterkleidung: the Rüstungstabelle writes
-every suit row as RH 0 and RA `–`, so neither is a value a suit is missing. The
-RH tile reads the fixed `0`, the RA tile is `na`, and the piece is complete.
+**One main action per role, the rest quiet.** Under the values sits the role's
+action: Angriff würfeln (filled) and Parade for a weapon, Anlegen / Ablegen for
+armour, Benutzen (−1) for a consumable — `TnoItem#useConsumable()` takes one off
+the stock and posts the written effects (`chat/item-use.hbs`); nothing is
+applied automatically. A plain item has none. Everything done *to* the item —
+Im Chat zeigen, Bearbeiten, Zurücklassen / Mitnehmen, delete — is a bar of bare
+text buttons at the foot. A left-behind piece offers no main action.
 
 **No price, no availability.** Those are facts about acquiring the thing. The
 card is what is on the table.
 
-The popover offers only actions backed by stored state: open the editor, post
-to chat, change a consumable's remaining stock with the `−` / `+` controls in
-its primary tile, and delete the item through the same confirmation used by the
-inventory list. Stock never drops below zero. Worn armour must be taken off
-before deletion. The chat card renders the same partial without any of these
-live controls, and adds the one action of its own described below.
-An owned weapon with a valid profile exposes its independent Attack workflow as
-the full-width primary action. A melee profile also exposes Parry in the
-secondary row. The actor sheet owns the separate Dodge action. Their entry
-points, context dialog, and mechanics-spec link are mapped in
+The popover offers only actions backed by stored state. Stock never drops below
+zero. Worn armour must be taken off before deletion. The chat card renders the
+same partial without any live controls, and adds the one action of its own
+described below. Attack and Parry entry points, context dialog, and
+mechanics-spec link are mapped in
 [combat-roll-workflows.md](combat-roll-workflows.md); the popover still does
 not resolve an attack chain, readiness, or ammunition.
-
-The carry-cell tooltips flatten the same card into one line, dropping the `na`
-tiles — a box holding the layout together says nothing in a sentence.
 
 Controls, and when each is right:
 

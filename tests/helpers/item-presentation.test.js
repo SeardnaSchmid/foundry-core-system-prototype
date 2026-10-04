@@ -67,7 +67,7 @@ describe('item presentation', () => {
       .toMatchObject({ roles: { weapon: true }, use: 'ranged', zones: [], ownership: { embedded: false } });
   });
 
-  it('builds a melee weapon card: probe band, four tiles, handling and carry rows', () => {
+  it('builds a melee weapon card: type line, five tiles, probe and requirement row', () => {
     const summary = buildGearSummary(weapon({
       use: 'melee',
       quantity: 2,
@@ -81,35 +81,26 @@ describe('item presentation', () => {
       sv: 5,
     }));
 
-    expect(summary.badges).toEqual([
-      { key: 'role', state: 'role', join: ' · ', labelKeys: ['TNO.Item.Role.Weapon', 'TNO.Weapons.Use.Melee'] },
-    ]);
+    expect(summary.typeLine).toEqual({ roleKey: 'TNO.Item.Role.Weapon', detailKey: 'TNO.Weapons.Use.Melee' });
+    expect(summary.slots).toBe(4);
+    expect(summary.quantity).toBe(2);
     expect(summary.probe).toEqual({
-      attribute: { labelKey: 'TNO.Item.Summary.WeaponAttribute', valueKey: 'TNO.Ability.Dex.long' },
-      fv: { labelKey: 'TNO.Item.Summary.SkillRequirement', value: { skillKey: 'brawling', rank: 4 } },
+      attribute: { labelKey: 'TNO.Item.Summary.Attribute', valueKey: 'TNO.Ability.Dex.long' },
+      fv: { labelKey: 'TNO.Item.Summary.Skill', value: { skillKey: 'brawling', rank: 4 } },
     });
     expect(summary.tiles).toEqual([
-      { key: 'dk', labelKey: 'TNO.Item.Summary.Dk', value: '3', state: 'value' },
-      { key: 'rb', labelKey: 'TNO.Weapons.Rb', value: '2', state: 'value' },
-      { key: 'ss', labelKey: 'TNO.Weapons.Ss', value: '3', state: 'value' },
-      { key: 'ws', labelKey: 'TNO.Weapons.Ws', value: '1', state: 'value' },
+      { key: 'dk', labelKey: 'TNO.Item.Summary.Dk', titleKey: 'TNO.Weapons.Dk', value: '3', state: 'value' },
+      { key: 'rb', labelKey: 'TNO.Weapons.Rb', titleKey: 'TNO.Weapons.RbHint', value: '2', state: 'value' },
+      { key: 'ss', labelKey: 'TNO.Weapons.Ss', titleKey: 'TNO.Weapons.SsHint', value: '3', state: 'value' },
+      { key: 'ws', labelKey: 'TNO.Weapons.Ws', titleKey: 'TNO.Weapons.WsHint', value: '1', state: 'value' },
+      { key: 'hh', labelKey: 'TNO.Item.Summary.Hh', titleKey: 'TNO.Weapons.HhHint', value: '+1 / -1', state: 'value', wide: true },
     ]);
     expect(summary.rows).toEqual([
-      {
-        key: 'hh',
-        labelKey: 'TNO.Weapons.Hh',
-        parts: [
-          { labelKey: 'TNO.Item.Summary.HhAttack', value: '+1' },
-          { labelKey: 'TNO.Item.Summary.HhParry', value: '-1' },
-        ],
-      },
-      { key: 'quantity', labelKey: 'TNO.Inventory.Quantity', value: '×2' },
-      { key: 'slots', labelKey: 'TNO.Inventory.Slots', value: 4 },
-      { key: 'sv', labelKey: 'TNO.Item.Cap.Sv', value: 5, note: null },
+      { key: 'sv', labelKey: 'TNO.Item.Overview.Requirement', prefixKey: 'TNO.Item.Cap.Sv', value: 5, note: null },
     ]);
   });
 
-  it('swaps two tiles for a ranged profile', () => {
+  it('drops DK and the parry half of handling for a ranged profile', () => {
     const summary = buildGearSummary(weapon({
       use: 'ranged',
       rb: 4,
@@ -120,18 +111,13 @@ describe('item presentation', () => {
       fv: { skill: 'rifles', rank: 3 },
     }));
 
-    expect(summary.tiles).toEqual([
-      { key: 'rb', labelKey: 'TNO.Weapons.Rb', value: '4', state: 'value' },
-      { key: 'ss', labelKey: 'TNO.Weapons.Ss', value: '2', state: 'value' },
-      { key: 'ws', labelKey: 'TNO.Weapons.Ws', value: '1', state: 'value' },
-      { key: 'hh', labelKey: 'TNO.Item.Summary.HhActive', value: '0', state: 'value' },
+    expect(summary.tiles.map((tile) => [tile.key, tile.value])).toEqual([
+      ['rb', '4'], ['ss', '2'], ['ws', '1'], ['hh', '0'],
     ]);
-    expect(summary.rows).toEqual([
-      { key: 'slots', labelKey: 'TNO.Inventory.Slots', value: 2 },
-    ]);
+    expect(summary.rows).toEqual([]);
   });
 
-  it('marks a required value the item has not got, and one a rule forbids', () => {
+  it('marks a required value the item has not got, and drops one a rule forbids', () => {
     const suit = {
       name: 'Armour',
       type: 'item',
@@ -141,21 +127,15 @@ describe('item presentation', () => {
     const summary = buildGearSummary(suit);
 
     // Underclothing is RH 0 and has no coverage at all, so the hardness tile
-    // reads zero, the coverage tile is hatched, and the piece is complete.
-    // SV leads the tiles and is therefore no longer one of the rows.
+    // reads zero, there is no coverage tile, and the piece is complete.
     expect(summary.tiles).toEqual([
-      { key: 'sv', labelKey: 'TNO.Item.Cap.Sv', value: 3, state: 'value', decimal: true },
-      { key: 'rh', labelKey: 'TNO.Armor.RhShort', value: '0', state: 'value' },
-      { key: 'rw', labelKey: 'TNO.Armor.RwShort', value: '2', state: 'value' },
-      { key: 'ra', labelKey: 'TNO.Armor.RaShort', value: null, state: 'na' },
+      { key: 'sv', labelKey: 'TNO.Item.Cap.Sv', titleKey: 'TNO.Armor.Sv', value: 3, state: 'value', decimal: true },
+      { key: 'rh', labelKey: 'TNO.Armor.RhShort', titleKey: 'TNO.Armor.Rh', value: '0', state: 'value' },
+      { key: 'rw', labelKey: 'TNO.Armor.RwShort', titleKey: 'TNO.Armor.Rw', value: '2', state: 'value' },
     ]);
     expect(summary.missing).toEqual([]);
-    expect(summary.badges[1]).toEqual({
-      key: 'zone', state: 'zone', join: ': ', labelKeys: ['TNO.Armor.Zone.Label', 'TNO.Armor.Zone.Suit'],
-    });
-    expect(summary.rows).toEqual([
-      { key: 'slots', labelKey: 'TNO.Inventory.Slots', value: 3 },
-    ]);
+    expect(summary.typeLine).toEqual({ roleKey: 'TNO.Item.Role.Armor', detailKey: 'TNO.Armor.Zone.Suit' });
+    expect(summary.rows).toEqual([]);
 
     const plate = buildGearSummary({
       name: 'Armour',
@@ -164,32 +144,32 @@ describe('item presentation', () => {
     });
     // The one value written in quarter steps, kept as a number so the
     // localizer can apply the reader's decimal separator to it.
-    expect(plate.tiles[0]).toEqual({ key: 'sv', labelKey: 'TNO.Item.Cap.Sv', value: 0.25, state: 'value', decimal: true });
-    expect(plate.tiles[3]).toEqual({ key: 'ra', labelKey: 'TNO.Armor.RaShort', value: null, state: 'missing' });
+    expect(plate.tiles[0]).toMatchObject({ key: 'sv', value: 0.25, state: 'value', decimal: true });
+    expect(plate.tiles[3]).toEqual({ key: 'ra', labelKey: 'TNO.Armor.RaShort', titleKey: 'TNO.Armor.Ra', value: null, state: 'missing' });
     expect(plate.missing).toEqual(['ra']);
   });
 
-  it('gives a consumable its stock and a plain item its carry pair', () => {
+  it('gives consumables and plain items no tiles, only their carry facts', () => {
     expect(buildGearSummary({
       name: 'Ampoule', type: 'item', system: { roles: { consumable: true }, slots: 1, quantity: 3, consumableEffects: [{ text: 'Heals' }] },
     })).toMatchObject({
-      badges: [{ key: 'role', labelKeys: ['TNO.Item.Role.Consumable'] }],
+      typeLine: { roleKey: 'TNO.Item.Role.Consumable', detailKey: null },
+      slots: 3,
+      quantity: 3,
       probe: null,
-      tiles: [
-        { key: 'stock', labelKey: 'TNO.Item.Summary.Stock', value: '3', state: 'primary' },
-        { key: 'slots', labelKey: 'TNO.Inventory.Slots', value: '3', state: 'value' },
-      ],
+      tiles: [],
       rows: [],
     });
 
-    // A stack of one has nothing to say about quantity, but the tile stays so
-    // every plain card is the same height.
-    expect(buildGearSummary({ type: 'item', system: { roles: {}, slots: 1, quantity: 1 } }).tiles).toEqual([
-      { key: 'slots', labelKey: 'TNO.Inventory.Slots', value: '1', state: 'value' },
-      { key: 'quantity', labelKey: 'TNO.Item.Summary.QuantityFrom2', value: null, state: 'na' },
-    ]);
-    expect(buildGearSummary({ type: 'item', system: { roles: {}, slots: 1, quantity: 3 } }).tiles[1])
-      .toEqual({ key: 'quantity', labelKey: 'TNO.Inventory.Quantity', value: '×3', state: 'value' });
+    expect(buildGearSummary({ type: 'item', system: { roles: {}, slots: 1, quantity: 1 } }))
+      .toMatchObject({ typeLine: { roleKey: 'TNO.Item.Role.Plain' }, slots: 1, tiles: [], rows: [] });
+  });
+
+  it('reports a stashed piece as stashed, a worn one as worn', () => {
+    const actor = { system: { equipment: { head: 'helmet' } } };
+    expect(buildGearPresentation({ id: 'helmet', type: 'item', system: {} }, actor).ownership.state).toBe('worn');
+    expect(buildGearPresentation({ id: 'rope', type: 'item', system: { stashed: true } }, actor).ownership.state).toBe('stashed');
+    expect(buildGearPresentation({ id: 'rope', type: 'item', system: {} }, actor).ownership.state).toBe('carried');
   });
 
   it('reads the Strength shortfall off the owning character', () => {
