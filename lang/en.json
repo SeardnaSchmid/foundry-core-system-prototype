@@ -958,8 +958,7 @@
         "Torso": "Torso",
         "Arms": "Arms",
         "Legs": "Legs"
-      },
-      "Equip": "Equip"
+      }
     },
     "Inventory": {
       "CarrySlots": "Inventory",

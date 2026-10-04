@@ -1646,9 +1646,8 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     const canEdit = this.isEditable;
     const parryMalus = Number(item.actor?.system?.derived?.defenses?.parry?.malus) || 0;
     // A piece left behind is not in hand: it keeps its card but offers no
-    // combat action, no wearing and no use until it is picked up again.
+    // combat action and no use until it is picked up again.
     const stashed = isStashed(item);
-    const [zone] = armorZones(item);
     return {
       ...base,
       canEdit,
@@ -1664,8 +1663,6 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       parryHint: parryMalus < 0
         ? game.i18n.format('TNO.Combat.NextDefenseMalus', { value: parryMalus })
         : game.i18n.localize('TNO.Combat.ParryHint'),
-      canWear: canEdit && roles.armor && !stashed && !!zone,
-      worn: item.isWorn,
       canAdjustStock: canEdit && roles.consumable,
       canDecreaseStock: canEdit && roles.consumable && stock > 0,
       canUse: canEdit && roles.consumable && !stashed,
@@ -1759,14 +1756,10 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         return item.openWeaponParry();
       case 'stock':
         return item.adjustStock(Number(control.dataset.by));
-      // Both stay open: the card is still the one being looked at, and the
-      // re-render refreshes its stock or worn state in place.
+      // Stays open: the card is still the one being looked at, and the
+      // re-render refreshes its stock in place.
       case 'use':
         return item.useConsumable();
-      case 'wear': {
-        const [zone] = armorZones(item);
-        return this._setEquippedArmor(zone, item.isWorn ? null : item.id);
-      }
       // Stays open like `stock`: the card is still the one being looked at,
       // and the re-render refreshes it in place.
       case 'stash':

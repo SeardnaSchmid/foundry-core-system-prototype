@@ -268,7 +268,7 @@ by both the actor-sheet popover and the chat item card. Its layout is the
 | Stock | A consumable's Bestand, as a row with its `−` / `+` stepper |
 | Warning | Which required values are still blank, with an "Im Editor ergänzen" link in the popover |
 | Rows | A weapon's Attribut and Fertigkeit, and an SV requirement against its owner's Strength |
-| Description | A plain item only — the one role with no numbers to show |
+| Description | Every item's enriched description; only a plain item, which has nothing else to show, says when it has none |
 
 Three properties of that card matter:
 
@@ -280,10 +280,11 @@ a suit is missing. The RH tile reads the fixed `0`, there is no RA tile, and
 the piece is complete.
 
 **One main action per role, the rest quiet.** Under the values sits the role's
-action: Angriff würfeln (filled) and Parade for a weapon, Anlegen / Ablegen for
-armour, Benutzen (−1) for a consumable — `TnoItem#useConsumable()` takes one off
-the stock and posts the written effects (`chat/item-use.hbs`); nothing is
-applied automatically. A plain item has none. Everything done *to* the item —
+action: Angriff würfeln (filled) and Parade for a weapon, Benutzen (−1) for a
+consumable — `TnoItem#useConsumable()` takes one off the stock and posts the
+written effects (`chat/item-use.hbs`); nothing is applied automatically.
+Armour has none, since it is worn by dragging it onto the paper doll, and a
+plain item has none either. Everything done *to* the item —
 Im Chat zeigen, Bearbeiten, Zurücklassen / Mitnehmen, delete — is a bar of bare
 text buttons at the foot. A left-behind piece offers no main action.
 

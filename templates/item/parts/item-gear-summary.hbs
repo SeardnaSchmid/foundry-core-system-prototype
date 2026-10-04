@@ -1,7 +1,7 @@
 {{!-- The play-facing view of one piece of gear, shared by the actor sheet's
       popover and the chat card. Read top to bottom: what it is and where it
       is, its numbers, what is still missing, what a check with it starts from,
-      then the stock or the description. Nothing about buying it appears here. --}}
+      the stock, then the description. Nothing about buying it appears here. --}}
 <header class='item-popover-head'>
   <img src='{{item.img}}' width='56' height='56' alt=''/>
   <div class='item-popover-title'>
@@ -85,11 +85,11 @@
     </dl>
   {{/if}}
 
-  {{#if plain}}
-    {{#if description}}
-      <div class='item-popover-description'>{{{description}}}</div>
-    {{else}}
-      <p class='item-popover-description empty'>{{localize 'TNO.Item.Overview.NoDescription'}}</p>
-    {{/if}}
+  {{!-- Every item shows its description. Only a plain item says it has
+        none: it has nothing else to show, while gear has its values. --}}
+  {{#if description}}
+    <div class='item-popover-description'>{{{description}}}</div>
+  {{else if plain}}
+    <p class='item-popover-description empty'>{{localize 'TNO.Item.Overview.NoDescription'}}</p>
   {{/if}}
 </div>

@@ -75,8 +75,7 @@ export function localizeGearSummary(item) {
 /**
  * Build the shared template context used by the popover and chat card.
  *
- * Async because a plain item — the one role with no numbers to show — shows
- * its description instead, and that is enriched HTML.
+ * Async because the description is enriched HTML.
  */
 export async function prepareGearSummaryContext(item) {
   const presentation = buildGearPresentation(item, item.actor);
@@ -93,7 +92,7 @@ export async function prepareGearSummaryContext(item) {
     presentation,
     summary: localizeGearSummary(item),
     stock: Math.max(0, Number(item.system.quantity) || 0),
-    description: plain && item.system.description
+    description: item.system.description
       ? await foundry.applications.ux.TextEditor.implementation.enrichHTML(item.system.description, {
           secrets: item.isOwner,
           relativeTo: item,

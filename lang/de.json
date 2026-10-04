@@ -958,8 +958,7 @@
         "Torso": "Torso",
         "Arms": "Arme",
         "Legs": "Beine"
-      },
-      "Equip": "Anlegen"
+      }
     },
     "Inventory": {
       "CarrySlots": "Inventar",

@@ -1,9 +1,9 @@
 {{> 'systems/tno/templates/item/parts/item-gear-summary.hbs' showClose=true}}
 
 {{!-- One main action per role, under the values it acts on: attack (and
-      parry) for a weapon, wearing for armour, use for a consumable. A plain
-      item has none. Only actions backed by stored state. --}}
-{{#if (or canWeaponCheck canWeaponParry canWear canUse)}}
+      parry) for a weapon, use for a consumable. Armour is put on and taken
+      off by dragging it onto the paper doll; a plain item has no action. --}}
+{{#if (or canWeaponCheck canWeaponParry canUse)}}
   <div class='item-popover-lead'>
     {{#if canWeaponCheck}}
       <button type='button' class='item-popover-button primary grow' data-popover-action='weapon-check'
@@ -16,11 +16,6 @@
               title='{{parryHint}}'>
         {{localize 'TNO.Combat.Parry'}}
         {{#if parryMalus}}<span class='defense-malus'>{{parryMalus}}</span>{{/if}}
-      </button>
-    {{/if}}
-    {{#if canWear}}
-      <button type='button' class='item-popover-button grow' data-popover-action='wear'>
-        {{#if worn}}{{localize 'TNO.Armor.Unequip'}}{{else}}{{localize 'TNO.Armor.Equip'}}{{/if}}
       </button>
     {{/if}}
     {{#if canUse}}
