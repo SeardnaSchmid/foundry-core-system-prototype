@@ -261,6 +261,20 @@ export async function deleteCombat(page, combatId) {
   await page.evaluate((id) => game.combats.get(id)?.delete(), combatId);
 }
 
+/**
+ * Make every d20 rolled from now on land on `face`, until the page reloads.
+ *
+ * Core maps `CONFIG.Dice.randomUniform()` to a face as `ceil((1 − r) · faces)`,
+ * so a fixed `r` is a fixed face. A spec about what a success or a failure
+ * *leads to* cannot leave that to the dice. Every die shows the same face, so
+ * avoid 1 and 20: two of either is a critical whatever the threshold.
+ * @param {import('@playwright/test').Page} page
+ * @param {number} face  1–20
+ */
+export async function pinDice(page, face) {
+  await page.evaluate((r) => { CONFIG.Dice.randomUniform = () => r; }, 1 - (face - 0.5) / 20);
+}
+
 /* -------------------------------------------- */
 /*  Reading the world back                      */
 /* -------------------------------------------- */

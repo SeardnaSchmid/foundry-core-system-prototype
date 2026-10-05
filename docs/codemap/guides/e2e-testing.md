@@ -88,6 +88,7 @@ factory, so a spec needs one import line:
 | `createNpc(page, name)` | an actor with no `system.combat` and no derived data |
 | `createCombat(page, combatants, {render})` | `[actorId]` or `[{actorId, initiative}]` → `{id, ids}`; `render` brings the tracker on screen |
 | `deleteCombat(page, id)` | required for every combat: the `world` purge clears actors, not combats |
+| `pinDice(page, face)` | every d20 rolled afterwards lands on `face` (via `CONFIG.Dice.randomUniform`), for specs about what a success or failure leads to |
 | `localize(page, keys)` | localize/format in the running world, so a spec asserts the string the player sees |
 | `lastMessage(page)` | the whole `flags.tno` of the most recent chat message |
 | `openSheet(page, actorId)` | renders an actor sheet and waits for it |
