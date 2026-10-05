@@ -541,9 +541,9 @@ their paper doll. The attack dialog neither rolls nor stores a location.
 
 1. **Should the announced Schadenswert persist between resistance rolls on the
    same actor**, the way `skills.<key>.lastAttribute` does?
-2. **Gleichgewicht is not modelled.** The wiki ties it to Wuchtschaden: Sich
-   Fangen "baut automatisch eine Stufe ab", Durchatmen ends once no new
-   Wuchtschaden arrives. Nothing in the system implements either yet.
+2. **Gleichgewicht is read as WS** — no state of its own; Sich Fangen and
+   Durchatmen clear WS boxes by hand. Open question for the author, see
+   [rules-sync](../rules-sync.md#questions-for-the-author).
 3. **Is "Schaden in Höhe des verwendeten Schadenswert als Würfel" a roll?**
    **Shipped flat**: the card applies the Schadenswert itself — the damage track counts in points, and no dice are named. If a
    roll was meant, `appliedDamage` is the one function to change.
