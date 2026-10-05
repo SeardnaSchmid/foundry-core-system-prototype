@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.55.2](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.55.1...v0.55.2) (2026-10-05)
+
+
+### Bug Fixes
+
+* **combat:** a head hit adds the WS once as Wuchtschaden, per the wiki ([97684d9](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/97684d966aa905b1313eac2dbf49264c3350ed6e))
+* **combat:** let the interrupted combatant act again, per the wiki ([eaede54](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/eaede547b29ae4f1f284ddd8f6da3dbeafcb1253)), closes [TnoCombat#canActivateEarly](https://github.com/TnoCombat/issues/canActivateEarly)
+* **e2e:** mark tours done via tourProgress instead of Tour#complete ([45d4546](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/45d45468f36185931099a789a6963e3dcbb8ee38)), closes [Tour#complete](https://github.com/Tour/issues/complete)
+* **i18n:** abbreviate the Scharfer Schadenswert as SS, as the wiki does ([7c3cc41](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/7c3cc4129aa0ab818154e2f9008864deabdfbccb))
+
 ## [0.55.1](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.55.0...v0.55.1) (2026-10-04)
 
 
