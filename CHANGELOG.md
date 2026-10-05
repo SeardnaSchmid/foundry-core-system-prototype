@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.55.3](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.55.2...v0.55.3) (2026-10-05)
+
+
+### Bug Fixes
+
+* **e2e:** disable Foundry IP discovery so the first cold join succeeds ([8ea7456](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/8ea74566594dc7cf35427783ca1bc2a2fc9aa150))
+
 ## [0.55.2](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.55.1...v0.55.2) (2026-10-05)
 
 
