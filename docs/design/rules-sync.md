@@ -62,3 +62,5 @@ until the author answers; then the answer goes into the wiki and the row goes.
 |---|---|---|---|
 | 2026-10-05 | Kampfregeln (*Gezielte Angriffe / Schüsse*: Rüstung umgehen) | "ignoriere sie dafür": does that ignore the Unterkleidung too? Does the bypassed hit count as penetrating (SS)? Can a Stelle covered only by Unterkleidung be bypassed at all? | Unterkleidung RW stays; the hit takes SS; no bypass on Unterkleidung alone |
 | 2026-10-05 | Kampfregeln (*Schaden und Zustände*) | The damage malus applies "auf alle Würfe" — also to 6. Sinn and to the Fehler-Analysieren roll? | both roll without the damage malus |
+| 2026-10-05 | Grundregeln (*Problem lösen – Idee haben*) | Is Idee haben spent before the roll, or may it be added after the dice have fallen? | before the roll only: a toggle in the roll dialog |
+| 2026-10-05 | Charakterentwicklung (*Startfertigkeiten*), Fertigkeiten | Which skills may take the 120 starting XP? The wiki names no list | every skill except the five Interfacing skills, whose rules are unwritten |
