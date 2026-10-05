@@ -739,7 +739,8 @@
       "DamageValueHint": "Beide Werte stehen auf der Angriffskarte des Gegners.",
       "Applied": "Anzuwenden",
       "AppliedAmount": "{amount} {pool} ({tag})",
-      "AppliedMultiplier": "{base} × {multiplier} für {zone}",
+      "AppliedHeadBlunt": "{base} + {base} Wucht für {zone}",
+      "AppliedHeadAttackerWs": "+ der WS des Angreifers als Wuchtschaden für {zone}",
       "AppliedHint": "Der Widerstandswurf ist misslungen: trage das selbst in deinen Schadenspool ein. Es wird nichts automatisch übertragen.",
       "ActiveHandling": "Handhabung (Angriff)",
       "ActiveHandlingHint": "Der aktive Handhabungswert (HH) der Waffe wird unveränderlich auf diesen Angriff angerechnet.",
@@ -856,6 +857,7 @@
     },
     "Damage": {
       "Pool": "Schadenspool",
+      "PoolPlusBlunt": "Schadenspool + Wuchtschaden",
       "Sharp": "Schaden",
       "Blunt": "Wuchtschaden",
       "TagSharp": "S",

@@ -41,8 +41,8 @@ on opposite sides of that line.
   by the (defence, Haltung) pair, because Ausweichen has two relief skills and
   the Haltung decides which one applies.
 - [`helpers/maneuvers.mjs`](../../../module/helpers/maneuvers.mjs) is pure and
-  global-free. `DAMAGE_RULES` and `DEFAULT_ZONE` resolve the multiplier of the
-  location selected on the defender's paper doll; attacks do not choose or
+  global-free. `DAMAGE_RULES` and `DEFAULT_ZONE` resolve whether the
+  location selected on the defender's paper doll adds Wuchtschaden (only the Kopf); attacks do not choose or
   transmit a location. `ansageEnvelope(ansage)` carries only the attacker's own
   announced magnitude. It models no other Manöver: an Ansage is one free number
   the table agrees on before typing it.
@@ -117,8 +117,8 @@ on opposite sides of that line.
     `ansageEnvelope(ansage)` at roll time into `flags.tno.envelope`.
   - `consequence` — what a failure costs, worded by the builder: a function of
     the answers, kept by `rollTno` only when the dice fail. The resistance roll
-    returns the applied damage via `appliedDamage(value, zone)`
-    (`tests/documents/actor-resistance-roll.test.js › cashes in the Stelle multiplier and shows the arithmetic it did`,
+    returns the applied damage via `appliedDamage(value, zone, sharp)`
+    (`tests/documents/actor-resistance-roll.test.js › adds the WS once more as Wuchtschaden on a head hit`,
     `tests/documents/actor-resistance-roll.test.js › states nothing until the comparison names a pool`).
   - `afterRoll` — runs only once the dice are cast, which is what lets the
     repeated-defence counter count rolls rather than intentions.

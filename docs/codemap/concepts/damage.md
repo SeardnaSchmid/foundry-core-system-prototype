@@ -183,7 +183,7 @@ the cause is readable without opening the panel.
 Damage application after a resistance roll remains manual. No combat workflow
 updates another actor or chooses a target. What changed is that the failed
 roll's chat card now *names* the amount and the pool — `appliedDamage` in
-[`maneuvers.mjs`](../../../module/helpers/maneuvers.mjs) times the Stelle
-multiplier, worded by `widerstandOptions` — so the player steps the same number
+[`maneuvers.mjs`](../../../module/helpers/maneuvers.mjs), with the Kopf's extra
+Wuchtschaden, worded by `widerstandOptions` — so the player steps the same number
 they were shown instead of deriving it from a negated breakdown component. See
 [concepts/combat-roll-workflows.md](combat-roll-workflows.md).

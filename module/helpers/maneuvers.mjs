@@ -14,7 +14,7 @@
  *
  * The attack dialog does not model a separate aimed-location choice. The
  * defender opens the resistance roll directly on the struck paper-doll zone;
- * that zone still decides the damage multiplier here.
+ * that zone still decides here whether the hit brings extra Wuchtschaden.
  *
  * This module holds itself free of Foundry globals so it can be unit-tested
  * without a game world.
@@ -27,38 +27,46 @@
 export const DEFAULT_ZONE = 'torso';
 
 /**
- * The damage multiplier of a hit, given its Stelle. Attribute routing is gone:
- * the multiplier applies to whichever pool the penetration comparison selected.
- * @type {Object<string, {multiplier: number}>}
+ * What a hit on each Stelle adds to its regular damage. Only the Kopf adds
+ * anything: the wiki's Kopf Manöver deals, "zusätzlich zu dem regulären Schaden
+ * deines Angriffs, einmal den Wuchtschaden" — the weapon's WS once more, as
+ * Wuchtschaden.
+ * @type {Object<string, {extraBlunt: boolean}>}
  */
 export const DAMAGE_RULES = {
-  torso: { multiplier: 1 },
-  head: { multiplier: 2 },
-  arms: { multiplier: 1 },
-  legs: { multiplier: 1 },
+  torso: { extraBlunt: false },
+  head: { extraBlunt: true },
+  arms: { extraBlunt: false },
+  legs: { extraBlunt: false },
 };
 
 /**
  * What a failed resistance roll puts into the pool, given the Schadenswert that
- * was announced and the Stelle it landed on.
+ * was announced, the pool it lands in and the Stelle it landed on.
  *
- * The multiplier is the only thing the Stelle still contributes, and this is
- * where it is finally cashed in: every earlier consumer of {@link DAMAGE_RULES}
- * only *names* it ("Schadenspool ×2"), because until the resistance roll has
- * failed there is no amount to multiply.
+ * On the Kopf the WS comes once more as Wuchtschaden. When the regular damage
+ * already is the WS, that is the announced value twice; when it is the SS, the
+ * WS is a second figure the defender reads off the attack card, so the result
+ * only says it is owed (`plusAttackerWs`).
  *
  * The rule reads "Schaden in Höhe des verwendeten Schadenswert als Würfel", and
  * which dice those would be is written nowhere — so this takes the announced
  * value at face value. See the combat PRD's Open section.
  *
- * @param {number} value  The Schadenswert the defender was told, as typed.
- * @param {string} zone   The Stelle that was resisted at.
- * @returns {{base: number, multiplier: number, total: number}}
+ * @param {number} value   The Schadenswert the defender was told, as typed.
+ * @param {string} zone    The Stelle that was resisted at.
+ * @param {boolean} sharp  Whether the regular damage is SS (else WS).
+ * @returns {{base: number, total: number, extraBlunt: boolean, plusAttackerWs: boolean}}
  */
-export function appliedDamage(value, zone) {
+export function appliedDamage(value, zone, sharp = false) {
   const base = Math.max(0, Math.trunc(Number(value) || 0));
-  const { multiplier } = DAMAGE_RULES[zone] ?? DAMAGE_RULES[DEFAULT_ZONE];
-  return { base, multiplier, total: base * multiplier };
+  const { extraBlunt } = DAMAGE_RULES[zone] ?? DAMAGE_RULES[DEFAULT_ZONE];
+  return {
+    base,
+    total: extraBlunt && !sharp ? base * 2 : base,
+    extraBlunt,
+    plusAttackerWs: extraBlunt && sharp,
+  };
 }
 
 /**

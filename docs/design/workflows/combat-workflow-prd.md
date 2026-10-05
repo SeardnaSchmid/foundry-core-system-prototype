@@ -146,11 +146,13 @@ every roll. The weapon value that deals Schaden is the *Scharfer Schadenswert*
 (SS), the one that deals Wuchtschaden the *Wucht Schadenswert* (WS).
 
 Per-Stelle attribute damage is gone. The penetration comparison selects the raw
-pool — SS enters Schaden, WS enters Wuchtschaden — while Stelle keeps
-only its multiplier: Kopf ×2, every other location ×1
-(`tests/helpers/maneuvers.test.js › doubles a head hit, and only a head hit`).
-The resistance dialog names the pool and multiplier, never an attribute
-(`tests/documents/actor-resistance-roll.test.js › names the damage pool and the Stelle multiplier instead of attributes`).
+pool — SS enters Schaden, WS enters Wuchtschaden. The Stelle adds only the
+Kopf's extra: "zusätzlich zu dem regulären Schaden deines Angriffs einmal den
+Wuchtschaden", i.e. the weapon's WS once more as Wuchtschaden; every other
+location adds nothing
+(`tests/helpers/maneuvers.test.js › adds Wuchtschaden to a head hit, and only a head hit`).
+The resistance dialog names the pool and that extra, never an attribute
+(`tests/documents/actor-resistance-roll.test.js › names the damage pool and the head extra instead of attributes`).
 
 The character's health model resolves against trained Stärke
 (`abilities.str.base`):
@@ -220,24 +222,28 @@ Damage is entered manually on the owning character sheet. The system does not
 automatically transfer a failed resistance roll into either pool.
 
 A failed resistance roll therefore **states its cost on the chat card**: the
-announced Schadenswert times the Stelle's multiplier, named as the pool it goes
-into — "4 Wuchtschaden (WS)", plus the arithmetic whenever the multiplier is not
-1 (`tests/documents/actor-resistance-roll.test.js › states how much of which pool a failed resistance roll costs`,
-`tests/documents/actor-resistance-roll.test.js › cashes in the Stelle multiplier and shows the arithmetic it did`).
+announced Schadenswert, named as the pool it goes into — "4 Wuchtschaden (WS)".
+On the Kopf a held hit reads its WS twice ("4 + 4 Wucht"), and a penetrating one
+adds a note that the attacker's WS is owed as Wuchtschaden on top — that second
+figure is on the attack card, not in the dialog
+(`tests/documents/actor-resistance-roll.test.js › states how much of which pool a failed resistance roll costs`,
+`tests/documents/actor-resistance-roll.test.js › adds the WS once more as Wuchtschaden on a head hit`).
 It states only; the owner still enters it. That line appears on failed rolls and
 on nothing else, decided after the dice rather than by whatever opened the dialog
 (`tests/helpers/dice.test.js › says nothing at all on the roll that succeeded`).
 
 Both figures were already on the card before, and neither was readable: the pool
 was the penetration tile's consequence rather than its wording, the amount was
-recorded in the breakdown **negated** (it is a threshold component there), and
-the multiplier was named on the flavor line as a rule with no number attached.
+recorded in the breakdown **negated** (it is a threshold component there).
 
 **How much** it should be is still open: the rule says "Schaden in Höhe des
 verwendeten Schadenswert **als Würfel**", and which dice those are is written
 nowhere. Read here as the value itself — the damage track counts in points, and
 the alternative is a roll no rule defines. Should dice turn out to be meant,
 `appliedDamage` in `helpers/maneuvers.mjs` is the single place that decides it.
+
+*Open question for the author* ([rules-sync.md](../rules-sync.md#questions-for-the-author)):
+what Rüstung umgehen ignores is a ruling of this system, not the wiki's.
 
 `Rüstung umgehen` is a private comparison on the defender's resistance roll:
 "Hat der Angreifer mindestens RA X angesagt?" A lower or missing declaration is
@@ -393,8 +399,8 @@ or a second field. Consequently no location price enters the attack threshold,
 breakdown, message flags or attack-card envelope.
 
 The defender still opens Resistance by clicking the actually struck zone on
-their own paper doll. That local zone selects RH/RW/RA and keeps the damage
-multiplier: head ×2, torso/arms/legs ×1. This preserves location-dependent
+their own paper doll. That local zone selects RH/RW/RA and decides the Kopf's
+extra Wuchtschaden. This preserves location-dependent
 resistance and damage without claiming that the attack dialog knows the target.
 
 `Rüstung umgehen` has no separate attack control. The attacker declares its
@@ -539,8 +545,7 @@ their paper doll. The attack dialog neither rolls nor stores a location.
    Fangen "baut automatisch eine Stufe ab", Durchatmen ends once no new
    Wuchtschaden arrives. Nothing in the system implements either yet.
 3. **Is "Schaden in Höhe des verwendeten Schadenswert als Würfel" a roll?**
-   **Shipped flat**: the card applies the Schadenswert itself, times the Stelle
-   multiplier — the damage track counts in points, and no dice are named. If a
+   **Shipped flat**: the card applies the Schadenswert itself — the damage track counts in points, and no dice are named. If a
    roll was meant, `appliedDamage` is the one function to change.
 
 Resolved: *does a Manöver carry the weapon's SV malus?* — **yes.** A Manöver is

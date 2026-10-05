@@ -266,15 +266,14 @@ function attackEnvelope(actor, weapon) {
 }
 
 /**
- * What a failed resistance roll does to the selected damage pool: Stelle keeps
- * only its multiplier now that damage no longer routes into attributes.
+ * What a failed resistance roll does to the selected damage pool, and whether
+ * the Stelle adds Wuchtschaden on top.
  * @param {string} zone
  * @returns {string}
  */
 function damageTargetLabel(zone) {
   const rule = DAMAGE_RULES[zone] ?? DAMAGE_RULES[DEFAULT_ZONE];
-  const pool = game.i18n.localize('TNO.Damage.Pool');
-  return rule.multiplier > 1 ? `${pool} ×${rule.multiplier}` : pool;
+  return game.i18n.localize(rule.extraBlunt ? 'TNO.Damage.PoolPlusBlunt' : 'TNO.Damage.Pool');
 }
 
 /**
@@ -283,11 +282,9 @@ function damageTargetLabel(zone) {
  *
  * Both halves are already on the roll, and neither is legible as it stands
  * there. The pool is the penetration tile's consequence rather than its wording
- * ("hält · Wuchtschaden"), the amount is the Schadenswert — recorded in the
- * breakdown *negated*, because there it is a threshold component — and the
- * Stelle's multiplier is named on the flavor line as a rule with no number
- * attached. The player was left to multiply a sign-flipped figure by a
- * multiplier printed three lines above it.
+ * ("hält · Wuchtschaden"), and the amount is the Schadenswert — recorded in the
+ * breakdown *negated*, because there it is a threshold component. On the Kopf
+ * the extra Wuchtschaden is spelled out as well.
  *
  * Nothing is written to either pool from here. Damage entry stays manual and
  * deliberately so — the card states, the owner enters — so this is a read-out,
@@ -305,7 +302,8 @@ function resistanceConsequence(zone, contextKey, value, bypass = false) {
   if (!interaction || !isAuthoredNumber(value)) return null;
 
   const sharp = interaction.damage === 'ss';
-  const { base, multiplier, total } = appliedDamage(value, zone);
+  const { base, total, extraBlunt, plusAttackerWs } = appliedDamage(value, zone, sharp);
+  const zoneLabel = game.i18n.localize(CONFIG.TNO.armorZones[zone]);
   return {
     label: game.i18n.localize('TNO.Combat.Applied'),
     text: game.i18n.format('TNO.Combat.AppliedAmount', {
@@ -313,15 +311,12 @@ function resistanceConsequence(zone, contextKey, value, bypass = false) {
       pool: game.i18n.localize(sharp ? 'TNO.Damage.Sharp' : 'TNO.Damage.Blunt'),
       tag: game.i18n.localize(sharp ? 'TNO.Damage.TagSharp' : 'TNO.Damage.TagBlunt'),
     }),
-    // Only the Kopf carries one, and only then is the arithmetic worth showing:
-    // ×1 spelled out would make the plain case look like it had a rule on it.
-    note: multiplier > 1
-      ? game.i18n.format('TNO.Combat.AppliedMultiplier', {
-          base,
-          multiplier,
-          zone: game.i18n.localize(CONFIG.TNO.armorZones[zone]),
-        })
-      : '',
+    // Only the Kopf adds anything, and only then is there a note to write.
+    note: plusAttackerWs
+      ? game.i18n.format('TNO.Combat.AppliedHeadAttackerWs', { zone: zoneLabel })
+      : extraBlunt
+        ? game.i18n.format('TNO.Combat.AppliedHeadBlunt', { base, zone: zoneLabel })
+        : '',
     hint: game.i18n.localize('TNO.Combat.AppliedHint'),
   };
 }
@@ -703,8 +698,8 @@ export function widerstandOptions(actor, zone) {
       detail: game.i18n.format('TNO.Combat.Phase.ResistanceDetail', { zone: zoneLabel }),
     },
     sources: { armor: zoneLabel },
-    // The Stelle keeps only its multiplier. The resolved armour interaction
-    // names whether the announced value enters Schaden or Wuchtschaden.
+    // The resolved armour interaction names whether the announced value enters
+    // Schaden or Wuchtschaden; the Stelle only says whether Wucht comes on top.
     img: wornArmorArt(actor, zone),
     flavor: game.i18n.format('TNO.Combat.ResistanceFlavor', {
       zone: zoneLabel,

@@ -52,3 +52,13 @@ Contradictions or half-applied changes in the wiki itself, last checked on
 | 2026-10-05 | Grundregeln | "Jede Anwendung außer 'Fehler Analysieren' kostet genau einen Vorrat", and an empty pool allows nothing but Fehler Analysieren; *Problem lösen kombinieren* treats Fehler finden as free ("warum solltest du einen Punkt ausgeben, wenn du dir auch einfach Zeit lassen kannst?") | Fehler finden is free and offered with an empty pool |
 | 2026-10-05 | Grundregeln | Fehler Analysieren costs the XP "nur bei erfolgreichem Wurf"; *Problem lösen und Erfahrung* forfeits it for every action "egal ob letztendlich erfolgreich oder nicht" | forfeits the XP claim on use, win or lose |
 | 2026-10-05 | Attribute, Kampfregeln | *Schaden und Attribute* books damage directly onto the physical attributes; *Schaden und Zustände* counts it in two pools against thresholds | two pools, attributes untouched |
+
+## Questions for the author
+
+Rulings the system had to make where the wiki is silent. They stay as they are
+until the author answers; then the answer goes into the wiki and the row goes.
+
+| Since | Wiki page | Question | What the system does meanwhile |
+|---|---|---|---|
+| 2026-10-05 | Kampfregeln (*Gezielte Angriffe / Schüsse*: Rüstung umgehen) | "ignoriere sie dafür": does that ignore the Unterkleidung too? Does the bypassed hit count as penetrating (SS)? Can a Stelle covered only by Unterkleidung be bypassed at all? | Unterkleidung RW stays; the hit takes SS; no bypass on Unterkleidung alone |
+| 2026-10-05 | Kampfregeln (*Schaden und Zustände*) | The damage malus applies "auf alle Würfe" — also to 6. Sinn and to the Fehler-Analysieren roll? | both roll without the damage malus |

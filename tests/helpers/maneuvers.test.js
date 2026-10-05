@@ -25,35 +25,30 @@ describe('ansageEnvelope', () => {
   });
 });
 
-// The Stelle now changes only the multiplier applied to the selected pool.
+// The Stelle adds nothing but the Kopf's extra Wuchtschaden.
 describe('DAMAGE_RULES', () => {
-  it('leaves an unannounced torso hit at the normal multiplier', () => {
-    expect(DAMAGE_RULES.torso).toEqual({ multiplier: 1 });
+  it('adds Wuchtschaden to a head hit, and only a head hit', () => {
+    expect(DAMAGE_RULES.head).toEqual({ extraBlunt: true });
+    for (const zone of ['torso', 'arms', 'legs']) expect(DAMAGE_RULES[zone]).toEqual({ extraBlunt: false });
   });
-
-  it('doubles a head hit, and only a head hit', () => {
-    expect(DAMAGE_RULES.head.multiplier).toBe(2);
-    for (const zone of ['torso', 'arms', 'legs']) expect(DAMAGE_RULES[zone].multiplier).toBe(1);
-  });
-
-  it('does not route arm or leg hits into attributes', () => {
-    expect(DAMAGE_RULES.arms).toEqual({ multiplier: 1 });
-    expect(DAMAGE_RULES.legs).toEqual({ multiplier: 1 });
-  });
-
 });
 
-// The multiplier is named everywhere and cashed in exactly once: here, on the
-// Schadenswert a failed resistance roll let through.
+// The Kopf's extra WS is cashed in here, on the Schadenswert a failed
+// resistance roll let through.
 describe('appliedDamage', () => {
   it('applies the announced value unchanged everywhere but the head', () => {
     for (const zone of ['torso', 'arms', 'legs']) {
-      expect(appliedDamage(4, zone)).toEqual({ base: 4, multiplier: 1, total: 4 });
+      expect(appliedDamage(4, zone, true)).toEqual({ base: 4, total: 4, extraBlunt: false, plusAttackerWs: false });
+      expect(appliedDamage(4, zone, false).total).toBe(4);
     }
   });
 
-  it('doubles what reaches the head', () => {
-    expect(appliedDamage(4, 'head')).toEqual({ base: 4, multiplier: 2, total: 8 });
+  it('gives a held head hit its WS twice as Wuchtschaden', () => {
+    expect(appliedDamage(4, 'head', false)).toEqual({ base: 4, total: 8, extraBlunt: true, plusAttackerWs: false });
+  });
+
+  it('keeps a penetrating head hit at its SS and owes the attacker WS on top', () => {
+    expect(appliedDamage(4, 'head', true)).toEqual({ base: 4, total: 4, extraBlunt: true, plusAttackerWs: true });
   });
 
   it('reads an unannounced Stelle as the Torso rather than dropping the damage', () => {
@@ -64,6 +59,6 @@ describe('appliedDamage', () => {
   it('takes no damage from a blank, negative or fractional value', () => {
     expect(appliedDamage('', 'head').total).toBe(0);
     expect(appliedDamage(-5, 'head').total).toBe(0);
-    expect(appliedDamage(2.8, 'head')).toEqual({ base: 2, multiplier: 2, total: 4 });
+    expect(appliedDamage(2.8, 'head').total).toBe(4);
   });
 });

@@ -116,7 +116,7 @@ describe('resistance roll', () => {
         origin: 'armor',
       },
     ]);
-    expect(resist('head').flavor).toBe('TNO.Combat.ResistanceFlavor(TNO.Armor.Zone.Head,TNO.Damage.Pool ×2)');
+    expect(resist('head').flavor).toBe('TNO.Combat.ResistanceFlavor(TNO.Armor.Zone.Head,TNO.Damage.PoolPlusBlunt)');
     // A different location answers with its own padding, not the head's.
     expect(resist('legs').fixedModifiers).toEqual([
       {
@@ -128,7 +128,7 @@ describe('resistance roll', () => {
     ]);
   });
 
-  it('names the damage pool and the Stelle multiplier instead of attributes', () => {
+  it('names the damage pool and the head extra instead of attributes', () => {
     expect(resist('torso').flavor).toBe('TNO.Combat.ResistanceFlavor(TNO.Armor.Zone.Torso,TNO.Damage.Pool)');
     expect(resist('arms').flavor).toBe('TNO.Combat.ResistanceFlavor(TNO.Armor.Zone.Arms,TNO.Damage.Pool)');
   });
@@ -347,11 +347,17 @@ describe('resistance roll', () => {
     // armour-bypass answer. The separate head case below covers bypass.
   });
 
-  it('cashes in the Stelle multiplier and shows the arithmetic it did', () => {
+  it('adds the WS once more as Wuchtschaden on a head hit', () => {
     const dialog = resist('head');
+    // Penetrating: the SS as Schaden, and the attacker's WS owed on top.
     expect(dialog._consequence(answered({ requiredValue: 4, compareValue: 5 }))).toMatchObject({
-      text: 'TNO.Combat.AppliedAmount(8,TNO.Damage.Sharp,TNO.Damage.TagSharp)',
-      note: 'TNO.Combat.AppliedMultiplier(4,2,TNO.Armor.Zone.Head)',
+      text: 'TNO.Combat.AppliedAmount(4,TNO.Damage.Sharp,TNO.Damage.TagSharp)',
+      note: 'TNO.Combat.AppliedHeadAttackerWs(TNO.Armor.Zone.Head)',
+    });
+    // Held: the announced WS is the regular damage and the extra alike.
+    expect(dialog._consequence(answered({ requiredValue: 4, compareValue: 1 }))).toMatchObject({
+      text: 'TNO.Combat.AppliedAmount(8,TNO.Damage.Blunt,TNO.Damage.TagBlunt)',
+      note: 'TNO.Combat.AppliedHeadBlunt(4,TNO.Armor.Zone.Head)',
     });
   });
 
@@ -365,7 +371,7 @@ describe('resistance roll', () => {
 
     // A bypass names the pool on its own: the hit always lands in Schaden.
     expect(dialog._consequence(answered({ requiredValue: 4, toggleModifier: true }))).toMatchObject({
-      text: 'TNO.Combat.AppliedAmount(8,TNO.Damage.Sharp,TNO.Damage.TagSharp)',
+      text: 'TNO.Combat.AppliedAmount(4,TNO.Damage.Sharp,TNO.Damage.TagSharp)',
     });
   });
 

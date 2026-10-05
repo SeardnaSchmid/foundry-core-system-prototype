@@ -739,7 +739,8 @@
       "DamageValueHint": "Both values are printed on the attacker's card.",
       "Applied": "Apply",
       "AppliedAmount": "{amount} {pool} ({tag})",
-      "AppliedMultiplier": "{base} × {multiplier} for {zone}",
+      "AppliedHeadBlunt": "{base} + {base} blunt for {zone}",
+      "AppliedHeadAttackerWs": "+ the attacker's WS as blunt damage for {zone}",
       "AppliedHint": "The resistance roll failed: enter this yourself on your damage track. Nothing is applied automatically.",
       "ActiveHandling": "Handling (attack)",
       "ActiveHandlingHint": "The weapon's active handling value (HH) is applied unchanged to this attack.",
@@ -856,6 +857,7 @@
     },
     "Damage": {
       "Pool": "Damage pool",
+      "PoolPlusBlunt": "Damage pool + blunt damage",
       "Sharp": "Damage",
       "Blunt": "Blunt damage",
       "TagSharp": "D",
