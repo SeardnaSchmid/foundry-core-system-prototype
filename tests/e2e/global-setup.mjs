@@ -136,10 +136,12 @@ async function joinAsGamemaster() {
  * `UNSTARTED`. The tour lays a modal over the UI and dims what is behind it, so
  * real clicks fail their actionability check — which is why several specs
  * dispatch `element.click()` through `evaluate`, a workaround that skips those
- * checks and would hide a genuinely obscured control. `Tour#complete()` moves
- * the cursor past the last step and persists it; any tour already on screen is
- * exited too, since the one we race may have started during the `ready` hook we
- * just waited on.
+ * checks and would hide a genuinely obscured control. Every tour's progress is
+ * written past its last step in the client-scoped `core.tourProgress` setting;
+ * any tour already on screen is exited too, since the one we race may have
+ * started during the `ready` hook we just waited on. Not `Tour#complete()`: it
+ * resolves to a "suggested next tour" confirm dialog whenever a suggested tour
+ * is still open (welcome → uiOverview), and that promise waits for a click.
  */
 async function prepareClient(page) {
   const prepared = await page.evaluate(async () => {
@@ -148,12 +150,14 @@ async function prepareClient(page) {
     // the init script could not run.
     await game.settings.set('core', 'noCanvas', true);
 
+    const progress = game.settings.get('core', 'tourProgress');
     const tours = [];
     for (const tour of game.tours) {
       tour.exit();
-      await tour.complete();
+      (progress[tour.namespace] ??= {})[tour.id] = tour.steps.length;
       tours.push(`${tour.namespace}.${tour.id}`);
     }
+    await game.settings.set('core', 'tourProgress', progress);
     return { tours, noCanvas: game.settings.get('core', 'noCanvas') };
   });
   console.log(`[e2e] client prepared: noCanvas=${prepared.noCanvas}, tours completed: `
