@@ -27,7 +27,7 @@ const EXPECTED = {
   initiative: 7,      // ceil((2*7 + 5) / 3)  = ceil(6.33) — round() would give 6
   movementWalk: 7,    // dex
   movementSprint: 21, // 3 * dex
-  movementCrawl: 1,   // constant
+  movementCrawl: 3,   // ceil(dex / 3) = ceil(2.33)
   canSprint: true,    // the empty slot budget permits sprinting
   carrySlots: 25,     // 8 + 2*5 + 7
   carrySlotsUsed: 0,  // no items worn or carried
@@ -69,7 +69,7 @@ test('the character sheet renders the derived values', async ({ world }) => {
   await expect(sheet.locator('.sheet-banner .derived-sense .derived-cell-value')).toHaveText('5');
 
   // Crawl | walk | sprint, on the read-only line under the worn gear.
-  await expect(sheet.locator('.derived-move b')).toHaveText(['1', '7', '21']);
+  await expect(sheet.locator('.derived-move b')).toHaveText(['3', '7', '21']);
 
   // Those two are the only things in the band that roll dice.
   await expect(sheet.locator('.sheet-banner .rollable')).toHaveCount(2);
@@ -176,7 +176,7 @@ test('worn armour remains in the slot budget and moves into the worn subtotal', 
   expect(result.carriedSubtotal).toBe(3);
 });
 
-test('the Unterkleidung layers under every zone without granting hardness', async ({ world }) => {
+test('the Unterkleidung layers under every zone without granting hardness or coverage', async ({ world }) => {
   const { derived } = await createCharacter(world.page, {
     abilities: ABILITIES,
     items: [
@@ -190,10 +190,10 @@ test('the Unterkleidung layers under every zone without granting hardness', asyn
   expect(zones.head.rh).toBe(5);
   // RW adds suit and addon.
   expect(zones.head.rw).toBe(4);
-  // RA adds too, clamped to the documented 1-10 band.
-  expect(zones.head.ra).toBe(10);
-  // The suit still covers a zone with no addon of its own, but gives it no RH.
-  expect(zones.legs).toMatchObject({ rh: 0, rw: 1, ra: 6 });
+  // RA is the addon's alone too: the suit pads, it does not cover.
+  expect(zones.head.ra).toBe(8);
+  // A zone with no addon of its own gets the suit's RW and nothing else.
+  expect(zones.legs).toMatchObject({ rh: 0, rw: 1, ra: 0 });
 });
 
 test('exceeding the slot budget drops the character to crawling', async ({ world }) => {

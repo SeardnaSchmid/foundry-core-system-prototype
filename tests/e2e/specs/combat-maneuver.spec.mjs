@@ -70,8 +70,9 @@ test('an Ansage costs a weapon attack exactly its amount', async ({ world }) => 
   const flags = await lastMessage(page);
   expect(flags.components.reduce((sum, part) => sum + part.value, 0)).toBe(MANEUVER.maneuverThreshold);
 
-  // What crosses to the defender is only the amount at face value.
-  expect(flags.envelope).toEqual({ ansage: MANEUVER.ansage });
+  // The amount crosses to the defender at face value, beside the announced
+  // weapon numbers the envelope always carries.
+  expect(flags.envelope).toMatchObject({ ansage: MANEUVER.ansage });
 
   expect(world.errors, 'no uncaught page errors during an Ansage').toEqual([]);
 });

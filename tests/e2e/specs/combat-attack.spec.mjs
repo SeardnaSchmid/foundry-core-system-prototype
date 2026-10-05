@@ -75,9 +75,9 @@ test('a weapon attack carries its requirement maluses from dialog to chat card',
   // carries parentheses, which a regex would read as a capture group.
   // The Beleg lists the weapon's own lines: Handhabung and the SV malus. The
   // reach answer joins that group once it is given.
-  const weaponRows = dialog.locator('.tno-beleg-group').filter({ has: dialog.locator('.fa-sword') }).locator('.tno-beleg-row');
+  const weaponRows = dialog.locator('.tno-beleg-group').filter({ has: page.locator('.fa-sword') }).locator('.tno-beleg-row');
   await expect(weaponRows.filter({ hasText: labels.sv })).toContainText('−6');
-  await expect(weaponRows.filter({ hasNot: dialog.locator('.is-pending') })).toHaveCount(2);
+  await expect(weaponRows.filter({ hasNot: page.locator('.is-pending') })).toHaveCount(2);
 
   // 2. A melee attack requires the reach comparison: until it is answered there
   // is nothing to roll, and the dialog must say so by refusing to submit. Only
