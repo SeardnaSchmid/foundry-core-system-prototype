@@ -225,9 +225,13 @@ export async function start() {
     FOUNDRY_ADMIN_KEY: 'tno-e2e',
     FOUNDRY_TELEMETRY: 'false',
     FOUNDRY_UPNP: 'false',
-    // Without a local hostname Foundry cannot build an invitation URL and
-    // throws "Cannot read properties of null (reading 'local')" from
-    // getInvitationLinks while a client is joining.
+    // Foundry's invitation links read `addresses`, which stays null until a
+    // call to api.foundryvtt.com/ip returns. A join that lands first throws
+    // "Cannot read properties of null (reading 'local')" from
+    // getInvitationLinks, the client receives an empty world and never reaches
+    // `ready`. Without discovery the addresses are set from the local hostname
+    // straight away.
+    FOUNDRY_IP_DISCOVERY: 'false',
     FOUNDRY_LOCAL_HOSTNAME: 'localhost',
   };
 

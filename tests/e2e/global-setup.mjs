@@ -25,9 +25,9 @@ export default async function globalSetup() {
     console.log(`[e2e] Foundry ready at ${BASE_URL}`);
   }
 
-  // `/api/status` flips to active a moment before the server is really ready to
-  // accept a join, so a cold start can fail on the first attempt. Retrying is
-  // far more reliable than trying to guess a long-enough sleep.
+  // A safety net for a join that fails transiently. The failure that used to
+  // hit every cold start — an empty world from getInvitationLinks — is gone
+  // with FOUNDRY_IP_DISCOVERY=false (see foundry-container.mjs).
   for (let attempt = 1; ; attempt++) {
     try {
       await joinAsGamemaster();
