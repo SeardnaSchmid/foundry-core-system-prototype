@@ -43,13 +43,29 @@ describe('round state', () => {
     // on the one the initiative order would have named.
     const next = advanceActivation(previous.state, ORDER);
     expect(next.combatantId).toBe('fast');
-    expect(getActivatedIds(next.state)).toEqual(['slow', 'fast']);
+    expect(getActivatedIds(next.state)).toEqual(['fast']);
   });
 
   it('refuses a second early activation in the same round', () => {
     const state = activateEarly(createRoundState(1, 'slow'), 'fast');
     expect(activateEarly(state, 'fast')).toBeUndefined();
-    expect(activateEarly(state, 'slow')).toBeUndefined();
+  });
+
+  it('keeps the interrupted combatant owed a turn', () => {
+    // The wiki has them start over with a new announcement.
+    const state = activateEarly(createRoundState(1, 'slow'), 'fast');
+    expect(getActivatedIds(state)).toEqual(['fast']);
+
+    const next = advanceActivation(state, ORDER);
+    expect(next.combatantId).toBe('slow');
+    expect(getActivatedIds(next.state)).toEqual(['fast', 'slow']);
+    expect(advanceActivation(next.state, ORDER).combatantId).toBe('medium');
+  });
+
+  it('carries the interruptions into the completed round', () => {
+    const state = activateEarly(createRoundState(1, 'slow'), 'fast');
+    const next = startNextRound(state, 2, 'slow');
+    expect(getActivatedIds(next.previousRoundState)).toEqual(['fast']);
   });
 
   it('replaces only the rewound future when a new early activation arrives', () => {
@@ -59,7 +75,8 @@ describe('round state', () => {
     state = activateEarly(state, 'medium');
 
     expect(state.activationHistory).toEqual(['slow', 'medium']);
-    expect(getActivatedIds(state)).toEqual(['slow', 'medium']);
+    expect(state.interruptions).toEqual([1]);
+    expect(getActivatedIds(state)).toEqual(['medium']);
   });
 
   it('skips a rewound future entry that is no longer available', () => {

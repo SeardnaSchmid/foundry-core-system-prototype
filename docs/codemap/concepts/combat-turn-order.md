@@ -34,10 +34,11 @@ history described below.
   so `this` is `undefined` inside it — and making it `static` would take it off
   the prototype entirely, leaving `sort()` with `undefined` and a lexicographic
   fallback that silently looks almost right.
-* Its tiebreak is **locale-independent**. Turn indices are shared state, so a
-  `localeCompare` that ordered two names differently on two clients would have
-  them disagree about who is activating. Name comparison is a plain `<`/`>`,
-  with `id` closing the tie the way core's own does.
+* Its tiebreak is **Beweglichkeit, then id**, and never a locale. An
+  initiative tie goes to the higher `abilities.dex.base`, which sorts *later*
+  (faster); the id stands in for the wiki's chance. Turn indices are shared
+  state, so a `localeCompare` that ordered two combatants differently on two
+  clients would have them disagree about who is activating.
 
 Consequence worth knowing: a module that assumes "high initiative = early" reads
 this tracker backwards. `combatant.turnNumber` and `combat.current` stay correct,
@@ -52,10 +53,16 @@ rule, and it is pure — no Foundry globals, nothing imported, nothing importing
 except the combat document. A round is:
 
 ```
-{ round, activationHistory: [combatantId, …], activationIndex, previousRoundState? }
+{ round, activationHistory: [combatantId, …], activationIndex, interruptions?, previousRoundState? }
 ```
 
-An ordered record of **who has already gone**, plus a cursor into it. That shape
+An ordered record of **who has activated**, plus a cursor into it.
+`interruptions` holds the history indices of activations that were pulled
+forward. The entry just before each one was **interrupted**, and
+`getActivatedIds` leaves it out: the interrupted combatant is owed the turn
+again, and `advanceActivation` reaches them by itself, because they are still
+the slowest combatant owed a turn. So an interrupted combatant can appear twice
+in the history. That shape
 is what makes "Vorheriger Zug" honest. A queue would recompute the order on the
 way back and hand you the person the initiative list says should have gone; a
 history hands you the person who actually did, even when somebody interrupted.
@@ -72,22 +79,25 @@ turn than the one it took last time.
 | `getActivatedIds(state)` | Who has gone this round — the history up to the cursor |
 | `advanceActivation(state, orderIds)` | Next activation, or `undefined` when the round owes none |
 | `rewindActivation(state)` | One step back, keeping the future replayable |
-| `activateEarly(state, id)` | Pull an activation forward, discarding the rewound future |
+| `activateEarly(state, id)` | Pull an activation forward, marking whoever was current as interrupted and discarding the rewound future |
 | `startNextRound(state, round, firstId)` | Close the round, keeping it for a rewind across the boundary |
 
 ## What the Combat document does with it
 
-`TnoCombat extends Combat` keeps the state in `flags.tno.roundState` and the
-initiative snapshot in `flags.tno.baseInitiatives`.
+`TnoCombat extends Combat` keeps the state in `flags.tno.roundState`.
+Initiative values are never touched between rounds, so an Orientieren re-roll
+or a GM's edit lasts the rest of the fight. (A `baseInitiatives` flag that once
+reset them each round is gone; a leftover one is ignored.)
 
 | Override | Does |
 | --- | --- |
 | `_sortCombatants` | Ascending — see above |
-| `startCombat()` | `super` first (its own `{round: 1, turn: 0}` already names the slowest), then snapshot the initiatives and open the round state on whoever it made current |
+| `startCombat()` | `super` first (its own `{round: 1, turn: 0}` already names the slowest), then open the round state on whoever it made current |
 | `nextTurn()` | `advanceActivation`; no next activation means `nextRound()` |
 | `previousTurn()` | `rewindActivation`; at the round's first activation, step back into `previousRoundState` |
-| `nextRound()` | Restore the snapshotted initiatives (growing the snapshot, see below), read the finished round, `super`, then `startNextRound` onto whoever core opened on |
-| `activateEarly(id)` | The interrupt; public, GM-side |
+| `nextRound()` | Read the finished round, `super`, then `startNextRound` onto whoever core opened on |
+| `canActivateEarly(id)` | Whether that combatant may interrupt: running combat, owed a turn, and later in `turns` than the current combatant (so faster, a tie decided by Beweglichkeit) |
+| `activateEarly(id)` | The interrupt; public, GM-side, refuses with a warning whatever `canActivateEarly` refuses |
 | `get activatedIds()` | The only thing the tracker reads |
 
 `nextTurn`, `previousTurn` and `activateEarly` write the turn cursor and the
@@ -105,26 +115,6 @@ leaves the previous round's history intact instead of wiping it.
 order, so the setting means the same thing here as it does everywhere else in
 Foundry. (The module this came from did not do that — a gap rather than a
 regression.)
-
-### The initiative snapshot only ever holds numbers
-
-`baseInitiatives` records a combatant **only once it has an initiative**, and the
-restore adopts a baseline for anyone who still has none. Both halves matter, and
-getting them wrong is not a cosmetic failure:
-
-Foundry lets a combat be started before anybody rolls. Snapshotting that state
-verbatim stored a `null` per combatant, and the next round change faithfully
-restored those nulls — so everything rolled during round 1 was wiped at round 2,
-and the tracker fell back to sorting by name. The same held for a combatant who
-joined mid-fight and was absent from the snapshot.
-
-So the rule is: a combatant's **first** initiative is their baseline, whenever it
-arrives. `#snapshotInitiatives` filters to finite values, and
-`#restoreBaseInitiatives` learns the missing ones on the way past and returns the
-grown snapshot for `nextRound` to store alongside the round state.
-Pinned by `tests/documents/combat-turn-order.test.js › never restores a
-combatant to no initiative at all` and `› adopts a baseline for a combatant who
-joined mid-fight`.
 
 **Not covered:** the round *controls* — "Previous Round" and a direct
 `Combat#update` — keep Foundry's plain semantics. A round the state machine did
@@ -165,7 +155,8 @@ each row and settles one question.
 * **Whether the row is spent**, from `combat.activatedIds`. Lightly dimmed with a
   greyed portrait — the row still has to be readable, it just no longer owes a
   turn.
-* **The interrupt button**, on an owned combatant that has not activated yet.
+* **The interrupt button**, on an owned combatant for which
+  `combat.canActivateEarly` holds.
   Where it sits is load-bearing, and both rules are about *not moving anything
   else* as rows are spent:
 

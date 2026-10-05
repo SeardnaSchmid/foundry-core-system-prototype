@@ -8,6 +8,11 @@
  * exactly the way it was played rather than the way the initiative list says it
  * should have gone.
  *
+ * An activation somebody interrupted does not count as taken: the wiki has the
+ * interrupted combatant start over with a new announcement, so they stay owed a
+ * turn. `interruptions` records which history entries were pulled forward, and
+ * the entry before each of those is the one that was interrupted.
+ *
  * Everything past the cursor is a *future* the round already walked and then
  * stepped back out of. Advancing replays it while it still matches the combat;
  * activating early throws it away, because the round has just taken a different
@@ -22,6 +27,7 @@
  * @property {number} round                    The round this state describes
  * @property {Array<string>} activationHistory Combatant ids in the order they activated
  * @property {number} activationIndex          Cursor into `activationHistory`; everything past it is a rewound future
+ * @property {Array<number>} [interruptions]   History indices of activations pulled forward; absent when there were none
  * @property {RoundState} [previousRoundState] How the round before this one ended, so a rewind can cross the boundary
  */
 
@@ -61,21 +67,42 @@ export function normalizeRoundState(state, round) {
     Number.isInteger(state.activationIndex) ? state.activationIndex : activationHistory.length - 1,
     activationHistory.length - 1
   );
+  const interruptions = Array.isArray(state.interruptions) ? state.interruptions.filter(Number.isInteger) : [];
   return {
     round,
     activationHistory,
     activationIndex,
+    ...(interruptions.length ? { interruptions } : {}),
     ...(state.previousRoundState ? { previousRoundState: state.previousRoundState } : {}),
   };
 }
 
 /**
- * Who has activated this round — the history up to and including the cursor.
+ * The state cut back to the cursor, with the rewound future discarded.
+ * @param {RoundState} state
+ * @returns {RoundState}
+ */
+function truncate(state) {
+  const { interruptions, ...rest } = state;
+  const kept = (interruptions ?? []).filter((index) => index <= state.activationIndex);
+  return {
+    ...rest,
+    activationHistory: state.activationHistory.slice(0, state.activationIndex + 1),
+    ...(kept.length ? { interruptions: kept } : {}),
+  };
+}
+
+/**
+ * Who has activated this round — the history up to and including the cursor,
+ * minus every activation that was interrupted before the cursor moved on.
  * @param {RoundState} state
  * @returns {Array<string>}
  */
 export function getActivatedIds(state) {
-  return state.activationHistory.slice(0, state.activationIndex + 1);
+  const interruptions = state.interruptions ?? [];
+  return state.activationHistory
+    .slice(0, state.activationIndex + 1)
+    .filter((_, index) => !(index < state.activationIndex && interruptions.includes(index + 1)));
 }
 
 /**
@@ -100,11 +127,11 @@ export function advanceActivation(state, forcedOrderIds) {
   const combatantId = forcedOrderIds.find((id) => !activatedIds.has(id));
   if (!combatantId) return undefined;
 
-  const activationHistory = state.activationHistory.slice(0, state.activationIndex + 1);
-  activationHistory.push(combatantId);
+  const kept = truncate(state);
+  const activationHistory = [...kept.activationHistory, combatantId];
   return {
     combatantId,
-    state: { ...state, activationHistory, activationIndex: activationHistory.length - 1 },
+    state: { ...kept, activationHistory, activationIndex: activationHistory.length - 1 },
   };
 }
 
@@ -123,16 +150,23 @@ export function rewindActivation(state) {
 }
 
 /**
- * Pull a combatant's activation forward, discarding any rewound future.
+ * Pull a combatant's activation forward, interrupting whoever is activating and
+ * discarding any rewound future. The interrupted combatant stays owed a turn.
  * @param {RoundState} state
  * @param {string} combatantId
  * @returns {RoundState|undefined} Undefined when that combatant has already activated this round
  */
 export function activateEarly(state, combatantId) {
   if (getActivatedIds(state).includes(combatantId)) return undefined;
-  const activationHistory = state.activationHistory.slice(0, state.activationIndex + 1);
-  activationHistory.push(combatantId);
-  return { ...state, activationHistory, activationIndex: activationHistory.length - 1 };
+  const kept = truncate(state);
+  const activationHistory = [...kept.activationHistory, combatantId];
+  const activationIndex = activationHistory.length - 1;
+  return {
+    ...kept,
+    activationHistory,
+    activationIndex,
+    interruptions: [...(kept.interruptions ?? []), activationIndex],
+  };
 }
 
 /**
@@ -148,6 +182,7 @@ export function startNextRound(state, round, firstCombatantId) {
     round: state.round,
     activationHistory: [...state.activationHistory],
     activationIndex: state.activationIndex,
+    ...(state.interruptions?.length ? { interruptions: [...state.interruptions] } : {}),
   };
   return createRoundState(round, firstCombatantId, previousRoundState);
 }

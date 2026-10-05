@@ -68,10 +68,10 @@ globalThis.Combat = class {
   }
 };
 
-const { TnoCombat, BASE_INITIATIVES_FLAG, ROUND_STATE_FLAG } =
+const { TnoCombat, ROUND_STATE_FLAG } =
   await import('../../module/documents/combat.mjs');
 
-export { TnoCombat, BASE_INITIATIVES_FLAG, ROUND_STATE_FLAG };
+export { TnoCombat, ROUND_STATE_FLAG };
 
 /**
  * @param {object} [spec]

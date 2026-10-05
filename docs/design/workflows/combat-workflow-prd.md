@@ -2,8 +2,9 @@
 
 **Status:** [Implemented](#implemented) · [Not implemented](#not-implemented) —
 no prose status anywhere, see *Proof* below.
-**Source of record:** the Kampfregeln page — *Waffen- und Rüstungswerte*,
-*Abgeleitete Kampfwerte*, *Angriffswürfe*. On any disagreement that page wins.
+**Source of record:** the wiki pages *Kampfregeln* (*Schaden und Zustände*,
+*Abgeleitete Kampfwerte*, *Angriffswürfe*, *Handlungen*, *Haltungen*, *Manöver*),
+*Waffen* and *Rüstung* (their value legends). On any disagreement the wiki wins.
 
 **Language:** German is an *identifier*, English is *explanation*. Every term
 that also exists as a field, key or label in the system keeps its German name,
@@ -39,7 +40,7 @@ paths `actor.system.*`.
 | **DK** Distanzklasse | `dk` (melee), `range.{sn,near,mid,far,sf}` (ranged) | reach class 0–6 / the five range bands |
 | **HH** Handhabung | `hh.active`, `hh.passive` | base modifier, attack / parry |
 | **RB** Rüstungsbrechung | `rb` | armour ignored up to this hardness, for melee and ranged weapons alike |
-| **S / WS** Schadenswert / Wucht Schadenswert | `ss.count`, `ws.count` | damage on a penetrating / non-penetrating hit |
+| **SS / WS** Scharfer Schadenswert / Wucht Schadenswert | `ss.count`, `ws.count` | damage on a penetrating / non-penetrating hit |
 | **RH** Rüstungshärte | `rh` | how hard the armour is to punch through |
 | **RW** Rüstungswert | `rw` | padding; feeds the resistance value |
 | **RA** Rüstungsabdeckung | `ra` | how well the location is covered |
@@ -126,7 +127,7 @@ If 3 fails, the target takes the applicable damage value:
 
 | | RH < RB | RH = RB | RH > RB |
 |---|---|---|---|
-| Damage value | S (Schaden) | S (Schaden) | WS (Wucht) |
+| Damage value | SS (Schaden) | SS (Schaden) | WS (Wucht) |
 | RW(Stelle) | ignored | applies | applies |
 
 The comparison needs one number from each side, and the direction it runs in is
@@ -141,12 +142,11 @@ There are two kinds of damage. **Schaden** is the obvious one and measures how
 badly a person or object is injured or damaged. **Wuchtschaden** measures how
 restricted they currently are — knocked to the ground, off balance, or with
 their orientation impaired. Each level of either shows up as a `−1` malus on
-every roll. The kind that used to be called *Scharfer Schaden* is this plain
-`Schaden`, abbreviated **S** where the old name was abbreviated SS; `WS` is
-unchanged.
+every roll. The weapon value that deals Schaden is the *Scharfer Schadenswert*
+(SS), the one that deals Wuchtschaden the *Wucht Schadenswert* (WS).
 
 Per-Stelle attribute damage is gone. The penetration comparison selects the raw
-pool — S enters Schaden, WS enters Wuchtschaden — while Stelle keeps
+pool — SS enters Schaden, WS enters Wuchtschaden — while Stelle keeps
 only its multiplier: Kopf ×2, every other location ×1
 (`tests/helpers/maneuvers.test.js › doubles a head hit, and only a head hit`).
 The resistance dialog names the pool and multiplier, never an attribute
@@ -331,9 +331,6 @@ reading consistent with the rulebook's own worked examples, and it is worth
 stating because it looks like a typo and is not
 (`tests/helpers/combat-actions.test.js › lets a rank skip that many repeats, leaving the rest at their own price`,
 `tests/helpers/combat-actions.test.js › picks the relief skill the Haltung calls for, and none outside it`).
-The rulebook names 'Defensiver Kampf' in all three sections; the latter two are
-read as 'Deckung nutzen' and 'Haken schlagen', each a skill of its own and each
-with its own section about repeated Ausweichen.
 
 ### Ansagen
 
@@ -378,14 +375,15 @@ A parry gets the same field — a Riposte is declared on one
 
 **Why the per-Manöver form went.** It priced nine rows against nine skill ranks,
 gated two of them on the reach tile, and folded the untrained ones away — so a
-character with Gezielter Stich 8 and nothing else was shown the two rows whose
+character with Gezielte Angriffe 8 and nothing else was shown the two rows whose
 Betrag only the GM knows, while Finte sat behind a "rarely used" button. The
 rules it enforced are real, but they are rules about a conversation, and the
 conversation was happening at the table regardless.
 
-Not Ansagen at all: Abtauchen, Unterlaufen, Positionierung, Auf Abstand halten,
-Defensiver Kampf and Deckung nutzen. Those cost nothing and declare nothing —
-they are standing bonuses of rank on some other roll.
+Not Ansagen at all: Abtauchen, Flèche, Positionierung, Auf Abstand halten,
+Defensiver Kampf, Deckung nutzen and Haken schlagen. Those cost nothing and
+declare nothing — they are standing bonuses of rank on some other roll.
+Unterlaufen is no Manöver either but a Handlung of its own.
 
 #### The Stelle
 
@@ -425,24 +423,31 @@ rewind retraces the round the way it was played, including an activation somebod
 pulled forward, instead of recomputing the order the initiative list would have
 produced.
 
-A player may pull their own combatant's activation forward **once per round**.
-Doing so spends that combatant's turn — they do not come round again until the
-next round — and it leaves everyone the order had not yet reached still owed a
-turn. When the round turns over, the initiative values from the start of the
-encounter are restored, so nothing an interrupt or a hand edit did to a number
-outlives the round it happened in.
+A player may pull their own combatant's activation forward — the interrupt —
+when that combatant is **faster** than whoever is activating: later in the
+sorted order, so an initiative tie goes by Beweglichkeit as the wiki's
+[Initiative](../../../rules/wiki/Die%20Regeln/Kampfregeln.md#initiative) rule
+says. The interrupt spends the interrupter's turn; the **interrupted**
+combatant is not spent and is owed the turn again, which `nextTurn` reaches
+by itself because they are still the slowest owed. The situational bans on
+interrupting (Unterdrückungsfeuer, Sturmangriff, Lösen, hidden combatants)
+stay GM calls.
+
+Initiative values carry over between rounds untouched, so an Orientieren
+re-roll or a GM's edit lasts the rest of the fight.
 
 | Rule | Where | Proof |
 |---|---|---|
 | Initiative is `1d10 + Initiativegrundwert`, one formula for tracker and sheet | `CONFIG.Combat.initiative` ← `TNO.initiativeFormula` | `tests/e2e/specs/combat-initiative.spec.mjs › the tracker rolls 1d10 plus the derived initiative value`<br>`tests/e2e/specs/combat-initiative.spec.mjs › the sheet initiative cell and tracker share one formula` |
+| An initiative tie goes to the higher Beweglichkeit, which activates later | `TnoCombat#_sortCombatants` | `tests/documents/combat-turn-order.test.js › breaks a tie by Beweglichkeit, the more agile activating later, then by id` |
 | The lowest initiative activates first | `TnoCombat#_sortCombatants` (ascending) | `tests/e2e/specs/combat-reverse-initiative.spec.mjs › the slowest combatant activates first when combat starts`<br>`tests/documents/combat-turn-order.test.js › puts the slowest combatant first` |
 | Each further activation is the slowest combatant still owed a turn | `TnoCombat#nextTurn` | `tests/e2e/specs/combat-reverse-initiative.spec.mjs › next turn walks from the slowest to the fastest combatant`<br>`tests/documents/combat-turn-order.test.js › walks from the slowest to the fastest combatant` |
 | Stepping back retraces the activations that happened, not the initiative order | `TnoCombat#previousTurn` over `helpers/round-state.mjs` | `tests/e2e/specs/combat-reverse-initiative.spec.mjs › previous turn retraces the activation history`<br>`tests/helpers/round-state.test.js › preserves an interrupt activation in both directions` |
+| Only a combatant faster than whoever is activating may interrupt | `TnoCombat#canActivateEarly` | `tests/documents/combat-interrupt.test.js › refuses a combatant slower than whoever is activating`<br>`tests/documents/combat-interrupt.test.js › lets a faster combatant interrupt an interrupter` |
 | A combatant may activate early once a round, and not again that round | `TnoCombat#activateEarly` | `tests/e2e/specs/combat-reverse-initiative.spec.mjs › the GM can pull a combatant forward out of order`<br>`tests/documents/combat-interrupt.test.js › refuses a combatant who has already activated this round` |
-| Interrupting does not end the round for the combatants it skipped | `TnoCombat#nextTurn` | `tests/documents/combat-interrupt.test.js › leaves the combatants who were skipped over still owed a turn` |
+| The interrupted combatant is owed the turn again, and the round still owes everyone it skipped | `helpers/round-state.mjs` `interruptions` | `tests/documents/combat-interrupt.test.js › hands the turn back to the interrupted combatant, then walks on`<br>`tests/helpers/round-state.test.js › keeps the interrupted combatant owed a turn` |
 | A player's interrupt is a request the GM's client grants, checked against actor ownership | `helpers/combat-socket.mjs` | `tests/helpers/combat-socket.test.js › grants an owner their own combatant`<br>`tests/helpers/combat-socket.test.js › refuses a combatant the requesting user does not own` |
-| A new round restores the initiative values from combat start | `TnoCombat#nextRound` | `tests/e2e/specs/combat-reverse-initiative.spec.mjs › a new round restores the initiative values from combat start` |
-| A combatant's *first* initiative is their baseline, whenever it arrives — a round change never resets someone to no initiative | `TnoCombat#nextRound` | `tests/documents/combat-turn-order.test.js › never restores a combatant to no initiative at all`<br>`tests/documents/combat-turn-order.test.js › adopts a baseline for a combatant who joined mid-fight` |
+| A new round keeps the initiative values as they stand | `TnoCombat#nextRound` | `tests/documents/combat-turn-order.test.js › carries the initiative values over untouched`<br>`tests/e2e/specs/combat-reverse-initiative.spec.mjs › a new round keeps the initiative values as they stand` |
 | The Haltung in force is visible per combatant in the tracker | `apps/combat-tracker.mjs` over `helpers/stances.mjs` | `tests/e2e/specs/combat-tracker-stance.spec.mjs › the tracker shows each combatant stance beside its initiative`<br>`tests/e2e/specs/combat-tracker-stance.spec.mjs › a stance change on the sheet reaches the tracker` |
 | A combatant with no Haltung reads as the default one | `helpers/stances.mjs` | `tests/e2e/specs/combat-tracker-stance.spec.mjs › a combatant without a stance falls back to the default`<br>`tests/helpers/stances.test.js › falls back for an actor with no combat block, which is every NPC` |
 
@@ -450,9 +455,9 @@ outlives the round it happened in.
 chooses which end of the list the sidebar draws first, and the activation order
 is identical either way.
 
-**No migration.** Combat state is transient — the round state and the initiative
-snapshot live in Combat flags that never existed in an earlier version of this
-system. The only thing a migration could rescue is an encounter running across
+**No migration.** Combat state is transient — the round state lives in a Combat
+flag. A leftover `baseInitiatives` flag from an earlier version is simply
+ignored. The only thing a migration could rescue is an encounter running across
 the version bump, which is not worth a migration step.
 
 ### The envelope
@@ -517,9 +522,11 @@ automated later — only the transport.
 
 Riposte is the one Ansage whose effect outlives its roll ("dein *nächster*
 Angriff gegen ihn"), so it needs actor-scoped state keyed by target and is not
-tracked — the player carries it over and enters it as a negative Ansage. The seven `#TODO` Manöver categories — Fiese Tricks, Automatikfeuer,
-Gun-Kata, Gruppenkampftaktik, Einzelkampftaktik, Psychologische Kriegsführung,
-Teamführung — are unwritten in the rulebook itself, not merely unimplemented.
+tracked — the player carries it over and enters it as a negative Ansage. The five `#TODO` Manöver categories — Gun-Kata,
+Gruppenkampftaktik, Einzelkampftaktik, Psychologische Kriegsführung,
+Teamführung — are unwritten in the wiki itself, not merely unimplemented.
+Fiese Tricks and Automatikfeuer are written there and not modelled here beyond
+the free Ansage.
 
 The hit location is resolved at the table and then selected by the defender on
 their paper doll. The attack dialog neither rolls nor stores a location.
@@ -528,10 +535,9 @@ their paper doll. The attack dialog neither rolls nor stores a location.
 
 1. **Should the announced Schadenswert persist between resistance rolls on the
    same actor**, the way `skills.<key>.lastAttribute` does?
-2. **What produces the Gleichgewicht steps?** Sich Fangen and Durchatmen both
-   spend them and nothing in the rules hands them out. Open whether they are
-   Beweglichkeit damage or a separate, self-clearing track — the latter is
-   assumed, because the damage model no longer writes to attributes at all.
+2. **Gleichgewicht is not modelled.** The wiki ties it to Wuchtschaden: Sich
+   Fangen "baut automatisch eine Stufe ab", Durchatmen ends once no new
+   Wuchtschaden arrives. Nothing in the system implements either yet.
 3. **Is "Schaden in Höhe des verwendeten Schadenswert als Würfel" a roll?**
    **Shipped flat**: the card applies the Schadenswert itself, times the Stelle
    multiplier — the damage track counts in points, and no dice are named. If a

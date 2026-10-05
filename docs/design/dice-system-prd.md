@@ -4,6 +4,11 @@
 **Last Updated:** 2026-07-13  
 **Status:** Implementation Complete
 
+**Source of record:** the wiki page *Grundregeln* (`rules/wiki/Die Regeln/Grundregeln.md`),
+sections *Würfelmechanik*, *Kritische Erfolge und Misserfolge* and *Vorteile und
+Nachteile*. On any disagreement that page wins; this document only says how the
+system realises it.
+
 ---
 
 ## Table of Contents
@@ -23,14 +28,7 @@
 
 ## Overview
 
-The Tno dice system is a **3d20 roll-under mechanic** with narrative-driven advantage/disadvantage states. It features dynamic critical success/failure conditions that fundamentally alter risk profiles based on the character's situation, creating distinct "Plot Armor" and "Doom" scenarios.
-
-### Design Philosophy
-
-- **Roll-under system:** Lower rolls are better
-- **Median-based stability:** The middle die provides consistent, predictable outcomes
-- **Narrative risk:** Advantage/disadvantage states dramatically alter critical thresholds
-- **GM-driven difficulty:** Modifiers applied in ±3 increments
+The Tno dice system is a **3d20 roll-under mechanic** with advantage/disadvantage states that the GM awards for narrative or Plot Armor reasons, and critical success/failure conditions that change with those states.
 
 ---
 
@@ -47,6 +45,10 @@ The Tno dice system is a **3d20 roll-under mechanic** with narrative-driven adva
 **Success Condition:**
 - The roll is **successful** if: `middle_die ≤ threshold`
 
+The wiki's definition says *niedriger als der Schwellenwert*, its worked example
+*kleiner oder gleich*; the system follows the example (see
+[rules-sync.md](rules-sync.md#waiting-on-the-wiki)).
+
 **Example:**
 ```
 Roll: [12, 19, 8]
@@ -55,13 +57,6 @@ Middle die: 12
 Threshold: 14
 Result: SUCCESS (12 ≤ 14)
 ```
-
-### Why the Median?
-
-The median provides:
-- **Stability:** Outliers don't skew results
-- **Predictability:** More consistent outcomes than averaging
-- **Clarity:** Easy to identify visually
 
 ---
 
@@ -74,8 +69,8 @@ Threshold = Attribute + Ability + Modifier
 ```
 
 **Components:**
-- **Attribute:** Character's base attribute value (e.g., Intelligence, Strength)
-- **Ability:** Skill or proficiency value (e.g., Investigation, Economics)
+- **Attribute:** Character's base attribute value (e.g., Untersuchen, Stärke)
+- **Ability:** Skill value (e.g., Ökonomie)
 - **Modifier:** GM-assigned difficulty adjustment
 
 ### Difficulty Modifiers
@@ -85,75 +80,40 @@ situational field additionally steps by ±1 to fine-tune — for a bonus collect
 from an earlier Ansage, or a rule the dialog does not model yet; the GM's
 difficulty itself stays in 3er steps.
 
-| Modifier | Effect | Example |
-|----------|--------|---------|
-| **+3** (Bonus) | Easier task | Amateur attempt, favorable conditions |
-| **+6** (Double Bonus) | Much easier | Highly favorable circumstances |
-| **-3** (Malus) | Harder task | Professional-grade challenge |
-| **-6** (Double Malus) | Much harder | Expert-level difficulty |
+One `+3` step is a **Bonus**, one `−3` step a **Malus**. How large a
+difficulty a situation deserves is the GM's call; the wiki gives no scale.
 
-**Example from Specification:**
+**Example from the wiki:**
 ```
-Character: Tax inspector investigating a small business
-Investigation skill: 5
-Economics skill: 6
-Modifier: +3 (amateur fraud)
+Character: tax inspector checking a small business's records
+Untersuchen (attribute): 5
+Ökonomie (skill): 6
+Modifier: +3 (amateurishly doctored records)
 
 Threshold = 5 + 6 + 3 = 14
 ```
-
-### Modifier Guidelines for GMs
-
-- **Routine task:** No modifier (0)
-- **Slightly favorable:** +3
-- **Very favorable:** +6
-- **Slightly difficult:** -3
-- **Very difficult:** -6
-- **Exceptional challenge:** -9 or more
 
 ---
 
 ## Advantage and Disadvantage
 
-Advantage and disadvantage states are **narrative tools** awarded by the GM for dramatic or situational reasons, not mechanical bonuses.
+Advantage and disadvantage are awarded by the GM for purely narrative or Plot Armor reasons. The wiki names no triggers.
 
 ### States Overview
 
-| State | Dice Pool | Effective Die | Use Case |
-|-------|-----------|---------------|----------|
-| **None** | 3d20 | Middle (median) | Standard situations |
-| **Simple Advantage** | 2d20 | Lower (better) | Favorable circumstances, preparation |
-| **Simple Disadvantage** | 2d20 | Higher (worse) | Unfavorable circumstances, hindrances |
-| **Strong Advantage** | 3d20 | Lowest (best) | Heroic moment, "Plot Armor" |
-| **Strong Disadvantage** | 3d20 | Highest (worst) | Desperate situation, "Doom" scenario |
-
-### Examples of Narrative Triggers
-
-**Simple Advantage:**
-- Character has relevant tools
-- Enemy is distracted
-- Favorable terrain
-
-**Simple Disadvantage:**
-- Poor lighting
-- Time pressure
-- Injured or exhausted
-
-**Strong Advantage:**
-- Perfect preparation meets opportunity
-- Divine intervention or destiny
-- Ultimate "hero moment"
-
-**Strong Disadvantage:**
-- Suicide mission
-- Overwhelmed by enemies
-- Near-death desperation
+| State | Dice Pool | Effective Die |
+|-------|-----------|---------------|
+| **None** | 3d20 | Middle (median) |
+| **Simple Advantage** | 2d20 | Lower (better) |
+| **Simple Disadvantage** | 2d20 | Higher (worse) |
+| **Strong Advantage** | 3d20 | Lowest (best) |
+| **Strong Disadvantage** | 3d20 | Highest (worst) |
 
 ---
 
 ## Critical Successes and Fumbles
 
-Critical results **ignore the threshold** and result in automatic success or failure. The conditions vary dramatically based on advantage/disadvantage state.
+Critical results **ignore the threshold** and result in automatic success or failure. The conditions depend on the advantage/disadvantage state. The wiki states only the deviations from the standard roll (one 1 suffices with advantage, one 20 with disadvantage, three of the opposite face with a strong state); the rows marked † keep the standard roll's two-of-a-kind, read onto two dice as *both*.
 
 ### Standard Roll (3d20, middle die)
 
@@ -162,7 +122,6 @@ Critical results **ignore the threshold** and result in automatic success or fai
 | **Critical Success** | ≥2 dice show **1** | ~0.7% |
 | **Critical Fumble** | ≥2 dice show **20** | ~0.7% |
 
-**Narrative Impact:** Rare but significant events that can swing either way.
 
 ---
 
@@ -171,12 +130,8 @@ Critical results **ignore the threshold** and result in automatic success or fai
 | Result | Condition | Probability |
 |--------|-----------|-------------|
 | **Critical Success** | ≥1 die shows **1** | ~9.75% |
-| **Critical Fumble** | Both dice show **20** | ~0.25% |
+| **Critical Fumble** † | Both dice show **20** | ~0.25% |
 
-**Narrative Impact:**
-- **High crit chance:** Heroic feats are highly achievable
-- **Ultra-low fumble risk:** Near immunity to catastrophe
-- **"Plot Armor Lite":** Favored by fortune
 
 ---
 
@@ -184,13 +139,9 @@ Critical results **ignore the threshold** and result in automatic success or fai
 
 | Result | Condition | Probability |
 |--------|-----------|-------------|
-| **Critical Success** | Both dice show **1** | ~0.25% |
+| **Critical Success** † | Both dice show **1** | ~0.25% |
 | **Critical Fumble** | ≥1 die shows **20** | ~9.75% |
 
-**Narrative Impact:**
-- **High fumble chance:** Catastrophe is highly probable
-- **Ultra-low crit chance:** Miracles are nearly impossible
-- **"Danger Zone":** Everything can go wrong
 
 ---
 
@@ -201,10 +152,6 @@ Critical results **ignore the threshold** and result in automatic success or fai
 | **Critical Success** | ≥1 die shows **1** | ~14.26% |
 | **Critical Fumble** | All 3 dice show **20** | ~0.0125% (1 in 8,000) |
 
-**Narrative Impact:**
-- **Maximum crit potential:** Epic successes are common
-- **Fumble immunity:** Catastrophe is statistically impossible
-- **"Ultimate Plot Armor":** Total narrative control
 
 ---
 
@@ -215,10 +162,6 @@ Critical results **ignore the threshold** and result in automatic success or fai
 | **Critical Success** | All 3 dice show **1** | ~0.0125% (1 in 8,000) |
 | **Critical Fumble** | ≥1 die shows **20** | ~14.26% |
 
-**Narrative Impact:**
-- **Maximum fumble risk:** Failure is almost guaranteed
-- **Crit impossibility:** Success requires divine intervention
-- **"Doom Scenario":** Suicide mission territory
 
 ---
 
@@ -226,30 +169,13 @@ Critical results **ignore the threshold** and result in automatic success or fai
 
 ### Probability Summary Table
 
-| State | Crit % | Fumble % | Risk Profile |
-|-------|--------|----------|--------------|
-| Strong Advantage | 14.26% | 0.0125% | **Plot Armor** |
-| Simple Advantage | 9.75% | 0.25% | Heroic |
-| **None** | 0.7% | 0.7% | **Balanced** |
-| Simple Disadvantage | 0.25% | 9.75% | Dangerous |
-| Strong Disadvantage | 0.0125% | 14.26% | **Doom** |
-
-### Design Implications
-
-1. **Strong Advantage = Invincibility Narrative**
-   - Use for destined hero moments
-   - Players can take risks without fear
-   - Fumbles become "impossible" story beats
-
-2. **Strong Disadvantage = Death Spiral**
-   - Use for impossible odds
-   - Every action is a gamble
-   - Success becomes legendary
-
-3. **Simple States = Asymmetric Risk**
-   - Creates tension without extremes
-   - Players feel impact of circumstances
-   - GMs can fine-tune narrative pressure
+| State | Crit % | Fumble % |
+|-------|--------|----------|
+| Strong Advantage | 14.26% | 0.0125% |
+| Simple Advantage | 9.75% | 0.25% |
+| **None** | 0.7% | 0.7% |
+| Simple Disadvantage | 0.25% | 9.75% |
+| Strong Disadvantage | 0.0125% | 14.26% |
 
 ---
 
@@ -424,7 +350,7 @@ SA = Strong Advantage
 **Example Layout:**
 ```
 ┌─────────────────────────────┐
-│  Investigation (Economics)  │
+│  Untersuchen + Ökonomie     │
 ├─────────────────────────────┤
 │  Dice: [8] 12 [19]          │
 │        ↑        ↑            │

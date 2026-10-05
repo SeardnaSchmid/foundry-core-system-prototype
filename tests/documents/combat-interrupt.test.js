@@ -21,23 +21,52 @@ const started = () =>
 beforeEach(resetWarnings);
 
 describe('activateEarly', () => {
-  it('pulls a combatant forward, out of the initiative order', async () => {
+  it('pulls a combatant forward, interrupting whoever was activating', async () => {
     const combat = started();
     await combat.activateEarly('fast');
 
     expect(combat.turns[combat.turn].id).toBe('fast');
-    expect(combat.activatedIds).toEqual(['slow', 'fast']);
+    expect(combat.activatedIds).toEqual(['fast']);
   });
 
-  it('leaves the combatants who were skipped over still owed a turn', async () => {
-    // Interrupting is not the same as ending the round early: the order still
-    // owes everyone it has not reached.
+  it('hands the turn back to the interrupted combatant, then walks on', async () => {
+    // The interrupted combatant starts over with a new announcement; the order
+    // still owes everyone it has not reached.
     const combat = started();
     await combat.activateEarly('fast');
     await combat.nextTurn();
+    expect(combat.turns[combat.turn].id).toBe('slow');
 
+    await combat.nextTurn();
     expect(combat.turns[combat.turn].id).toBe('medium');
     expect(combat.round).toBe(1);
+
+    await combat.nextTurn();
+    expect(combat.round).toBe(2);
+  });
+
+  it('refuses a combatant slower than whoever is activating', async () => {
+    const combat = started();
+    await combat.activateEarly('fast');
+    combat.updates.length = 0;
+
+    await combat.activateEarly('medium');
+
+    expect(combat.updates).toEqual([]);
+    expect(combat.canActivateEarly('medium')).toBe(false);
+    expect(warnings).toEqual(['TNO.Combat.Tracker.NotFaster(Medium)']);
+  });
+
+  it('lets a faster combatant interrupt an interrupter', async () => {
+    const combat = started();
+    await combat.activateEarly('medium');
+    await combat.activateEarly('fast');
+
+    expect(combat.activatedIds).toEqual(['fast']);
+    await combat.nextTurn();
+    expect(combat.turns[combat.turn].id).toBe('slow');
+    await combat.nextTurn();
+    expect(combat.turns[combat.turn].id).toBe('medium');
   });
 
   it('refuses a combatant who has already activated this round', async () => {
@@ -48,7 +77,7 @@ describe('activateEarly', () => {
     await combat.activateEarly('fast');
 
     expect(combat.updates).toEqual([]);
-    expect(combat.activatedIds).toEqual(['slow', 'fast']);
+    expect(combat.activatedIds).toEqual(['fast']);
     expect(warnings).toEqual(['TNO.Combat.Tracker.AlreadyActivated(Fast)']);
   });
 
@@ -72,7 +101,7 @@ describe('activateEarly', () => {
     expect(combat.flags.tno.roundState.activationHistory).toEqual(['slow', 'fast']);
 
     await combat.nextTurn();
-    expect(combat.turns[combat.turn].id).toBe('medium');
+    expect(combat.turns[combat.turn].id).toBe('slow');
   });
 
   it('does nothing before the combat has started', async () => {

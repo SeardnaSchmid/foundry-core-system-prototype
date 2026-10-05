@@ -835,7 +835,8 @@
         "OrderDescending": "High to low (activate bottom to top)",
         "Interrupt": "Activate now (interrupt)",
         "Activated": "Already activated this round",
-        "AlreadyActivated": "{name} has already activated this round."
+        "AlreadyActivated": "{name} has already activated this round.",
+        "NotFaster": "{name} is not faster than whoever is activating and may not interrupt."
       },
       "AskDefender": "Ask the defender",
       "AskAttacker": "Ask the attacker",

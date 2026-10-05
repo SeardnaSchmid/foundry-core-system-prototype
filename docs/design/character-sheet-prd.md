@@ -25,7 +25,7 @@
 
 ## Overview
 
-The character sheet (`TnoActorSheet`, actor type `character`) is the single-window hub for playing a Trans-Neptunian Objects (`tno`) character: attributes, skills, derived combat/movement stats, the [Problem-Solving Reserve](problem-solving-prd.md), biography, and inventory. It does not itself roll dice — every rollable element opens the shared [`TnoRollDialog`](../../module/apps/roll-dialog.mjs) or, for a few fixed derived rolls (Initiative, Sixth Sense, Fehler Analysieren), calls `rollTno` directly — but it is the primary surface a player spends time on between rolls.
+The character sheet (`TnoActorSheet`, actor type `character`) is the single-window hub for playing a Trans-Neptunian Objects (`tno`) character: attributes, skills, derived combat/movement stats, the [Problem-Solving Reserve](workflows/problem-solving-prd.md), biography, and inventory. It does not itself roll dice — every rollable element opens the shared [`TnoRollDialog`](../../module/apps/roll-dialog.mjs) or, for a few fixed derived rolls (Initiative, Sixth Sense, Fehler Analysieren), calls `rollTno` directly — but it is the primary surface a player spends time on between rolls.
 
 ### Design Philosophy
 
@@ -137,9 +137,9 @@ The visual views used to sit above that flat list and now live in the Basics tab
 - **Zurückgelassen** (`parts/actor-slot-grid.hbs`, under the raster) — what the character still owns but does not have on them: put down, handed over, taken away. A dashed block listing those pieces dimmed, one thin row each; nothing in it costs a slot, can be worn or offers a combat action. Dragging any physical item onto the block leaves it behind (a worn piece comes off first); dragging it back into the raster or onto the doll picks it up. The item popover offers the same toggle as *Zurücklassen* / *Mitnehmen*, which is also the path for Kleinkram. The Inventar ledger keeps listing such a piece, marked and dimmed, outside its group's slot total. The rules have no such state — it is table bookkeeping, stored as `system.stashed` on the item.
 - **Kleinkram** (`parts/actor-trinkets.hbs`) — Papiere und Krimskrams: carried gear the rules price at 0 slots, so it never takes a cell in the raster and gets the Kleinkram tab: a client-side name filter over a list of name-and-count rows. Same interactions as a cell (open, sort, wear), but **no create control and no drop target**: an item is Kleinkram exactly when its `slots` is 0, which is authored on the item's own sheet, and there is no state here to put a piece into. Currency balances are not Items and appear only in the wallet.
 
-**Weapons have no view of their own.** Gear with the weapon role carries its SV, a mandatory Waffenattribut (one of the twelve primary attributes) and Waffenfertigkeit, a melee or ranged profile, DK or five range-band modifiers, HH, RB, and SS/WS damage values (plain numbers from 0 upward, not counts of dice). Clicking an owned weapon opens its compact overview, which offers an Angriff würfeln action using that weapon's Waffenattribut and Waffenfertigkeit as fixed components: the roll dialog does not permit another attribute. A carried weapon is a carried item like any other — it appears in the Trageslots raster — and what is in hand is recorded under the paper doll (*In der Hand*, below), as bookkeeping that changes no roll.
+**Weapons have no view of their own.** Gear with the weapon role carries its SV, a mandatory Waffenattribut (one of the twelve primary attributes) and Waffenfertigkeit, a melee or ranged profile, DK or five range-band modifiers, HH, RB, and SS/WS damage values (plain numbers from 0 upward; whether the wiki's "als Würfel" means dice is open, see [combat-workflow-prd.md](workflows/combat-workflow-prd.md#open)). Clicking an owned weapon opens its compact overview, which offers an Angriff würfeln action using that weapon's Waffenattribut and Waffenfertigkeit as fixed components: the roll dialog does not permit another attribute. A carried weapon is a carried item like any other — it appears in the Trageslots raster — and what is in hand is recorded under the paper doll (*In der Hand*, below), as bookkeeping that changes no roll.
 
-The rules behind these views live in [`helpers/inventory.mjs`](../../module/helpers/inventory.mjs) and [`helpers/money.mjs`](../../module/helpers/money.mjs) as pure functions — see the wiki's [inventory concept page](../wiki/concepts/inventory.md).
+The rules behind these views live in [`helpers/inventory.mjs`](../../module/helpers/inventory.mjs) and [`helpers/money.mjs`](../../module/helpers/money.mjs) as pure functions — see the code map's [inventory concept page](../codemap/concepts/inventory.md).
 
 ---
 
@@ -153,9 +153,9 @@ Every custom clickable chip that isn't a native `<a href>`/`<button>`/form contr
 
 - Sheet class: [`TnoActorSheet`](../../module/sheets/actor-sheet.mjs), extends Foundry's `ActorSheetV2` through `HandlebarsApplicationMixin`. Template resolved dynamically per actor type: `systems/tno/templates/actor/actor-${actor.type}-sheet.hbs` (character sheet: [actor-character-sheet.hbs](../../templates/actor/actor-character-sheet.hbs)).
 - `getData()` builds `context.attributeGrid` and `context.skillGroups` only for `actor.type === 'character'` (`_prepareCharacterData`); NPCs get `_prepareItems()` only, no heatmap/skill grid.
-- Attribute and skill XP cost formulas are pure functions at module scope (`attributeRankXpCost`, `skillRankXpCost`) — cumulative "total cost to reach rank N", not per-step cost, matching the rulebook's "Charakterentwicklung" level-cost tables (attributes: N², triangular-summed; skills: 3N, triangular-summed).
+- Attribute and skill XP cost formulas are pure functions at module scope (`attributeRankXpCost`, `skillRankXpCost`) — cumulative "total cost to reach rank N", not per-step cost, matching the rulebook's "Charakterentwicklung" level-cost tables (attributes: the sum of N²; skills: the sum of 3N).
 - The heatmap's color grading (`colorForValue` in [helpers/heatmap.mjs](../../module/helpers/heatmap.mjs)) is shared with the GM-only `TnoHeatmapLab` tuning tool, so any palette change there is reflected on every player's sheet.
-- Skill roll dispatch, the Problem-Solving actions, and their gating (`analyzeFlawDisabled`, `edgeExempt` flags) are documented separately in [problem-solving-prd.md](problem-solving-prd.md) and [dice-system-prd.md](dice-system-prd.md) — this document covers the sheet's *display and layout* of those values, not their mechanics.
+- Skill roll dispatch, the Problem-Solving actions, and their gating (`analyzeFlawDisabled`, `edgeExempt` flags) are documented separately in [problem-solving-prd.md](workflows/problem-solving-prd.md) and [dice-system-prd.md](dice-system-prd.md) — this document covers the sheet's *display and layout* of those values, not their mechanics.
 - `context.isGM` gates the heatmap-lab launch button in the template; everything else on the sheet is available to any owner.
 
 ---
@@ -181,7 +181,7 @@ Key prefixes used throughout the sheet (see `lang/de.json` / `lang/en.json`):
 - `TNO.XpTotalAllHint` / `XpTotalAttributesHint` / `XpTotalSkillsHint` / `XpMaxBadge` — the three XP badge tooltips and the at-cap badge text.
 - `TNO.BiographyPlaceholder` — biography textarea placeholder.
 - `TNO.Connections.*` — the Beziehungen tab: title, search, add/remove/open, the empty and no-match lines, the duplicate-drop notice, and the column captions under `Field.*`.
-- Problem-Solving keys are documented in full in [problem-solving-prd.md](problem-solving-prd.md#localization).
+- Problem-Solving keys are documented in full in [problem-solving-prd.md](workflows/problem-solving-prd.md#localization).
 
 ---
 

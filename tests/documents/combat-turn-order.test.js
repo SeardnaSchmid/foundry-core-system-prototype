@@ -15,7 +15,7 @@ const started = (overrides = {}) =>
     combatants: THREE,
     round: 1,
     turn: 0,
-    flags: { tno: { roundState: createRoundState(1, 'slow'), baseInitiatives: { fast: 14, slow: 6, medium: 9 } } },
+    flags: { tno: { roundState: createRoundState(1, 'slow')} },
     ...overrides,
   });
 
@@ -36,11 +36,12 @@ describe('_sortCombatants', () => {
     expect(order(combat)).toEqual(['slow', 'unrolled']);
   });
 
-  it('breaks a tie by name and then by id, never by locale', () => {
-    // Turn indices are shared state, so the comparison has to land the same way
-    // on every client — which is what rules out localeCompare.
-    expect(sort({ id: 'b', name: 'Anna', initiative: 5 }, { id: 'a', name: 'Bert', initiative: 5 })).toBeLessThan(0);
-    expect(sort({ id: 'b', name: 'Same', initiative: 5 }, { id: 'a', name: 'Same', initiative: 5 })).toBeGreaterThan(0);
+  it('breaks a tie by Beweglichkeit, the more agile activating later, then by id', () => {
+    const agile = (id, dex) => ({ id, initiative: 5, actor: { system: { abilities: { dex: { base: dex } } } } });
+    expect(sort(agile('a', 6), agile('b', 4))).toBeGreaterThan(0);
+    expect(sort(agile('b', 4), agile('a', 6))).toBeLessThan(0);
+    // Turn indices are shared state, so the last resort is the id, never a locale.
+    expect(sort(agile('b', 4), agile('a', 4))).toBeGreaterThan(0);
   });
 
   it('never reads `this`, because core calls it unbound', () => {
@@ -50,11 +51,10 @@ describe('_sortCombatants', () => {
 });
 
 describe('startCombat', () => {
-  it('opens the round on the slowest combatant and snapshots the initiatives', async () => {
+  it('opens the round on the slowest combatant', async () => {
     const combat = makeCombat({ combatants: THREE });
     await combat.startCombat();
 
-    expect(combat.flags.tno.baseInitiatives).toEqual({ slow: 6, medium: 9, fast: 14 });
     expect(combat.flags.tno.roundState).toEqual(createRoundState(1, 'slow'));
     // Core's own `{round: 1, turn: 0}` already names the slowest combatant,
     // because the sort is ascending.
@@ -148,47 +148,15 @@ describe('previousTurn', () => {
 });
 
 describe('nextRound', () => {
-  it('restores the initiative values from combat start', async () => {
+  it('carries the initiative values over untouched', async () => {
+    // An Orientieren re-roll or a GM's edit lasts the rest of the fight.
     const combat = started();
-    combat.combatants.get('medium').initiative = 99;
+    combat.combatants.get('medium').initiative = 12;
 
     await combat.nextRound();
 
-    expect(combat.combatants.get('medium').initiative).toBe(9);
-    expect(combat.combatantUpdates).toEqual([{ type: 'Combatant', updates: [{ _id: 'medium', initiative: 9 }] }]);
-  });
-
-  it('never restores a combatant to no initiative at all', async () => {
-    // A combat may legitimately be started before anybody rolls. Snapshotting
-    // those nulls and restoring them turned the round change into an initiative
-    // reset: everything rolled during round 1 was thrown away at round 2.
-    const combat = makeCombat({
-      combatants: [
-        { id: 'slow', initiative: null },
-        { id: 'fast', initiative: null },
-      ],
-    });
-    await combat.startCombat();
-    expect(combat.flags.tno.baseInitiatives).toEqual({});
-
-    combat.combatants.get('slow').initiative = 6;
-    combat.combatants.get('fast').initiative = 14;
-    await combat.nextRound();
-
-    expect(combat.combatants.get('slow').initiative).toBe(6);
-    expect(combat.combatants.get('fast').initiative).toBe(14);
-    // And the values they rolled are the baseline from here on.
-    expect(combat.flags.tno.baseInitiatives).toEqual({ slow: 6, fast: 14 });
-  });
-
-  it('adopts a baseline for a combatant who joined mid-fight', async () => {
-    const combat = started();
-    combat.combatants.contents.push({ id: 'latecomer', name: 'Latecomer', initiative: 7, isDefeated: false });
-
-    await combat.nextRound();
-
-    expect(combat.combatants.get('latecomer').initiative).toBe(7);
-    expect(combat.flags.tno.baseInitiatives.latecomer).toBe(7);
+    expect(combat.combatants.get('medium').initiative).toBe(12);
+    expect(combat.combatantUpdates).toEqual([]);
   });
 
   it('opens the new round on the slowest combatant', async () => {

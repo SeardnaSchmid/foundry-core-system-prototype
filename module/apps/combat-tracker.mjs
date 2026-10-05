@@ -16,7 +16,8 @@ const DRAG_TYPE = 'application/x-tno-combatant';
  *
  * **Who has already gone.** The turn order is a history rather than a list (see
  * [`documents/combat.mjs`](../documents/combat.mjs)), so a row is either spent
- * or still owed a turn, and only the latter may interrupt.
+ * or still owed a turn, and only one owed a turn *and* faster than whoever is
+ * activating may interrupt (`TnoCombat#canActivateEarly`).
  *
  * The display *order* is settled here and nowhere else: `combatTrackerOrder`
  * reverses the rendered rows and leaves `combat.turns` untouched, which is what
@@ -64,7 +65,7 @@ export class TnoCombatTracker extends foundry.applications.sidebar.tabs.CombatTr
     const turn = await super._prepareTurnContext(combat, combatant, index);
     turn.stance = stanceEntry(actorStance(combatant.actor));
     turn.activated = (combat.activatedIds ?? []).includes(combatant.id);
-    turn.canInterrupt = combat.started && combatant.isOwner && !turn.activated;
+    turn.canInterrupt = combatant.isOwner && combat.canActivateEarly(combatant.id);
     return turn;
   }
 

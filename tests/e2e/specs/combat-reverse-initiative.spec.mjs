@@ -40,7 +40,6 @@ test('the slowest combatant activates first when combat starts', async ({ world 
       order,
       active: combat.turns[combat.turn].name,
       activated: combat.activatedIds.length,
-      baseInitiatives: Object.values(combat.getFlag('tno', 'baseInitiatives')),
     };
   }, combatId);
 
@@ -49,7 +48,6 @@ test('the slowest combatant activates first when combat starts', async ({ world 
   expect(result.order).toEqual(['E2E Slow', 'E2E Medium', 'E2E Fast']);
   expect(result.active).toBe('E2E Slow');
   expect(result.activated).toBe(1);
-  expect(result.baseInitiatives.sort((a, b) => a - b)).toEqual([6, 9, 14]);
 
   await deleteCombat(world.page, combatId);
   expect(world.errors, 'no uncaught page errors while starting combat').toEqual([]);
@@ -101,15 +99,14 @@ test('previous turn retraces the activation history', async ({ world }) => {
   expect(world.errors, 'no uncaught page errors while rewinding turns').toEqual([]);
 });
 
-test('a new round restores the initiative values from combat start', async ({ world }) => {
+test('a new round keeps the initiative values as they stand', async ({ world }) => {
   const combatId = await stageCombat(world.page);
 
   const result = await world.page.evaluate(async (id) => {
     const combat = game.combats.get(id);
     await combat.startCombat();
-    // Whatever the round did to the numbers — a hand edit, a drag — the next
-    // round starts from the values the encounter opened on.
-    await combat.setInitiative(combat.turns[0].id, 99);
+    // An Orientieren re-roll or a GM's edit lasts the rest of the fight.
+    await combat.setInitiative(combat.turns[0].id, 12);
     await combat.nextRound();
     return {
       round: combat.round,
@@ -119,8 +116,8 @@ test('a new round restores the initiative values from combat start', async ({ wo
   }, combatId);
 
   expect(result.round).toBe(2);
-  expect(result.initiatives).toEqual([6, 9, 14]);
-  expect(result.active).toBe('E2E Slow');
+  expect(result.initiatives).toEqual([9, 12, 14]);
+  expect(result.active).toBe('E2E Medium');
 
   await deleteCombat(world.page, combatId);
   expect(world.errors, 'no uncaught page errors while turning the round').toEqual([]);
@@ -142,11 +139,14 @@ test('the GM can pull a combatant forward out of order', async ({ world }) => {
     await combat.activateEarly(fast.id);
     const afterRepeat = combat.turns[combat.turn].name;
 
-    // The round now owes only the combatant who was skipped over.
+    // The interrupted combatant starts over, then the order walks on.
+    await combat.nextTurn();
+    const resumed = combat.turns[combat.turn].name;
     await combat.nextTurn();
     return {
       afterInterrupt,
       afterRepeat,
+      resumed,
       activated: combat.activatedIds.length,
       next: combat.turns[combat.turn].name,
       round: combat.round,
@@ -155,6 +155,7 @@ test('the GM can pull a combatant forward out of order', async ({ world }) => {
 
   expect(result.afterInterrupt).toBe('E2E Fast');
   expect(result.afterRepeat).toBe('E2E Fast');
+  expect(result.resumed).toBe('E2E Slow');
   expect(result.activated).toBe(3);
   expect(result.next).toBe('E2E Medium');
   expect(result.round).toBe(1);

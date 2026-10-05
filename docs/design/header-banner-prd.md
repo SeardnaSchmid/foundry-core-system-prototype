@@ -323,8 +323,8 @@ toggle in the roll dialog, Fehler finden and Fehleranalyse are buttons on a
 failed roll's chat card. The derived thresholds stay in the pill's tooltip.
 
 **Setting the reserve.** The band loses the number field, so the manual
-correction — an off-mechanic spend, announced in chat on a decrease and silent on
-an increase — moves into the pill's own popover along with the thresholds. It is
+correction — an off-mechanic edit, announced in chat in both directions (see
+[problem-solving-prd.md](workflows/problem-solving-prd.md#the-edge-pool)) — moves into the pill's own popover along with the thresholds. It is
 a GM/admin correction and does not need a permanently visible input.
 
 ### Initiative and 6. Sinn
@@ -396,13 +396,8 @@ returned to the state lane in 1.3 (see
 history.*
 
 All three fail **P1**, and they have a stronger thing in common than the band
-ever gave them: each is a pure function of base attributes.
-
-| Value | Formula |
-|---|---|
-| Initiative | `ceil((2 · Beweglichkeit + Wahrnehmung) / 3)` |
-| 6. Sinn | `round((Wahrnehmung + Empathie + Auffassung) / 3)` |
-| Kriechen · Gehen · Sprinten | `ceil(Beweglichkeit / 3)` · `Beweglichkeit` · `3 × Beweglichkeit` |
+ever gave them: each is a pure function of base attributes (formulas: wiki
+*Attribute* → *Abgeleitete Attribute*).
 
 They go to a compact strip directly under the attribute matrix, in the Basics
 tab's leftmost column — beside the values that produce them, in the tab that
