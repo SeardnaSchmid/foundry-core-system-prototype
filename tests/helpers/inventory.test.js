@@ -10,6 +10,10 @@ import {
   holdInHand,
   releaseHand,
   releaseItem,
+  slotMeter,
+  armorEquipUpdate,
+  dragTargets,
+  wornZone,
 } from '../../module/helpers/inventory.mjs';
 
 /** Shorthand for a carried item stack. */
@@ -376,5 +380,67 @@ describe('hands', () => {
   it('collects the held ids, with no store at all reading as empty hands', () => {
     expect([...heldItemIds({ right: 'axe', left: 'axe' })]).toEqual(['axe']);
     expect(heldItemIds(undefined).size).toBe(0);
+  });
+});
+
+describe('slotMeter', () => {
+  it('draws worn, then carried, then free slots', () => {
+    expect(slotMeter(5, 3, 1)).toEqual(['worn', 'used', 'used', 'free', 'free']);
+  });
+
+  it('adds one segment per slot past the budget', () => {
+    expect(slotMeter(2, 4, 0)).toEqual(['used', 'used', 'over', 'over']);
+  });
+});
+
+describe('armorEquipUpdate', () => {
+  const equipment = { torso: 'coat', arms: 'coat', legs: null, head: 'cap' };
+
+  it('takes off a garment from every zone it covers', () => {
+    expect(armorEquipUpdate(equipment, {}, 'arms', null)).toEqual({
+      'system.equipment.torso': null,
+      'system.equipment.arms': null,
+    });
+  });
+
+  it('changes nothing when the zone is already empty', () => {
+    expect(armorEquipUpdate(equipment, {}, 'legs', null)).toBeNull();
+  });
+
+  it('moves a piece rather than cloning it, fills what it covers and frees the hand', () => {
+    expect(armorEquipUpdate(equipment, { right: 'cap', left: null }, 'torso', 'cap', ['torso', 'legs'])).toEqual({
+      'system.equipment.head': null,
+      'system.equipment.torso': 'cap',
+      'system.equipment.legs': 'cap',
+      'system.hands': { right: null, left: null },
+    });
+  });
+
+  it('falls back to the dropped zone for a piece without authored zones', () => {
+    expect(armorEquipUpdate({}, {}, 'head', 'hat')).toEqual({ 'system.equipment.head': 'hat' });
+  });
+});
+
+describe('wornZone', () => {
+  it('finds the zone a piece is worn in', () => {
+    expect(wornZone({ torso: 'coat', head: null }, 'coat')).toBe('torso');
+    expect(wornZone(undefined, 'coat')).toBeNull();
+  });
+});
+
+describe('dragTargets', () => {
+  const base = { worn: false, zones: ['torso'], stashed: false, held: false, gear: true };
+
+  it('offers the doll to packed armour, never the grid it is already in', () => {
+    expect(dragTargets(base)).toEqual({ zones: ['torso'], grid: false, stash: true, hands: true });
+  });
+
+  it('offers the grid, not the doll, to a piece already worn', () => {
+    expect(dragTargets({ ...base, worn: true })).toMatchObject({ zones: [], grid: true });
+  });
+
+  it('does not offer the pile to a piece already in it, nor anything physical to a feature', () => {
+    expect(dragTargets({ ...base, stashed: true })).toMatchObject({ grid: true, stash: false });
+    expect(dragTargets({ ...base, zones: [], gear: false })).toEqual({ zones: [], grid: false, stash: false, hands: false });
   });
 });

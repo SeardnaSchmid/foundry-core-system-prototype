@@ -3,7 +3,7 @@ type: concept
 title: Advancement
 description: How XP is spent to raise an attribute's or skill's rank, and the cost formulas involved.
 tags: [advancement, xp, ranks]
-resource: module/apps/advance-dialog.mjs
+resource: [module/apps/advance-dialog.mjs, module/helpers/advancement.mjs]
 related: [concepts/attributes, concepts/skills]
 ---
 
@@ -15,16 +15,15 @@ opened from the sheet's advance buttons / XP bars.
 
 ## Cost formulas
 
-The XP cost to advance **to** rank N (`_nextRankCost`):
-
-| Type | Cost to reach rank N | Example (rank 3) |
-| --- | --- | --- |
-| Attribute | N² | 9 XP |
-| Skill | 3·N | 9 XP |
-
-The dialog only ever computes the *next* single step, not a cumulative
-total. Rank range: attributes 1–10 (`ATTRIBUTE_MIN = 1`, since 0 isn't a
-valid attribute), skills 0–10 (`SKILL_MIN = 0`). `RANK_MAX = 10` for both.
+The costs are the wiki's (*Charakterentwicklung*), computed in one place:
+[`helpers/advancement.mjs`](../../../module/helpers/advancement.mjs), pure and
+unit-tested. `nextRankXpCost(kind, rank)` is the next single step — all the
+dialog ever deals with; `rankXpTotal(kind, rank)` the cumulative cost to reach
+a rank; `xpProgress` the XP bar (cost, ready, at cap, percent) that the dialog
+and the sheet's matrix and skill rows share; `xpSummary` the sheet's
+spent/banked/acquired totals. Rank range: attributes 1–10 (`ATTRIBUTE_MIN = 1`,
+since 0 isn't a valid attribute), skills 0–10 (`SKILL_MIN = 0`), `RANK_MAX = 10`
+for both.
 
 ## Guided actions vs. manual correction
 

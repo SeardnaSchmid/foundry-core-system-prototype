@@ -400,3 +400,78 @@ export function resolveArmor(equipment, items) {
 
   return { zones, sv };
 }
+
+/**
+ * The slot meter above the raster: one segment per slot of the budget, plus
+ * one per slot the load runs past it — the worn band first, then carried load,
+ * then free room, then the overload.
+ * @param {number} capacity
+ * @param {number} used   Slots in use, worn ones included
+ * @param {number} worn   Slots taken by worn pieces
+ * @returns {Array<'worn'|'used'|'free'|'over'>}
+ */
+export function slotMeter(capacity, used, worn) {
+  return Array.from({ length: Math.max(capacity, used) }, (_, index) => {
+    if (index >= capacity) return 'over';
+    if (index < worn) return 'worn';
+    return index < used ? 'used' : 'free';
+  });
+}
+
+/**
+ * The zone `itemId` is worn in, or null. A piece covering several zones is
+ * stored in each; the first is returned.
+ * @param {Object} equipment  `actor.system.equipment`
+ * @param {string} itemId
+ * @returns {string|null}
+ */
+export function wornZone(equipment, itemId) {
+  const zones = equipment ?? {};
+  return Object.keys(zones).find((zone) => zones[zone] === itemId) ?? null;
+}
+
+/**
+ * The actor update that puts `itemId` on at `zone`, or takes off what is worn
+ * there when `itemId` is empty. A piece is cleared from wherever it already
+ * sits first, so a re-drop onto another zone moves the whole garment rather
+ * than cloning it; it then fills every zone it covers. Putting a piece on
+ * takes it out of the hand, and taking one off clears every zone it covered.
+ * @param {Object} equipment  `actor.system.equipment`
+ * @param {Object} hands      `actor.system.hands`
+ * @param {string} zone
+ * @param {?string} itemId
+ * @param {string[]} covered  The zones the piece covers (`armorZones`)
+ * @returns {Object|null}  The update, or null when there is nothing to change
+ */
+export function armorEquipUpdate(equipment, hands, zone, itemId, covered = []) {
+  const zones = equipment ?? {};
+  const clear = (id) => Object.fromEntries(
+    Object.entries(zones).filter(([, value]) => value === id).map(([key]) => [`system.equipment.${key}`, null])
+  );
+  if (!itemId) return zones[zone] ? clear(zones[zone]) : null;
+
+  const update = clear(itemId);
+  for (const key of covered.length ? covered : [zone]) update[`system.equipment.${key}`] = itemId;
+  if (heldItemIds(hands).has(itemId)) update['system.hands'] = releaseItem(hands, itemId);
+  return update;
+}
+
+/**
+ * Which drop targets answer a drag of one item, so only moves that can be
+ * made in that direction light up. A piece in the packed band is on its way
+ * onto the body, so the doll answers; one already worn is on its way off, so
+ * the slot grid does — as it does for a piece coming back from the pile or out
+ * of a hand. Any gear not yet left behind can be, and any gear can be taken in
+ * hand.
+ * @param {{worn: boolean, zones: string[], stashed: boolean, held: boolean, gear: boolean}} state
+ * @returns {{zones: string[], grid: boolean, stash: boolean, hands: boolean}}
+ */
+export function dragTargets({ worn, zones, stashed, held, gear }) {
+  return {
+    zones: worn ? [] : zones,
+    grid: worn || stashed || held,
+    stash: gear && !stashed,
+    hands: gear,
+  };
+}
+

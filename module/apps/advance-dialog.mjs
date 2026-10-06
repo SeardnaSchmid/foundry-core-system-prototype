@@ -3,9 +3,10 @@
 // docs/codemap/reference/module-map.md.
 const { FormApplication } = foundry.appv1.api;
 
+import { RANK_MAX, nextRankXpCost, xpProgress } from '../helpers/advancement.mjs';
+
 const SKILL_MIN = 0;
 const ATTRIBUTE_MIN = 1;
-const RANK_MAX = 10;
 
 /**
  * Advancement dialog for a single attribute or skill, opened from the sheet.
@@ -14,13 +15,10 @@ const RANK_MAX = 10;
  * cost of that next rank, and offers three guided actions — spend/refund a
  * single XP and "buy" the next rank — plus an always-open correction panel
  * with directly editable rank/XP fields for fixing mistakes.
- * There is no free XP pool: XP only ever exist on their attribute or skill. Per the "Charakterentwicklung" rules, XP always
- * belong to exactly one attribute or skill; buying a rank consumes that rank's
- * cost and any surplus carries over toward the next rank.
- *
- * The XP cost to advance *to* rank N is 3*N for skills and N*N for attributes
- * (matching the level cost table); this dialog only ever deals with the single
- * next step, not the cumulative total.
+ * There is no free XP pool: XP only ever exist on their attribute or skill
+ * (wiki: *Charakterentwicklung*). Buying a rank consumes that rank's cost and
+ * any surplus carries over toward the next rank. The costs come from
+ * `helpers/advancement.mjs`.
  *
  * @extends {FormApplication}
  */
@@ -66,21 +64,11 @@ export class TnoAdvanceDialog extends FormApplication {
     return this.type === 'attribute' ? ATTRIBUTE_MIN : SKILL_MIN;
   }
 
-  /**
-   * Marginal XP cost to advance from `rank` to `rank + 1`.
-   * @param {number} rank
-   * @returns {number}
-   */
-  _nextRankCost(rank) {
-    return this.type === 'attribute' ? (rank + 1) ** 2 : 3 * (rank + 1);
-  }
-
   /** @override */
   getData() {
     const rank = this.object.rank;
     const xp = this.object.xp;
-    const cost = this._nextRankCost(rank);
-    const atMax = rank >= RANK_MAX;
+    const { xpCost: cost, xpAtMax: atMax, xpReady, xpPercent } = xpProgress(this.type, rank, xp);
     return {
       label: this.label,
       rank,
@@ -88,11 +76,11 @@ export class TnoAdvanceDialog extends FormApplication {
       cost,
       nextRank: rank + 1,
       atMax,
-      canBuy: !atMax && xp >= cost,
+      canBuy: xpReady,
       canDecXp: xp > 0,
       remaining: Math.max(0, cost - xp),
       rankMin: this._rankMin,
-      percent: atMax ? 100 : Math.min(100, Math.round((xp / cost) * 100)),
+      percent: xpPercent,
     };
   }
 
@@ -113,7 +101,7 @@ export class TnoAdvanceDialog extends FormApplication {
       } else if (action === 'xp-dec') {
         this.object.xp = Math.max(0, this.object.xp - step);
       } else if (action === 'buy') {
-        const cost = this._nextRankCost(this.object.rank);
+        const cost = nextRankXpCost(this.type, this.object.rank);
         if (this.object.rank < RANK_MAX && this.object.xp >= cost) {
           this.object.rank += 1;
           // Only the rank's cost is consumed; any surplus XP carries over

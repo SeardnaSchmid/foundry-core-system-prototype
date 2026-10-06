@@ -23,14 +23,17 @@ module/tno.mjs                          (entry point, imports everything below)
 │                 → item.mjs imports helpers/item-transfer.mjs for the data its
 │                   posted chat card carries
 │                 → combat.mjs imports helpers/round-state.mjs and nothing else
-├── sheets/     actor-sheet.mjs, item-sheet.mjs, item-gear-sheet.mjs
+├── sheets/     actor-sheet.mjs, item-sheet.mjs, item-gear-sheet.mjs,
+│               connection-graph-view.mjs
 │                 → helpers/{effects,heatmap,dice,skills,inventory,items,
-│                   combat-actions,stances}.mjs
+│                   combat-actions,stances,popover,advancement,connection-graph}.mjs
+│                 → actor-sheet.mjs imports connection-graph-view.mjs, which
+│                   imports only helpers/connection-graph.mjs
 │                 → apps/{roll-dialog,advance-dialog,heatmap-lab,custom-skill-dialog}.mjs
 ├── helpers/    config, dice, dice-odds, dice-odds-table, chat, heatmap, skills,
 │               effects, inventory, damage, items, item-presentation, item-transfer,
 │               combat-actions, maneuvers, round-state, stances, combat-socket,
-│               migrations, templates
+│               migrations, templates, popover, advancement
 │                 → items.mjs is the base of the helper graph: it imports
 │                   nothing, and inventory.mjs and config.mjs import it
 │                 → maneuvers.mjs is the second global-free base: it imports
@@ -40,6 +43,10 @@ module/tno.mjs                          (entry point, imports everything below)
 │                   and resolves the two raw health counters
 │                 → round-state.mjs is the fourth: it imports nothing and holds
 │                   one combat round's activation history
+│                 → advancement.mjs imports nothing either: the XP cost
+│                   table, shared by the sheet and the advancement dialog
+│                 → popover.mjs imports nothing and reads no Foundry globals;
+│                   only the actor sheet uses it
 │                 → stances.mjs and combat-socket.mjs import nothing either, but
 │                   both read Foundry globals (CONFIG.TNO / game), so they are
 │                   leaves rather than testable bases
@@ -64,6 +71,8 @@ module/tno.mjs                          (entry point, imports everything below)
                   → combat-tracker.mjs imports helpers/{combat-actions,stances,
                     combat-socket}.mjs, and reaches the Combat document only
                     through the one it is handed
+                  → advance-dialog.mjs imports helpers/advancement.mjs, the same
+                    XP costs the sheet's bars use
 ```
 
 `helpers/stances.mjs` exists because of that last line. Its two functions were

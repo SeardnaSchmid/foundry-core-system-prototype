@@ -330,3 +330,91 @@ export function createSpringEmbedder(nodes, edges, {
 
   return { nodes: state, params, node: (id) => byId.get(id), step };
 }
+
+/** Clip a label so a long name cannot sprawl over its neighbours. */
+const clipLabel = (text) => (text.length > 22 ? `${text.slice(0, 21)}…` : text);
+
+/**
+ * What the SVG needs to draw a laid-out graph: node radius and initial,
+ * clipped labels, edge midpoints.
+ * @param {object[]} nodes  Laid-out nodes, at their current positions
+ * @param {object[]} edges  Edges with their end points `x1/y1/x2/y2`
+ * @param {object} options
+ * @param {string} options.unnamed  Label for a node without one
+ * @param {(connectionId?: string) => string|undefined} options.portrait
+ *   The portrait for a person node that has none of its own.
+ */
+export function graphViewModel(nodes, edges, { unnamed, portrait }) {
+  return {
+    nodes: nodes.map((node) => {
+      const radius = node.kind === 'self' ? 30 : node.kind === 'person' ? 16 : 11;
+      return {
+        ...node,
+        img: node.img ?? portrait(node.connectionId),
+        text: clipLabel(node.label || unnamed),
+        radius,
+        diameter: radius * 2,
+        reachRadius: radius + 4,
+        initial: (node.label || '?').trim().charAt(0).toUpperCase(),
+      };
+    }),
+    edges: edges.map((edge) => ({
+      ...edge,
+      midX: Math.round((edge.x1 + edge.x2) / 2),
+      midY: Math.round((edge.y1 + edge.y2) / 2),
+      text: clipLabel(edge.label),
+    })),
+  };
+}
+
+/**
+ * What the hover card says about each node, by node id: a title, the kind of
+ * node, and the rows known about it — for a person their row of the table and
+ * who else names them under Kennt, for a Fraktion or Herkunft the people in
+ * it. Empty rows are left out.
+ * @param {object[]} nodes
+ * @param {unknown} stored   `system.connections`
+ * @param {(key: string) => string} t  Localizes a key
+ * @returns {Map<string, {title: string, kind: string, rows: Array<{label: string, value: string}>}>}
+ */
+export function graphNodeDetails(nodes, stored, t) {
+  const entries = normalizeConnections(stored);
+  const byId = new Map(entries.map((entry) => [entry.id, entry]));
+  const lower = (text) => text.trim().toLocaleLowerCase();
+  const knownBy = (name) => entries.filter((entry) => entry.knows.some((other) => lower(other) === lower(name))).map((entry) => entry.name);
+  const withLabel = (field, label) => entries.filter((entry) => entry[field].some((value) => lower(value) === lower(label))).map((entry) => entry.name);
+  const join = (list) => list.filter(Boolean).join(', ');
+  const notes = (text) => (text.length > 240 ? `${text.slice(0, 239)}…` : text);
+
+  const details = new Map();
+  for (const node of nodes) {
+    const entry = node.connectionId ? byId.get(node.connectionId) : null;
+    let kind = t(`TNO.Connections.Graph.Kind.${node.kind}`);
+    let rows = [];
+    if (node.kind === 'self') {
+      rows = [{ label: t('TNO.Connections.Graph.Members'), value: String(entries.length) }];
+    } else if (entry) {
+      rows = [
+        { label: t('TNO.Connections.Field.relations'), value: join(entry.relations) },
+        { label: t('TNO.Connections.Field.knows'), value: join(entry.knows) },
+        { label: t('TNO.Connections.Graph.KnownBy'), value: join(knownBy(entry.name)) },
+        { label: t('TNO.Connections.Field.factions'), value: join(entry.factions) },
+        { label: t('TNO.Connections.Field.origins'), value: join(entry.origins) },
+        { label: t('TNO.Connections.Field.neuralink'), value: entry.neuralink ? t('TNO.Connections.Graph.Reachable') : '' },
+        { label: t('TNO.Connections.Field.notes'), value: notes(entry.notes.trim()) },
+      ];
+    } else if (node.hearsay) {
+      kind = t('TNO.Connections.Graph.Hearsay');
+      rows = [{ label: t('TNO.Connections.Graph.KnownBy'), value: join(knownBy(node.label)) }];
+    } else {
+      const field = node.kind === 'faction' ? 'factions' : 'origins';
+      rows = [{ label: t('TNO.Connections.Graph.Members'), value: join(withLabel(field, node.label)) }];
+    }
+    details.set(node.id, {
+      title: node.label || t('TNO.Connections.Graph.Unnamed'),
+      kind,
+      rows: rows.filter((row) => row.value),
+    });
+  }
+  return details;
+}

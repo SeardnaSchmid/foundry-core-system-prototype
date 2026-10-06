@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { SPRING_DEFAULTS, buildConnectionGraph, createSpringEmbedder, layoutGraph, normalizeSpringParams } from '../../module/helpers/connection-graph.mjs';
+import { SPRING_DEFAULTS, buildConnectionGraph, createSpringEmbedder, graphNodeDetails, graphViewModel, layoutGraph, normalizeSpringParams } from '../../module/helpers/connection-graph.mjs';
 
 const self = { name: 'Rosa', img: 'rosa.webp' };
 const stored = [
@@ -176,3 +176,57 @@ describe('createSpringEmbedder · settling', () => {
   });
 });
 
+
+describe('graphViewModel', () => {
+  it('sizes nodes by kind, clips long labels and finds edge midpoints', () => {
+    const { nodes, edges } = graphViewModel(
+      [
+        { id: 'self', kind: 'self', label: 'Rosa', img: 'rosa.webp' },
+        { id: 'person:a', kind: 'person', label: 'Ein sehr langer Name der nicht passt', connectionId: 'a' },
+        { id: 'faction:x', kind: 'faction', label: '' },
+      ],
+      [{ from: 'self', to: 'person:a', label: 'Freund', x1: 0, y1: 0, x2: 11, y2: 5 }],
+      { unnamed: 'Unbenannt', portrait: (id) => `${id}.webp` }
+    );
+    expect(nodes.map((n) => n.radius)).toEqual([30, 16, 11]);
+    expect(nodes[0].img).toBe('rosa.webp');
+    expect(nodes[1].img).toBe('a.webp');
+    expect(nodes[1].text).toHaveLength(22);
+    expect(nodes[1].initial).toBe('E');
+    expect(nodes[2]).toMatchObject({ text: 'Unbenannt', initial: '?' });
+    expect(edges[0]).toMatchObject({ midX: 6, midY: 3, text: 'Freund' });
+  });
+});
+
+describe('graphNodeDetails', () => {
+  const t = (key) => key.split('.').pop();
+  const people = [
+    { id: 'a', name: 'Marco', factions: ['Kartell'], knows: ['Ines'], neuralink: true },
+    { id: 'b', name: 'Tim', factions: ['kartell'], knows: ['marco'] },
+  ];
+  const details = graphNodeDetails(
+    [
+      { id: 'self', kind: 'self', label: 'Rosa' },
+      { id: 'person:a', kind: 'person', label: 'Marco', connectionId: 'a' },
+      { id: 'faction:kartell', kind: 'faction', label: 'Kartell' },
+      { id: 'hearsay:ines', kind: 'person', label: 'Ines', hearsay: true },
+    ],
+    people,
+    t
+  );
+
+  it('lists a person row, who else knows them, and leaves empty rows out', () => {
+    expect(details.get('person:a').rows).toEqual([
+      { label: 'knows', value: 'Ines' },
+      { label: 'KnownBy', value: 'Tim' },
+      { label: 'factions', value: 'Kartell' },
+      { label: 'neuralink', value: 'Reachable' },
+    ]);
+  });
+
+  it('names the members of a faction, ignoring case, and who heard of a hearsay person', () => {
+    expect(details.get('faction:kartell').rows).toEqual([{ label: 'Members', value: 'Marco, Tim' }]);
+    expect(details.get('hearsay:ines')).toMatchObject({ kind: 'Hearsay', rows: [{ label: 'KnownBy', value: 'Marco' }] });
+    expect(details.get('self').rows).toEqual([{ label: 'Members', value: '2' }]);
+  });
+});

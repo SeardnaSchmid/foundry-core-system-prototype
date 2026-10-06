@@ -300,7 +300,7 @@ changes state**:
   off empties it. While a packed piece is in flight the block lights up as an
   area (`worn-drop-target`, mirroring the grid's `carry-drop-target`), and its
   zone — row and silhouette shapes, via `#zoneSelector` — is marked stronger
-  inside it (`zone-drop-target`), all set in `_onDragStart`. Once the pointer
+  inside it (`zone-drop-target`), all set in `_onDragStart` from what `dragTargets` allows. Once the pointer
   is anywhere on the block that zone goes solid (`drop-onto`).
 - **A worn row back onto the slot grid** takes the piece off: the mirror of the
   gesture that put it on, so the way back is not a different kind of act. The

@@ -12,11 +12,12 @@ import { TnoHeatmapLab } from '../apps/heatmap-lab.mjs';
 import { TnoCustomSkillDialog } from '../apps/custom-skill-dialog.mjs';
 import { TNO_ADVANTAGE, rollTno } from '../helpers/dice.mjs';
 import { getSkillDefinitions, getSkillDefinition } from '../helpers/skills.mjs';
+import { rankXpTotal, xpProgress, xpSummary } from '../helpers/advancement.mjs';
 import {
-  BASE_MAX,
-} from '../helpers/attributes.mjs';
-import {
+  armorEquipUpdate,
   buildSlotGrid,
+  dragTargets,
+  slotMeter,
   ARMOR_ADDON_ZONES,
   HANDS,
   heldItemIds,
@@ -25,9 +26,11 @@ import {
   releaseHand,
   releaseItem,
   wornItemIds,
+  wornZone,
 } from '../helpers/inventory.mjs';
 import { MONEY_CURRENCIES, normalizeMoneyAmount, prepareWallet } from '../helpers/money.mjs';
 import { prepareGearSummaryContext } from '../helpers/item-summary.mjs';
+import { SheetPopover } from '../helpers/popover.mjs';
 import {
   ITEM_ROLES,
   MISSING_FIELD_LABELS,
@@ -73,10 +76,19 @@ import {
   SPRING_DEFAULTS,
   SPRING_PARAMS,
   buildConnectionGraph,
-  createSpringEmbedder,
+  graphNodeDetails,
+  graphViewModel,
   layoutGraph,
   normalizeSpringParams,
 } from '../helpers/connection-graph.mjs';
+import {
+  GRAPH_HEIGHT,
+  GRAPH_WIDTH,
+  dragGraphNode,
+  lightGraphNode,
+  showGraphCard,
+  startGraph,
+} from './connection-graph-view.mjs';
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -87,34 +99,6 @@ const { ActorSheetV2 } = foundry.applications.sheets;
  * own — the rail moves inside the sheet (see `#placeTabRail`).
  */
 const TAB_RAIL_WIDTH = 44;
-
-/**
- * The Beziehungen graph's layout box. The drawing itself takes the size of
- * the space it is shown in; positions are kept in this box and scaled.
- */
-const GRAPH_WIDTH = 1000;
-const GRAPH_HEIGHT = 600;
-
-/** Never smaller than this, however little room the window leaves. */
-const GRAPH_MIN_HEIGHT = 280;
-
-/** Room kept under the graph: the scroll box's padding and the frame's border. */
-const GRAPH_BOTTOM_GAP = 22;
-
-/**
- * The graph is drawn at most this often per second, whatever the screen's
- * refresh rate: smooth enough for settling springs, and a 144 Hz screen does
- * not draw it six times as often as needed.
- */
-const GRAPH_FPS = 30;
-
-/**
- * The graph's spring embedder runs this many physics steps per drawn frame —
- * four at 30 fps keeps the pace of the earlier two per 60 Hz frame — and
- * stops once the kinetic energy left falls under the threshold.
- */
-const GRAPH_STEPS_PER_FRAME = 4;
-const GRAPH_REST_ENERGY = 0.05;
 
 /**
  * How the Basics tab divides each of its two rows: one share per column, in
@@ -193,28 +177,6 @@ function fuzzyMatch(query, text) {
 }
 
 /**
- * Cumulative XP cost to reach a given skill rank, per the "Charakterentwicklung"
- * level cost table (advancing to level N costs 3*N XP, e.g. rank 3 costs
- * 3+6+9=18 XP in total).
- * @param {number} rank
- * @returns {number}
- */
-function skillRankXpCost(rank) {
-  return (3 * rank * (rank + 1)) / 2;
-}
-
-/**
- * Cumulative XP cost to reach a given attribute rank, per the level cost
- * table (advancing to level N costs N*N XP, e.g. rank 3 costs 1+4+9=14 XP
- * in total).
- * @param {number} rank
- * @returns {number}
- */
-function attributeRankXpCost(rank) {
-  return (rank * (rank + 1) * (2 * rank + 1)) / 6;
-}
-
-/**
  * Character/NPC sheet, built on ApplicationV2. The V2 framework is what
  * carries Foundry v14's native pop-out support, so the sheet gains the
  * "Detach" window control for free — V1 `ActorSheet` windows never get it.
@@ -264,6 +226,13 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    * @type {ResizeObserver|null}
    */
   #slotGridObserver = null;
+
+  /**
+   * The body-level popovers, built in `_onFirstRender` and removed in
+   * `_onClose`: item, money, columns, stance, condition, edge.
+   * @type {Record<string, SheetPopover>|null}
+   */
+  #popovers = null;
 
   /**
    * ApplicationV2 owns the form element, so the actor-type class the template's
@@ -440,24 +409,13 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
           // two-branch wash covers the whole ramp.
           const onLightInk = dc.textColor !== INK_DARK;
 
-          // XP progress toward the next base rank: advancing to rank N costs
-          // N*N XP; the bar fills as XP accrues and turns "ready" once enough
-          // is banked (and the attribute isn't already at the cap).
-          const xpAtMax = value >= BASE_MAX;
-          const xpCost = (value + 1) ** 2;
-          const xpReady = !xpAtMax && xp >= xpCost;
-          const xpPercent = xpAtMax ? 100 : Math.min(100, Math.round((xp / xpCost) * 100));
-
           return {
             key,
             label: game.i18n.localize(labelKey),
             hint: axisPrefix + game.i18n.localize(labelKey.replace('.long', '.hint')),
             value,
             xp,
-            xpCost,
-            xpReady,
-            xpAtMax,
-            xpPercent,
+            ...xpProgress('attribute', value, xp),
             xpBarTrack: 'rgba(0,0,0,0.12)',
             xpBarFill: 'rgba(51,45,34,0.45)',
             cellBg: dc.bg,
@@ -469,9 +427,6 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         };
       }),
     };
-    context.attributeGrid.totalXp = rows
-      .flat()
-      .reduce((sum, key) => sum + attributeRankXpCost(abilities[key]?.base ?? 0), 0);
     context.attributeGrid.totalValue = rows
       .flat()
       .reduce((sum, key) => sum + (abilities[key]?.base ?? 0), 0);
@@ -537,13 +492,6 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         .map(([key, skill]) => {
           const rank = skills[key]?.value ?? 0;
           const xp = skills[key]?.xp ?? 0;
-          // XP progress toward the next rank: advancing to rank N costs 3*N XP;
-          // "ready" flags the advance arrow green once the step is affordable.
-          // Mirrors the attribute heatmap's XP bar (same rank cap, same
-          // ready/at-max semantics) so both grids read the same way.
-          const xpCost = 3 * (rank + 1);
-          const xpAtMax = rank >= 10;
-          const xpPercent = xpAtMax ? 100 : Math.min(100, Math.round((xp / xpCost) * 100));
           // Untrained skills (rank 0) stay in the neutral default badge
           // color rather than the heatmap's lowest tone, so a group full of
           // untrained skills doesn't drown out the ones actually worth
@@ -568,10 +516,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             attribute: skills[key]?.lastAttribute || skill.attribute,
             rank,
             xp,
-            xpCost,
-            xpReady: rank < 10 && xp >= xpCost,
-            xpAtMax,
-            xpPercent,
+            ...xpProgress('skill', rank, xp),
             starter: skill.starter ?? false,
             custom: skill.custom,
             levelBg: dc?.bg ?? null,
@@ -585,38 +530,24 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         label: game.i18n.localize(catLabelKey),
         skills: groupSkills,
         totalRank: groupSkills.reduce((sum, skill) => sum + skill.rank, 0),
-        totalXp: groupSkills.reduce((sum, skill) => sum + skillRankXpCost(skill.rank), 0),
+        totalXp: groupSkills.reduce((sum, skill) => sum + rankXpTotal('skill', skill.rank), 0),
       };
     });
 
-    // XP invested so far, broken down by skills vs. attributes plus their
-    // combined grand total, shown as a chip in the sheet header. The grand
-    // total only ever sums XP: adding up attribute points and skill ranks
-    // together wouldn't mean anything, since they're on different scales.
-    context.skillXpTotal = context.skillGroups.reduce((sum, group) => sum + group.totalXp, 0);
-    context.skillRankTotal = context.skillGroups.reduce((sum, group) => sum + group.totalRank, 0);
-    context.totalXpSpent = context.attributeGrid.totalXp + context.skillXpTotal;
-
-    // What the character has earned, as opposed to what they have committed.
-    // Every attribute and skill carries XP banked toward its *next* rank; that
-    // XP is earned but not yet converted, so the rank-cost sums above miss it
-    // entirely — a rank-0 skill holding 2 XP costs 0 spent but is still 2 XP
-    // the character earned. Acquired is therefore spent plus everything still
-    // banked, and it only ever rises: spending banked XP on a rank moves the
-    // same points from one side of the sum to the other.
-    //
-    // Summed from the same view models the totals above use, so a skill counts
-    // here exactly when it counts there. The category filter is applied to the
-    // DOM, not to `skillGroups`, so this sees every skill regardless of it.
-    context.attributeXpBanked = rows
-      .flat()
-      .reduce((sum, key) => sum + (abilities[key]?.xp ?? 0), 0);
-    context.skillXpBanked = context.skillGroups.reduce(
-      (sum, group) => sum + group.skills.reduce((s, skill) => s + (skill.xp ?? 0), 0),
-      0
+    // XP invested so far, by attributes and skills, and what the character has
+    // earned in all — see `xpSummary`. Attribute points and skill ranks are
+    // never added together: they are on different scales. Summed from every
+    // skill: the category filter is applied to the DOM, not to `skillGroups`.
+    const xp = xpSummary(
+      rows.flat().map((key) => ({ rank: abilities[key]?.base ?? 0, xp: abilities[key]?.xp ?? 0 })),
+      context.skillGroups.flatMap((group) => group.skills)
     );
-    context.totalXpUnspent = context.attributeXpBanked + context.skillXpBanked;
-    context.totalXpAcquired = context.totalXpSpent + context.totalXpUnspent;
+    context.attributeGrid.totalXp = xp.attributeXpSpent;
+    context.skillXpTotal = xp.skillXpSpent;
+    context.skillRankTotal = context.skillGroups.reduce((sum, group) => sum + group.totalRank, 0);
+    context.totalXpSpent = xp.spent;
+    context.totalXpUnspent = xp.unspent;
+    context.totalXpAcquired = xp.acquired;
 
     // The edge reserve as a pip row for the banner pill: one pip per point of
     // the maximum, filled up to the current pool. Built here rather than in the
@@ -1220,12 +1151,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       free: grid.empty,
       // One meter segment per slot of the budget, plus one per slot the load
       // runs past it: the worn band first, then carried load, then free room.
-      meter: Array.from({ length: Math.max(capacity, used) }, (_, index) => ({
-        tone: index >= capacity ? 'over'
-          : index < (derived.carryWorn ?? 0) ? 'worn'
-            : index < used ? 'used'
-              : 'free',
-      })),
+      meter: slotMeter(capacity, used, derived.carryWorn ?? 0).map((tone) => ({ tone })),
       used,
       capacity,
       over: used > capacity,
@@ -1374,43 +1300,29 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   /** Open the complete wallet editor beside its compact Basics component. */
   async #openMoneyPopover(anchor) {
-    if (!this._moneyPopover || !this.isEditable) return;
+    const popover = this.#popovers?.money;
+    if (!popover || !this.isEditable) return;
     this.#mountPopovers();
-    this._moneyPopoverAnchor = anchor;
-    this._moneyPopover.innerHTML = await foundry.applications.handlebars.renderTemplate(
-      'systems/tno/templates/actor/parts/money-popover.hbs',
-      { money: this.#moneyContext() }
-    );
-    this._moneyPopover.setAttribute('aria-label', game.i18n.localize('TNO.Money.Edit'));
-    if (!this._moneyPopover.matches(':popover-open')) this._moneyPopover.showPopover();
-    this._moneyPopover.querySelector('[autofocus]')?.focus();
-    this.#positionMoneyPopover();
-  }
-
-  /** Keep the body-level wallet editor beside its current sheet anchor. */
-  #positionMoneyPopover() {
-    if (!this._moneyPopover?.matches(':popover-open')) return;
-    if (!this._moneyPopoverAnchor?.isConnected) {
-      this._moneyPopoverAnchor = this.element.querySelector('.money-wallet-block.editable');
-    }
-    this.#positionPopover(this._moneyPopover, this._moneyPopoverAnchor);
+    await popover.open(anchor);
+    popover.element.querySelector('[autofocus]')?.focus();
   }
 
   /** Recalculate row conversions and the total while wallet fields are typed. */
   #updateMoneyPreview() {
-    if (!this._moneyPopover) return;
+    const popover = this.#popovers?.money.element;
+    if (!popover) return;
     let totalCents = 0;
     let approximate = false;
-    for (const input of this._moneyPopover.querySelectorAll('[data-money-key]')) {
+    for (const input of popover.querySelectorAll('[data-money-key]')) {
       const amount = normalizeMoneyAmount(input.value);
       const cents = amount * normalizeMoneyAmount(input.dataset.rateCents);
       const isApproximate = input.dataset.approximate === 'true';
       totalCents += cents;
       approximate ||= isApproximate && amount > 0;
-      const output = this._moneyPopover.querySelector(`[data-money-euro="${input.dataset.moneyKey}"]`);
+      const output = popover.querySelector(`[data-money-euro="${input.dataset.moneyKey}"]`);
       if (output) output.textContent = `${isApproximate ? '≈' : ''}${this.#formatEuro(cents)}`;
     }
-    const total = this._moneyPopover.querySelector('[data-money-total]');
+    const total = popover.querySelector('[data-money-total]');
     if (total) total.textContent = `${approximate ? '≈' : ''}${this.#formatEuro(totalCents)}`;
   }
 
@@ -1427,7 +1339,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         normalizeMoneyAmount(data.get(key)),
       ])
     );
-    this._moneyPopover?.hidePopover();
+    this.#popovers?.money.hide();
     await this.actor.update(update);
   }
 
@@ -1446,71 +1358,30 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   }
 
   /**
-   * Move both popovers into whichever document the sheet is in now. Called on
-   * every render rather than once at mount: detaching and re-attaching are
-   * things the player does whenever they like, and a popover left behind in the
-   * old window would open on the wrong screen — or, once the detached window is
-   * closed, on no screen at all.
-   *
-   * `append` adopts a node across documents, so re-homing is the whole of it.
-   * The open state does not survive the move, which is why anything open is
-   * closed first rather than left in a half-adopted top layer.
+   * Move every popover into whichever document the sheet is in now — see
+   * `SheetPopover#mount`. Called on every render rather than once at mount:
+   * detaching and re-attaching are things the player does whenever they like.
    * @private
    */
   #mountPopovers() {
     const host = this.#hostDocument();
-    for (const popover of [
-      this._itemPopover,
-      this._moneyPopover,
-      this._columnsPopover,
-      this._stancePopover,
-      this._conditionPopover,
-      this._edgePopover,
-    ]) {
-      if (!popover || popover.ownerDocument === host) continue;
-      if (popover.matches(':popover-open')) popover.hidePopover();
-      host.body.append(popover);
-    }
-  }
-
-  /** Place a native top-layer popover inside the viewport beside its anchor. */
-  #positionPopover(popover, anchor) {
-    if (!popover || !anchor) return;
-    // The popover's own window, not the one this code runs in — see
-    // `#hostDocument`. A detached sheet is measured against the parent
-    // workspace's dimensions otherwise, and lands off-screen.
-    const view = popover.ownerDocument.defaultView ?? window;
-    const gap = 6;
-    const edge = 8;
-    const anchorRect = anchor.getBoundingClientRect();
-    const popoverRect = popover.getBoundingClientRect();
-    const left = Math.min(
-      Math.max(edge, anchorRect.left),
-      Math.max(edge, view.innerWidth - popoverRect.width - edge)
-    );
-    const below = anchorRect.bottom + gap;
-    const above = anchorRect.top - popoverRect.height - gap;
-    const top = below + popoverRect.height <= view.innerHeight - edge
-      ? below
-      : Math.max(edge, above);
-    popover.style.left = `${Math.round(left)}px`;
-    popover.style.top = `${Math.round(top)}px`;
+    for (const popover of Object.values(this.#popovers ?? {})) popover.mount(host);
   }
 
   /**
-   * Redraw the column picker from the setting it edits, so the boxes always
-   * show what the table is actually rendering — including the case where
-   * unticking the last one puts the defaults back.
+   * Draw one of the sheet's template-backed popovers.
+   * @param {HTMLElement} element
+   * @param {string} part       Template under `templates/actor/parts/`
+   * @param {object} context
+   * @param {string} labelKey   Localization key of its accessible name
    * @private
    */
-  async #refreshColumnsPopover() {
-    const popover = this._columnsPopover;
-    if (!popover) return;
-    popover.innerHTML = await foundry.applications.handlebars.renderTemplate(
-      'systems/tno/templates/actor/parts/columns-popover.hbs',
-      { sections: this.#columnPickerSections(this.#itemTableConfig()) }
+  async #renderPopover(element, part, context, labelKey) {
+    element.innerHTML = await foundry.applications.handlebars.renderTemplate(
+      `systems/tno/templates/actor/parts/${part}.hbs`,
+      context
     );
-    popover.setAttribute('aria-label', game.i18n.localize('TNO.ItemTable.ColumnsTitle'));
+    element.setAttribute('aria-label', game.i18n.localize(labelKey));
   }
 
   /**
@@ -1520,21 +1391,9 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    * @private
    */
   async #openColumnsPopover(anchor) {
-    if (!this._columnsPopover) return;
+    if (!this.#popovers) return;
     this.#mountPopovers();
-    this._columnsPopoverAnchor = anchor;
-    await this.#refreshColumnsPopover();
-    if (!this._columnsPopover.matches(':popover-open')) this._columnsPopover.showPopover();
-    this.#positionColumnsPopover();
-  }
-
-  /** Keep the picker beside its button across re-renders and window moves. */
-  #positionColumnsPopover() {
-    if (!this._columnsPopover?.matches(':popover-open')) return;
-    if (!this._columnsPopoverAnchor?.isConnected) {
-      this._columnsPopoverAnchor = this.element.querySelector('.item-columns-toggle');
-    }
-    this.#positionPopover(this._columnsPopover, this._columnsPopoverAnchor);
+    await this.#popovers.columns.open(anchor);
   }
 
   /**
@@ -1551,26 +1410,13 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     };
   }
 
-  /** Redraw the picker so its selected option matches the Haltung in force. */
-  async #refreshStancePopover() {
-    const popover = this._stancePopover;
-    if (!popover) return;
-    popover.innerHTML = await foundry.applications.handlebars.renderTemplate(
-      'systems/tno/templates/actor/parts/stance-popover.hbs',
-      this.#stancePopoverContext()
-    );
-    popover.setAttribute('aria-label', game.i18n.localize('TNO.Combat.StancePick'));
-  }
-
   /** Open the picker beneath the banner's Haltung chip. */
   async #openStancePopover(anchor) {
-    if (!this._stancePopover) return;
+    const popover = this.#popovers?.stance;
+    if (!popover) return;
     this.#mountPopovers();
-    this._stancePopoverAnchor = anchor;
-    await this.#refreshStancePopover();
-    if (!this._stancePopover.matches(':popover-open')) this._stancePopover.showPopover();
-    this._stancePopover.querySelector('.stance-option.selected')?.focus();
-    this.#positionStancePopover();
+    await popover.open(anchor);
+    popover.element.querySelector('.stance-option.selected')?.focus();
   }
 
   /**
@@ -1586,7 +1432,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   #syncStanceChip() {
     const chip = this.element?.querySelector('.chip-stance');
     if (!chip) return;
-    const open = !!this._stancePopover?.matches(':popover-open');
+    const open = !!this.#popovers?.stance.isOpen;
     chip.setAttribute('aria-expanded', String(open));
     if (open) {
       if (chip.dataset.tooltipHtml !== undefined) {
@@ -1598,15 +1444,6 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       chip.dataset.tooltipHtml = chip.dataset.stanceTooltip;
       delete chip.dataset.stanceTooltip;
     }
-  }
-
-  /** Keep the picker beside its chip across re-renders and window moves. */
-  #positionStancePopover() {
-    if (!this._stancePopover?.matches(':popover-open')) return;
-    if (!this._stancePopoverAnchor?.isConnected) {
-      this._stancePopoverAnchor = this.element.querySelector('.chip-stance');
-    }
-    this.#positionPopover(this._stancePopover, this._stancePopoverAnchor);
   }
 
   /**
@@ -1630,33 +1467,13 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   }
 
   /**
-   * Redraw the condition panel from the actor as it stands now. Stepping a pool
-   * or cycling a light re-renders the sheet, and the panel has to follow it or
-   * it would keep showing the state the click just left behind.
-   *
-   * Replacing the panel's markup destroys the focus inside it, so the element
-   * the keyboard was on is found again by its `data-focus-key` — a stepper that
-   * moved focus to nowhere on every press would be unusable without a mouse.
-   * @private
+   * Open the condition panel beside whichever of its doors was used. Stepping a
+   * pool or cycling a light re-renders the sheet, and `_onRender` redraws the
+   * panel from what the click just changed.
    */
-  async #refreshConditionPopover() {
-    const popover = this._conditionPopover;
-    if (!popover) return;
-    const focusKey = popover.ownerDocument.activeElement?.closest?.('[data-focus-key]')
-      ?.dataset.focusKey ?? null;
-    popover.innerHTML = await foundry.applications.handlebars.renderTemplate(
-      'systems/tno/templates/actor/parts/condition-panel.hbs',
-      this.#conditionPanelContext()
-    );
-    popover.setAttribute('aria-label', game.i18n.localize('TNO.Status.PanelTitle'));
-    if (focusKey) popover.querySelector(`[data-focus-key="${focusKey}"]`)?.focus();
-  }
-
-  /** Open the condition panel beside whichever of its doors was used. */
   async #openConditionPopover(anchor) {
-    if (!this._conditionPopover) return;
+    if (!this.#popovers) return;
     this.#mountPopovers();
-    this._conditionPopoverAnchor = anchor;
     // Which door, not just which element: a stepper press re-renders the sheet
     // and replaces the anchor, and a panel that re-anchored to a different door
     // would jump across the band under the cursor that opened it.
@@ -1665,22 +1482,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // is absent at zero.
     this._conditionPopoverDoor = ['chip-status', 'banner-malus', 'banner-tracks']
       .find((door) => anchor.classList.contains(door)) ?? 'banner-tracks';
-    await this.#refreshConditionPopover();
-    if (!this._conditionPopover.matches(':popover-open')) this._conditionPopover.showPopover();
-    this.#positionConditionPopover();
-  }
-
-  /** Keep the panel beside its own door across re-renders and window moves. */
-  #positionConditionPopover() {
-    if (!this._conditionPopover?.matches(':popover-open')) return;
-    if (!this._conditionPopoverAnchor?.isConnected) {
-      // Clearing both tracks from inside the panel removes the condition row
-      // that opened it, so the door itself can go while the panel stays up.
-      // Re-anchor to the tracks rather than letting the panel lose its place.
-      this._conditionPopoverAnchor = this.element.querySelector(`.${this._conditionPopoverDoor}`)
-        ?? this.element.querySelector('.banner-tracks');
-    }
-    this.#positionPopover(this._conditionPopover, this._conditionPopoverAnchor);
+    await this.#popovers.condition.open(anchor);
   }
 
   /**
@@ -1688,11 +1490,11 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    * carry `aria-expanded`, so a reader is told the panel is open whichever one
    * they are on.
    * @param {string} selector
-   * @param {HTMLElement|null} popover
+   * @param {SheetPopover|null} popover
    * @private
    */
   #syncPopoverDoors(selector, popover) {
-    const open = !!popover?.matches(':popover-open');
+    const open = !!popover?.isOpen;
     for (const door of this.element?.querySelectorAll(selector) ?? []) {
       door.setAttribute('aria-expanded', String(open));
     }
@@ -1719,37 +1521,11 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     };
   }
 
-  /** Redraw the Edge popover, keeping the keyboard on the stepper it was on. */
-  async #refreshEdgePopover() {
-    const popover = this._edgePopover;
-    if (!popover) return;
-    const focusKey = popover.ownerDocument.activeElement?.closest?.('[data-focus-key]')
-      ?.dataset.focusKey ?? null;
-    popover.innerHTML = await foundry.applications.handlebars.renderTemplate(
-      'systems/tno/templates/actor/parts/edge-popover.hbs',
-      this.#edgePopoverContext()
-    );
-    popover.setAttribute('aria-label', game.i18n.localize('TNO.Derived.EdgePool'));
-    if (focusKey) popover.querySelector(`[data-focus-key="${focusKey}"]`)?.focus();
-  }
-
   /** Open the Edge popover beneath its pill. */
   async #openEdgePopover(anchor) {
-    if (!this._edgePopover) return;
+    if (!this.#popovers) return;
     this.#mountPopovers();
-    this._edgePopoverAnchor = anchor;
-    await this.#refreshEdgePopover();
-    if (!this._edgePopover.matches(':popover-open')) this._edgePopover.showPopover();
-    this.#positionEdgePopover();
-  }
-
-  /** Keep the Edge popover beside its pill across re-renders and window moves. */
-  #positionEdgePopover() {
-    if (!this._edgePopover?.matches(':popover-open')) return;
-    if (!this._edgePopoverAnchor?.isConnected) {
-      this._edgePopoverAnchor = this.element.querySelector('.chip-edge');
-    }
-    this.#positionPopover(this._edgePopover, this._edgePopoverAnchor);
+    await this.#popovers.edge.open(anchor);
   }
 
   /**
@@ -1761,7 +1537,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    * @private
    */
   #previewStance(option) {
-    const popover = this._stancePopover;
+    const popover = this.#popovers?.stance.element;
     if (!popover) return;
     const source = option ?? popover.querySelector('.stance-option.selected');
     if (!source) return;
@@ -1805,61 +1581,46 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     };
   }
 
-  /** Rebuild an open popover after the actor sheet has re-rendered. */
-  async #refreshItemPopover() {
-    const popover = this._itemPopover;
+  /**
+   * Draw the item popover for the item it was opened on, or close it once that
+   * item is gone. The keyboard goes back to the control it was on.
+   * @param {HTMLElement} element
+   * @private
+   */
+  async #renderItemPopover(element) {
     const itemId = this._itemPopoverItemId;
-    if (!popover || !itemId) return;
+    if (!itemId) return;
     const item = this.actor.items.get(itemId);
-    if (!item) {
-      if (popover.matches(':popover-open')) popover.hidePopover();
-      return;
-    }
+    if (!item) return this.#popovers?.item.hide();
 
-    const active = popover.ownerDocument.activeElement;
-    const focused = popover.contains(active)
+    const active = element.ownerDocument.activeElement;
+    const focused = element.contains(active)
       ? { action: active.dataset.popoverAction, by: active.dataset.by }
       : null;
     const html = await foundry.applications.handlebars.renderTemplate(
       'systems/tno/templates/actor/parts/item-popover.hbs',
       await this.#itemPopoverContext(item)
     );
-    if (this._itemPopover !== popover || this._itemPopoverItemId !== itemId) return;
-    popover.innerHTML = html;
-    popover.setAttribute('aria-label', item.name);
+    // The sheet closed or another item was opened while this one rendered.
+    if (this.#popovers?.item.element !== element || this._itemPopoverItemId !== itemId) return;
+    element.innerHTML = html;
+    element.setAttribute('aria-label', item.name);
     if (focused?.action) {
-      const controls = [...popover.querySelectorAll(`[data-popover-action="${focused.action}"]`)];
+      const controls = [...element.querySelectorAll(`[data-popover-action="${focused.action}"]`)];
       controls.find((control) => focused.by === undefined || control.dataset.by === focused.by)?.focus();
     }
   }
 
   /** Open and place the compact item popover beside the clicked sheet cell. */
   async #openItemPopover(item, anchor) {
-    if (!this._itemPopover || !item) return;
+    const popover = this.#popovers?.item;
+    if (!popover || !item) return;
     this.#mountPopovers();
     this._itemPopoverItemId = item.id;
-    this._itemPopoverAnchor = anchor;
-    await this.#refreshItemPopover();
-    if (!this._itemPopover.matches(':popover-open')) this._itemPopover.showPopover();
-    if (!this._itemPopover.contains(this._itemPopover.ownerDocument.activeElement)) {
-      this._itemPopover.querySelector('[autofocus]')?.focus();
+    await popover.open(anchor);
+    if (!popover.element.contains(popover.element.ownerDocument.activeElement)) {
+      popover.element.querySelector('[autofocus]')?.focus();
     }
-    this.#positionItemPopover();
-  }
-
-  /** Keep the body-level top-layer element within the current viewport. */
-  #positionItemPopover() {
-    const popover = this._itemPopover;
-    if (!popover?.matches(':popover-open')) return;
-    let anchor = this._itemPopoverAnchor;
-    if (!anchor?.isConnected) {
-      const id = CSS.escape(this._itemPopoverItemId ?? '');
-      anchor = this.element.querySelector(`.slot-first[data-item-id="${id}"], .slot-trinket[data-item-id="${id}"], .stash-item[data-item-id="${id}"], .armor-row[data-item-id="${id}"], .hand-slot[data-item-id="${id}"]`);
-      this._itemPopoverAnchor = anchor;
-    }
-    if (!anchor) return;
-
-    this.#positionPopover(popover, anchor);
   }
 
   /** Dispatch actions from the body-level popover to its live item document. */
@@ -1872,22 +1633,22 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     switch (control.dataset.popoverAction) {
       case 'close':
-        return this._itemPopover.hidePopover();
+        return this.#popovers.item.hide();
       case 'edit':
-        this._itemPopover.hidePopover();
+        this.#popovers.item.hide();
         return item.sheet.render({ force: true });
       // Everything that opens a window or posts a card takes the focus with it,
       // so the popover goes the way it already does for `edit`: it is a
       // transient read of one item, not a panel to work from. `stock` is the
       // exception below — those controls edit the card you are looking at.
       case 'post':
-        this._itemPopover.hidePopover();
+        this.#popovers.item.hide();
         return item.roll();
       case 'weapon-check':
-        this._itemPopover.hidePopover();
+        this.#popovers.item.hide();
         return item.openWeaponCheck();
       case 'weapon-parry':
-        this._itemPopover.hidePopover();
+        this.#popovers.item.hide();
         return item.openWeaponParry();
       case 'stock':
         return item.adjustStock(Number(control.dataset.by));
@@ -2202,8 +1963,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   /**
    * The graph view's model: laid-out nodes and edges with what the SVG
-   * needs to draw them, plus the legend. Kinds come back as CSS classes;
-   * labels are clipped so a long name cannot sprawl over its neighbours.
+   * needs to draw them, plus the legend and the physics panel.
    */
   #connectionGraphContext() {
     // Which kinds the legend has switched off: view state on the open sheet.
@@ -2226,32 +1986,16 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       y2: at.get(edge.to).y,
     }));
     this._graphModel = { nodes, edges };
-    this._graphDetails = this.#graphDetails(nodes);
-    const clip = (text) => (text.length > 22 ? `${text.slice(0, 21)}…` : text);
-    const unnamed = game.i18n.localize('TNO.Connections.Graph.Unnamed');
+    this._graphDetails = graphNodeDetails(nodes, this.actor.system.connections, (key) => game.i18n.localize(key));
     const physics = this.#graphPhysics();
     return {
       width: GRAPH_WIDTH,
       height: GRAPH_HEIGHT,
       empty: nodes.length === 1,
-      nodes: nodes.map((node) => {
-        const radius = node.kind === 'self' ? 30 : node.kind === 'person' ? 16 : 11;
-        return {
-          ...node,
-          img: node.img ?? this.#connectionPortrait(node.connectionId),
-          text: clip(node.label || unnamed),
-          radius,
-          diameter: radius * 2,
-          reachRadius: radius + 4,
-          initial: (node.label || '?').trim().charAt(0).toUpperCase(),
-        };
+      ...graphViewModel(nodes, edges, {
+        unnamed: game.i18n.localize('TNO.Connections.Graph.Unnamed'),
+        portrait: (connectionId) => this.#connectionPortrait(connectionId),
       }),
-      edges: edges.map((edge) => ({
-        ...edge,
-        midX: Math.round((edge.x1 + edge.x2) / 2),
-        midY: Math.round((edge.y1 + edge.y2) / 2),
-        text: clip(edge.label),
-      })),
       legend: GRAPH_NODE_KINDS.map((kind) => ({
         kind,
         label: `TNO.Connections.Graph.Kind.${kind}`,
@@ -2282,214 +2026,27 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     return img && img !== CONST.DEFAULT_TOKEN && img !== Actor.implementation.DEFAULT_ICON ? img : undefined;
   }
 
-  /**
-   * What the hover card says about each node, by node id: a title, the kind
-   * of node, and the rows known about it — for a person their row of the
-   * table and who else names them under Kennt, for a Fraktion or Herkunft the
-   * people in it. Empty rows are left out.
-   * @returns {Map<string, {title: string, kind: string, rows: Array<{label: string, value: string}>}>}
-   */
-  #graphDetails(nodes) {
-    const t = (key) => game.i18n.localize(key);
-    const entries = normalizeConnections(this.actor.system.connections);
-    const byId = new Map(entries.map((entry) => [entry.id, entry]));
-    const lower = (text) => text.trim().toLocaleLowerCase();
-    const knownBy = (name) => entries.filter((entry) => entry.knows.some((other) => lower(other) === lower(name))).map((entry) => entry.name);
-    const withLabel = (field, label) => entries.filter((entry) => entry[field].some((value) => lower(value) === lower(label))).map((entry) => entry.name);
-    const join = (list) => list.filter(Boolean).join(', ');
-    const notes = (text) => (text.length > 240 ? `${text.slice(0, 239)}…` : text);
-
-    const details = new Map();
-    for (const node of nodes) {
-      const entry = node.connectionId ? byId.get(node.connectionId) : null;
-      let kind = t(`TNO.Connections.Graph.Kind.${node.kind}`);
-      let rows = [];
-      if (node.kind === 'self') {
-        rows = [{ label: t('TNO.Connections.Graph.Members'), value: String(entries.length) }];
-      } else if (entry) {
-        rows = [
-          { label: t('TNO.Connections.Field.relations'), value: join(entry.relations) },
-          { label: t('TNO.Connections.Field.knows'), value: join(entry.knows) },
-          { label: t('TNO.Connections.Graph.KnownBy'), value: join(knownBy(entry.name)) },
-          { label: t('TNO.Connections.Field.factions'), value: join(entry.factions) },
-          { label: t('TNO.Connections.Field.origins'), value: join(entry.origins) },
-          { label: t('TNO.Connections.Field.neuralink'), value: entry.neuralink ? t('TNO.Connections.Graph.Reachable') : '' },
-          { label: t('TNO.Connections.Field.notes'), value: notes(entry.notes.trim()) },
-        ];
-      } else if (node.hearsay) {
-        kind = t('TNO.Connections.Graph.Hearsay');
-        rows = [{ label: t('TNO.Connections.Graph.KnownBy'), value: join(knownBy(node.label)) }];
-      } else {
-        const field = node.kind === 'faction' ? 'factions' : 'origins';
-        rows = [{ label: t('TNO.Connections.Graph.Members'), value: join(withLabel(field, node.label)) }];
-      }
-      details.set(node.id, {
-        title: node.label || t('TNO.Connections.Graph.Unnamed'),
-        kind,
-        rows: rows.filter((row) => row.value),
-      });
-    }
-    return details;
-  }
-
-  /**
-   * Show the hover card for the graph node `el` beside it, or hide the card.
-   * Filled as text, never as markup: the values are what players typed.
-   */
-  #showGraphCard(el) {
-    const card = this.element.querySelector('.graph-card');
-    if (!card) return;
-    const details = el && this._graphDetails?.get(el.dataset.nodeId);
-    if (!details) {
-      card.hidden = true;
-      return;
-    }
-    const doc = card.ownerDocument;
-    const make = (tag, className, text) => {
-      const node = doc.createElement(tag);
-      node.className = className;
-      node.textContent = text;
-      return node;
-    };
-    const list = doc.createElement('dl');
-    for (const { label, value } of details.rows) list.append(make('dt', '', label), make('dd', '', value));
-    card.replaceChildren(make('strong', 'graph-card-title', details.title), make('span', 'graph-card-kind', details.kind));
-    if (details.rows.length) card.append(list);
-    card.hidden = false;
-
-    // Right of the node, or left of it where the right has no room; never
-    // past the graph's top or bottom.
-    const box = card.parentElement.getBoundingClientRect();
-    const at = el.getBoundingClientRect();
-    const gap = 10;
-    const left = at.right - box.left + gap + card.offsetWidth <= box.width
-      ? at.right - box.left + gap
-      : Math.max(0, at.left - box.left - gap - card.offsetWidth);
-    const top = Math.min(Math.max(0, at.top - box.top), Math.max(0, box.height - card.offsetHeight));
-    card.style.left = `${Math.round(left)}px`;
-    card.style.top = `${Math.round(top)}px`;
-  }
-
-  /** Light `node` and what it touches in the graph, or clear the lighting. */
-  #lightGraphNode(node) {
-    const svg = this.element.querySelector('.connections-graph svg');
-    if (!svg) return;
-    svg.classList.toggle('has-focus', !!node);
-    for (const el of svg.querySelectorAll('.is-lit')) el.classList.remove('is-lit');
-    if (!node) return;
-    const id = node.dataset.nodeId;
-    node.classList.add('is-lit');
-    for (const edge of svg.querySelectorAll('.graph-edge')) {
-      const { from, to } = edge.dataset;
-      if (from !== id && to !== id) continue;
-      edge.classList.add('is-lit');
-      const other = from === id ? to : from;
-      svg.querySelector(`.graph-node[data-node-id="${CSS.escape(other)}"]`)?.classList.add('is-lit');
-    }
-  }
-
-  /**
-   * Start the spring embedder on the graph just rendered and animate it
-   * until it comes to rest. Each frame runs a few physics steps and writes
-   * the positions into the SVG; nothing about the DOM is rebuilt. With
-   * reduced motion asked for, the graph settles out of sight and is drawn
-   * once.
-   */
+  /** Start the graph just rendered — see `startGraph`. */
   #runGraph() {
     this.#stopGraph();
     const svg = this.element.querySelector('.connections-graph svg');
     if (!svg || !this._graphModel || !svg.isConnected || !svg.clientWidth) return;
-
-    // The drawing takes the space it is shown in, 1:1 in pixels: the whole
-    // width, and the height down to the bottom of the window as it sits with
-    // the sheet scrolled to the top. Positions are kept in the layout's own
-    // box (GRAPH_WIDTH × GRAPH_HEIGHT) and scaled into this one, so a resize
-    // stretches the picture rather than throwing it away.
-    const { width, height } = this.#measureGraph(svg);
-    svg.style.height = `${height}px`;
-    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-    const sx = width / GRAPH_WIDTH;
-    const sy = height / GRAPH_HEIGHT;
-
-    const sim = createSpringEmbedder(
-      this._graphModel.nodes.map((node) => {
-        const at = this._graphPositions.get(node.id) ?? node;
-        return { ...node, x: at.x * sx, y: at.y * sy };
-      }),
-      this._graphModel.edges,
-      { width, height, ...this.#graphPhysics() },
-    );
-    const nodeEls = new Map([...svg.querySelectorAll('.graph-node')].map((el) => [el.dataset.nodeId, el]));
-    const edgeEls = [...svg.querySelectorAll('.graph-edge')].map((el) => ({
-      a: sim.node(el.dataset.from),
-      b: sim.node(el.dataset.to),
-      line: el.querySelector('line'),
-      label: el.querySelector('text'),
-    }));
-    const draw = () => {
-      for (const node of sim.nodes) {
-        nodeEls.get(node.id)?.setAttribute('transform', `translate(${node.x.toFixed(1)} ${node.y.toFixed(1)})`);
-        this._graphPositions.set(node.id, { x: node.x / sx, y: node.y / sy });
-      }
-      for (const { a, b, line, label } of edgeEls) {
-        line.setAttribute('x1', a.x.toFixed(1));
-        line.setAttribute('y1', a.y.toFixed(1));
-        line.setAttribute('x2', b.x.toFixed(1));
-        line.setAttribute('y2', b.y.toFixed(1));
-        label?.setAttribute('x', ((a.x + b.x) / 2).toFixed(1));
-        label?.setAttribute('y', ((a.y + b.y) / 2).toFixed(1));
-      }
-    };
-
-    const view = this.element.ownerDocument.defaultView;
-    // `held`: a node is being dragged and the graph runs on even at rest.
-    // `paused`: the pointer rests on a node, and the graph stands still so it
-    // can be read — unless that node is being dragged.
-    const run = { sim, frame: null, held: false, paused: false, wake: null, width, height, observer: null };
-    let last = -Infinity;
-    const tick = (time) => {
-      // Paused on a hovered node, or out of sight on another tab: no frames.
-      // Coming back to the tab starts the graph again (see the tab click).
-      if ((run.paused && !run.held) || !svg.clientWidth) {
-        run.frame = null;
-        return;
-      }
-      // Between two drawn frames: wait for the next screen frame. A dragged
-      // node is drawn every frame, so it stays under the pointer.
-      if (!run.held && time - last < 1000 / GRAPH_FPS - 1) {
-        run.frame = view.requestAnimationFrame(tick);
-        return;
-      }
-      last = time;
-      let energy = 0;
-      for (let i = 0; i < GRAPH_STEPS_PER_FRAME; i++) energy = sim.step();
-      draw();
-      run.frame = energy > GRAPH_REST_ENERGY || run.held ? view.requestAnimationFrame(tick) : null;
-    };
-    run.wake = () => {
-      if (run.frame === null) run.frame = view.requestAnimationFrame(tick);
-    };
-
-    if (view.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      for (let i = 0; i < 2000 && sim.step() > GRAPH_REST_ENERGY; i++);
-      draw();
-      run.wake = () => { for (let i = 0; i < 2000 && sim.step() > GRAPH_REST_ENERGY; i++); draw(); };
-    } else {
-      run.wake();
-    }
-    this.#graphRun = run;
-
-    // A new size — the window resized, the sheet detached, the splitter or
-    // the browser zoom moved — starts the drawing over in the new box, from
-    // where the nodes are now. Only a real change does: setting the height
-    // above is itself a resize of the SVG.
-    run.observer = new ResizeObserver(() => {
-      if (this.#graphRun !== run || run.held) return;
-      const next = this.#measureGraph(svg);
-      if (next.width !== run.width || next.height !== run.height) this.#runGraph();
+    this.#graphRun = startGraph(svg, this.element.querySelector('.window-content'), {
+      model: this._graphModel,
+      positions: this._graphPositions,
+      physics: this.#graphPhysics(),
+      onResize: () => this.#runGraph(),
     });
-    run.observer.observe(svg);
-    run.observer.observe(this.element.querySelector('.window-content'));
+  }
+
+  /** Light a graph node and what it touches, or clear the lighting. */
+  #lightGraphNode(node) {
+    lightGraphNode(this.element.querySelector('.connections-graph svg'), node);
+  }
+
+  /** Show the hover card for a graph node beside it, or hide it with `null`. */
+  #showGraphCard(el) {
+    showGraphCard(this.element.querySelector('.graph-card'), el && this._graphDetails?.get(el.dataset.nodeId), el);
   }
 
   /** The graph's forces as this client's sliders set them. */
@@ -2497,68 +2054,10 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     return normalizeSpringParams(game.settings.get('tno', 'graphPhysics'));
   }
 
-  /**
-   * The size the graph may take: the SVG's laid-out width, and the height
-   * left under its top edge in the sheet's scroll box, less the legend and
-   * the box's bottom padding — measured with the sheet scrolled to the top,
-   * so it does not depend on where the reader happens to be.
-   */
-  #measureGraph(svg) {
-    const scroller = this.element.querySelector('.window-content');
-    const top = svg.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
-    const legend = svg.parentElement.querySelector('.graph-legend')?.offsetHeight ?? 0;
-    return {
-      width: Math.round(svg.clientWidth),
-      height: Math.max(GRAPH_MIN_HEIGHT, Math.round(scroller.clientHeight - top - legend - GRAPH_BOTTOM_GAP)),
-    };
-  }
-
   /** Stop the graph's animation, if one is running. */
   #stopGraph() {
-    if (this.#graphRun?.frame) this.element?.ownerDocument.defaultView.cancelAnimationFrame(this.#graphRun.frame);
-    this.#graphRun?.observer?.disconnect();
+    this.#graphRun?.stop();
     this.#graphRun = null;
-  }
-
-  /**
-   * Drag one graph node. It is pinned to the pointer for as long as it is
-   * held, and the springs pull the rest after it; let go, and it is free
-   * again and the whole graph swings into a new rest. The pointer is mapped
-   * into the SVG's own coordinates, since the drawing is scaled to the tab.
-   * The character stays the fixed anchor and is not dragged.
-   */
-  #dragGraphNode(event, el) {
-    const run = this.#graphRun;
-    const node = run?.sim.node(el.dataset.nodeId);
-    if (event.button !== 0 || !node || el.classList.contains('graph-node-self')) return;
-    const svg = el.ownerSVGElement;
-    const place = (e) => {
-      const point = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM().inverse());
-      node.x = Math.min(run.width, Math.max(0, point.x));
-      node.y = Math.min(run.height, Math.max(0, point.y));
-    };
-    el.setPointerCapture(event.pointerId);
-    el.classList.add('is-dragging');
-    node.fixed = true;
-    run.held = true;
-    run.wake();
-
-    const move = (e) => {
-      place(e);
-      run.wake();
-    };
-    const stop = () => {
-      el.classList.remove('is-dragging');
-      node.fixed = false;
-      run.held = false;
-      run.wake();
-      el.removeEventListener('pointermove', move);
-      el.removeEventListener('pointerup', stop);
-      el.removeEventListener('pointercancel', stop);
-    };
-    el.addEventListener('pointermove', move);
-    el.addEventListener('pointerup', stop);
-    el.addEventListener('pointercancel', stop);
   }
 
   /**
@@ -2787,111 +2286,103 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // there. Built in whichever document the sheet is in now and re-homed by
     // `#mountPopovers` if that ever changes — see `#hostDocument`.
     const host = this.#hostDocument();
+    const slotSelector = (id) => ['.slot-first', '.slot-trinket', '.stash-item', '.armor-row', '.hand-slot']
+      .map((cell) => `${cell}[data-item-id="${CSS.escape(id ?? '')}"]`).join(', ');
+    this.#popovers = {
+      item: new SheetPopover(host, '', {
+        render: (element) => this.#renderItemPopover(element),
+        findAnchor: () => this.element.querySelector(slotSelector(this._itemPopoverItemId)),
+      }),
+      money: new SheetPopover(host, 'money-popover', {
+        render: (element) => this.#renderPopover(element, 'money-popover', { money: this.#moneyContext() }, 'TNO.Money.Edit'),
+        findAnchor: () => this.element.querySelector('.money-wallet-block.editable'),
+      }),
+      // The Inventar table's column picker. Its own popover rather than a
+      // section of the tab: the list is long, it is consulted rather than read,
+      // and a permanently visible panel of twenty-two checkboxes would cost the
+      // table the width it exists to spend on data. Drawn from the setting it
+      // edits, so the boxes always show what the table is actually rendering —
+      // including the case where unticking the last one puts the defaults back.
+      columns: new SheetPopover(host, 'columns-popover', {
+        render: (element) => this.#renderPopover(element, 'columns-popover',
+          { sections: this.#columnPickerSections(this.#itemTableConfig()) }, 'TNO.ItemTable.ColumnsTitle'),
+        findAnchor: () => this.element.querySelector('.item-columns-toggle'),
+      }),
+      // The Haltung picker. All nine at once, because the choice is made under
+      // time pressure and a collapsed list shows one of them at a time.
+      stance: new SheetPopover(host, 'stance-popover', {
+        render: (element) => this.#renderPopover(element, 'stance-popover', this.#stancePopoverContext(), 'TNO.Combat.StancePick'),
+        findAnchor: () => this.element.querySelector('.chip-stance'),
+      }),
+      // The condition panel. An anchored popover sharing the Haltung picker's
+      // chrome rather than an inline <details> in the band: painting the panel
+      // inside the banner is what forced the banner's whole stacking context up
+      // with a z-index override, and that override is gone with this.
+      condition: new SheetPopover(host, 'condition-popover', {
+        render: (element) => this.#renderPopover(element, 'condition-panel', this.#conditionPanelContext(), 'TNO.Status.PanelTitle'),
+        // Clearing both tracks from inside the panel removes the condition row
+        // that opened it, so the door itself can go while the panel stays up.
+        // Re-anchor to the tracks rather than letting the panel lose its place.
+        findAnchor: () => this.element.querySelector(`.${this._conditionPopoverDoor}`)
+          ?? this.element.querySelector('.banner-tracks'),
+      }),
+      // The Edge popover: the three derived thresholds, and the manual
+      // correction that replaced the band's number field. A GM/admin correction
+      // does not need a permanently visible input.
+      edge: new SheetPopover(host, 'edge-popover', {
+        render: (element) => this.#renderPopover(element, 'edge-popover', this.#edgePopoverContext(), 'TNO.Derived.EdgePool'),
+        findAnchor: () => this.element.querySelector('.chip-edge'),
+      }),
+    };
 
-    this._itemPopover = host.createElement('div');
-    this._itemPopover.className = 'tno item-popover';
-    this._itemPopover.setAttribute('popover', 'auto');
-    host.body.append(this._itemPopover);
-    this._itemPopover.addEventListener('click', (event) => this.#onItemPopoverClick(event));
-    this._itemPopover.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && this._itemPopover.matches(':popover-open')) {
-        // Native light-dismiss still handles Escape; only stop Foundry's
-        // document keybind from closing the actor sheet at the same time.
-        event.stopPropagation();
-      }
-    });
-    this._itemPopover.addEventListener('toggle', (event) => {
-      if (event.newState !== 'closed') return;
-      this._itemPopoverItemId = null;
-      this._itemPopoverAnchor = null;
+    // Each popover's controls are bound on the popover itself rather than in
+    // the sheet's own delegation, because it is a child of the host document's
+    // body and never of `this.element`.
+    const { item, money, columns, stance, condition, edge } = this.#popovers;
+
+    item.element.addEventListener('click', (event) => this.#onItemPopoverClick(event));
+    item.element.addEventListener('toggle', (event) => {
+      if (event.newState === 'closed') this._itemPopoverItemId = null;
     });
 
-    this._moneyPopover = host.createElement('div');
-    this._moneyPopover.className = 'tno item-popover money-popover';
-    this._moneyPopover.setAttribute('popover', 'auto');
-    host.body.append(this._moneyPopover);
-    this._moneyPopover.addEventListener('submit', (event) => this.#saveMoney(event));
-    this._moneyPopover.addEventListener('input', () => this.#updateMoneyPreview());
-    this._moneyPopover.addEventListener('click', (event) => {
+    money.element.addEventListener('submit', (event) => this.#saveMoney(event));
+    money.element.addEventListener('input', () => this.#updateMoneyPreview());
+    money.element.addEventListener('click', (event) => {
       const action = event.target.closest('[data-money-action]')?.dataset.moneyAction;
-      if (action === 'close' || action === 'cancel') this._moneyPopover.hidePopover();
-    });
-    this._moneyPopover.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && this._moneyPopover.matches(':popover-open')) event.stopPropagation();
-    });
-    this._moneyPopover.addEventListener('toggle', (event) => {
-      if (event.newState === 'closed') this._moneyPopoverAnchor = null;
+      if (action === 'close' || action === 'cancel') money.hide();
     });
 
-    // The Inventar table's column picker. Its own popover rather than a section
-    // of the tab: the list is long, it is consulted rather than read, and a
-    // permanently visible panel of twenty-two checkboxes would cost the table
-    // the width it exists to spend on data.
-    this._columnsPopover = host.createElement('div');
-    this._columnsPopover.className = 'tno item-popover columns-popover';
-    this._columnsPopover.setAttribute('popover', 'auto');
-    host.body.append(this._columnsPopover);
-    this._columnsPopover.addEventListener('change', async (event) => {
+    columns.element.addEventListener('change', async (event) => {
       const key = event.target.closest('[data-column]')?.dataset.column;
       if (!key) return;
       await this.#storeItemTableConfig(toggleItemTableColumn(this.#itemTableConfig(), key));
     });
-    this._columnsPopover.addEventListener('click', (event) => {
-      if (event.target.closest('[data-columns-action="close"]')) this._columnsPopover.hidePopover();
-    });
-    this._columnsPopover.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && this._columnsPopover.matches(':popover-open')) event.stopPropagation();
-    });
-    this._columnsPopover.addEventListener('toggle', (event) => {
-      if (event.newState === 'closed') this._columnsPopoverAnchor = null;
+    columns.element.addEventListener('click', (event) => {
+      if (event.target.closest('[data-columns-action="close"]')) columns.hide();
     });
 
-    // The Haltung picker. All nine at once, because the choice is made under
-    // time pressure and a collapsed list shows one of them at a time.
-    this._stancePopover = host.createElement('div');
-    this._stancePopover.className = 'tno item-popover stance-popover';
-    this._stancePopover.setAttribute('popover', 'auto');
-    host.body.append(this._stancePopover);
-    this._stancePopover.addEventListener('click', async (event) => {
-      const stance = event.target.closest('[data-stance]')?.dataset.stance;
-      if (!stance) return;
+    stance.element.addEventListener('click', async (event) => {
+      const picked = event.target.closest('[data-stance]')?.dataset.stance;
+      if (!picked) return;
       event.preventDefault();
       // Picking the Haltung already in force is not a no-op: the rules make
       // taking one — "auch dieselbe noch einmal" — clear both repeated-defence
       // counters, which is why every option here is a button.
-      this._stancePopover.hidePopover();
-      await takeStance(this.actor, stance);
+      stance.hide();
+      await takeStance(this.actor, picked);
     });
-    this._stancePopover.addEventListener('pointerover', (event) => {
+    stance.element.addEventListener('pointerover', (event) => {
       this.#previewStance(event.target.closest('[data-stance]'));
     });
-    this._stancePopover.addEventListener('focusin', (event) => {
+    stance.element.addEventListener('focusin', (event) => {
       this.#previewStance(event.target.closest('[data-stance]'));
     });
     // Leaving the grid puts the Haltung in force back in the panel, so the
     // popover never sits there describing an option nobody is pointing at.
-    this._stancePopover.addEventListener('pointerleave', () => this.#previewStance(null));
-    this._stancePopover.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && this._stancePopover.matches(':popover-open')) event.stopPropagation();
-    });
-    this._stancePopover.addEventListener('toggle', (event) => {
-      this.#syncStanceChip();
-      if (event.newState === 'closed') this._stancePopoverAnchor = null;
-    });
+    stance.element.addEventListener('pointerleave', () => this.#previewStance(null));
+    stance.element.addEventListener('toggle', () => this.#syncStanceChip());
 
-    // The condition panel. An anchored popover sharing the Haltung picker's
-    // chrome rather than an inline <details> in the band: painting the panel
-    // inside the banner is what forced the banner's whole stacking context up
-    // with a z-index override, and that override is gone with this.
-    //
-    // Its controls live here rather than in the sheet's own delegation, because
-    // the popover is a child of the host document's body and never of
-    // `this.element`.
-    this._conditionPopover = host.createElement('div');
-    this._conditionPopover.className = 'tno item-popover condition-popover';
-    this._conditionPopover.setAttribute('popover', 'auto');
-    host.body.append(this._conditionPopover);
-    this._conditionPopover.addEventListener('click', async (event) => {
+    condition.element.addEventListener('click', async (event) => {
       if (!this.isEditable) return;
       const stepper = event.target.closest('.damage-stepper');
       if (stepper) {
@@ -2915,24 +2406,11 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         return this._cycleConditionOverride(light.dataset.conditionKey);
       }
     });
-    this._conditionPopover.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && this._conditionPopover.matches(':popover-open')) {
-        event.stopPropagation();
-      }
-    });
-    this._conditionPopover.addEventListener('toggle', (event) => {
-      this.#syncPopoverDoors('.chip-status, .vitals-door', this._conditionPopover);
-      if (event.newState === 'closed') this._conditionPopoverAnchor = null;
+    condition.element.addEventListener('toggle', () => {
+      this.#syncPopoverDoors('.chip-status, .vitals-door', condition);
     });
 
-    // The Edge popover: the three derived thresholds, and the manual correction
-    // that replaced the band's number field. A GM/admin correction does not
-    // need a permanently visible input.
-    this._edgePopover = host.createElement('div');
-    this._edgePopover.className = 'tno item-popover edge-popover';
-    this._edgePopover.setAttribute('popover', 'auto');
-    host.body.append(this._edgePopover);
-    this._edgePopover.addEventListener('click', (event) => {
+    edge.element.addEventListener('click', (event) => {
       if (!this.isEditable) return;
       const step = event.target.closest('.edge-step');
       if (!step) return;
@@ -2940,13 +2418,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       const pool = this.actor.system.derived?.edgePool ?? 0;
       this.#setEdgePool(pool + (step.dataset.action === 'increment' ? 1 : -1));
     });
-    this._edgePopover.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && this._edgePopover.matches(':popover-open')) event.stopPropagation();
-    });
-    this._edgePopover.addEventListener('toggle', (event) => {
-      this.#syncPopoverDoors('.chip-edge', this._edgePopover);
-      if (event.newState === 'closed') this._edgePopoverAnchor = null;
-    });
+    edge.element.addEventListener('toggle', () => this.#syncPopoverDoors('.chip-edge', edge));
 
     // Custom clickable chips (anchors without `href`, plus `.skill-info`, the
     // attribute tiles and the slot grid's cells) are promoted to keyboard
@@ -3106,7 +2578,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // render lays the graph out afresh.
     this.#delegate('pointerdown', '.graph-node', (event, target) => {
       this.#showGraphCard(null);
-      this.#dragGraphNode(event, target);
+      dragGraphNode(this.#graphRun, event, target);
     });
 
     // Graph: a legend entry for Fraktion or Herkunft switches that kind of
@@ -3333,7 +2805,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // read-only sheets get it too.
     this.#delegate('click', '.item-columns-toggle', (event, target) => {
       event.preventDefault();
-      if (this._columnsPopover?.matches(':popover-open')) return this._columnsPopover.hidePopover();
+      if (this.#popovers?.columns.isOpen) return this.#popovers.columns.hide();
       this.#openColumnsPopover(target);
     });
 
@@ -3429,7 +2901,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // are gated inside the panel.
     this.#delegate('click', '.chip-status, .vitals-door', (event, target) => {
       event.preventDefault();
-      if (this._conditionPopover?.matches(':popover-open')) this._conditionPopover.hidePopover();
+      if (this.#popovers?.condition.isOpen) this.#popovers.condition.hide();
       else this.#openConditionPopover(target);
     });
 
@@ -3437,7 +2909,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // correction are behind this click.
     this.#delegate('click', '.chip-edge', (event, target) => {
       event.preventDefault();
-      if (this._edgePopover?.matches(':popover-open')) this._edgePopover.hidePopover();
+      if (this.#popovers?.edge.isOpen) this.#popovers.edge.hide();
       else this.#openEdgePopover(target);
     });
 
@@ -3450,7 +2922,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // combat state, not an edit waiting for submit.
     this.#delegate('click', '.chip-stance', (event, target) => {
       event.preventDefault();
-      if (this._stancePopover?.matches(':popover-open')) this._stancePopover.hidePopover();
+      if (this.#popovers?.stance.isOpen) this.#popovers.stance.hide();
       else this.#openStancePopover(target);
     }, editable);
 
@@ -3701,42 +3173,24 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       this._focusConnection = null;
     }
 
-    if (this._itemPopover?.matches(':popover-open')) {
-      await this.#refreshItemPopover();
-      this.#positionItemPopover();
+    // Most re-renders were caused by a popover — ticking a column, a stepper
+    // press, a cycled light, a stock change — so an open one is redrawn from
+    // what it just changed, or it would keep showing the state the click left
+    // behind. A Haltung picker open across a render the actor caused elsewhere
+    // is redrawn from the Haltung now in force. The wallet editor is the
+    // exception: redrawing it would throw away what is being typed.
+    const { item, money, columns, stance, condition, edge } = this.#popovers ?? {};
+    for (const popover of [item, columns, stance, condition, edge]) {
+      if (!popover?.isOpen) continue;
+      await popover.refresh();
+      popover.position();
     }
-    this.#positionMoneyPopover();
-    // Ticking a box re-renders the sheet, so the picker has to be redrawn from
-    // the setting it just changed or its boxes would drift out of step with
-    // the table they control.
-    if (this._columnsPopover?.matches(':popover-open')) {
-      await this.#refreshColumnsPopover();
-      this.#positionColumnsPopover();
-    }
-    // Taking a Haltung re-renders the sheet. The picker is normally closed by
-    // then, but it survives a render the actor caused elsewhere — so redraw it
-    // from the Haltung now in force rather than leaving a stale selection.
-    if (this._stancePopover?.matches(':popover-open')) {
-      await this.#refreshStancePopover();
-      this.#positionStancePopover();
-      // The chip is a fresh element after a render, with the template's
-      // tooltip and `aria-expanded="false"` back on it.
-      this.#syncStanceChip();
-    }
-    // Every stepper press and every cycled light re-renders the sheet, so the
-    // panel that fired them has to be redrawn from what it just changed. The
-    // doors are fresh elements after a render, carrying the template's
-    // `aria-expanded="false"` again.
-    if (this._conditionPopover?.matches(':popover-open')) {
-      await this.#refreshConditionPopover();
-      this.#positionConditionPopover();
-      this.#syncPopoverDoors('.chip-status, .vitals-door', this._conditionPopover);
-    }
-    if (this._edgePopover?.matches(':popover-open')) {
-      await this.#refreshEdgePopover();
-      this.#positionEdgePopover();
-      this.#syncPopoverDoors('.chip-edge', this._edgePopover);
-    }
+    money?.position();
+    // The chip and the doors are fresh elements after a render, carrying the
+    // template's tooltip and `aria-expanded="false"` again.
+    if (stance?.isOpen) this.#syncStanceChip();
+    if (condition?.isOpen) this.#syncPopoverDoors('.chip-status, .vitals-door', condition);
+    if (edge?.isOpen) this.#syncPopoverDoors('.chip-edge', edge);
   }
 
   /** @inheritDoc */
@@ -3744,24 +3198,8 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     this.#stopGraph();
     this.#slotGridObserver?.disconnect();
     this.#slotGridObserver = null;
-    if (this._itemPopover?.matches(':popover-open')) this._itemPopover.hidePopover();
-    this._itemPopover?.remove();
-    this._itemPopover = null;
-    if (this._moneyPopover?.matches(':popover-open')) this._moneyPopover.hidePopover();
-    this._moneyPopover?.remove();
-    this._moneyPopover = null;
-    if (this._columnsPopover?.matches(':popover-open')) this._columnsPopover.hidePopover();
-    this._columnsPopover?.remove();
-    this._columnsPopover = null;
-    if (this._stancePopover?.matches(':popover-open')) this._stancePopover.hidePopover();
-    this._stancePopover?.remove();
-    this._stancePopover = null;
-    if (this._conditionPopover?.matches(':popover-open')) this._conditionPopover.hidePopover();
-    this._conditionPopover?.remove();
-    this._conditionPopover = null;
-    if (this._edgePopover?.matches(':popover-open')) this._edgePopover.hidePopover();
-    this._edgePopover?.remove();
-    this._edgePopover = null;
+    for (const popover of Object.values(this.#popovers ?? {})) popover.destroy();
+    this.#popovers = null;
     return super._onClose(options);
   }
 
@@ -3844,37 +3282,16 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    */
   async _setEquippedArmor(zone, itemId) {
     if (!(zone in CONFIG.TNO.armorZones)) return;
-
-    const equipment = this.actor.system.equipment ?? {};
-    const update = {};
-
-    if (!itemId) {
-      const worn = equipment[zone];
-      if (!worn) return;
-      for (const [key, value] of Object.entries(equipment)) {
-        if (value === worn) update[`system.equipment.${key}`] = null;
-      }
-      return this.actor.update(update);
-    }
-
-    // Clear wherever the piece already sits before placing it, so a re-drop
-    // onto a different zone moves the whole garment rather than cloning it.
-    for (const [key, value] of Object.entries(equipment)) {
-      if (value === itemId) update[`system.equipment.${key}`] = null;
-    }
-
-    const covered = armorZones(this.actor.items.get(itemId));
-    for (const key of covered.length ? covered : [zone]) {
-      update[`system.equipment.${key}`] = itemId;
-    }
-
-    // Put on means out of the hand.
-    if (heldItemIds(this.actor.system.hands).has(itemId)) {
-      update['system.hands'] = releaseItem(this.actor.system.hands, itemId);
-    }
-
-    return this.actor.update(update);
+    const update = armorEquipUpdate(
+      this.actor.system.equipment,
+      this.actor.system.hands,
+      zone,
+      itemId,
+      itemId ? armorZones(this.actor.items.get(itemId)) : []
+    );
+    if (update) return this.actor.update(update);
   }
+
 
   /**
    * Ask what to add to the inventory: a name, and one card for what the thing
@@ -4083,8 +3500,7 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
    * @private
    */
   #wornZone(itemId) {
-    const equipment = this.actor.system.equipment ?? {};
-    return Object.keys(equipment).find((zone) => equipment[zone] === itemId) ?? null;
+    return wornZone(this.actor.system.equipment, itemId);
   }
 
   /**
@@ -4194,36 +3610,29 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     }
     this.element.classList.add('dragging-item');
 
-    // Which way this drag can go decides what lights up. A piece still in the
-    // packed band is on its way onto the body, so the doll answers; a piece
-    // already worn is on its way off, so the slot grid does. Marking both at
-    // once would offer the player a move they cannot make in that direction.
-    const worn = this.#wornZone(item.id);
-    const zones = worn ? [] : armorZones(item);
-    // The whole worn block lights up the way the grid block does for the way
-    // back, so the target reads as an area; inside it, the one zone the piece
-    // belongs to — row and silhouette shape — is marked stronger, since that
-    // is where it will actually land.
-    const doll = zones.length ? this.element.querySelector('.paperdoll') : null;
+    // Only the moves this drag can make light up — see `dragTargets`. The
+    // whole worn block lights up the way the grid block does for the way back,
+    // so the target reads as an area; inside it, the one zone the piece belongs
+    // to — row and silhouette shape — is marked stronger, since that is where
+    // it will actually land.
+    const light = dragTargets({
+      worn: !!this.#wornZone(item.id),
+      zones: armorZones(item),
+      stashed: isStashed(item),
+      held: heldItemIds(this.actor.system.hands).has(item.id),
+      gear: isGear(item),
+    });
+    const doll = light.zones.length ? this.element.querySelector('.paperdoll') : null;
     doll?.classList.add('worn-drop-target');
-    const targets = zones.flatMap((zone) => [
+    const targets = light.zones.flatMap((zone) => [
       ...this.element.querySelectorAll(this.#zoneSelector(zone)),
     ]);
     for (const el of targets) el.classList.add('zone-drop-target');
-
-    // Coming back from the pile is the same way in as coming off the body, so
-    // the grid answers both. Anything else physical can be left behind, so
-    // the pile answers every other drag of gear.
-    const stashed = isStashed(item);
-    const held = heldItemIds(this.actor.system.hands).has(item.id);
-    const grid = worn || stashed || held ? this.element.querySelector('.slot-grid-block') : null;
+    const grid = light.grid ? this.element.querySelector('.slot-grid-block') : null;
     grid?.classList.add('carry-drop-target');
-    const stash = isGear(item) && !stashed ? this.element.querySelector('.stash-block') : null;
+    const stash = light.stash ? this.element.querySelector('.stash-block') : null;
     stash?.classList.add('stash-drop-target');
-    // Any physical piece can be taken in hand, so the hands answer every drag
-    // of gear — the slot it is already in included, since the other may be
-    // where it is going.
-    const hands = isGear(item) ? this.element.querySelector('.paperdoll-hands') : null;
+    const hands = light.hands ? this.element.querySelector('.paperdoll-hands') : null;
     hands?.classList.add('hands-drop-target');
 
     dragged.addEventListener(
