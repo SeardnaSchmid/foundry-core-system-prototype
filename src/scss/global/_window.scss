@@ -160,3 +160,15 @@ body.detached .tno.sheet.actor {
     cursor: pointer;
   }
 }
+
+// The feature and spell sheet: header, then the description taking the rest.
+.tno.sheet.item-plain .window-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  prose-mirror {
+    flex: 1;
+    min-height: 0;
+  }
+}

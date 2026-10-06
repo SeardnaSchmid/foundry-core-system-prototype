@@ -1,48 +1,26 @@
-{{! This template is a fallback for when items don't have more specific templates. }}
-{{! Generally, you'll want to make more specific templates when possible. }}
-<form class='{{cssClass}}' autocomplete='off'>
-  <header class='sheet-header'>
-    <img
-      class='profile-img'
-      src='{{item.img}}'
-      data-edit='img'
+{{!-- Features and spells (TnoItemSheet). ApplicationV2 renders this part
+straight into `.window-content`, which is itself the sheet's <form>. --}}
+<header class='sheet-header'>
+  <img class='profile-img' src='{{item.img}}' alt=''
+    {{#if editable}}
+      data-edit='img' data-action='editImage' title='{{localize "TNO.Item.ImageEdit"}}'
+    {{else}}
       title='{{item.name}}'
-    />
-    <div class='header-fields'>
-      <h1 class='charname'><input
-          name='name'
-          type='text'
-          value='{{item.name}}'
-          placeholder='Name'
-        /></h1>
+    {{/if}} />
+  <div class='header-fields'>
+    <h1 class='charname'><input name='name' type='text' value='{{item.name}}' placeholder='Name'/></h1>
+    {{#if isSpell}}
+    <div class='resource'>
+      <label class='resource-label'>Spell Level</label>
+      <input type='number' name='system.spellLevel' value='{{system.spellLevel}}'/>
     </div>
-  </header>
+    {{/if}}
+  </div>
+</header>
 
-  {{! Sheet Tab Navigation }}
-  <nav class='sheet-tabs tabs' data-group='primary'>
-    <a class='item' data-tab='description'>Description</a>
-    <a class='item' data-tab='attributes'>Attributes</a>
-  </nav>
+{{!-- Click-to-edit, as before: the description is read far more often than
+written, and the enriched view shows its inline rolls as buttons. --}}
+<prose-mirror name='system.description' value='{{system.description}}' toggled
+  aria-label='{{localize "TNO.TabDescription"}}'>{{{enrichedDescription}}}</prose-mirror>
 
-  {{! Sheet Body }}
-  <section class='sheet-body'>
-
-    {{! Description Tab }}
-    <div class='tab' data-group='primary' data-tab='description'>
-      {{! Editors must receive enriched text data from getData to properly handle rolls }}
-      {{editor
-        enrichedDescription
-        target='system.description'
-        engine='prosemirror'
-        button=true
-        editable=editable
-      }}
-    </div>
-
-    {{! Attributes Tab }}
-    <div class='tab attributes' data-group='primary' data-tab='attributes'>
-      {{! As you add new fields, add them in here! }}
-      {{> "systems/tno/templates/item/parts/item-delete.hbs"}}
-    </div>
-  </section>
-</form>
+{{> "systems/tno/templates/item/parts/item-delete.hbs"}}

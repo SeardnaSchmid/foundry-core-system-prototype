@@ -160,6 +160,16 @@ body.detached .tno.sheet.actor.character .sheet-banner {
   cursor: pointer;
 }
 
+.tno.sheet.item-plain .window-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tno.sheet.item-plain .window-content prose-mirror {
+  flex: 1;
+  min-height: 0;
+}
+
 .grid,
 .grid-2col {
   display: grid;

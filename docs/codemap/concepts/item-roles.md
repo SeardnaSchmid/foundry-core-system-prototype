@@ -142,7 +142,7 @@ location.
 ## The editor and compact summary
 
 [`TnoGearSheet`](../../../module/sheets/item-gear-sheet.mjs) — ApplicationV2,
-registered for `GEAR_TYPES` — is the full row editor. `TnoItemSheet` (V1)
+registered for `GEAR_TYPES` — is the full row editor. `TnoItemSheet` (also ApplicationV2)
 keeps `feature` and `spell`. The play-facing compact summary lives instead in
 the actor sheet's item popover and in chat; it is rendered from the shared
 `item-gear-summary.hbs` partial.

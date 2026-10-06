@@ -32,7 +32,7 @@ Entry point, no exports (side-effecting init). See
 | `actor-sheet.mjs` | `TnoActorSheet extends ActorSheetV2` | Character/NPC sheet: the attribute matrix, the banner's vitals, state pills and two roll pills, skill groups with filter/search, the Kleinkram/Geld tabs, inventory, effects. Owns six body-level popovers — item, wallet, column picker, Haltung picker, condition panel and Edge — each mounted on the host document and re-homed when the sheet is detached |
 | `connection-graph-view.mjs` | `GRAPH_WIDTH`, `GRAPH_HEIGHT`, `startGraph`, `dragGraphNode`, `lightGraphNode`, `showGraphCard` | The Beziehungen graph on screen: the animation loop that runs the spring embedder into the rendered SVG, node dragging, hover lighting and the hover card. DOM only — what the graph holds comes from `helpers/connection-graph.mjs` |
 | `item-gear-sheet.mjs` | `TnoGearSheet extends ItemSheetV2` | Overview/Edit sheet for every physical item, including bounded authoring and rule-backed actions — see [item-roles.md](../concepts/item-roles.md) |
-| `item-sheet.mjs` | `TnoItemSheet extends ItemSheet` | What is left of the V1 sheet: `feature` and `spell`, template resolved per type |
+| `item-sheet.mjs` | `TnoItemSheet extends HandlebarsApplicationMixin(ItemSheetV2)` | The plain sheet for `feature` and `spell`: picture, name, description, a spell's level; "Show in chat" sits in the window menu |
 
 ## `helpers/`
 
@@ -104,24 +104,24 @@ never receive it. Consequences worth knowing when editing the sheet:
   and `document` refer to the parent window — DOM lookups go through
   `this.element`.
 
-`TnoBaseRollDialog`, `TnoCustomSkillDialog` and `TnoAdvanceDialog` are on
-ApplicationV2 too, and set the pattern for the rest: `tag: 'form'`, a
+`TnoItemSheet`, `TnoBaseRollDialog`, `TnoCustomSkillDialog` and
+`TnoAdvanceDialog` are on ApplicationV2 too, and set the pattern for the rest: `tag: 'form'`, a
 `form.handler` in place of `_updateObject()`, `_prepareContext()`, buttons
 wired through `actions` and `data-action` instead of jQuery, and part templates
 without a `<form>` of their own. A V2 id is unique: the base-dice dialog keeps
 its fixed id and its caller reuses an open instance from
 `foundry.applications.instances`; the per-actor dialogs take no fixed id.
 
-`TnoItemSheet` and every other app under `module/apps/` are still **V1** and
+Every other app under `module/apps/` is still **V1** and
 therefore cannot be detached — a known forward-compat item (see
 [datamodel-migration.md](../architecture/datamodel-migration.md) for the
 sibling schema-side deprecation).
 
-They no longer reach for the bare `FormApplication` / `ItemSheet` globals,
+They no longer reach for the bare `FormApplication` global,
 which are deprecated: each takes its base class off `foundry.appv1` at the top
 of its own file. That is a namespacing change only — the classes are still
 ApplicationV1 and still use `getData()`, jQuery `activateListeners(html)` and
-`_updateObject()`. Converting them to ApplicationV2 is roughly 750 lines
+`_updateObject()`. Converting them to ApplicationV2 is roughly 600 lines
 across the remaining classes with no e2e coverage on any of them, so it wants to be
 its own change with tests in front of it, not a side effect of another one.
 
