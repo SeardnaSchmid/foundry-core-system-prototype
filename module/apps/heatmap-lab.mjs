@@ -9,10 +9,7 @@ import {
   CURVE_MAX,
 } from '../helpers/heatmap.mjs';
 
-// Namespaced rather than the bare `FormApplication` global, which is
-// deprecated. Still ApplicationV1 — see the V1 apps note in
-// docs/codemap/reference/module-map.md.
-const { FormApplication } = foundry.appv1.api;
+const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 const PREVIEW_VALUES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 const CONFIG_FIELDS = ['low', 'mid', 'high', 'midValue', 'lowCurve', 'highCurve'];
@@ -30,35 +27,34 @@ const CONFIG_FIELDS = ['low', 'mid', 'high', 'midValue', 'lowCurve', 'highCurve'
  * sheet, so the real cells are never more than one release behind what's
  * shown here.
  *
- * @extends {FormApplication}
+ * @extends {ApplicationV2}
  */
-export class TnoHeatmapLab extends FormApplication {
-  constructor() {
-    super({ ...getActiveHeatmapConfig() });
+export class TnoHeatmapLab extends HandlebarsApplicationMixin(ApplicationV2) {
+  constructor(options) {
+    super(options);
+    this.config = { ...getActiveHeatmapConfig() };
   }
 
   /** @override */
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      id: 'tno-heatmap-lab',
-      classes: ['tno', 'sheet', 'tno-heatmap-lab'],
-      template: 'systems/tno/templates/apps/heatmap-lab.hbs',
-      width: 340,
-      height: 'auto',
-      closeOnSubmit: false,
-      submitOnChange: true,
-    });
-  }
+  static DEFAULT_OPTIONS = {
+    id: 'tno-heatmap-lab',
+    tag: 'form',
+    classes: ['tno', 'sheet', 'tno-heatmap-lab'],
+    window: { title: 'TNO.Settings.HeatmapPreset.Name' },
+    position: { width: 340 },
+    form: { handler: TnoHeatmapLab.#onSubmit, submitOnChange: true, closeOnSubmit: false },
+    actions: { loadPreset: TnoHeatmapLab.#onLoadPreset },
+  };
 
   /** @override */
-  get title() {
-    return game.i18n.localize('TNO.Settings.HeatmapPreset.Name');
-  }
+  static PARTS = {
+    body: { template: 'systems/tno/templates/apps/heatmap-lab.hbs' },
+  };
 
   /** @override */
-  getData() {
+  async _prepareContext() {
     return {
-      ...this.object,
+      ...this.config,
       midValueMin: MID_VALUE_MIN,
       midValueMax: MID_VALUE_MAX,
       curveMin: CURVE_MIN,
@@ -68,98 +64,86 @@ export class TnoHeatmapLab extends FormApplication {
         label: game.i18n.localize(preset.label),
       })),
       preview: PREVIEW_VALUES.map((value) => {
-        const dc = colorForValue(value, 1, 10, this.object);
+        const dc = colorForValue(value, 1, 10, this.config);
         return { value, bg: dc.bg, textColor: dc.textColor };
       }),
     };
   }
 
   /** @override */
-  activateListeners(html) {
-    super.activateListeners(html);
-
+  _onFirstRender(context, options) {
+    super._onFirstRender(context, options);
+    // Bound once: the <form> root outlives every re-render.
     // Continuous drag feedback: recompute the preview swatches straight from
     // the live form values on every "input" tick, without touching the
     // shared active config or triggering a re-render (which would cut the
     // drag short on a range slider).
-    html.on('input', 'input[name]', () => this._refreshPreview(html));
-
-    html.find('[data-action="load-preset"]').on('click', (ev) => {
-      ev.preventDefault();
-      const preset = HEATMAP_QUICK_PRESETS[ev.currentTarget.dataset.preset];
-      if (!preset) return;
-      this.object = Object.fromEntries(CONFIG_FIELDS.map((field) => [field, preset[field]]));
-      this._apply();
-    });
+    this.element.addEventListener('input', () => this.#refreshPreview());
   }
 
   /**
    * Read the form's current (uncommitted) values and repaint the preview
    * swatches to match, so dragging a stop or a slider gives instant
    * feedback before the change is persisted.
-   * @param {JQuery} html
-   * @private
    */
-  _refreshPreview(html) {
-    const config = this._readForm(html);
-    html.find('.heatmap-lab-midpoint-value').text(config.midValue.toFixed(1));
-    html.find('.heatmap-lab-lowcurve-value').text(config.lowCurve.toFixed(1));
-    html.find('.heatmap-lab-highcurve-value').text(config.highCurve.toFixed(1));
-    html.find('.heatmap-lab-swatch').each((_, el) => {
+  #refreshPreview() {
+    const config = TnoHeatmapLab.#read(new foundry.applications.ux.FormDataExtended(this.element).object);
+    const root = this.element;
+    root.querySelector('.heatmap-lab-midpoint-value').textContent = config.midValue.toFixed(1);
+    root.querySelector('.heatmap-lab-lowcurve-value').textContent = config.lowCurve.toFixed(1);
+    root.querySelector('.heatmap-lab-highcurve-value').textContent = config.highCurve.toFixed(1);
+    for (const el of root.querySelectorAll('.heatmap-lab-swatch')) {
       const dc = colorForValue(Number(el.dataset.value), 1, 10, config);
       el.style.background = dc.bg;
       el.style.color = dc.textColor;
-    });
+    }
   }
 
-  /**
-   * @param {JQuery} html
-   * @returns {object}
-   * @private
-   */
-  _readForm(html) {
+  /** The gradient config out of the form's values. */
+  static #read(data) {
     return {
-      low: html.find('[name="low"]').val(),
-      mid: html.find('[name="mid"]').val(),
-      high: html.find('[name="high"]').val(),
-      midValue: Number(html.find('[name="midValue"]').val()) || 4.5,
-      lowCurve: Number(html.find('[name="lowCurve"]').val()) || 1,
-      highCurve: Number(html.find('[name="highCurve"]').val()) || 1,
+      low: data.low,
+      mid: data.mid,
+      high: data.high,
+      midValue: Number(data.midValue) || 4.5,
+      lowCurve: Number(data.lowCurve) || 1,
+      highCurve: Number(data.highCurve) || 1,
     };
   }
 
-  /** @override */
-  async _updateObject(event, formData) {
-    this.object = {
-      low: formData.low,
-      mid: formData.mid,
-      high: formData.high,
-      midValue: Number(formData.midValue) || 4.5,
-      lowCurve: Number(formData.lowCurve) || 1,
-      highCurve: Number(formData.highCurve) || 1,
-    };
-    await this._apply();
+  /** @this {TnoHeatmapLab} */
+  static async #onSubmit(event, form, formData) {
+    this.config = TnoHeatmapLab.#read(formData.object);
+    await this.#apply();
+  }
+
+  /** @this {TnoHeatmapLab} */
+  static async #onLoadPreset(event, target) {
+    const preset = HEATMAP_QUICK_PRESETS[target.dataset.preset];
+    if (!preset) return;
+    this.config = Object.fromEntries(CONFIG_FIELDS.map((field) => [field, preset[field]]));
+    await this.#apply();
   }
 
   /**
-   * Persist the current object as the active gradient config, apply it
-   * everywhere (this dialog's preview + every open actor sheet), and save
-   * it to the client so it survives a reload.
-   * @private
+   * Persist the current config as the active gradient, apply it everywhere
+   * (this dialog's preview + every open actor sheet), and save it to the
+   * client so it survives a reload.
    */
-  async _apply() {
-    setActiveHeatmapConfig(this.object);
+  async #apply() {
+    setActiveHeatmapConfig(this.config);
     await Promise.all([
-      game.settings.set('tno', 'heatmapLow', this.object.low),
-      game.settings.set('tno', 'heatmapMid', this.object.mid),
-      game.settings.set('tno', 'heatmapHigh', this.object.high),
-      game.settings.set('tno', 'heatmapMidValue', this.object.midValue),
-      game.settings.set('tno', 'heatmapLowCurve', this.object.lowCurve),
-      game.settings.set('tno', 'heatmapHighCurve', this.object.highCurve),
+      game.settings.set('tno', 'heatmapLow', this.config.low),
+      game.settings.set('tno', 'heatmapMid', this.config.mid),
+      game.settings.set('tno', 'heatmapHigh', this.config.high),
+      game.settings.set('tno', 'heatmapMidValue', this.config.midValue),
+      game.settings.set('tno', 'heatmapLowCurve', this.config.lowCurve),
+      game.settings.set('tno', 'heatmapHighCurve', this.config.highCurve),
     ]);
-    Object.values(ui.windows).forEach((w) => {
-      if (w !== this) w.render?.(false);
-    });
+    // The actor sheets are ApplicationV2 and so not in `ui.windows`.
+    for (const app of foundry.applications.instances.values()) {
+      if (app.document?.documentName === 'Actor' && app.rendered) app.render();
+    }
     this.render();
   }
 }

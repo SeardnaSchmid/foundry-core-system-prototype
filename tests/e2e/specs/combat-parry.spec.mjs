@@ -71,7 +71,7 @@ test('a parry rolls on passive handling and prices the next one', async ({ world
   });
 
   const sheet = await openSheet(page, id);
-  const dialog = page.locator('form.tno-roll-dialog');
+  const dialog = page.locator('.tno-roll-dialog');
   const threshold = dialog.locator('[data-role="threshold"]');
   const submit = dialog.locator('button[type="submit"]');
 
@@ -87,7 +87,9 @@ test('a parry rolls on passive handling and prices the next one', async ({ world
   await expect(threshold).toHaveText(`≤ ${PARRY.first}`);
 
   await submit.click();
-  await expect(dialog).toBeHidden();
+  // Gone, not just hidden: a closing V2 window keeps its element through the
+  // close animation, and the second parry below would find two dialogs.
+  await expect(dialog).toHaveCount(0);
 
   const first = await lastMessage(page);
   expect(first.threshold).toBe(PARRY.first);
@@ -109,7 +111,7 @@ test('a parry rolls on passive handling and prices the next one', async ({ world
   await dialog.locator('input[name="contextChoice"][value="0"]').evaluate((input) => input.click());
   await expect(threshold).toHaveText(`≤ ${PARRY.second}`);
   await submit.click();
-  await expect(dialog).toBeHidden();
+  await expect(dialog).toHaveCount(0);
 
   const second = await lastMessage(page);
   expect(second.components).toEqual(expect.arrayContaining([

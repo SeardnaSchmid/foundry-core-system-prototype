@@ -32,8 +32,8 @@ test('a skill row rolls its skill and attribute, plus the situational step', asy
   const sheet = await openSheet(page, id);
   await sheet.locator('.skill-info[data-skill="swords"]').click();
 
-  // The window's id carries the appId, so the form's own class is the handle.
-  const dialog = page.locator('form.tno-roll-dialog');
+  // The window's id carries the appId, so the dialog content's own class is the handle.
+  const dialog = page.locator('.tno-roll-dialog');
   await expect(dialog).toBeVisible();
 
   // Nothing is required before a plain skill roll: it is ready on open.
@@ -45,7 +45,7 @@ test('a skill row rolls its skill and attribute, plus the situational step', asy
 
   await pinDice(page, SKILL.face);
   await dialog.locator('button[type="submit"]').click();
-  await expect(dialog).toBeHidden();
+  await expect(dialog).toHaveCount(0);
 
   const card = page.locator('.chat-scroll .chat-message').last();
   await expect(card).toBeVisible();

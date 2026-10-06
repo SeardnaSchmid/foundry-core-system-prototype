@@ -3,36 +3,30 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // TnoRollDialog is a Foundry application, but its context-to-threshold path is
 // deterministic. A minimal shell lets the unit suite verify that path without
 // a browser or a Foundry world.
-globalThis.foundry = {
-  appv1: {
-    api: {
-      FormApplication: class {
-        // Foundry merges the second argument over `defaultOptions`; the shell
-        // only has to keep it, so a workflow asking for its own width can be
-        // read back off the instance.
-        constructor(object, options = {}) {
-          this.object = object;
-          this.options = { ...options };
-        }
-
-        // What core's `_onSubmit` does, reduced to the part the override cares
-        // about: read the form and hand it to `_updateObject`. The override's
-        // job is to not get here while a required answer is missing.
-        async _onSubmit(event) {
-          const data = new FormDataExtended(this.form ?? event?.currentTarget).object;
-          await this._updateObject(event, data);
-          return data;
-        }
-      },
-    },
-  },
-};
 // Core reads a live form; the suite has no DOM, so a stub form carries the
 // same shape — the values keyed by input name.
-globalThis.FormDataExtended = class {
+class FormDataExtended {
   constructor(form) {
     this.object = form?.values ?? {};
   }
+}
+globalThis.foundry = {
+  applications: {
+    api: {
+      // Foundry merges the options over `DEFAULT_OPTIONS`; the shell only has
+      // to keep them, so a workflow asking for its own width can be read back
+      // off the instance.
+      ApplicationV2: class {
+        constructor(options = {}) {
+          this.options = { ...options };
+        }
+
+        async close() {}
+      },
+      HandlebarsApplicationMixin: (Base) => Base,
+    },
+    ux: { FormDataExtended },
+  },
 };
 globalThis.game = {
   i18n: {
@@ -148,16 +142,16 @@ describe('TnoRollDialog pre-roll context', () => {
   // by its label and has no caption at all. The range picker used to lead with
   // the modifier and caption it with the band, which answered "at what
   // distance?" with "−3".
-  it('names a tile by its answer and captions it only where there is an effect to state', () => {
-    const tiles = (choices) => new TnoRollDialog(actor, {
+  it('names a tile by its answer and captions it only where there is an effect to state', async () => {
+    const tiles = async (choices) => (await new TnoRollDialog(actor, {
       fixedValue: { label: 'Base', value: 8 },
       preRollContext: { label: 'Range', control: 'tiles', tileColumns: 5, choices },
-    }).getData().questions.find((question) => question.key === 'context').choices;
+    })._prepareContext()).questions.find((question) => question.key === 'context').choices;
 
-    const [band] = tiles([{ key: 'near', label: 'Near', value: -3 }]);
+    const [band] = await tiles([{ key: 'near', label: 'Near', value: -3 }]);
     expect(band).toMatchObject({ name: 'Near', display: '−3', caption: '', state: 'negative' });
 
-    const [rung] = tiles([{ key: 'holds', label: 'holds · blunt damage', headline: '= 8', value: 0 }]);
+    const [rung] = await tiles([{ key: 'holds', label: 'holds · blunt damage', headline: '= 8', value: 0 }]);
     expect(rung).toMatchObject({ name: '= 8', display: '±0', caption: 'holds · blunt damage', state: 'neutral' });
   });
 
@@ -231,7 +225,7 @@ describe('TnoRollDialog armour SV step', () => {
     const data = form({ attributeA: 'dex' });
     expect(dialog._breakdownText(data)).toContain('TNO.Combat.ArmorSvMalus −3');
 
-    await dialog._updateObject(null, data);
+    await dialog._roll(data);
     expect(rolled.payload.threshold).toBe(1);
     expect(rolled.payload.components).toContainEqual({
       label: 'TNO.Combat.ArmorSvMalus',
@@ -265,7 +259,7 @@ describe('TnoRollDialog global damage malus', () => {
     expect(dialog._computeThreshold(data)).toBe(2);
     expect(dialog._breakdownText(data)).toContain('TNO.Damage.Malus −3');
 
-    await dialog._updateObject(null, data);
+    await dialog._roll(data);
     expect(rolled.payload.threshold).toBe(2);
     expect(rolled.payload.components[0]).toEqual({
       label: 'TNO.Ability.Str.long',
@@ -350,7 +344,7 @@ describe('TnoRollDialog Ansagen', () => {
       envelope: { from: 'Anton', penetration: 5, sharp: 4, blunt: 2 },
     });
 
-    await dialog._updateObject(null, form({ attributeA: 'str', ansage: 3 }));
+    await dialog._roll(form({ attributeA: 'str', ansage: 3 }));
     expect(rolled.payload.extraFlags.envelope).toEqual({
       from: 'Anton',
       penetration: 5,
@@ -367,7 +361,7 @@ describe('TnoRollDialog Ansagen', () => {
     const data = form({ attributeA: 'str', contextChoice: '0', ansage: 3 });
     expect(dialog._breakdownText(data)).toContain('Ansage −3');
 
-    await dialog._updateObject(null, data);
+    await dialog._roll(data);
     expect(rolled.payload.components).toEqual(expect.arrayContaining([
       { label: 'Ansage', value: -3, display: '−3' },
     ]));
@@ -387,7 +381,7 @@ describe('TnoRollDialog required value', () => {
     const dialog = resistance();
     // The field opens on a value rather than empty, and a roll carrying only
     // that default is a roll the dialog will make.
-    expect(dialog.object.requiredValue).toBe(0);
+    expect(dialog.draft.requiredValue).toBe(0);
     expect(dialog._canSubmit(form({ attributeA: 'str' }))).toBe(true);
 
     // Blank and zero are the same answer now: clearing the box empties it, it
@@ -396,7 +390,7 @@ describe('TnoRollDialog required value', () => {
     expect(dialog._requiredValueEntry(form({ attributeA: 'str', requiredValue: 0 }))).toBe(0);
     expect(dialog._canSubmit(form({ attributeA: 'str', requiredValue: null }))).toBe(true);
 
-    await dialog._updateObject(null, form({ attributeA: 'str' }));
+    await dialog._roll(form({ attributeA: 'str' }));
     expect(warnings).toEqual([]);
     expect(rolled.payload).not.toBeNull();
     expect(rolled.payload.threshold).toBe(dialog._computeThreshold(form({ attributeA: 'str' })));
@@ -483,23 +477,18 @@ describe('TnoRollDialog blocked submit', () => {
   // The commit button is no longer `disabled` — a disabled button swallows its
   // own click, and this one's second line names the field that is missing, so
   // pressing it has to lead somewhere. That moves the gate off the attribute
-  // and onto `_onSubmit`, which makes this the only thing standing between an
+  // and onto `_submit`, which makes this the only thing standing between an
   // unanswered comparison and a roll that quietly invents one.
   it('refuses an unanswered roll instead of making it, and marks the control', async () => {
     const dialog = gated();
     const refused = [];
     dialog._rejectSubmit = (form) => refused.push(form);
 
-    const prevented = [];
     const blocked = { values: { attributeA: 'str' } };
-    const outcome = await dialog._onSubmit({
-      currentTarget: blocked,
-      preventDefault: () => prevented.push(true),
-    });
+    const outcome = await dialog._submit(blocked, blocked.values);
 
     expect(outcome).toBeNull();
     expect(rolled.payload).toBeNull();
-    expect(prevented).toEqual([true]);
     // The refusal is shown at the control the answer goes into, not only on the
     // button that was pressed.
     expect(refused).toEqual([blocked]);
@@ -510,10 +499,8 @@ describe('TnoRollDialog blocked submit', () => {
     const refused = [];
     dialog._rejectSubmit = (form) => refused.push(form);
 
-    await dialog._onSubmit({
-      currentTarget: { values: { attributeA: 'str', contextChoice: 'harder' } },
-      preventDefault: () => {},
-    });
+    const answered = { values: { attributeA: 'str', contextChoice: 'harder' } };
+    await dialog._submit(answered, answered.values);
 
     expect(refused).toEqual([]);
     expect(rolled.payload).not.toBeNull();
@@ -612,7 +599,7 @@ describe('TnoRollDialog tile columns', () => {
 });
 
 describe('TnoRollDialog width', () => {
-  const width = (value) => new TnoRollDialog(armoured(false), { width: value }).options.width;
+  const width = (value) => new TnoRollDialog(armoured(false), { width: value }).options.position?.width;
 
   it('takes the width a workflow asks for', () => {
     expect(width(400)).toBe(400);

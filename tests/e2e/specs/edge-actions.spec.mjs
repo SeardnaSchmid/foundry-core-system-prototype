@@ -26,11 +26,11 @@ async function failedSwordsRoll(page, system = {}) {
   const sheet = await openSheet(page, id);
   await sheet.locator('.skill-info[data-skill="swords"]').click();
 
-  const dialog = page.locator('form.tno-roll-dialog');
+  const dialog = page.locator('.tno-roll-dialog');
   await expect(dialog).toBeVisible();
   await pinDice(page, FAIL);
   await dialog.locator('button[type="submit"]').click();
-  await expect(dialog).toBeHidden();
+  await expect(dialog).toHaveCount(0);
 
   // The sidebar starts collapsed, which leaves only the toast on screen. The
   // edge controls are clicked in the log, where a player reaches for them.

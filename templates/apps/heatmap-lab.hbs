@@ -1,10 +1,10 @@
-<form class="tno-heatmap-lab flexcol">
+<div class="tno-heatmap-lab flexcol">
 
   {{!-- Quick starting points — load a preset's stops/midpoint into the
   fields below, then keep tweaking from there. --}}
   <div class="heatmap-lab-presets flexrow">
     {{#each presets as |preset|}}
-    <button type="button" class="heatmap-lab-preset-btn" data-action="load-preset" data-preset="{{preset.id}}">{{preset.label}}</button>
+    <button type="button" class="heatmap-lab-preset-btn" data-action="loadPreset" data-preset="{{preset.id}}">{{preset.label}}</button>
     {{/each}}
   </div>
 
@@ -65,4 +65,4 @@
   </div>
 
   <p class="heatmap-lab-hint">{{localize "TNO.HeatmapLab.Hint"}}</p>
-</form>
+</div>

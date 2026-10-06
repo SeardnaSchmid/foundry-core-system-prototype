@@ -65,8 +65,8 @@ test('a weapon attack carries its requirement maluses from dialog to chat card',
 
   await attack.click();
   // The window's id carries the appId (`tno-roll-dialog-${appId}`), so it is
-  // generated and not a selector. The form's own class is the stable handle.
-  const dialog = page.locator('form.tno-roll-dialog');
+  // generated and not a selector. The dialog content's own class is the stable handle.
+  const dialog = page.locator('.tno-roll-dialog');
   await expect(dialog).toBeVisible();
 
   // 3a. The SV shortfall reaches the dialog as its own line.
@@ -94,7 +94,7 @@ test('a weapon attack carries its requirement maluses from dialog to chat card',
   await expect(dialog.locator('[data-role="threshold"]')).toHaveText(`≤ ${ATTACK.threshold}`);
 
   await submit.click();
-  await expect(dialog).toBeHidden();
+  await expect(dialog).toHaveCount(0);
 
   // 4. The card and the flags carry the same breakdown the dialog previewed.
   // `.chat-scroll`, not `#chat-log`: v14 renders the log as `ol.chat-log` and

@@ -10,18 +10,18 @@ import { describe, expect, it } from 'vitest';
 // dialog can say what its options add up to.
 globalThis.Actor = class {};
 globalThis.foundry = {
-  appv1: {
+  applications: {
     api: {
-      FormApplication: class {
-        // Foundry merges the second argument over `defaultOptions`; the shell
-        // only has to keep it, so a workflow asking for its own width can be
-        // read back off the instance.
-        constructor(object, options = {}) {
-          this.object = object;
+      // Foundry merges the options over `DEFAULT_OPTIONS`; the shell only has
+      // to keep them.
+      ApplicationV2: class {
+        constructor(options = {}) {
           this.options = { ...options };
         }
       },
+      HandlebarsApplicationMixin: (Base) => Base,
     },
+    ux: { FormDataExtended: class {} },
   },
 };
 globalThis.CONFIG = {
@@ -202,7 +202,7 @@ describe('resistance roll', () => {
     // The comparison decides which of the attacker's two damage values applies
     // and whether RW applies, so no default could stand in for it — and a
     // resistance roll against a damage value nobody entered resists nothing.
-    expect(dialog.object.requiredValue).toBe('');
+    expect(dialog.draft.requiredValue).toBe('');
     expect(dialog._canSubmit(answered())).toBe(false);
     expect(dialog._canSubmit(answered({ requiredValue: 7 }))).toBe(false);
     expect(dialog._canSubmit(answered({ compareValue: 3 }))).toBe(false);

@@ -4,10 +4,8 @@ import { armorSvMalus, isAuthoredNumber } from '../helpers/items.mjs';
 import { ansageEnvelope } from '../helpers/maneuvers.mjs';
 import { advantageOptions, bindRadioGroup } from './roll-dialog-shared.mjs';
 
-// Namespaced rather than the bare `FormApplication` global, which is
-// deprecated. Still ApplicationV1 — see the V1 apps note in
-// docs/codemap/reference/module-map.md.
-const { FormApplication } = foundry.appv1.api;
+const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+const { FormDataExtended } = foundry.applications.ux;
 
 /** Bounds and steps for the situational modification value. */
 const BONUS_MIN = -30;
@@ -52,9 +50,9 @@ const MARKS = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '�
  * that holds the Schwelle. Facts the roller cannot change are not asked; they
  * live in the Beleg, a drawer above the Schwelle that lists every component
  * grouped by where it comes from.
- * @extends {FormApplication}
+ * @extends {ApplicationV2}
  */
-export class TnoRollDialog extends FormApplication {
+export class TnoRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
   /**
    * @param {Actor} actor              The rolling actor.
    * @param {object} [options]
@@ -119,10 +117,9 @@ export class TnoRollDialog extends FormApplication {
    *   cancelled — the repeated-defence counter must count rolls, not intentions.
    */
   constructor(actor, { attributeA = '', lockAttribute = false, skill = null, freeSkill = false, fixedValue = null, fixedModifiers = [], preRollContext = null, requiredValue = null, ansage = null, envelope = null, toggleModifier = null, consequence = null, afterRoll = null, phase = null, sources = null, flavor = '', img = '', width = null } = {}) {
-    super(
-      { attributeA, attributeB: '', skillValue: 0, bonus: 0, advantage: TNO_ADVANTAGE.none, useIdea: false, contextChoice: '', compareValue: '', requiredValue: 0, ansage: 0, toggleModifier: false },
-      Number.isFinite(Number(width)) && Number(width) > 0 ? { width: Number(width) } : {}
-    );
+    super(Number.isFinite(Number(width)) && Number(width) > 0 ? { position: { width: Number(width) } } : {});
+    /** The answers the form opens with. Not `state`: ApplicationV2 owns that name. */
+    this.draft = { attributeA, attributeB: '', skillValue: 0, bonus: 0, advantage: TNO_ADVANTAGE.none, useIdea: false, contextChoice: '', compareValue: '', requiredValue: 0, ansage: 0, toggleModifier: false };
     this.actor = actor;
     this.lockAttribute = !!(lockAttribute && attributeA);
     this.skill = skill;
@@ -140,7 +137,7 @@ export class TnoRollDialog extends FormApplication {
     this.requiredValue = this._normalizeRequiredValue(requiredValue);
     // A required number has no answer until one is typed; any other one opens
     // on 0, the value most announcements start from.
-    if (this.requiredValue?.required) this.object.requiredValue = '';
+    if (this.requiredValue?.required) this.draft.requiredValue = '';
     this.ansage = ansage?.label ? { label: String(ansage.label), hint: String(ansage.hint ?? '') } : null;
     this.envelope = envelope?.from ? envelope : null;
     this.toggleModifier = toggleModifier?.label && Number.isFinite(Number(toggleModifier.value))
@@ -155,7 +152,7 @@ export class TnoRollDialog extends FormApplication {
           origin: TnoRollDialog._origin(toggleModifier.origin, 'armor'),
         }
       : null;
-    if (this.toggleModifier && toggleModifier.checked === true) this.object.toggleModifier = true;
+    if (this.toggleModifier && toggleModifier.checked === true) this.draft.toggleModifier = true;
     this.consequence = typeof consequence === 'function' ? consequence : null;
     this.afterRoll = typeof afterRoll === 'function' ? afterRoll : null;
     this.phase = phase?.label ? { label: String(phase.label), detail: String(phase.detail ?? '') } : null;
@@ -348,20 +345,24 @@ export class TnoRollDialog extends FormApplication {
   }
 
   /** @override */
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ['tno', 'sheet'],
-      template: 'systems/tno/templates/apps/roll-dialog.hbs',
-      width: 500,
-      resizable: true,
-      closeOnSubmit: true,
-    });
-  }
+  static DEFAULT_OPTIONS = {
+    id: 'tno-roll-dialog-{id}',
+    tag: 'form',
+    classes: ['tno', 'sheet'],
+    window: { resizable: true },
+    position: { width: 500 },
+    // The handler closes the dialog itself, and only once the dice are cast:
+    // a refused roll keeps the dialog open at the missing answer.
+    form: { handler: TnoRollDialog.#onSubmit, closeOnSubmit: false },
+  };
 
   /** @override */
-  get id() {
-    return `tno-roll-dialog-${this.appId}`;
-  }
+  static PARTS = {
+    body: { template: 'systems/tno/templates/apps/roll-dialog.hbs' },
+  };
+
+  /** Aborts every listener the last render bound. */
+  #listeners = null;
 
   /** @override */
   get title() {
@@ -432,7 +433,7 @@ export class TnoRollDialog extends FormApplication {
       label: game.i18n.localize(labelKey),
       abbr: game.i18n.localize(labelKey.replace(/\.long$/, '.abbr')).toUpperCase(),
       value: this.actor.system.abilities?.[key]?.base ?? 0,
-      active: key === this.object.attributeA,
+      active: key === this.draft.attributeA,
     };
   }
 
@@ -507,8 +508,8 @@ export class TnoRollDialog extends FormApplication {
   }
 
   /** @override */
-  getData() {
-    const data = this.object;
+  async _prepareContext() {
+    const data = this.draft;
     const L = (key) => game.i18n.localize(key);
     const questions = this._questions(data);
     const contextMark = questions.find((question) => question.key === 'context')?.mark ?? '';
@@ -1448,44 +1449,68 @@ export class TnoRollDialog extends FormApplication {
   }
 
   /**
-   * @override
    * The gate is here rather than on the button's `disabled` attribute so that
    * both ways of committing — the click and the implicit Enter — land on the
    * same refusal. The form is `novalidate` for the same reason.
+   * @param {HTMLFormElement} form
+   * @param {object} data  The form's values.
+   * @returns {Promise<object|null>}  The values rolled with, or null when refused.
    */
-  async _onSubmit(event, options = {}) {
-    const form = this.form ?? event?.currentTarget;
-    if (form && !this._canSubmit(new FormDataExtended(form).object)) {
-      event?.preventDefault();
+  async _submit(form, data) {
+    if (!this._canSubmit(data)) {
       this._rejectSubmit(form);
       return null;
     }
-    return super._onSubmit(event, options);
+    await this._roll(data);
+    await this.close();
+    return data;
+  }
+
+  /** @this {TnoRollDialog} */
+  static #onSubmit(event, form, formData) {
+    return this._submit(form, formData.object);
   }
 
   /** @override */
-  activateListeners(html) {
-    super.activateListeners(html);
-    const root = html[0];
-    const form = root.closest('form') ?? root.querySelector('form');
-    if (!form) return;
+  _onFirstRender(context, options) {
+    super._onFirstRender(context, options);
+    this.element.noValidate = true;
+  }
+
+  /** @override */
+  _onRender(context, options) {
+    super._onRender(context, options);
+    const form = this.element;
+    // The <form> root outlives a re-render, so what is bound to it, or to the
+    // document, is dropped before it is bound again.
+    this.#listeners?.abort();
+    this.#listeners = new AbortController();
+    const { signal } = this.#listeners;
+    const on = (types, selector, handler) => {
+      for (const type of types.split(' ')) {
+        form.addEventListener(type, (ev) => {
+          const target = ev.target.closest?.(selector);
+          if (target && form.contains(target)) handler(ev, target);
+        }, { signal });
+      }
+    };
     const refresh = () => this._refresh(form);
 
-    html.on('change', 'select[name="attributeB"], select[name="contextChoice"], input[name="contextChoice"]', refresh);
-    html.on('change input', 'input[name="skillValue"], input[name="requiredValue"], input[name="ansage"], input[name="compareValue"]', refresh);
+    on('change', 'select[name="attributeB"], select[name="contextChoice"], input[name="contextChoice"]', refresh);
+    on('change input', 'input[name="skillValue"], input[name="requiredValue"], input[name="ansage"], input[name="compareValue"]', refresh);
 
     // Yes/no: two buttons over the checkbox the form reads.
-    html.on('click', '.tno-q-bool', (ev) => {
+    on('click', '.tno-q-bool', (ev, target) => {
       ev.preventDefault();
       const checkbox = form.querySelector('input[name="toggleModifier"]');
-      if (checkbox) checkbox.checked = ev.currentTarget.dataset.value === '1';
+      if (checkbox) checkbox.checked = target.dataset.value === '1';
       refresh();
     });
 
     // The Idee: one pressed button over the checkbox the form reads.
-    html.on('click', '.tno-q-idea-toggle', (ev) => {
+    on('click', '.tno-q-idea-toggle', (ev, target) => {
       ev.preventDefault();
-      if (ev.currentTarget.disabled) return;
+      if (target.disabled) return;
       const checkbox = form.querySelector('input[name="useIdea"]');
       if (checkbox) checkbox.checked = !checkbox.checked;
       refresh();
@@ -1500,18 +1525,18 @@ export class TnoRollDialog extends FormApplication {
     });
 
     // The situational modification: ±3 in Malusstufen, ±1 to fine-tune.
-    html.on('click', '.tno-bonus-step', (ev) => {
+    on('click', '.tno-bonus-step', (ev, target) => {
       ev.preventDefault();
-      if (ev.currentTarget.disabled) return;
+      if (target.disabled) return;
       const current = Number(form.querySelector('input[name="bonus"]').value) || 0;
-      this._setBonus(form, current + Number(ev.currentTarget.dataset.delta));
+      this._setBonus(form, current + Number(target.dataset.delta));
     });
     // The value doubles as a control: click resets it to zero, arrow keys step it.
-    html.on('click', '.tno-bonus-value', (ev) => {
+    on('click', '.tno-bonus-value', (ev, target) => {
       ev.preventDefault();
       this._setBonus(form, 0);
     });
-    html.on('keydown', '.tno-bonus-value', (ev) => {
+    on('keydown', '.tno-bonus-value', (ev) => {
       const current = Number(form.querySelector('input[name="bonus"]').value) || 0;
       if (ev.key === 'ArrowUp' || ev.key === 'ArrowRight') {
         ev.preventDefault();
@@ -1524,10 +1549,10 @@ export class TnoRollDialog extends FormApplication {
 
     // Every stepped field shares one gesture: ±1 around its own input, bounded
     // by that input's own min/max.
-    html.on('click', '.tno-step', (ev) => {
+    on('click', '.tno-step', (ev, target) => {
       ev.preventDefault();
-      if (ev.currentTarget.disabled) return;
-      this._stepValue(form, ev.currentTarget.closest('.tno-stepper')?.querySelector('input[type="number"]'), Number(ev.currentTarget.dataset.step));
+      if (target.disabled) return;
+      this._stepValue(form, target.closest('.tno-stepper')?.querySelector('input[type="number"]'), Number(target.dataset.step));
     });
 
     // The roll type moves the odds, not the Schwelle.
@@ -1547,18 +1572,16 @@ export class TnoRollDialog extends FormApplication {
       const label = beleg.querySelector('[data-role="beleg-toggle-label"]');
       if (label) label.textContent = game.i18n.localize(open ? 'TNO.Roll.Beleg.Close' : 'TNO.Roll.Beleg.Open');
     };
-    html.on('click', '.tno-beleg-toggle', (ev) => {
+    on('click', '.tno-beleg-toggle', (ev, target) => {
       ev.preventDefault();
       setBeleg(!beleg?.classList.contains('is-open'));
     });
-    html.on('focusout', '.tno-beleg', (ev) => {
+    on('focusout', '.tno-beleg', (ev) => {
       if (ev.relatedTarget && !beleg?.contains(ev.relatedTarget)) setBeleg(false);
     });
-    this._unbindBelegOutside();
-    this._onBelegOutside = (ev) => {
-      if (!beleg?.contains(ev.target)) setBeleg(false);
-    };
-    document.addEventListener('pointerdown', this._onBelegOutside, true);
+    form.ownerDocument.addEventListener('pointerdown', (event) => {
+      if (!beleg?.contains(event.target)) setBeleg(false);
+    }, { capture: true, signal });
 
     refresh();
 
@@ -1569,21 +1592,18 @@ export class TnoRollDialog extends FormApplication {
     target?.focus();
   }
 
-  /** Drop the document listener that closes the Beleg on an outside click. */
-  _unbindBelegOutside() {
-    if (this._onBelegOutside) document.removeEventListener('pointerdown', this._onBelegOutside, true);
-    this._onBelegOutside = null;
+  /** @override */
+  _onClose(options) {
+    this.#listeners?.abort();
+    super._onClose(options);
   }
 
-  /** @override */
-  async close(options) {
-    this._unbindBelegOutside();
-    return super.close(options);
-  }
-
-  /** @override */
-  async _updateObject(event, formData) {
-    if (this.lockAttribute) formData.attributeA = this.object.attributeA;
+  /**
+   * Cast the dice for an answered form.
+   * @param {object} formData  The form's values.
+   */
+  async _roll(formData) {
+    if (this.lockAttribute) formData.attributeA = this.draft.attributeA;
     if (!this._canSubmit(formData)) {
       ui.notifications.warn(game.i18n.localize('TNO.Roll.ContextRequired'));
       return;

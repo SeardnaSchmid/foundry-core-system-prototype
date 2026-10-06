@@ -47,7 +47,6 @@ Entry point, no exports (side-effecting init). See
 | `chat.mjs` | `registerChatListeners`, `xpClaimEligible`, `buildEdgeGroups` | Everything a chat card gains after it is posted: the post-roll edge action UI (see [edge-pool.md](../concepts/edge-pool.md)) and the take action on a posted item card |
 | `item-transfer.mjs` | `travellingItemData`, `receivingActors`, `postedItemFlag`, `takeItemFromMessage`, `renderItemTakeAction` | Copying a posted gear card onto a sheet the reader owns: what the card carries, who may receive it, and the action itself — see [item-roles.md](../concepts/item-roles.md#taking-a-posted-item) |
 | `heatmap.mjs` | gradient constants, `HEATMAP_QUICK_PRESETS`, `DEFAULT_HEATMAP_CONFIG`, `INK_DARK`, `INK_LIGHT`, `setActiveHeatmapConfig`, `getActiveHeatmapConfig`, `colorForValue` | See [heatmap.md](../concepts/heatmap.md) |
-| `campaign-briefing.mjs` | `DEFAULT_CAMPAIGN_BRIEFING`, `normalizeCampaignBriefing`, `newBriefingLocation`, `newBriefingSession` | Normalises the world-owned player briefing: an editable star map and previous-session recaps, with no game-rule data or Foundry globals |
 | `skills.mjs` | `slugifySkillName`, `generateCustomSkillKey`, `getSkillDefinitions`, `getSkillDefinition` | See [skills.md](../concepts/skills.md) |
 | `effects.mjs` | `onManageActiveEffect`, `prepareActiveEffectCategories` | See [active-effects.md](../concepts/active-effects.md) |
 | `inventory.mjs` | `ARMOR_ADDON_ZONES`, `ARMOR_SV_STEP`, `CARRIED_ITEM_TYPES`, `CARRY_THRESHOLDS`, `wornItemIds`, `wornZone`, `itemSlotCost`, `computeCarry`, `buildSlotGrid`, `slotMeter`, `resolveArmor`, `armorEquipUpdate`, `dragTargets` | Pure carry/armour maths, no Foundry globals — see [inventory.md](../concepts/inventory.md) |
@@ -74,15 +73,14 @@ Entry point, no exports (side-effecting init). See
 
 | File | Exports | Responsibility |
 | --- | --- | --- |
-| `roll-dialog.mjs` | `TnoRollDialog extends FormApplication` | Skill/ability/free/fixed roll builder |
+| `roll-dialog.mjs` | `TnoRollDialog extends HandlebarsApplicationMixin(ApplicationV2)` | Skill/ability/free/fixed roll builder |
 | `base-roll-dialog.mjs` | `TnoBaseRollDialog extends HandlebarsApplicationMixin(ApplicationV2)` | Bare 3d20 dialog, no actor/threshold required |
 | `roll-dialog-shared.mjs` | `advantageOptions`, `bindRadioGroup` | Shared button-radiogroup behaviour for roll type and attribute choice, used by both dialogs |
 | `advance-dialog.mjs` | `TnoAdvanceDialog extends HandlebarsApplicationMixin(ApplicationV2)` | See [advancement.md](../concepts/advancement.md) |
-| `heatmap-lab.mjs` | `TnoHeatmapLab extends FormApplication` | See [heatmap.md](../concepts/heatmap.md) |
+| `heatmap-lab.mjs` | `TnoHeatmapLab extends HandlebarsApplicationMixin(ApplicationV2)` | See [heatmap.md](../concepts/heatmap.md) |
 | `custom-skill-dialog.mjs` | `TnoCustomSkillDialog extends HandlebarsApplicationMixin(ApplicationV2)` | Add/edit a custom skill — see [skills.md](../concepts/skills.md) |
-| `custom-skills-overview.mjs` | `TnoCustomSkillsOverview extends FormApplication` | GM-only world-wide custom skill listing |
-| `item-overview.mjs` | `TnoItemOverview extends FormApplication` | GM-only listing of every item in the world, on actors and loose, with where each came from — see [item-roles.md](../concepts/item-roles.md) |
-| `campaign-briefing.mjs` | `TnoCampaignBriefing extends FormApplication`, `TnoCampaignBriefingEditor`, `openCampaignBriefing` | The read-only player board, automatically opened for joining players when enabled; the settings-menu subclass edits the world-owned star map and recap data |
+| `custom-skills-overview.mjs` | `TnoCustomSkillsOverview extends HandlebarsApplicationMixin(ApplicationV2)` | GM-only world-wide custom skill listing |
+| `item-overview.mjs` | `TnoItemOverview extends HandlebarsApplicationMixin(ApplicationV2)` | GM-only listing of every item in the world, on actors and loose, with where each came from — see [item-roles.md](../concepts/item-roles.md) |
 | `combat-tracker.mjs` | `TnoCombatTracker extends CombatTracker` | The sidebar tracker, registered as `CONFIG.ui.combat`: the Haltung chip on each row, the spent-this-round marker, the interrupt button, pre-combat drag reordering, and the display-order setting — see [combat-turn-order.md](../concepts/combat-turn-order.md) |
 
 `TnoActorSheet` is on **ApplicationV2** (`HandlebarsApplicationMixin(ActorSheetV2)`);
@@ -104,26 +102,23 @@ never receive it. Consequences worth knowing when editing the sheet:
   and `document` refer to the parent window — DOM lookups go through
   `this.element`.
 
-`TnoItemSheet`, `TnoBaseRollDialog`, `TnoCustomSkillDialog` and
-`TnoAdvanceDialog` are on ApplicationV2 too, and set the pattern for the rest: `tag: 'form'`, a
-`form.handler` in place of `_updateObject()`, `_prepareContext()`, buttons
-wired through `actions` and `data-action` instead of jQuery, and part templates
-without a `<form>` of their own. A V2 id is unique: the base-dice dialog keeps
-its fixed id and its caller reuses an open instance from
-`foundry.applications.instances`; the per-actor dialogs take no fixed id.
+`TnoItemSheet` and every app under `module/apps/` are on ApplicationV2 too, and
+all follow one pattern: `tag: 'form'` with a `form.handler` where there is
+something to submit, `_prepareContext()`, buttons wired through `actions` and
+`data-action` instead of jQuery, and part templates without a `<form>` of their
+own. Two things trip a port:
 
-Every other app under `module/apps/` is still **V1** and
-therefore cannot be detached — a known forward-compat item (see
-[datamodel-migration.md](../architecture/datamodel-migration.md) for the
-sibling schema-side deprecation).
+* `state` is ApplicationV2's own render state and cannot be assigned; an app's
+  working values live under another name (`draft`, `config`).
+* A V2 id is unique. The single-window apps keep a fixed id and their callers
+  reuse an open instance from `foundry.applications.instances`; the per-actor
+  dialogs take none, and the roll dialog's is `tno-roll-dialog-{id}`.
 
-They no longer reach for the bare `FormApplication` global,
-which are deprecated: each takes its base class off `foundry.appv1` at the top
-of its own file. That is a namespacing change only — the classes are still
-ApplicationV1 and still use `getData()`, jQuery `activateListeners(html)` and
-`_updateObject()`. Converting them to ApplicationV2 is roughly 600 lines
-across the remaining classes with no e2e coverage on any of them, so it wants to be
-its own change with tests in front of it, not a side effect of another one.
+The roll dialog keeps its own `_refresh()` rather than re-rendering on every
+change — see [combat-roll-workflows.md](../concepts/combat-roll-workflows.md):
+a re-render would replace the field being typed in. Its listeners are bound
+in `_onRender` with an `AbortController`, because the `<form>` root outlives a
+re-render.
 
 `system.json` declares `compatibility.minimum: "14"`. It has walked up twice:
 `"12"` was a floor the code could not honour once it moved onto the **v13+**

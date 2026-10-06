@@ -41,8 +41,8 @@ test('an Ansage costs a weapon attack exactly its amount', async ({ world }) => 
   await sheet.locator(`.slot-cell.slot-first[data-item-id="${itemId}"]`).evaluate((cell) => cell.click());
   await page.locator('.tno.item-popover [data-popover-action="weapon-check"]').click();
   // The window's id carries the appId (`tno-roll-dialog-${appId}`), so it is
-  // generated and not a selector. The form's own class is the stable handle.
-  const dialog = page.locator('form.tno-roll-dialog');
+  // generated and not a selector. The dialog content's own class is the stable handle.
+  const dialog = page.locator('.tno-roll-dialog');
   await expect(dialog).toBeVisible();
 
   // 1. Nothing declared.
@@ -65,7 +65,7 @@ test('an Ansage costs a weapon attack exactly its amount', async ({ world }) => 
   await expect(threshold).toHaveText(`≤ ${MANEUVER.maneuverThreshold}`);
 
   await submit.click();
-  await expect(dialog).toBeHidden();
+  await expect(dialog).toHaveCount(0);
 
   const flags = await lastMessage(page);
   expect(flags.components.reduce((sum, part) => sum + part.value, 0)).toBe(MANEUVER.maneuverThreshold);

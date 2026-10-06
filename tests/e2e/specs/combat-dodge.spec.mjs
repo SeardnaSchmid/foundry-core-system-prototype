@@ -42,8 +42,8 @@ test('a dodge is Beweglichkeit plus Akrobatik, less the armour step', async ({ w
   await sheet.locator('[data-roll-type="dodge"]').click();
 
   // The window's id carries the appId (`tno-roll-dialog-${appId}`), so it is
-  // generated and not a selector. The form's own class is the stable handle.
-  const dialog = page.locator('form.tno-roll-dialog');
+  // generated and not a selector. The dialog content's own class is the stable handle.
+  const dialog = page.locator('.tno-roll-dialog');
   await expect(dialog).toBeVisible();
 
   // The step is a line of its own, not folded into Akrobatik or the bonus.
@@ -53,7 +53,7 @@ test('a dodge is Beweglichkeit plus Akrobatik, less the armour step', async ({ w
   await expect(dialog.locator('[data-role="threshold"]')).toHaveText(`≤ ${DODGE.threshold}`);
 
   await dialog.locator('button[type="submit"]').click();
-  await expect(dialog).toBeHidden();
+  await expect(dialog).toHaveCount(0);
 
   const flags = await lastMessage(page);
   expect(flags.threshold).toBe(DODGE.threshold);
