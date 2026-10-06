@@ -321,8 +321,8 @@ describe('resistance roll', () => {
       .toBe('TNO.Combat.DamageSharp');
     // And the breakdown says the same thing the field did, rather than falling
     // back to a bare "Schadenswert" that names neither column.
-    expect(dialog._breakdownText(answered({ requiredValue: 7, compareValue: 5 })))
-      .toContain('TNO.Combat.DamageSharp −7');
+    expect(dialog._components(answered({ requiredValue: 7, compareValue: 5 })))
+      .toContainEqual(expect.objectContaining({ label: 'TNO.Combat.DamageSharp', value: -7 }));
     // Where the numbers come from is stated, not left to the rulebook.
     expect(dialog.requiredValue.hint).toBe('TNO.Combat.DamageValueHint');
   });

@@ -81,7 +81,7 @@ describe('TnoRollDialog pre-roll context', () => {
     const component = dialog._contextComponent(data);
     expect(component).toMatchObject({ key: 'near', label: 'Range: Near', value: -3, display: '−3' });
     expect(dialog._computeThreshold(data)).toBe(7);
-    expect(dialog._breakdownText(data)).toContain('Range: Near −3');
+    expect(dialog._components(data)).toContainEqual(expect.objectContaining({ label: 'Range: Near', value: -3 }));
   });
 
   it('suppresses a confirmation toggle when the selected context already provides its effect', () => {
@@ -223,7 +223,7 @@ describe('TnoRollDialog armour SV step', () => {
   it('sends the armour step into the breakdown, the roll components and the message flags', async () => {
     const dialog = new TnoRollDialog(armoured(true), { attributeA: 'dex', flavor: 'Ausweichen' });
     const data = form({ attributeA: 'dex' });
-    expect(dialog._breakdownText(data)).toContain('TNO.Combat.ArmorSvMalus −3');
+    expect(dialog._components(data)).toContainEqual(expect.objectContaining({ label: 'TNO.Combat.ArmorSvMalus', value: -3 }));
 
     await dialog._roll(data);
     expect(rolled.payload.threshold).toBe(1);
@@ -257,7 +257,7 @@ describe('TnoRollDialog global damage malus', () => {
     });
     const data = form({ attributeA: 'str' });
     expect(dialog._computeThreshold(data)).toBe(2);
-    expect(dialog._breakdownText(data)).toContain('TNO.Damage.Malus −3');
+    expect(dialog._components(data)).toContainEqual(expect.objectContaining({ label: 'TNO.Damage.Malus', value: -3 }));
 
     await dialog._roll(data);
     expect(rolled.payload.threshold).toBe(2);
@@ -359,7 +359,7 @@ describe('TnoRollDialog Ansagen', () => {
   it('puts the declared amount on the breakdown as one component', async () => {
     const dialog = attack();
     const data = form({ attributeA: 'str', contextChoice: '0', ansage: 3 });
-    expect(dialog._breakdownText(data)).toContain('Ansage −3');
+    expect(dialog._components(data)).toContainEqual(expect.objectContaining({ label: 'Ansage', value: -3 }));
 
     await dialog._roll(data);
     expect(rolled.payload.components).toEqual(expect.arrayContaining([
@@ -399,8 +399,8 @@ describe('TnoRollDialog required value', () => {
   it('subtracts the announced value from the threshold', () => {
     const dialog = resistance();
     expect(dialog._computeThreshold(form({ attributeA: 'str', requiredValue: 7 }))).toBe(1);
-    expect(dialog._breakdownText(form({ attributeA: 'str', requiredValue: 7 })))
-      .toBe('TNO.Ability.Str.long 5 + RW (Kopf) +3 + Schadenswert −7');
+    expect(dialog._components(form({ attributeA: 'str', requiredValue: 7 })).map(({ label, value }) => [label, value]))
+      .toEqual([['TNO.Ability.Str.long', 5], ['RW (Kopf)', 3], ['Schadenswert', -7]]);
   });
 
   // The ±30 clamp bounds what a GM hands out as a situational modifier. This is
@@ -509,7 +509,7 @@ describe('TnoRollDialog blocked submit', () => {
 });
 
 describe('TnoRollDialog presentation helpers', () => {
-  it('keeps breakdown parts, text and threshold arithmetic in lockstep', () => {
+  it('keeps the components the card lists and the threshold in lockstep', () => {
     const dialog = new TnoRollDialog(armoured(false), {
       attributeA: 'str',
       skill: { key: 'swords', label: 'Schwerter', value: 4 },
@@ -517,10 +517,10 @@ describe('TnoRollDialog presentation helpers', () => {
       ansage: { label: 'Ansage' },
     });
     const data = form({ attributeA: 'str', ansage: 2, bonus: 3 });
-    const parts = dialog._breakdownParts(data);
+    const listed = dialog._components(data).reduce((sum, component) => sum + component.value, 0);
 
-    expect(parts.reduce((sum, part) => sum + part.value, 0)).toBe(dialog._computeThreshold(data));
-    expect(dialog._breakdownText(data)).toBe(parts.map((part) => `${part.label} ${part.display}`).join(' + '));
+    // The bonus is the one figure the card shows beside the list, not in it.
+    expect(listed + data.bonus).toBe(dialog._computeThreshold(data));
   });
 
   // Only what the roller has to answer is asked; the rest is a fact in the

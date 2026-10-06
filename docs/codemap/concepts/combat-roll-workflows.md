@@ -203,8 +203,8 @@ chips) on every `_refresh`, and its open state is kept for the session.
 buttons, the verdict a typed RB selects, the lock on the damage field, the
 Ansage deltas, stepper bounds (read off each input's own `min`/`max` via
 `_stepValue`), the Beleg, the Schwelle, the odds and the button. Typed contents
-and focus survive. `_breakdownParts` / `_breakdownText` feed only the chat card
-and the flags
-(`tests/documents/roll-dialog.test.js › keeps breakdown parts, text and threshold arithmetic in lockstep`).
+and focus survive. `_components` is the one list behind both the Schwelle and
+the chat card's breakdown
+(`tests/documents/roll-dialog.test.js › keeps the components the card lists and the threshold in lockstep`).
 
 The default width is 500; a workflow may still pass `width`.

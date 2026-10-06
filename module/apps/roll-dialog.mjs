@@ -980,13 +980,25 @@ export class TnoRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {number}
    */
   _computeThreshold(data) {
-    const base = this._baseComponents(data).reduce((sum, c) => sum + c.value, 0);
-    const fixedModifiers = this._fixedModifierComponents(data).reduce((sum, modifier) => sum + modifier.value, 0);
-    const context = this._contextComponent(data)?.value ?? 0;
-    const required = this._requiredValueComponent(data)?.value ?? 0;
-    const ansage = this._ansageComponent(data)?.value ?? 0;
-    return base + fixedModifiers + context + required + ansage
+    return this._components(data).reduce((sum, component) => sum + component.value, 0)
       + (Number(data.bonus) || 0) + this._ideaBonus(data);
+  }
+
+  /**
+   * The threshold's components as the chat card lists them: everything but
+   * the bonus, which the card shows on its own, and the Idee, which is only
+   * added once its point is spent.
+   * @param {object} data  Form data.
+   * @returns {Array<{label: string, value: number}>}
+   */
+  _components(data) {
+    return [
+      this._baseComponents(data),
+      this._fixedModifierComponents(data),
+      this._contextComponent(data),
+      this._requiredValueComponent(data),
+      this._ansageComponent(data),
+    ].flat().filter(Boolean);
   }
 
   /**
@@ -1010,52 +1022,6 @@ export class TnoRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     if (n > 0) return 'is-positive';
     if (n < 0) return 'is-negative';
     return '';
-  }
-
-  /**
-   * The signed parts that produce the threshold, in display order, for the
-   * chat card and the message flags.
-   * @param {object} data  Form data.
-   * @returns {Array<{label: string, display: string, value: number}>}
-   */
-  _breakdownParts(data) {
-    const parts = this._baseComponents(data).map((component) => ({
-      ...component,
-      display: String(component.value),
-    }));
-    parts.push(...this._fixedModifierComponents(data));
-    const context = this._contextComponent(data);
-    if (context) parts.push(context);
-    const required = this._requiredValueComponent(data);
-    if (required) parts.push(required);
-    const ansage = this._ansageComponent(data);
-    if (ansage) parts.push(ansage);
-    const bonus = Number(data.bonus) || 0;
-    if (bonus !== 0) {
-      parts.push({
-        label: game.i18n.localize('TNO.Roll.Bonus'),
-        value: bonus,
-        display: this._formatBonus(bonus),
-      });
-    }
-    const idea = this._ideaBonus(data);
-    if (idea !== 0) {
-      parts.push({
-        label: game.i18n.localize('TNO.Roll.IdeaComponent'),
-        value: idea,
-        display: this._formatBonus(idea),
-      });
-    }
-    return parts;
-  }
-
-  /**
-   * Text form, for the chat card and the message flags.
-   * @param {object} data  Form data.
-   * @returns {string}
-   */
-  _breakdownText(data) {
-    return this._breakdownParts(data).map((part) => `${part.label} ${part.display}`).join(' + ');
   }
 
   /**
@@ -1611,14 +1577,7 @@ export class TnoRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     const context = this._contextComponent(formData);
     const required = this._requiredValueComponent(formData);
     const consequence = this._consequence(formData);
-    const ansageComponent = this._ansageComponent(formData);
-    const components = [
-      ...this._baseComponents(formData),
-      ...this._fixedModifierComponents(formData),
-      ...(context ? [context] : []),
-      ...(required ? [required] : []),
-      ...(ansageComponent ? [ansageComponent] : []),
-    ];
+    const components = this._components(formData);
 
     // "Insight" (pre-edge): compute the threshold and bonus off the
     // actor's state *before* spending the point — spending updates
