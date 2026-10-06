@@ -72,8 +72,15 @@ const SOURCE_LICENSE = path.join(
  */
 function signedLicense() {
   if (!fs.existsSync(SOURCE_LICENSE)) return null;
-  const license = JSON.parse(fs.readFileSync(SOURCE_LICENSE, 'utf8'));
-  if (!license.signature || !license.host) return null;
+  let license;
+  try {
+    license = JSON.parse(fs.readFileSync(SOURCE_LICENSE, 'utf8'));
+  } catch {
+    // Empty or broken — in CI, a missing FOUNDRY_LICENSE_JSON secret writes an
+    // empty file. Treated like no activation, so start() names the cause.
+    return null;
+  }
+  if (!license?.signature || !license.host) return null;
   return { license, hostname: license.host };
 }
 
