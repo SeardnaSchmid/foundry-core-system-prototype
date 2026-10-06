@@ -29,8 +29,8 @@ system:
   ws:
     count: 1
   hh:
-    active: 1
-    passive: 1
+    active: 3
+    passive: 3
   rb: 0
   zone: null
   rh: null

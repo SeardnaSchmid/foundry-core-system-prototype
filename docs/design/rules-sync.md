@@ -32,8 +32,6 @@ the entry and the wiki page, which stay the source.
 |---|---|---|---|
 | 2026-10-04 | Waffen | A weapon may name two WA + WF pairs (Standardausrüstungs-Dao: Stärke + Raufen / Stärke + Schwerter) | a weapon stores one `wa` and one `wf` — **ask before changing** |
 | 2026-10-03 | Waffen | Imperial weapons rebalanced, Bian and Riot-Chui added | not in the gear compendium |
-| 2026-10-04 | Waffen | Unbewaffnet: Stärke + Raufen, HH 3/3 (2026-10-03) | pack `weapons-unbewaffnet.yml`: HH 1/1 |
-| 2026-10-04 | Waffen | Tool damage: Steinfräse WS 1, Handkettensäge and Kettensäge WS 2, Lasso SS 1 | pack values still the old ones |
 | 2026-10-04 | Waffen | New tables: Einfache Nahkampfwaffen, Schwerter, Schwere Nahkampfwaffen; Standes-Bian, Garde-Guandao | not in the gear compendium |
 
 ## Waiting on the wiki

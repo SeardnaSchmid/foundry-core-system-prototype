@@ -28,7 +28,7 @@ system:
   ss:
     count: 5
   ws:
-    count: 1
+    count: 2
   hh:
     active: -1
     passive: -2

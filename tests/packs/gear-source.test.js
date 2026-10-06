@@ -62,12 +62,12 @@ describe('gear pack source', () => {
     expect(new Set(images).size).toBe(images.length);
   });
 
-  // The Waffentabelle authors SS 0 twice on purpose: the Lasso does no damage
-  // at all and unarmed does only Wucht. `missingRequired` reads a zero sharp
-  // value as unauthored, so those two arrive with a warning the catalogue
-  // cannot author its way out of. They are named here rather than excluded, so
-  // that settling the question in the model shows up as a failing expectation.
-  const SHARP_ZERO = new Set(['Unbewaffnet', 'Lasso']);
+  // The Waffentabelle authors SS 0 on purpose for unarmed, which does only
+  // Wucht. `missingRequired` reads a zero sharp value as unauthored, so it
+  // arrives with a warning the catalogue cannot author its way out of. It is
+  // named here rather than excluded, so that settling the question in the model
+  // shows up as a failing expectation.
+  const SHARP_ZERO = new Set(['Unbewaffnet']);
 
   it('leaves no required value blank', () => {
     for (const { name, doc } of items) {
