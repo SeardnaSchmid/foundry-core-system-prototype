@@ -11,17 +11,17 @@ across actors — who holds the piece, and where it came from. See
     <span class="overview-tally">
       {{localize "TNO.ItemOverview.Tally" total=tally.total unlisted=unlisted}}
     </span>
-    <a class="overview-filter {{#if unlistedOnly}}is-on{{/if}}"
+    <a data-action="toggleFilter" class="overview-filter {{#if unlistedOnly}}is-on{{/if}}"
        title="{{localize 'TNO.ItemOverview.FilterHint'}}"
        role="switch" aria-checked="{{unlistedOnly}}" tabindex="0">
       <i class="fas {{#if unlistedOnly}}fa-square-check{{else}}fa-square{{/if}}"></i>
       {{localize "TNO.ItemOverview.Filter"}}
     </a>
-    <a class="item-columns-toggle {{#if pickerOpen}}is-on{{/if}}"
+    <a data-action="toggleColumns" class="item-columns-toggle {{#if pickerOpen}}is-on{{/if}}"
        title="{{localize 'TNO.ItemTable.ColumnsHint'}}" tabindex="0">
       <i class="fas fa-table-columns"></i>{{localize 'TNO.ItemTable.Columns'}}
     </a>
-    <a class="overview-refresh" title="{{localize 'TNO.ItemOverview.Refresh'}}" tabindex="0">
+    <a class="overview-refresh" data-action="refresh" title="{{localize 'TNO.ItemOverview.Refresh'}}" tabindex="0">
       <i class="fas fa-rotate"></i> {{localize "TNO.ItemOverview.Refresh"}}
     </a>
   </div>
@@ -63,7 +63,7 @@ across actors — who holds the piece, and where it came from. See
           {{#each headers as |column|}}
             {{#if column.sortable}}
               <a class="item-th item-table-sort{{#if column.numeric}} numeric{{/if}}{{#if column.sorted}} sorted{{/if}}"
-                 data-sort-key="{{column.key}}">
+                 data-action="sort" data-sort-key="{{column.key}}">
                 <span class="item-th-label">{{column.label}}</span>
                 {{#if column.sorted}}
                   <i class="fas {{#ifEquals column.dir 'desc'}}fa-caret-down{{else}}fa-caret-up{{/ifEquals}}"
@@ -98,7 +98,7 @@ across actors — who holds the piece, and where it came from. See
 
               <div class="item-td item-td-holder">
                 {{#if row.holderId}}
-                  <a class="overview-open-actor" data-actor-id="{{row.holderId}}"
+                  <a class="overview-open-actor" data-action="openActor" data-actor-id="{{row.holderId}}"
                      title="{{localize 'TNO.ItemOverview.OpenActor'}}">{{row.holderLabel}}</a>
                 {{else}}
                   <span class="is-world">{{row.holderLabel}}</span>
@@ -117,7 +117,7 @@ across actors — who holds the piece, and where it came from. See
               {{/each}}
 
               <div class="item-td item-controls">
-                <a class="overview-open-item" data-uuid="{{row.uuid}}"
+                <a class="overview-open-item" data-action="openItem" data-uuid="{{row.uuid}}"
                    title="{{localize 'TNO.ItemOverview.OpenItem'}}">
                   <i class="fas fa-arrow-up-right-from-square"></i>
                 </a>

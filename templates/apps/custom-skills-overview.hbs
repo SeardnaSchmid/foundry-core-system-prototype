@@ -1,6 +1,6 @@
 <div class="tno-custom-skills-overview flexcol">
   <div class="overview-toolbar flexrow">
-    <a class="overview-refresh" title="{{localize 'TNO.CustomSkillsOverview.Refresh'}}">
+    <a class="overview-refresh" data-action="refresh" title="{{localize 'TNO.CustomSkillsOverview.Refresh'}}">
       <i class="fas fa-rotate"></i> {{localize "TNO.CustomSkillsOverview.Refresh"}}
     </a>
   </div>
@@ -30,7 +30,7 @@
         <td>{{row.rank}}</td>
         <td>{{row.xp}}</td>
         <td>
-          <a class="overview-open-actor" data-actor-id="{{row.actorId}}" title="{{localize 'TNO.CustomSkillsOverview.OpenSheet'}}">
+          <a class="overview-open-actor" data-action="openActor" data-actor-id="{{row.actorId}}" title="{{localize 'TNO.CustomSkillsOverview.OpenSheet'}}">
             <i class="fas fa-arrow-up-right-from-square"></i>
           </a>
         </td>

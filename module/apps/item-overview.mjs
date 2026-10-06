@@ -11,10 +11,7 @@ import {
 import { auditTally, itemOrigin } from '../helpers/item-audit.mjs';
 import { inventoryArt } from '../helpers/items.mjs';
 
-// Namespaced rather than the bare `FormApplication` global, which is
-// deprecated. Still ApplicationV1, like the custom-skills overview it is
-// modelled on — see the V1 apps note in docs/codemap/reference/module-map.md.
-const { FormApplication } = foundry.appv1.api;
+const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 /**
  * What the window opens with: what a piece costs to carry, how many there are,
@@ -48,14 +45,12 @@ export const ITEM_OVERVIEW_DEFAULT_CONFIG = {
  * dragged out of `tno.gear` are indistinguishable on an actor sheet, and only
  * the first is the GM's problem to check — see `helpers/item-audit.mjs`.
  *
- * Registered via `game.settings.registerMenu`, which requires a
- * FormApplication (or ApplicationV2) subclass even though this dialog never
- * submits a form of its own — `_updateObject` is a no-op.
- * @extends {FormApplication}
+ * Opened from `game.settings.registerMenu`. Read-only, so no form.
+ * @extends {ApplicationV2}
  */
-export class TnoItemOverview extends FormApplication {
-  constructor() {
-    super({});
+export class TnoItemOverview extends HandlebarsApplicationMixin(ApplicationV2) {
+  constructor(options) {
+    super(options);
     /**
      * Show only what did not come from the shipped catalogue. Off by default:
      * the window answers "what is in play" first and "what is unaccounted for"
@@ -86,26 +81,28 @@ export class TnoItemOverview extends FormApplication {
   }
 
   /** @override */
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      id: 'tno-item-overview',
-      classes: ['tno', 'sheet', 'tno-item-overview'],
-      template: 'systems/tno/templates/apps/item-overview.hbs',
-      // Wider than the skills overview: this carries the ledger's own columns
-      // plus a holder and an origin.
-      width: 860,
-      // A figure rather than `auto`: this list is as long as the world is, and
-      // `auto` grew the window to the height of every row in it.
-      height: 680,
-      resizable: true,
-      closeOnSubmit: false,
-    });
-  }
+  static DEFAULT_OPTIONS = {
+    id: 'tno-item-overview',
+    classes: ['tno', 'sheet', 'tno-item-overview'],
+    window: { title: 'TNO.Settings.ItemOverview.Name', resizable: true },
+    // Wider than the skills overview: this carries the ledger's own columns
+    // plus a holder and an origin. A height rather than `auto`: this list is
+    // as long as the world is, and `auto` grew the window to every row in it.
+    position: { width: 860, height: 680 },
+    actions: {
+      refresh: TnoItemOverview.#onRefresh,
+      toggleFilter: TnoItemOverview.#onToggleFilter,
+      toggleColumns: TnoItemOverview.#onToggleColumns,
+      sort: TnoItemOverview.#onSort,
+      openItem: TnoItemOverview.#onOpenItem,
+      openActor: TnoItemOverview.#onOpenActor,
+    },
+  };
 
   /** @override */
-  get title() {
-    return game.i18n.localize('TNO.Settings.ItemOverview.Name');
-  }
+  static PARTS = {
+    body: { template: 'systems/tno/templates/apps/item-overview.hbs' },
+  };
 
   /**
    * Every item in the world, tagged with the actor holding it.
@@ -135,7 +132,7 @@ export class TnoItemOverview extends FormApplication {
   }
 
   /** @override */
-  getData() {
+  async _prepareContext() {
     const all = this.#collect();
     const tally = auditTally(all.map((item) => item._stats));
     const items = this._unlistedOnly
@@ -264,58 +261,54 @@ export class TnoItemOverview extends FormApplication {
   }
 
   /** @override */
-  activateListeners(html) {
-    super.activateListeners(html);
-
-    html.find('.overview-refresh').on('click', (ev) => {
-      ev.preventDefault();
-      this.render();
-    });
-
-    html.find('.overview-filter').on('click', (ev) => {
-      ev.preventDefault();
-      this._unlistedOnly = !this._unlistedOnly;
-      this.render();
-    });
-
-    // The same gesture the ledger's own headers answer, through the same
-    // helper, so a click sorts the two tables identically.
-    html.find('.item-table-sort').on('click', (ev) => {
-      ev.preventDefault();
-      const config = this.#config();
-      this.#store({ ...config, sort: nextItemTableSort(config, ev.currentTarget.dataset.sortKey) });
-    });
-
-    html.find('.item-columns-toggle').on('click', (ev) => {
-      ev.preventDefault();
-      this._pickerOpen = !this._pickerOpen;
-      this.render();
-    });
-
+  _onRender(context, options) {
+    super._onRender(context, options);
     // The same toggle the sheet's picker uses, so turning the last column off
     // restores the defaults here exactly as it does there.
-    html.find('.item-column-option input').on('change', (ev) => {
-      this.#store(toggleItemTableColumn(this.#config(), ev.currentTarget.dataset.column));
-    });
-
-    // The item, not the actor: an item on an actor is a different document from
-    // the catalogue entry it was copied from, so the sheet worth opening is the
-    // copy in front of the reader.
-    html.find('.overview-open-item').on('click', async (ev) => {
-      ev.preventDefault();
-      const { uuid } = ev.currentTarget.dataset;
-      const document = uuid ? await fromUuid(uuid) : null;
-      document?.sheet?.render(true);
-    });
-
-    html.find('.overview-open-actor').on('click', (ev) => {
-      ev.preventDefault();
-      game.actors.get(ev.currentTarget.dataset.actorId)?.sheet.render(true);
-    });
+    for (const input of this.element.querySelectorAll('.item-column-option input')) {
+      input.addEventListener('change', () => this.#store(toggleItemTableColumn(this.#config(), input.dataset.column)));
+    }
   }
 
-  /** @override */
-  async _updateObject() {
-    // Read-only overview; nothing to persist.
+  /** @this {TnoItemOverview} */
+  static #onRefresh() {
+    this.render();
+  }
+
+  /** @this {TnoItemOverview} */
+  static #onToggleFilter() {
+    this._unlistedOnly = !this._unlistedOnly;
+    this.render();
+  }
+
+  /** @this {TnoItemOverview} */
+  static #onToggleColumns() {
+    this._pickerOpen = !this._pickerOpen;
+    this.render();
+  }
+
+  /**
+   * The same gesture the ledger's own headers answer, through the same
+   * helper, so a click sorts the two tables identically.
+   * @this {TnoItemOverview}
+   */
+  static #onSort(event, target) {
+    const config = this.#config();
+    this.#store({ ...config, sort: nextItemTableSort(config, target.dataset.sortKey) });
+  }
+
+  /**
+   * The item, not the actor: an item on an actor is a different document from
+   * the catalogue entry it was copied from, so the sheet worth opening is the
+   * copy in front of the reader.
+   */
+  static async #onOpenItem(event, target) {
+    const { uuid } = target.dataset;
+    const document = uuid ? await fromUuid(uuid) : null;
+    document?.sheet?.render(true);
+  }
+
+  static #onOpenActor(event, target) {
+    game.actors.get(target.dataset.actorId)?.sheet.render(true);
   }
 }

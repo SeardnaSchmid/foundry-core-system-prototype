@@ -1,9 +1,6 @@
 import { getSkillDefinition } from '../helpers/skills.mjs';
 
-// Namespaced rather than the bare `FormApplication` global, which is
-// deprecated. Still ApplicationV1 — see the V1 apps note in
-// docs/codemap/reference/module-map.md.
-const { FormApplication } = foundry.appv1.api;
+const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 /**
  * GM-only read-only overview of every custom skill defined across the
@@ -12,35 +9,29 @@ const { FormApplication } = foundry.appv1.api;
  * otherwise makes them invisible to anyone but that actor's owner; this
  * window is the GM's window into that data.
  *
- * Registered via `game.settings.registerMenu`, which requires a
- * FormApplication (or ApplicationV2) subclass even though this dialog never
- * submits a form of its own — `_updateObject` is a no-op.
- * @extends {FormApplication}
+ * Opened from `game.settings.registerMenu`. Read-only, so no form.
+ * @extends {ApplicationV2}
  */
-export class TnoCustomSkillsOverview extends FormApplication {
-  constructor() {
-    super({});
-  }
+export class TnoCustomSkillsOverview extends HandlebarsApplicationMixin(ApplicationV2) {
+  /** @override */
+  static DEFAULT_OPTIONS = {
+    id: 'tno-custom-skills-overview',
+    classes: ['tno', 'sheet', 'tno-custom-skills-overview'],
+    window: { title: 'TNO.Settings.CustomSkillsOverview.Name' },
+    position: { width: 480 },
+    actions: {
+      refresh: TnoCustomSkillsOverview.#onRefresh,
+      openActor: TnoCustomSkillsOverview.#onOpenActor,
+    },
+  };
 
   /** @override */
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      id: 'tno-custom-skills-overview',
-      classes: ['tno', 'sheet', 'tno-custom-skills-overview'],
-      template: 'systems/tno/templates/apps/custom-skills-overview.hbs',
-      width: 480,
-      height: 'auto',
-      closeOnSubmit: false,
-    });
-  }
+  static PARTS = {
+    body: { template: 'systems/tno/templates/apps/custom-skills-overview.hbs' },
+  };
 
   /** @override */
-  get title() {
-    return game.i18n.localize('TNO.Settings.CustomSkillsOverview.Name');
-  }
-
-  /** @override */
-  getData() {
+  async _prepareContext() {
     const rows = [];
     for (const actor of game.actors) {
       if (actor.type !== 'character') continue;
@@ -63,23 +54,12 @@ export class TnoCustomSkillsOverview extends FormApplication {
     return { rows, isEmpty: !rows.length };
   }
 
-  /** @override */
-  activateListeners(html) {
-    super.activateListeners(html);
-
-    html.find('.overview-open-actor').on('click', (ev) => {
-      ev.preventDefault();
-      game.actors.get(ev.currentTarget.dataset.actorId)?.sheet.render(true);
-    });
-
-    html.find('.overview-refresh').on('click', (ev) => {
-      ev.preventDefault();
-      this.render();
-    });
+  /** @this {TnoCustomSkillsOverview} */
+  static #onRefresh() {
+    this.render();
   }
 
-  /** @override */
-  async _updateObject() {
-    // Read-only overview; nothing to persist.
+  static #onOpenActor(event, target) {
+    game.actors.get(target.dataset.actorId)?.sheet.render(true);
   }
 }
