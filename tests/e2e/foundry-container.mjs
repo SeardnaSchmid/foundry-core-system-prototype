@@ -305,15 +305,29 @@ export async function start() {
 
     const { stdout: state } = await docker(['inspect', '-f', '{{.State.Running}}', CONTAINER_NAME]);
     if (state.trim() !== 'true') {
-      const { stdout: logs } = await docker(['logs', '--tail', '200', CONTAINER_NAME]);
+      const logs = await startupLogs();
       throw new Error(`Foundry container exited early:\n${logs}`);
     }
     await new Promise((r) => setTimeout(r, 1000));
   }
 
-  const { stdout: logs } = await docker(['logs', '--tail', '200', CONTAINER_NAME]);
+  const logs = await startupLogs();
   await removeContainer();
   throw new Error(`Foundry container was not ready within ${readyTimeoutMs / 1000}s:\n${logs}`);
+}
+
+/**
+ * The container's log without the readiness poll's noise: every /api/status
+ * call logs "Created client session", so a plain `--tail` holds nothing else
+ * and hides why the world never came up.
+ */
+async function startupLogs() {
+  const { stdout } = await docker(['logs', CONTAINER_NAME]);
+  return stdout
+    .split('\n')
+    .filter((line) => !line.includes('Created client session'))
+    .slice(-200)
+    .join('\n');
 }
 
 /** Dump recent container logs, for diagnosing a failed start. */
