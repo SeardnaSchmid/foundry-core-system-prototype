@@ -63,12 +63,6 @@ New to the codebase? Read in this order:
 - [guides/e2e-testing.md](guides/e2e-testing.md) — the Playwright suite that runs the system in a real Foundry
 - [guides/compendium-packs.md](guides/compendium-packs.md) — the shipped gear compendium: YAML source in `src/packs`, built into `packs/`
 
-## Open UI/UX problems
-
-- [`docs/uiux-todo.md`](../uiux-todo.md) — the running list of interaction
-  problems and the fixes discussed for each; not a code map, so it lives outside
-  the code map
-
 ## Known tripwires
 
 Things in this repo that look like real code paths but aren't, or vice
