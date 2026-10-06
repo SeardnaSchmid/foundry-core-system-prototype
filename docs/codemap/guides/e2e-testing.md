@@ -53,6 +53,7 @@ Useful environment variables:
 | `TNO_E2E_PORT` | Host port (default `30001`, so it never collides with a local Foundry on `30000`) |
 | `TNO_E2E_FOUNDRY_ZIP` | Path to a Foundry release zip to seed the container cache from |
 | `FOUNDRY_VERSION` | Foundry version to run (default `14.364`) |
+| `TNO_E2E_SOURCE_DATA_PATH` | Foundry data directory whose `Config/license.json` holds the signed activation (default `~/.local/share/FoundryVTT`) |
 
 **Locally you need no credentials.** The harness reuses the signed licence
 activation from an existing Foundry install and matches the container's
@@ -130,11 +131,13 @@ and leave behind the single case that proves the wiring.
 `.github/workflows/e2e.yml` runs the suite on pushes to `main` and on pull
 requests from branches in this repository.
 
-A runner has no Foundry install to borrow an activation from, so CI supplies
-`FOUNDRY_LICENSE_KEY`, `FOUNDRY_USERNAME` and `FOUNDRY_PASSWORD` as GitHub
-secrets. The release zip is cached across runs; the credentials are still
-required on a cache hit, because they are what fetches the signed *licence*,
-not just the download.
+A runner has no Foundry install to borrow an activation from, so CI stores
+one: the `FOUNDRY_LICENSE_JSON` secret holds a signed `license.json` (the
+container takes the hostname it was signed for), written to `TNO_E2E_SOURCE_DATA_PATH` before the
+suite runs. A bare licence key does not work — the image only writes the key,
+and Foundry then waits on its licence screen ("Software license requires
+signature"). `FOUNDRY_USERNAME` and `FOUNDRY_PASSWORD` are only needed to
+download the release on a cache miss.
 
 This repository is public, so those secrets are not available to pull
 requests from forks and the suite is skipped there. **Do not work around that

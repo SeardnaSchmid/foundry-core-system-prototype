@@ -29,9 +29,9 @@ jobs:
     env:
       FOUNDRY_VERSION: '14.364'
       TNO_E2E_DATA_PATH: ${{ github.workspace }}/.foundry-e2e
-      # No Foundry installed on the runner, so the container must activate the
-      # licence itself rather than reusing a local activation.
-      TNO_E2E_FORCE_ACTIVATION: '1'
+      # No Foundry install on the runner: the signed activation comes from the
+      # FOUNDRY_LICENSE_JSON secret, written here before the suite runs.
+      TNO_E2E_SOURCE_DATA_PATH: ${{ github.workspace }}/.foundry-source
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -56,13 +56,19 @@ jobs:
           path: ${{ github.workspace }}/.foundry-e2e/container_cache
           key: foundry-release-${{ env.FOUNDRY_VERSION }}
 
+      - name: Write signed Foundry activation
+        run: |
+          mkdir -p .foundry-source/Config
+          printf '%s' "$FOUNDRY_LICENSE_JSON" > .foundry-source/Config/license.json
+        env:
+          FOUNDRY_LICENSE_JSON: ${{ secrets.FOUNDRY_LICENSE_JSON }}
+
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
       - name: Run e2e suite
         run: npm run test:e2e
         env:
-          FOUNDRY_LICENSE_KEY: ${{ secrets.FOUNDRY_LICENSE_KEY }}
           FOUNDRY_USERNAME: ${{ secrets.FOUNDRY_USERNAME }}
           FOUNDRY_PASSWORD: ${{ secrets.FOUNDRY_PASSWORD }}
 

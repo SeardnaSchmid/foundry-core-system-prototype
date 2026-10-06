@@ -20,9 +20,9 @@
  *   2. TNO_E2E_FOUNDRY_ZIP / a local install's zip, hard-linked into the cache
  *   3. FOUNDRY_USERNAME + FOUNDRY_PASSWORD, letting the image download it
  *
- * Locally that means (1) or (2): no Foundry credentials needed, just the licence
- * key. In CI the cache is restored by actions/cache and (3) is the cold-start
- * fallback. Foundry binaries are never committed to this repo.
+ * Locally that means (1) or (2): no Foundry credentials needed. In CI the cache
+ * is restored by actions/cache and (3) is the cold-start fallback. Foundry
+ * binaries are never committed to this repo.
  */
 
 import { execFile as execFileCb } from 'node:child_process';
@@ -36,9 +36,10 @@ const execFile = promisify(execFileCb);
 
 export const REPO_ROOT = path.resolve(fileURLToPath(new URL('../..', import.meta.url)));
 
-export const IMAGE = process.env.TNO_E2E_IMAGE ?? 'felddy/foundryvtt:release';
 export const CONTAINER_NAME = process.env.TNO_E2E_CONTAINER ?? 'tno-e2e';
 export const FOUNDRY_VERSION = process.env.FOUNDRY_VERSION ?? '14.364';
+// Pinned to FOUNDRY_VERSION: `release` drifts ahead and the image warns on a mismatch.
+export const IMAGE = process.env.TNO_E2E_IMAGE ?? `felddy/foundryvtt:${FOUNDRY_VERSION}`;
 export const PORT = Number(process.env.TNO_E2E_PORT ?? 30001);
 export const BASE_URL = `http://localhost:${PORT}`;
 export const WORLD_ID = 'tno-e2e';
@@ -58,17 +59,18 @@ const SOURCE_LICENSE = path.join(
  *
  * Foundry 13+ refuses to launch a world from a bare licence key — the log line
  * is "Software license requires signature" and the server sits on the setup
- * screen forever. A signature is obtained either by authenticating against
- * Foundry's servers (what the image does with FOUNDRY_USERNAME/PASSWORD) or by
- * reusing an activation that already exists.
+ * screen forever. The image cannot help: with FOUNDRY_LICENSE_KEY or account
+ * credentials it still writes only the bare key. The signature comes from
+ * activating in Foundry's own licence screen, so the suite reuses a
+ * `license.json` that has been through it — a local install's, or in CI one
+ * stored as a secret (TNO_E2E_SOURCE_DATA_PATH points at either).
  *
- * A signature is bound to the hostname it was issued for, so when we reuse a
- * local activation we must also give the container that same hostname.
+ * A signature is bound to the hostname it was issued for, so the container
+ * must get that same hostname.
  *
  * @returns {{license: object, hostname: string}|null}
  */
 function signedLicense() {
-  if (process.env.TNO_E2E_FORCE_ACTIVATION) return null;
   if (!fs.existsSync(SOURCE_LICENSE)) return null;
   const license = JSON.parse(fs.readFileSync(SOURCE_LICENSE, 'utf8'));
   if (!license.signature || !license.host) return null;
@@ -239,31 +241,18 @@ export async function start() {
   const hasCredentials = !!(process.env.FOUNDRY_USERNAME && process.env.FOUNDRY_PASSWORD);
 
   const signed = signedLicense();
-  let hostname = 'tno-e2e';
-  if (signed) {
-    // provision() already wrote the activation and the image leaves an existing
-    // license.json alone, so no Foundry account is involved. The hostname must
-    // match the one the activation was signed for.
-    hostname = signed.hostname;
-  } else {
-    // No activation to reuse (the CI case). The image has to fetch a signed one,
-    // and that needs an authenticated session — note this is required even when
-    // the release zip is already cached, because it is the *licence* being
-    // fetched here, not the download.
-    const missing = ['FOUNDRY_LICENSE_KEY', 'FOUNDRY_USERNAME', 'FOUNDRY_PASSWORD'].filter(
-      (name) => !process.env[name]
+  if (!signed) {
+    throw new Error(
+      `No signed Foundry activation at ${SOURCE_LICENSE}. Activate a Foundry install once (the ` +
+        'suite reuses its Config/license.json), or point TNO_E2E_SOURCE_DATA_PATH at a directory ' +
+        'whose Config/license.json is signed. A bare licence key is not enough.'
     );
-    if (missing.length) {
-      throw new Error(
-        `No signed Foundry activation available, and ${missing.join(', ')} ${
-          missing.length === 1 ? 'is' : 'are'
-        } not set. Either install Foundry locally (the suite reuses its activation), or set all of ` +
-          'FOUNDRY_LICENSE_KEY, FOUNDRY_USERNAME and FOUNDRY_PASSWORD so the container can activate ' +
-          'one itself. All three are required: the key alone does not authenticate the request that ' +
-          'fetches the signed licence.'
-      );
-    }
-    env.FOUNDRY_LICENSE_KEY = process.env.FOUNDRY_LICENSE_KEY;
+  }
+  // provision() already wrote the activation and the image leaves an existing
+  // license.json alone. The hostname must match the one it was signed for.
+  const hostname = signed.hostname;
+  // Credentials only serve the release download; licensing never needs them.
+  if (hasCredentials) {
     env.FOUNDRY_USERNAME = process.env.FOUNDRY_USERNAME;
     env.FOUNDRY_PASSWORD = process.env.FOUNDRY_PASSWORD;
   }
