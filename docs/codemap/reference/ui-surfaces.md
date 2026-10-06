@@ -40,7 +40,6 @@ related: [reference/module-map, concepts/combat-turn-order]
 | `apps/take-item-dialog.hbs` | The take-from-chat `DialogV2` opened by `item-transfer.mjs` — which of the reader's actors receives the copy, see [item-roles.md](../concepts/item-roles.md#taking-a-posted-item) |
 | `apps/advance-dialog.hbs` | `TnoAdvanceDialog` |
 | `apps/heatmap-lab.hbs` | `TnoHeatmapLab` |
-| `apps/campaign-briefing.hbs` | `TnoCampaignBriefing`: a frameless, full-canvas player board with the star map as its visual anchor and previous-session recaps newest first; `TnoCampaignBriefingEditor` renders the GM-only editable variant from the same template |
 | `apps/custom-skill-dialog.hbs` | `TnoCustomSkillDialog` |
 | `apps/custom-skills-overview.hbs` | `TnoCustomSkillsOverview` |
 | `chat/roll-card.hbs` | `rollTno()` / `rollTnoBase()` in `dice.mjs` — see [dice-resolution.md](../concepts/dice-resolution.md) |
@@ -104,7 +103,6 @@ them in step with `BASICS_LAYOUT_DEFAULT`.
 | `components/_dice-dialog.scss`, `_dice-card.scss` | Roll dialogs (shared base rules, then the full dialog under `.tno-roll-dialog.tno-wurf`) and the chat roll card / edge panel |
 | `components/_forms.scss` | Shared form controls plus actor-sheet layout, including the dark-fade portrait banner, its `portrait identity state` grid, the identity lane's headline/subtitle/vitals stack (tracks + movement tiers), the three glass pill buttons of the `.banner-state` lane, the condition raster and stepper atoms the panel reuses, the banner's two roll pills, the Basics section-header rhythm, portrait edit affordance and the responsive banner/Basics split rows. The header reuses `$c-primary` blue only as a semantic fill, `$c-warning` red for negative and `$c-ready` green for positive/resource state; borders remain neutral grey/charcoal and icons monochrome black/white. It carries no `z-index` override for an open panel — both panels the band opens are top-layer popovers. Its banner breakpoints consume the named `character-sheet` inline-size container declared on `.window-content` in `global/_window.scss` |
 | `components/_resource.scss` | Attribute tile grid, the skills header (search with clear button, segmented filter) and the skill-group cards |
-| `components/_campaign-briefing.scss` | The full-canvas player briefing's masthead, chart framing, star map and scrollable recap archive, plus the conventional GM editor layout |
 | `components/_items.scss` | The two plain lists left on the Inventar tab — Merkmale and Active Effects — plus the tab's own spacing |
 | `components/_connections.scss` | The Beziehungen tab: the table (one grid with `subgrid` rows of bare, box-on-hover cells), the label badges and their top-layer suggestion list, the Table/Graph switch, and the graph's per-kind colours, hover dimming and legend |
 | `components/_item-table.scss` | The Inventar tab's gear ledger: toolbar, the single CSS grid the header band, group bands and `subgrid` rows all share, the hatched n/a cell, and the column picker's popover body |

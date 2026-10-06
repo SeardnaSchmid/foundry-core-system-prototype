@@ -168,25 +168,9 @@ button:focus-visible {
   flex-wrap: wrap;
 }
 
-// First control after the title in each header — pushes itself (and any
-// following controls, which stay adjacent to it) to the row's right edge.
-.heatmap-lab-btn,
+// The search box sits at the header row's right edge.
 .skills-header .skill-search {
   margin-left: auto;
-}
-
-// Small icon button that opens the heatmap gradient editor (see
-// apps/heatmap-lab.mjs) — sits opposite the attributes title.
-.heatmap-lab-btn {
-  flex: 0 0 auto;
-  color: $c-tan;
-  opacity: 0.8;
-  cursor: pointer;
-
-  &:hover {
-    opacity: 1;
-    color: $c-dark;
-  }
 }
 
 // The search box, with a clear button inside its right edge while it holds

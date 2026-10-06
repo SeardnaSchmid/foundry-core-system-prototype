@@ -8,7 +8,6 @@ import { colorForValue, INK_DARK } from '../helpers/heatmap.mjs';
 import { damageTrackRows } from '../helpers/damage.mjs';
 import { TnoRollDialog } from '../apps/roll-dialog.mjs';
 import { TnoAdvanceDialog } from '../apps/advance-dialog.mjs';
-import { TnoHeatmapLab } from '../apps/heatmap-lab.mjs';
 import { TnoCustomSkillDialog } from '../apps/custom-skill-dialog.mjs';
 import { TNO_ADVANTAGE, rollTno } from '../helpers/dice.mjs';
 import { getSkillDefinitions, getSkillDefinition } from '../helpers/skills.mjs';
@@ -319,11 +318,6 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     // Adding a pointer to CONFIG.TNO
     context.config = CONFIG.TNO;
-
-    // The heatmap gradient editor is a GM-facing tuning tool, so its launch
-    // button is only rendered for GMs (see the template) rather than sitting
-    // in every player's sheet chrome.
-    context.isGM = game.user.isGM;
 
     // Prepare character data and items.
     if (actorData.type == 'character') {
@@ -2460,15 +2454,6 @@ export class TnoActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
       const row = target.closest('[data-item-id]');
       const item = this.actor.items.get(row?.dataset.itemId);
       item?.sheet.render(true);
-    });
-
-    // Open the heatmap gradient editor (see apps/heatmap-lab.mjs) for quick
-    // in-app experimentation, without leaving the sheet. This only touches a
-    // client display setting, not actor data, so it works on read-only
-    // sheets too.
-    this.#delegate('click', '.heatmap-lab-btn', (event) => {
-      event.preventDefault();
-      new TnoHeatmapLab().render(true);
     });
 
     // Skill list filter: toggles which rows are shown, purely client-side

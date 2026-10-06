@@ -150,9 +150,6 @@ itself the sheet's <form> element — hence no <form> wrapper here. --}}
           <span class="xp-badge"
               data-tooltip-html='<dl class="tno-tooltip"><div class="tno-tooltip-row"><dd>{{localize "TNO.XpTotalAttributesHint"}}</dd></div></dl>'
               data-tooltip-direction='DOWN'>{{attributeGrid.totalValue}} {{localize "TNO.UnitPoints"}} · {{attributeGrid.totalXp}} {{localize "TNO.UnitXp"}}</span>
-          {{#if isGM}}
-          <a class="heatmap-lab-btn" title="{{localize 'TNO.Settings.HeatmapPreset.BtnHint'}}"><i class="fa-solid fa-palette"></i></a>
-          {{/if}}
         </div>
         <div class="attribute-table heatmap">
           {{#each attributeGrid.colHeaders as |col|}}

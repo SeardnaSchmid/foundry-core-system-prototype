@@ -69,7 +69,6 @@ in its state lane and the movement tiers beside the damage tracks.
   - Cell background/text color are graded per-cell against a fixed absolute 1–10 scale (`colorForValue`), independent of every other cell on the sheet — not a relative heatmap across the grid.
   - **XP progress bar:** cumulative cost to advance to the next base rank is `(base+1)²`; the bar fills as XP accrues and turns "ready" (green) once affordable, unless already at the rank cap (`BASE_MAX = 10`). Clicking the bar opens `TnoAdvanceDialog` for that attribute — the exact xp/cost figures live in its tooltip rather than as a separate on-cell badge, since the bar's fill/color already communicate progress at a glance.
 - **Header badge:** total attribute points and total attribute XP spent across the whole grid.
-- **GM-only heatmap lab button:** opens `TnoHeatmapLab`, a client-side gradient-tuning tool — gated to GMs since it's a tuning tool, not player-facing data.
 - **Value range:** 1–10 (`BASE_MIN/MAX` in `helpers/attributes.mjs`). The heatmap itself has no quick rank steppers; advancement and explicit correction stay in `TnoAdvanceDialog`.
 
 Health is not part of this column — the damage block sits in the banner, see
@@ -154,7 +153,7 @@ Every custom clickable chip that isn't a native `<a href>`/`<button>`/form contr
 - Sheet class: [`TnoActorSheet`](../../module/sheets/actor-sheet.mjs), extends Foundry's `ActorSheetV2` through `HandlebarsApplicationMixin`. Template resolved dynamically per actor type: `systems/tno/templates/actor/actor-${actor.type}-sheet.hbs` (character sheet: [actor-character-sheet.hbs](../../templates/actor/actor-character-sheet.hbs)).
 - `getData()` builds `context.attributeGrid` and `context.skillGroups` only for `actor.type === 'character'` (`_prepareCharacterData`); NPCs get `_prepareItems()` only, no heatmap/skill grid.
 - Attribute and skill XP costs live in [helpers/advancement.mjs](../../module/helpers/advancement.mjs), shared with the advancement dialog: `rankXpTotal` is the cumulative cost to reach a rank, `nextRankXpCost` the next step, both from the wiki's *Charakterentwicklung* cost table.
-- The heatmap's color grading (`colorForValue` in [helpers/heatmap.mjs](../../module/helpers/heatmap.mjs)) is shared with the GM-only `TnoHeatmapLab` tuning tool, so any palette change there is reflected on every player's sheet.
+- The heatmap's color grading (`colorForValue` in [helpers/heatmap.mjs](../../module/helpers/heatmap.mjs)) is shared with the `TnoHeatmapLab` tuning tool in the settings menu, so its preview grades exactly like the sheet.
 - Skill roll dispatch, the Problem-Solving actions, and their gating (`analyzeFlawDisabled`, `edgeExempt` flags) are documented separately in [problem-solving-prd.md](workflows/problem-solving-prd.md) and [dice-system-prd.md](dice-system-prd.md) — this document covers the sheet's *display and layout* of those values, not their mechanics.
 - `context.isGM` gates the heatmap-lab launch button in the template; everything else on the sheet is available to any owner.
 
