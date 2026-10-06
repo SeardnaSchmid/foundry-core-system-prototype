@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.55.4](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.55.3...v0.55.4) (2026-10-06)
+
+
+### Bug Fixes
+
+* **e2e:** keep the startup error visible when Foundry never becomes ready ([4d377a5](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/4d377a5126c8fb6c2016b8bc065b67d5222a58ac))
+* **e2e:** run CI from a stored signed licence instead of a bare key ([3934086](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/3934086dd3861455b9f30d2be3073c2eea4e534b))
+* **e2e:** treat an empty or broken license.json as no activation ([5d3394c](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/5d3394c0a2188b162af5d88a74875d10904e3710))
+* **packs:** unarmed HH 3/3 and the wiki's new tool damage ([ad7b34e](https://github.com/SeardnaSchmid/foundry-core-system-prototype/commit/ad7b34e7bcb5a2401b292be40f3820bf94492001))
+
 ## [0.55.3](https://github.com/SeardnaSchmid/foundry-core-system-prototype/compare/v0.55.2...v0.55.3) (2026-10-05)
 
 
