@@ -1,68 +1,62 @@
 import { TNO_ADVANTAGE, describeAdvantage, rollTnoBase } from '../helpers/dice.mjs';
 import { advantageOptions, bindRadioGroup } from './roll-dialog-shared.mjs';
 
-// Namespaced rather than the bare `FormApplication` global, which is
-// deprecated. Still ApplicationV1 — see the V1 apps note in
-// docs/codemap/reference/module-map.md.
-const { FormApplication } = foundry.appv1.api;
+const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 /**
  * A minimal dialog for rolling the bare Tno dice mechanic ("Basiswürfel")
  * outside of any actor/skill context: pick an advantage/disadvantage level
  * and roll, with no threshold to check against. Meant to be reachable from
  * outside the character sheet (chat controls button, hotbar macro).
- * @extends {FormApplication}
+ * @extends {ApplicationV2}
  */
-export class TnoBaseRollDialog extends FormApplication {
+export class TnoBaseRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
   constructor(options = {}) {
-    super({ advantage: TNO_ADVANTAGE.none });
+    super(options);
     this.actor = options.actor ?? null;
   }
 
   /** @override */
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      id: 'tno-base-roll-dialog',
-      classes: ['tno', 'sheet'],
-      template: 'systems/tno/templates/apps/base-roll-dialog.hbs',
-      width: 320,
-      resizable: true,
-      closeOnSubmit: true,
-    });
-  }
+  static DEFAULT_OPTIONS = {
+    id: 'tno-base-roll-dialog',
+    tag: 'form',
+    classes: ['tno', 'sheet'],
+    window: { title: 'TNO.Roll.BaseDiceTitle', resizable: true },
+    position: { width: 320 },
+    form: { handler: TnoBaseRollDialog.#onSubmit, closeOnSubmit: true },
+  };
 
   /** @override */
-  get title() {
-    return game.i18n.localize('TNO.Roll.BaseDiceTitle');
-  }
+  static PARTS = {
+    body: { template: 'systems/tno/templates/apps/base-roll-dialog.hbs' },
+  };
 
   /** @override */
-  getData() {
+  async _prepareContext() {
     return {
-      ...this.object,
+      advantage: TNO_ADVANTAGE.none,
       advantageOptions: advantageOptions(),
-      advantageConsequence: describeAdvantage(this.object.advantage),
+      advantageConsequence: describeAdvantage(TNO_ADVANTAGE.none),
     };
   }
 
   /** @override */
-  activateListeners(html) {
-    super.activateListeners(html);
-    const root = html[0];
-    const consequence = root.querySelector('.tno-advantage-effect');
+  _onRender(context, options) {
+    super._onRender(context, options);
+    const consequence = this.element.querySelector('.tno-advantage-effect');
     bindRadioGroup({
-      group: root.querySelector('.tno-advantage-group'),
-      input: root.querySelector('input[name="advantage"]'),
+      group: this.element.querySelector('.tno-advantage-group'),
+      input: this.element.querySelector('input[name="advantage"]'),
       onSelect: (value) => {
         if (consequence) consequence.textContent = describeAdvantage(Number(value));
       },
     });
   }
 
-  /** @override */
-  async _updateObject(event, formData) {
+  /** @this {TnoBaseRollDialog} */
+  static async #onSubmit(event, form, formData) {
     await rollTnoBase({
-      advantage: Number(formData.advantage),
+      advantage: Number(formData.object.advantage),
       actor: this.actor,
     });
   }

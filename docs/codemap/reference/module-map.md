@@ -75,7 +75,7 @@ Entry point, no exports (side-effecting init). See
 | File | Exports | Responsibility |
 | --- | --- | --- |
 | `roll-dialog.mjs` | `TnoRollDialog extends FormApplication` | Skill/ability/free/fixed roll builder |
-| `base-roll-dialog.mjs` | `TnoBaseRollDialog extends FormApplication` | Bare 3d20 dialog, no actor/threshold required |
+| `base-roll-dialog.mjs` | `TnoBaseRollDialog extends HandlebarsApplicationMixin(ApplicationV2)` | Bare 3d20 dialog, no actor/threshold required |
 | `roll-dialog-shared.mjs` | `advantageOptions`, `bindRadioGroup` | Shared button-radiogroup behaviour for roll type and attribute choice, used by both dialogs |
 | `advance-dialog.mjs` | `TnoAdvanceDialog extends FormApplication` | See [advancement.md](../concepts/advancement.md) |
 | `heatmap-lab.mjs` | `TnoHeatmapLab extends FormApplication` | See [heatmap.md](../concepts/heatmap.md) |
@@ -104,7 +104,13 @@ never receive it. Consequences worth knowing when editing the sheet:
   and `document` refer to the parent window — DOM lookups go through
   `this.element`.
 
-`TnoItemSheet` and every app under `module/apps/` are still **V1** and
+`TnoBaseRollDialog` is on ApplicationV2 too — the first of the apps to move,
+and the pattern for the rest: `tag: 'form'`, a `form.handler` in place of
+`_updateObject()`, `_prepareContext()` and `_onRender()` on `this.element`, and
+part templates without a `<form>` of their own. A V2 id is unique, so callers
+reuse an open instance from `foundry.applications.instances`.
+
+`TnoItemSheet` and every other app under `module/apps/` are still **V1** and
 therefore cannot be detached — a known forward-compat item (see
 [datamodel-migration.md](../architecture/datamodel-migration.md) for the
 sibling schema-side deprecation).
@@ -113,8 +119,8 @@ They no longer reach for the bare `FormApplication` / `ItemSheet` globals,
 which are deprecated: each takes its base class off `foundry.appv1` at the top
 of its own file. That is a namespacing change only — the classes are still
 ApplicationV1 and still use `getData()`, jQuery `activateListeners(html)` and
-`_updateObject()`. Converting them to ApplicationV2 is roughly 1100 lines
-across seven classes with no e2e coverage on any of them, so it wants to be
+`_updateObject()`. Converting them to ApplicationV2 is roughly 1050 lines
+across the remaining classes with no e2e coverage on any of them, so it wants to be
 its own change with tests in front of it, not a side effect of another one.
 
 `system.json` declares `compatibility.minimum: "14"`. It has walked up twice:

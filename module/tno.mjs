@@ -242,7 +242,8 @@ Hooks.once('init', function () {
  * Open the "Basiswürfel" quick-roll dialog (bare dice mechanic, no threshold).
  */
 function rollBaseDice() {
-  new TnoBaseRollDialog().render(true);
+  const open = foundry.applications.instances.get('tno-base-roll-dialog');
+  (open ?? new TnoBaseRollDialog()).render({ force: true });
 }
 
 /**
