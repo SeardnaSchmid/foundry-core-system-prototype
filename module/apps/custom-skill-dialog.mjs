@@ -1,9 +1,6 @@
 import { getSkillDefinitions, generateCustomSkillKey } from '../helpers/skills.mjs';
 
-// Namespaced rather than the bare `FormApplication` global, which is
-// deprecated. Still ApplicationV1 — see the V1 apps note in
-// docs/codemap/reference/module-map.md.
-const { FormApplication } = foundry.appv1.api;
+const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 /**
  * Add or edit a custom, actor-defined skill. In add mode (no `key` given) a
@@ -12,9 +9,9 @@ const { FormApplication } = foundry.appv1.api;
  * category and suggested attribute are updated in place, leaving its key,
  * rank, XP and lastAttribute untouched so renaming/recategorizing never
  * discards progress.
- * @extends {FormApplication}
+ * @extends {ApplicationV2}
  */
-export class TnoCustomSkillDialog extends FormApplication {
+export class TnoCustomSkillDialog extends HandlebarsApplicationMixin(ApplicationV2) {
   /**
    * @param {Actor} actor           The actor to add/edit the custom skill on.
    * @param {object} [options]
@@ -23,25 +20,31 @@ export class TnoCustomSkillDialog extends FormApplication {
    */
   constructor(actor, { key = null, category = 'general' } = {}) {
     const existing = key ? actor.system.skills?.[key]?.custom : null;
-    super({
+    super();
+    this.draft = {
       name: existing?.label ?? '',
       category: existing?.category ?? category,
       attribute: existing?.attribute ?? 'wil',
-    });
+    };
     this.actor = actor;
     this.key = key;
   }
 
   /** @override */
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      id: 'tno-custom-skill-dialog',
-      classes: ['tno', 'sheet'],
-      template: 'systems/tno/templates/apps/custom-skill-dialog.hbs',
-      width: 320,
-      closeOnSubmit: true,
-    });
-  }
+  static DEFAULT_OPTIONS = {
+    tag: 'form',
+    classes: ['tno', 'sheet'],
+    position: { width: 320 },
+    // The handler closes the dialog itself, and only once the skill is
+    // saved: a missing or duplicate name keeps what was typed.
+    form: { handler: TnoCustomSkillDialog.#onSubmit, closeOnSubmit: false },
+    actions: { deleteSkill: TnoCustomSkillDialog.#onDelete },
+  };
+
+  /** @override */
+  static PARTS = {
+    body: { template: 'systems/tno/templates/apps/custom-skill-dialog.hbs' },
+  };
 
   /** Whether this dialog is editing an existing custom skill. */
   get isEdit() {
@@ -53,33 +56,30 @@ export class TnoCustomSkillDialog extends FormApplication {
     return game.i18n.localize(this.isEdit ? 'TNO.CustomSkill.EditTitle' : 'TNO.CustomSkill.AddTitle');
   }
 
-  /** @override */
-  activateListeners(html) {
-    super.activateListeners(html);
-
-    // Remove this custom skill entirely, confirming first if it has rank/XP
-    // invested so a misclick can't silently discard progress.
-    html.find('.custom-skill-delete').on('click', async (ev) => {
-      ev.preventDefault();
-      const entry = this.actor.system.skills?.[this.key];
-      if (!entry?.custom) return;
-      const rank = entry.value ?? 0;
-      const xp = entry.xp ?? 0;
-      const content = rank > 0 || xp > 0
-        ? game.i18n.format('TNO.CustomSkill.DeleteConfirmXp', { name: entry.custom.label, rank, xp })
-        : game.i18n.format('TNO.CustomSkill.DeleteConfirm', { name: entry.custom.label });
-      const confirmed = await foundry.applications.api.DialogV2.confirm({
-        window: { title: game.i18n.localize('TNO.CustomSkill.DeleteTitle') },
-        content,
-      });
-      if (!confirmed) return;
-      await this.actor.update({ [`system.skills.-=${this.key}`]: null });
-      this.close();
+  /**
+   * Remove this custom skill entirely, confirming first if it has rank/XP
+   * invested so a misclick can't silently discard progress.
+   * @this {TnoCustomSkillDialog}
+   */
+  static async #onDelete() {
+    const entry = this.actor.system.skills?.[this.key];
+    if (!entry?.custom) return;
+    const rank = entry.value ?? 0;
+    const xp = entry.xp ?? 0;
+    const content = rank > 0 || xp > 0
+      ? game.i18n.format('TNO.CustomSkill.DeleteConfirmXp', { name: entry.custom.label, rank, xp })
+      : game.i18n.format('TNO.CustomSkill.DeleteConfirm', { name: entry.custom.label });
+    const confirmed = await foundry.applications.api.DialogV2.confirm({
+      window: { title: game.i18n.localize('TNO.CustomSkill.DeleteTitle') },
+      content,
     });
+    if (!confirmed) return;
+    await this.actor.update({ [`system.skills.-=${this.key}`]: null });
+    this.close();
   }
 
   /** @override */
-  getData() {
+  async _prepareContext() {
     const categories = Object.entries(CONFIG.TNO.skillCategories).map(([key, labelKey]) => ({
       key,
       label: game.i18n.localize(labelKey),
@@ -90,16 +90,14 @@ export class TnoCustomSkillDialog extends FormApplication {
     }));
     return {
       isEdit: this.isEdit,
-      name: this.object.name,
-      category: this.object.category,
-      attribute: this.object.attribute,
+      ...this.draft,
       categories,
       abilities,
     };
   }
 
-  /** @override */
-  async _updateObject(event, formData) {
+  /** @this {TnoCustomSkillDialog} */
+  static async #onSubmit(event, form, { object: formData }) {
     const label = (formData.name ?? '').trim();
     if (!label) {
       ui.notifications.warn(game.i18n.localize('TNO.CustomSkill.NameRequired'));
@@ -126,5 +124,6 @@ export class TnoCustomSkillDialog extends FormApplication {
         [`system.skills.${key}`]: { value: 0, xp: 0, lastAttribute: '', custom: { label, category, attribute } },
       });
     }
+    await this.close();
   }
 }

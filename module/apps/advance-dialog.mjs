@@ -1,9 +1,6 @@
-// Namespaced rather than the bare `FormApplication` global, which is
-// deprecated. Still ApplicationV1 — see the V1 apps note in
-// docs/codemap/reference/module-map.md.
-const { FormApplication } = foundry.appv1.api;
-
 import { RANK_MAX, nextRankXpCost, xpProgress } from '../helpers/advancement.mjs';
+
+const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 const SKILL_MIN = 0;
 const ATTRIBUTE_MIN = 1;
@@ -20,9 +17,9 @@ const ATTRIBUTE_MIN = 1;
  * any surplus carries over toward the next rank. The costs come from
  * `helpers/advancement.mjs`.
  *
- * @extends {FormApplication}
+ * @extends {ApplicationV2}
  */
-export class TnoAdvanceDialog extends FormApplication {
+export class TnoAdvanceDialog extends HandlebarsApplicationMixin(ApplicationV2) {
   /**
    * @param {Actor} actor         The actor being advanced.
    * @param {object} options
@@ -33,7 +30,8 @@ export class TnoAdvanceDialog extends FormApplication {
    * @param {number} [options.xp]   Current XP invested toward the next rank.
    */
   constructor(actor, { type, key, label, rank = 0, xp = 0 } = {}) {
-    super({ rank, xp });
+    super();
+    this.draft = { rank, xp };
     this.actor = actor;
     this.type = type;
     this.key = key;
@@ -41,18 +39,26 @@ export class TnoAdvanceDialog extends FormApplication {
   }
 
   /** @override */
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      id: 'tno-advance-dialog',
-      classes: ['tno', 'sheet'],
-      template: 'systems/tno/templates/apps/advance-dialog.hbs',
-      // Room for the correction row: two stepped fields and Übernehmen.
-      width: 400,
-      // The correction stays in the dialog: it closes the correction panel
-      // and shows the corrected progress (see _updateObject).
-      closeOnSubmit: false,
-    });
-  }
+  static DEFAULT_OPTIONS = {
+    tag: 'form',
+    classes: ['tno', 'sheet'],
+    // Room for the correction row: two stepped fields and Übernehmen.
+    position: { width: 400 },
+    // The correction stays in the dialog: it closes the correction panel
+    // and shows the corrected progress (see #onSubmit).
+    form: { handler: TnoAdvanceDialog.#onSubmit, closeOnSubmit: false },
+    actions: {
+      xpInc: TnoAdvanceDialog.#onGuided,
+      xpDec: TnoAdvanceDialog.#onGuided,
+      buy: TnoAdvanceDialog.#onGuided,
+      step: TnoAdvanceDialog.#onStep,
+    },
+  };
+
+  /** @override */
+  static PARTS = {
+    body: { template: 'systems/tno/templates/apps/advance-dialog.hbs' },
+  };
 
   /** @override */
   get title() {
@@ -65,9 +71,8 @@ export class TnoAdvanceDialog extends FormApplication {
   }
 
   /** @override */
-  getData() {
-    const rank = this.object.rank;
-    const xp = this.object.xp;
+  async _prepareContext() {
+    const { rank, xp } = this.draft;
     const { xpCost: cost, xpAtMax: atMax, xpReady, xpPercent } = xpProgress(this.type, rank, xp);
     return {
       label: this.label,
@@ -84,79 +89,58 @@ export class TnoAdvanceDialog extends FormApplication {
     };
   }
 
-  /** @override */
-  activateListeners(html) {
-    super.activateListeners(html);
-
-    html.find('[data-action]').on('click', async (ev) => {
-      ev.preventDefault();
-      const action = ev.currentTarget.dataset.action;
-      // Fold any manual edits to the rank/XP fields back into working state
-      // first, so guided actions build on what the user just typed.
-      this._syncFromForm(html);
-      const step = ev.shiftKey ? 5 : 1;
-
-      if (action === 'xp-inc') {
-        this.object.xp += step;
-      } else if (action === 'xp-dec') {
-        this.object.xp = Math.max(0, this.object.xp - step);
-      } else if (action === 'buy') {
-        const cost = nextRankXpCost(this.type, this.object.rank);
-        if (this.object.rank < RANK_MAX && this.object.xp >= cost) {
-          this.object.rank += 1;
-          // Only the rank's cost is consumed; any surplus XP carries over
-          // toward the next rank.
-          this.object.xp -= cost;
-        }
+  /**
+   * The guided actions: spend or take back XP (Shift: five), or buy the next
+   * rank. They apply immediately — persisted before re-rendering so closing
+   * the dialog never silently drops them.
+   * @this {TnoAdvanceDialog}
+   */
+  static async #onGuided(event, target) {
+    // Fold any manual edits to the rank/XP fields back into working draft
+    // first, so guided actions build on what the user just typed.
+    this._syncFromForm();
+    const step = event.shiftKey ? 5 : 1;
+    const action = target.dataset.action;
+    if (action === 'xpInc') {
+      this.draft.xp += step;
+    } else if (action === 'xpDec') {
+      this.draft.xp = Math.max(0, this.draft.xp - step);
+    } else if (action === 'buy') {
+      const cost = nextRankXpCost(this.type, this.draft.rank);
+      if (this.draft.rank < RANK_MAX && this.draft.xp >= cost) {
+        this.draft.rank += 1;
+        // Only the rank's cost is consumed; any surplus XP carries over
+        // toward the next rank.
+        this.draft.xp -= cost;
       }
-      // Guided actions apply immediately — persist before re-rendering so
-      // closing the dialog never silently drops them.
-      await this._persist();
-      this.render();
-    });
-
-    // The correction steppers only change their field, within its min/max;
-    // Übernehmen saves. Shift steps by 5 like the XP stepper above.
-    html.find('[data-step]').on('click', (ev) => {
-      ev.preventDefault();
-      const input = html.find(`[name="${ev.currentTarget.dataset.step}"]`)[0];
-      if (!input) return;
-      const n = ev.shiftKey ? 5 : 1;
-      if (Number(ev.currentTarget.dataset.delta) > 0) input.stepUp(n);
-      else input.stepDown(n);
-    });
-
-    // A redraw adds or drops the hint line, which the V1 window frame does
-    // not follow by itself.
-    requestAnimationFrame(() => this.setPosition({ height: 'auto' }));
-
-    // Surface native min/max validation on the correction fields instead of
-    // silently clamping on save (see _updateObject).
-    const form = html[0];
-    form?.addEventListener(
-      'submit',
-      (ev) => {
-        if (!form.checkValidity()) {
-          ev.preventDefault();
-          ev.stopPropagation();
-          form.reportValidity();
-        }
-      },
-      true,
-    );
+    }
+    await this._persist();
+    this.render();
   }
 
   /**
-   * Read the editable rank/XP fields into the working object, clamped to their
+   * The correction steppers only change their field, within its min/max;
+   * Übernehmen saves. Shift steps by 5 like the XP stepper.
+   * @this {TnoAdvanceDialog}
+   */
+  static #onStep(event, target) {
+    const input = this.element.querySelector(`[name="${target.dataset.field}"]`);
+    if (!input) return;
+    const n = event.shiftKey ? 5 : 1;
+    if (Number(target.dataset.delta) > 0) input.stepUp(n);
+    else input.stepDown(n);
+  }
+
+  /**
+   * Read the editable rank/XP fields into the working draft, clamped to their
    * valid ranges, so guided-action buttons operate on manual corrections too.
-   * @param {JQuery} html
    * @private
    */
-  _syncFromForm(html) {
-    const rankEl = html.find('[name="rank"]')[0];
-    const xpEl = html.find('[name="xp"]')[0];
-    if (rankEl) this.object.rank = Math.clamp(Math.round(Number(rankEl.value) || 0), this._rankMin, RANK_MAX);
-    if (xpEl) this.object.xp = Math.max(0, Math.round(Number(xpEl.value) || 0));
+  _syncFromForm() {
+    const rankEl = this.element.querySelector('[name="rank"]');
+    const xpEl = this.element.querySelector('[name="xp"]');
+    if (rankEl) this.draft.rank = Math.clamp(Math.round(Number(rankEl.value) || 0), this._rankMin, RANK_MAX);
+    if (xpEl) this.draft.xp = Math.max(0, Math.round(Number(xpEl.value) || 0));
   }
 
   /**
@@ -165,7 +149,7 @@ export class TnoAdvanceDialog extends FormApplication {
    * @private
    */
   async _persist() {
-    const { rank, xp } = this.object;
+    const { rank, xp } = this.draft;
     if (this.type === 'attribute') {
       await this.actor.update({
         [`system.abilities.${this.key}.base`]: rank,
@@ -179,10 +163,18 @@ export class TnoAdvanceDialog extends FormApplication {
     }
   }
 
-  /** @override */
-  async _updateObject(event, formData) {
-    this.object.rank = Math.clamp(Math.round(Number(formData.rank) || 0), this._rankMin, RANK_MAX);
-    this.object.xp = Math.max(0, Math.round(Number(formData.xp) || 0));
+  /**
+   * Übernehmen: save the corrected rank/XP. Out-of-range fields are reported
+   * with the browser's own min/max message instead of silently clamped.
+   * @this {TnoAdvanceDialog}
+   */
+  static async #onSubmit(event, form, { object: formData }) {
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+    this.draft.rank = Math.clamp(Math.round(Number(formData.rank) || 0), this._rankMin, RANK_MAX);
+    this.draft.xp = Math.max(0, Math.round(Number(formData.xp) || 0));
     await this._persist();
     this.render();
   }

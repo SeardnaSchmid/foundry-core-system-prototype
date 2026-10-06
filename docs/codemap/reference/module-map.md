@@ -77,9 +77,9 @@ Entry point, no exports (side-effecting init). See
 | `roll-dialog.mjs` | `TnoRollDialog extends FormApplication` | Skill/ability/free/fixed roll builder |
 | `base-roll-dialog.mjs` | `TnoBaseRollDialog extends HandlebarsApplicationMixin(ApplicationV2)` | Bare 3d20 dialog, no actor/threshold required |
 | `roll-dialog-shared.mjs` | `advantageOptions`, `bindRadioGroup` | Shared button-radiogroup behaviour for roll type and attribute choice, used by both dialogs |
-| `advance-dialog.mjs` | `TnoAdvanceDialog extends FormApplication` | See [advancement.md](../concepts/advancement.md) |
+| `advance-dialog.mjs` | `TnoAdvanceDialog extends HandlebarsApplicationMixin(ApplicationV2)` | See [advancement.md](../concepts/advancement.md) |
 | `heatmap-lab.mjs` | `TnoHeatmapLab extends FormApplication` | See [heatmap.md](../concepts/heatmap.md) |
-| `custom-skill-dialog.mjs` | `TnoCustomSkillDialog extends FormApplication` | Add/edit a custom skill — see [skills.md](../concepts/skills.md) |
+| `custom-skill-dialog.mjs` | `TnoCustomSkillDialog extends HandlebarsApplicationMixin(ApplicationV2)` | Add/edit a custom skill — see [skills.md](../concepts/skills.md) |
 | `custom-skills-overview.mjs` | `TnoCustomSkillsOverview extends FormApplication` | GM-only world-wide custom skill listing |
 | `item-overview.mjs` | `TnoItemOverview extends FormApplication` | GM-only listing of every item in the world, on actors and loose, with where each came from — see [item-roles.md](../concepts/item-roles.md) |
 | `campaign-briefing.mjs` | `TnoCampaignBriefing extends FormApplication`, `TnoCampaignBriefingEditor`, `openCampaignBriefing` | The read-only player board, automatically opened for joining players when enabled; the settings-menu subclass edits the world-owned star map and recap data |
@@ -104,11 +104,13 @@ never receive it. Consequences worth knowing when editing the sheet:
   and `document` refer to the parent window — DOM lookups go through
   `this.element`.
 
-`TnoBaseRollDialog` is on ApplicationV2 too — the first of the apps to move,
-and the pattern for the rest: `tag: 'form'`, a `form.handler` in place of
-`_updateObject()`, `_prepareContext()` and `_onRender()` on `this.element`, and
-part templates without a `<form>` of their own. A V2 id is unique, so callers
-reuse an open instance from `foundry.applications.instances`.
+`TnoBaseRollDialog`, `TnoCustomSkillDialog` and `TnoAdvanceDialog` are on
+ApplicationV2 too, and set the pattern for the rest: `tag: 'form'`, a
+`form.handler` in place of `_updateObject()`, `_prepareContext()`, buttons
+wired through `actions` and `data-action` instead of jQuery, and part templates
+without a `<form>` of their own. A V2 id is unique: the base-dice dialog keeps
+its fixed id and its caller reuses an open instance from
+`foundry.applications.instances`; the per-actor dialogs take no fixed id.
 
 `TnoItemSheet` and every other app under `module/apps/` are still **V1** and
 therefore cannot be detached — a known forward-compat item (see
@@ -119,7 +121,7 @@ They no longer reach for the bare `FormApplication` / `ItemSheet` globals,
 which are deprecated: each takes its base class off `foundry.appv1` at the top
 of its own file. That is a namespacing change only — the classes are still
 ApplicationV1 and still use `getData()`, jQuery `activateListeners(html)` and
-`_updateObject()`. Converting them to ApplicationV2 is roughly 1050 lines
+`_updateObject()`. Converting them to ApplicationV2 is roughly 750 lines
 across the remaining classes with no e2e coverage on any of them, so it wants to be
 its own change with tests in front of it, not a side effect of another one.
 

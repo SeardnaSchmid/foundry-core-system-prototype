@@ -1,4 +1,4 @@
-<form class="tno-custom-skill-dialog flexcol">
+<div class="tno-custom-skill-dialog flexcol">
   <div class="form-group">
     <label>{{localize "TNO.CustomSkill.Name"}}</label>
     <input type="text" name="name" value="{{name}}" required autofocus/>
@@ -24,8 +24,8 @@
 
   <footer class="sheet-footer flexrow">
     {{#if isEdit}}
-    <button type="button" class="custom-skill-delete"><i class="fas fa-trash"></i> {{localize "TNO.CustomSkill.Delete"}}</button>
+    <button type="button" class="custom-skill-delete" data-action="deleteSkill"><i class="fas fa-trash"></i> {{localize "TNO.CustomSkill.Delete"}}</button>
     {{/if}}
     <button type="submit"><i class="fas fa-check"></i> {{localize "TNO.CustomSkill.Save"}}</button>
   </footer>
-</form>
+</div>

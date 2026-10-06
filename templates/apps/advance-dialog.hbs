@@ -1,4 +1,4 @@
-<form class="tno-advance-dialog" autocomplete="off">
+<div class="tno-advance-dialog">
 
   {{!-- Rank step and progress toward it: the bar, the XP invested over the
   cost of that step, and what is still missing. At max rank the bar is full
@@ -30,10 +30,10 @@
   {{#unless atMax}}
     <div class="advance-actions">
       <div class="advance-stepper">
-        <button type="button" data-action="xp-dec" {{#unless canDecXp}}disabled{{/unless}}
+        <button type="button" data-action="xpDec" {{#unless canDecXp}}disabled{{/unless}}
                 aria-label="{{localize 'TNO.AdvanceXpDecHint'}}" title="{{localize 'TNO.AdvanceXpDecHint'}}">−</button>
         <span class="advance-step">1 XP</span>
-        <button type="button" data-action="xp-inc"
+        <button type="button" data-action="xpInc"
                 aria-label="{{localize 'TNO.AdvanceXpIncHint'}}" title="{{localize 'TNO.AdvanceXpIncHint'}}">+</button>
       </div>
       <button type="button" class="advance-buy" data-action="buy" {{#unless canBuy}}disabled{{/unless}} title="{{localize 'TNO.AdvanceBuyHint'}}">
@@ -54,20 +54,20 @@
     </div>
     <div class="advance-correction-row">
       <div class="advance-field">
-        <button type="button" data-step="rank" data-delta="-1" aria-label="{{localize 'TNO.AdvanceCorrectionRankLabel'}} −1">−</button>
+        <button type="button" data-action="step" data-field="rank" data-delta="-1" aria-label="{{localize 'TNO.AdvanceCorrectionRankLabel'}} −1">−</button>
         <label>
           <span>{{localize "TNO.AdvanceCorrectionRankLabel"}}</span>
-          <input type="number" name="rank" value="{{rank}}" min="{{rankMin}}" max="10"/>
+          <input type="number" name="rank" value="{{rank}}" autocomplete="off" min="{{rankMin}}" max="10"/>
         </label>
-        <button type="button" data-step="rank" data-delta="1" aria-label="{{localize 'TNO.AdvanceCorrectionRankLabel'}} +1">+</button>
+        <button type="button" data-action="step" data-field="rank" data-delta="1" aria-label="{{localize 'TNO.AdvanceCorrectionRankLabel'}} +1">+</button>
       </div>
       <div class="advance-field">
-        <button type="button" data-step="xp" data-delta="-1" aria-label="{{localize 'TNO.AdvanceCorrectionXpLabel'}} −1">−</button>
+        <button type="button" data-action="step" data-field="xp" data-delta="-1" aria-label="{{localize 'TNO.AdvanceCorrectionXpLabel'}} −1">−</button>
         <label>
           <span>{{localize "TNO.AdvanceCorrectionXpLabel"}}</span>
-          <input type="number" name="xp" value="{{xp}}" min="0"/>
+          <input type="number" name="xp" value="{{xp}}" autocomplete="off" min="0"/>
         </label>
-        <button type="button" data-step="xp" data-delta="1" aria-label="{{localize 'TNO.AdvanceCorrectionXpLabel'}} +1">+</button>
+        <button type="button" data-action="step" data-field="xp" data-delta="1" aria-label="{{localize 'TNO.AdvanceCorrectionXpLabel'}} +1">+</button>
       </div>
       <button type="submit" class="advance-apply">{{localize "TNO.AdvanceApply"}}</button>
     </div>
@@ -76,4 +76,4 @@
   <footer class="advance-footer">
     <span class="advance-note">{{localize "TNO.AdvanceKeepNote"}}</span>
   </footer>
-</form>
+</div>
