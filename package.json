@@ -26,7 +26,7 @@
   "browserslist": [
     "last 3 versions"
   ],
-  "author": "ZR",
+  "author": "Andreas Schmid",
   "license": "MIT",
   "private": true,
   "devDependencies": {
