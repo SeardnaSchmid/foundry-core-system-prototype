@@ -275,13 +275,12 @@ function criticalResultFor(values, advantage) {
 ---
 
 #### 4. Success Determination
-```javascript
-function determineSuccess(countingDie, threshold, critical) {
-  if (critical === 'criticalSuccess') return true;
-  if (critical === 'criticalFailure') return false;
-  return countingDie <= threshold;
-}
-```
+
+`resolveDice(values, advantage, threshold)` in
+[`helpers/dice.mjs`](../../module/helpers/dice.mjs): a critical decides the
+roll; otherwise the counting die succeeds at or under the threshold. Without a
+threshold (a base roll) only a critical yields an outcome. Both the posted roll
+and the in-place edge rerolls go through it.
 
 ---
 

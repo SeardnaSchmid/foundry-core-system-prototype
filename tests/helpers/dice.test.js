@@ -5,17 +5,10 @@ import {
   pickCountingDie,
   criticalResultFor,
   envelopeLines,
+  resolveDice,
 } from '../../module/helpers/dice.mjs';
 
-function determineSuccess(countingDie, threshold, critical) {
-  if (critical === 'criticalSuccess') return true;
-  if (critical === 'criticalFailure') return false;
-  return countingDie <= threshold;
-}
-
-function calculateThreshold(attribute, ability, modifier) {
-  return attribute + ability + modifier;
-}
+const successOf = (values, advantage, threshold) => resolveDice(values, advantage, threshold).success;
 
 describe('Tno Dice System', () => {
   describe('dieCountFor', () => {
@@ -215,51 +208,29 @@ describe('Tno Dice System', () => {
     });
   });
 
-  describe('calculateThreshold', () => {
-    it('TH1: should calculate 5 + 6 + 3 = 14', () => {
-      expect(calculateThreshold(5, 6, 3)).toBe(14);
+  describe('resolveDice', () => {
+    it('succeeds when the counting die equals or undercuts the threshold', () => {
+      expect(successOf([14, 2, 19], TNO_ADVANTAGE.none, 14)).toBe(true);
+      expect(successOf([12, 2, 19], TNO_ADVANTAGE.none, 14)).toBe(true);
+      expect(successOf([15, 2, 19], TNO_ADVANTAGE.none, 14)).toBe(false);
     });
 
-    it('TH2: should calculate 5 + 6 - 3 = 8', () => {
-      expect(calculateThreshold(5, 6, -3)).toBe(8);
+    it('lets a critical decide whatever the threshold', () => {
+      expect(resolveDice([1, 1, 15], TNO_ADVANTAGE.none, 0)).toMatchObject({ success: true, outcome: 'criticalSuccess' });
+      expect(resolveDice([20, 20, 5], TNO_ADVANTAGE.none, 20)).toMatchObject({ success: false, outcome: 'criticalFailure' });
     });
 
-    it('TH3: should calculate 5 + 6 + 0 = 11', () => {
-      expect(calculateThreshold(5, 6, 0)).toBe(11);
+    it('gives a base roll without a threshold no outcome but a critical', () => {
+      expect(resolveDice([5, 10, 15], TNO_ADVANTAGE.none)).toMatchObject({ success: null, outcome: null });
+      expect(resolveDice([1, 1, 15], TNO_ADVANTAGE.none)).toMatchObject({ success: true, outcome: 'criticalSuccess' });
     });
 
-    it('TH4: should calculate 5 + 6 + 6 = 17', () => {
-      expect(calculateThreshold(5, 6, 6)).toBe(17);
-    });
-
-    it('should handle zero attribute', () => {
-      expect(calculateThreshold(0, 5, 3)).toBe(8);
-    });
-
-    it('should handle negative modifiers', () => {
-      expect(calculateThreshold(10, 5, -6)).toBe(9);
-    });
-  });
-
-  describe('determineSuccess', () => {
-    it('should return true for critical success regardless of threshold', () => {
-      expect(determineSuccess(20, 5, 'criticalSuccess')).toBe(true);
-    });
-
-    it('should return false for critical failure regardless of threshold', () => {
-      expect(determineSuccess(1, 20, 'criticalFailure')).toBe(false);
-    });
-
-    it('should return true when counting die equals threshold', () => {
-      expect(determineSuccess(14, 14, null)).toBe(true);
-    });
-
-    it('should return true when counting die is below threshold', () => {
-      expect(determineSuccess(12, 14, null)).toBe(true);
-    });
-
-    it('should return false when counting die is above threshold', () => {
-      expect(determineSuccess(15, 14, null)).toBe(false);
+    it('draws the dice sorted with the counting die marked', () => {
+      expect(resolveDice([19, 8, 12], TNO_ADVANTAGE.none, 10).dice).toEqual([
+        { value: 8, isCounted: false },
+        { value: 12, isCounted: true },
+        { value: 19, isCounted: false },
+      ]);
     });
   });
 
@@ -271,7 +242,7 @@ describe('Tno Dice System', () => {
 
       const counting = pickCountingDie(values, advantage);
       const critical = criticalResultFor(values, advantage);
-      const success = determineSuccess(counting.value, threshold, critical);
+      const { success } = resolveDice(values, advantage, threshold);
 
       expect(counting.value).toBe(12);
       expect(critical).toBeNull();
@@ -285,7 +256,7 @@ describe('Tno Dice System', () => {
 
       const counting = pickCountingDie(values, advantage);
       const critical = criticalResultFor(values, advantage);
-      const success = determineSuccess(counting.value, threshold, critical);
+      const { success } = resolveDice(values, advantage, threshold);
 
       expect(counting.value).toBe(15);
       expect(critical).toBeNull();
@@ -298,7 +269,7 @@ describe('Tno Dice System', () => {
       const advantage = TNO_ADVANTAGE.none;
 
       const critical = criticalResultFor(values, advantage);
-      const success = determineSuccess(0, threshold, critical);
+      const { success } = resolveDice(values, advantage, threshold);
 
       expect(critical).toBe('criticalSuccess');
       expect(success).toBe(true);
@@ -310,7 +281,7 @@ describe('Tno Dice System', () => {
       const advantage = TNO_ADVANTAGE.none;
 
       const critical = criticalResultFor(values, advantage);
-      const success = determineSuccess(0, threshold, critical);
+      const { success } = resolveDice(values, advantage, threshold);
 
       expect(critical).toBe('criticalFailure');
       expect(success).toBe(false);
@@ -323,7 +294,7 @@ describe('Tno Dice System', () => {
 
       const counting = pickCountingDie(values, advantage);
       const critical = criticalResultFor(values, advantage);
-      const success = determineSuccess(counting.value, threshold, critical);
+      const { success } = resolveDice(values, advantage, threshold);
 
       expect(counting.value).toBe(8);
       expect(critical).toBeNull();
@@ -337,7 +308,7 @@ describe('Tno Dice System', () => {
 
       const counting = pickCountingDie(values, advantage);
       const critical = criticalResultFor(values, advantage);
-      const success = determineSuccess(counting.value, threshold, critical);
+      const { success } = resolveDice(values, advantage, threshold);
 
       expect(counting.value).toBe(15);
       expect(critical).toBeNull();
@@ -355,32 +326,28 @@ describe('Tno Dice System', () => {
     it('should handle threshold of 1 (almost always fails)', () => {
       const values = [5, 10, 15];
       const threshold = 1;
-      const counting = pickCountingDie(values, TNO_ADVANTAGE.none);
-      const success = determineSuccess(counting.value, threshold, null);
+      const success = successOf(values, TNO_ADVANTAGE.none, threshold);
       expect(success).toBe(false);
     });
 
     it('should handle threshold of 20 (almost always succeeds)', () => {
       const values = [5, 10, 15];
       const threshold = 20;
-      const counting = pickCountingDie(values, TNO_ADVANTAGE.none);
-      const success = determineSuccess(counting.value, threshold, null);
+      const success = successOf(values, TNO_ADVANTAGE.none, threshold);
       expect(success).toBe(true);
     });
 
     it('should handle zero threshold', () => {
       const values = [5, 10, 15];
       const threshold = 0;
-      const counting = pickCountingDie(values, TNO_ADVANTAGE.none);
-      const success = determineSuccess(counting.value, threshold, null);
+      const success = successOf(values, TNO_ADVANTAGE.none, threshold);
       expect(success).toBe(false);
     });
 
     it('should handle negative threshold', () => {
       const values = [5, 10, 15];
       const threshold = -5;
-      const counting = pickCountingDie(values, TNO_ADVANTAGE.none);
-      const success = determineSuccess(counting.value, threshold, null);
+      const success = successOf(values, TNO_ADVANTAGE.none, threshold);
       expect(success).toBe(false);
     });
 

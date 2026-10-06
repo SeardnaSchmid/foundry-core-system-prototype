@@ -283,7 +283,7 @@ function buildTracker(data, actor) {
  * @param {object} data  The message's flags.tno.
  * @returns {boolean}
  */
-function xpClaimEligible(data) {
+export function xpClaimEligible(data) {
   if (!data.skillKey) return false;
   if (data.edge?.xpClaim?.claimed) return false;
   if (data.edge?.consumed) return false;
@@ -315,7 +315,7 @@ function buildXpOptions(data) {
  * @param {Actor} actor
  * @returns {Array<{label: string|null, options: Array<object>}>}
  */
-function buildEdgeGroups(data, actor) {
+export function buildEdgeGroups(data, actor) {
   const groups = [];
   const reserve = actor.system.derived?.edgePool ?? 0;
   const reserveMax = actor.system.derived?.edgePoolMax ?? 0;

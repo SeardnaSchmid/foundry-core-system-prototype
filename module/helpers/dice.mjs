@@ -166,6 +166,29 @@ export function criticalResultFor(values, advantage) {
  *   kept on the card and in the flags only when the roll actually failed.
  * @returns {Promise<{roll: Roll, success: boolean|null, message: ChatMessage}>}
  */
+/**
+ * Read thrown dice: the counting die, whether the roll succeeded, its outcome,
+ * and the dice as the card draws them (sorted, counting die marked). A landed
+ * critical decides the roll whatever the threshold; a base roll (no threshold)
+ * has nothing else to succeed or fail against, so only a critical counts.
+ * @param {number[]} values      The d20 results, in the order thrown
+ * @param {number} advantage     One of the TNO_ADVANTAGE values
+ * @param {number|null} [threshold]
+ * @returns {{counting: {value: number, index: number}, success: boolean|null,
+ *   outcome: string|null, dice: {value: number, isCounted: boolean}[]}}
+ */
+export function resolveDice(values, advantage, threshold = null) {
+  const counting = pickCountingDie(values, advantage);
+  const critical = criticalResultFor(values, advantage);
+  const hasThreshold = threshold !== null;
+  const success = critical ? critical === 'criticalSuccess' : hasThreshold ? counting.value <= threshold : null;
+  const outcome = critical ?? (hasThreshold ? (success ? 'success' : 'failure') : null);
+  const dice = values
+    .map((value, index) => ({ value, isCounted: index === counting.index }))
+    .sort((a, b) => a.value - b.value);
+  return { counting, success, outcome, dice };
+}
+
 export async function rollTno({
   threshold = null,
   advantage = TNO_ADVANTAGE.none,
@@ -182,21 +205,8 @@ export async function rollTno({
   await roll.evaluate();
 
   const values = roll.terms[0].results.map((r) => r.result);
-  const counting = pickCountingDie(values, advantage);
-  const critical = criticalResultFor(values, advantage);
-
-  // A base roll (no threshold) has nothing to evaluate success/failure
-  // against — only a landed critical still counts as an outcome.
+  const { counting, success, outcome, dice } = resolveDice(values, advantage, threshold);
   const hasThreshold = threshold !== null;
-  const success = critical ? critical === 'criticalSuccess' : hasThreshold ? counting.value <= threshold : null;
-  const outcome = critical ?? (hasThreshold ? (success ? 'success' : 'failure') : null);
-
-  const dice = values
-    .map((value, index) => ({
-      value,
-      isCounted: index === counting.index,
-    }))
-    .sort((a, b) => a.value - b.value);
 
   const advantageKey = Object.keys(TNO_ADVANTAGE).find((key) => TNO_ADVANTAGE[key] === advantage);
 
@@ -393,13 +403,7 @@ async function rollInPlace(advantage, threshold) {
   }
 
   const values = roll.terms[0].results.map((r) => r.result);
-  const counting = pickCountingDie(values, advantage);
-  const critical = criticalResultFor(values, advantage);
-  const success = critical ? critical === 'criticalSuccess' : counting.value <= threshold;
-  const outcome = critical ?? (success ? 'success' : 'failure');
-  const dice = values
-    .map((value, index) => ({ value, isCounted: index === counting.index }))
-    .sort((a, b) => a.value - b.value);
+  const { counting, success, outcome, dice } = resolveDice(values, advantage, threshold);
 
   return { values, counting, success, outcome, dice, countingValue: counting.value };
 }
